@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Big Konfigurator - Stückliste</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+    <!-- HOME VIEW (LANDING PAGE) -->
+    <section id="homeView" class="view active-view">
+        <header class="dashboard-header loose-header">
+            <div class="logo">
+                <i class="ri-grid-fill" style="font-size: 1.5rem;"></i>
+                <span style="font-size: 1.4rem;">SanitasTroesch <strong>Big Konfigurator</strong></span>
+            </div>
+        </header>
+
+        <main class="landing-container">
+            <div class="landing-hero">
+                <h1>Produktkategorien</h1>
+                <p>Wählen Sie eine Produktkategorie, um eine Stückliste zu konfigurieren.</p>
+            </div>
+            
+            <div class="category-grid" id="categoryGrid">
+                <!-- Javascript populates the main categories and subcategories here -->
+            </div>
+        </main>
+    </section>
+
+
+    <!-- CONFIGURATOR VIEW (DASHBOARD) -->
+    <section id="configView" class="view hidden-view">
+        <header class="dashboard-header">
+            <div class="header-left-tools" style="display: flex; align-items: center; gap: 1rem;">
+                <button class="icon-btn highlight-btn" id="backHomeBtn">
+                    <i class="ri-arrow-left-s-line"></i> Zurück zur Übersicht
+                </button>
+                <div class="logo">
+                    <span id="currentConfigBreadcrumb" style="color: var(--text-secondary); font-size: 0.9rem;">
+                        Big Konfigurator / Bad / <strong style="color: #fff">Bademischer</strong>
+                    </span>
+                </div>
+            </div>
+            <div class="header-tools">
+                <span class="status-indicator">System bereit</span>
+                <button class="icon-btn" id="printBtn"><i class="ri-printer-line"></i> Liste drucken</button>
+                <button class="icon-btn" id="copyBtn"><i class="ri-clipboard-line"></i> Artikelnummern kopieren</button>
+            </div>
+        </header>
+
+        <main class="dashboard-layout">
+            <aside class="config-sidebar" id="configSidebar">
+                <!-- App Engine injects specific sidebar modules here (Product Cards, Selectors, Alerts) -->
+            </aside>
+
+            <section class="bom-section">
+                <div class="bom-header">
+                    <h2><i class="ri-file-list-3-fill"></i> Stückliste (BOM)</h2>
+                    <span class="bom-count" id="bomCount">2 Artikel benötigt</span>
+                </div>
+
+                <div class="table-container">
+                    <table class="bom-table">
+                        <thead>
+                            <tr>
+                                <th width="80">Vorschau</th>
+                                <th width="150">Artikelnummer (Art-Nr)</th>
+                                <th>Beschreibung</th>
+                                <th width="120">Typ</th>
+                                <th width="80">Menge</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bomTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="action-footer">
+                    <p>Generiert für SAP ALV-Grid-Eingabe. Stellen Sie sicher, dass alle aufgelisteten Komponenten bestellt werden.</p>
+                </div>
+            </section>
+        </main>
+    </section>
+
+    <script src="app.js"></script>
+</body>
+</html>
