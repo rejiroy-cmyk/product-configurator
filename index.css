@@ -18,11 +18,45 @@
     box-sizing: border-box;
 }
 
+/* Custom Scrollbars for Dark Theme — Always Visible */
+/* Forces Chrome on macOS to show scrollbars instead of using invisible overlay mode */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+    -webkit-appearance: none; /* Force custom scrollbar in Chrome/macOS */
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-base);
+    border-radius: 0;
+}
+::-webkit-scrollbar-thumb {
+    background: #555e70;
+    border-radius: 5px;
+    border: 2px solid var(--bg-base);
+    min-height: 40px; /* Ensure thumb is always grabbable */
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+::-webkit-scrollbar-thumb:active {
+    background: var(--accent);
+}
+::-webkit-scrollbar-corner {
+    background: var(--bg-base);
+}
+
+/* Firefox scrollbar support */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #555e70 var(--bg-base);
+}
+
 body {
     font-family: var(--font-family);
     background-color: var(--bg-base);
     color: var(--text-primary);
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
 /* VIEW ROUTING */
@@ -107,7 +141,15 @@ body {
     border-color: var(--accent);
 }
 
-/* --- HOME VIEW (LANDING PAGE) --- */
+/* BASE UTILITIES */
+.table-container { 
+    background: var(--bg-surface); 
+    border: 1px solid var(--border); 
+    border-radius: var(--radius); 
+    overflow: hidden; 
+}
+
+/* Reordered from later in the file to prevent overrides */
 .landing-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -222,6 +264,7 @@ body {
     display: grid;
     grid-template-columns: 350px 1fr;
     height: calc(100vh - 65px);
+    overflow: hidden; /* Prevents the whole layout from scrolling, forces children to handle it */
 }
 
 .config-sidebar {
@@ -229,6 +272,7 @@ body {
     border-right: 1px solid var(--border);
     padding: 1.5rem;
     overflow-y: auto;
+    height: 100%; /* Ensure it fills the dashboard-layout height */
 }
 
 .sidebar-section { margin-bottom: 2.5rem; }
@@ -283,13 +327,29 @@ body {
 .alert-box strong { color: #ffb74d; display: block; margin-bottom: 0.25rem; }
 .alert-box i { color: #ff9800; font-size: 1.25rem; }
 
-.bom-section { padding: 2rem; display: flex; flex-direction: column; overflow-y: auto; }
+.bom-section { 
+    padding: 2rem; 
+    display: flex; 
+    flex-direction: column; 
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 100%; 
+}
+.bom-table-wrapper { 
+    flex: 1; 
+    min-height: 0; 
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: 1px solid var(--border); 
+    border-radius: var(--radius); 
+}
 .bom-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
 .bom-header h2 { font-size: 1.4rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; }
 .bom-header h2 i { color: var(--accent); }
 .bom-count { background: var(--bg-surface); border: 1px solid var(--border); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; }
 
-.table-container { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+
+/* .table-container moved to top */
 .bom-table { width: 100%; border-collapse: collapse; text-align: left; }
 .bom-table th, .bom-table td { padding: 1rem; border-bottom: 1px solid var(--border); }
 .bom-table th { background-color: var(--bg-subtle); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); font-weight: 500; }
@@ -304,3 +364,250 @@ body {
 .img-cell img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
 .action-footer { margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-secondary); text-align: center; }
+
+/* --- FILTER SYSTEM STYLES --- */
+.filter-group {
+    margin-bottom: 1rem;
+}
+
+.filter-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.filter-select {
+    width: 100%;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    padding: 0.75rem;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 0.95rem;
+    outline: none;
+    transition: 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239da3ad' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+}
+
+.filter-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-fade);
+}
+
+.badge {
+    background: var(--accent);
+    color: #000;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.search-results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-right: 0.5rem;
+    overflow: auto; /* Dedicated scrolling for large result sets */
+    max-height: 400px; /* Constrain search list height */
+    border: 1px solid transparent; 
+}
+
+.search-results-container::-webkit-scrollbar {
+    width: 6px;
+}
+.search-results-container::-webkit-scrollbar-track {
+    background: var(--bg-base);
+    border-radius: 10px;
+}
+.search-results-container::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+}
+
+.result-item-btn {
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.result-item-btn:hover {
+    background: var(--bg-subtle);
+    border-color: var(--text-secondary);
+}
+
+.result-item-btn.active {
+    background: var(--accent-fade);
+    border-color: var(--accent);
+}
+
+.result-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.result-info strong {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.result-meta {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.no-results {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 2rem 1rem;
+    background: var(--bg-base);
+    border-radius: var(--radius);
+    border: 1px dashed var(--border);
+}
+
+/* --- ADMIN VIEW STYLES --- */
+.admin-sidebar {
+    border-right: 1px solid var(--border);
+}
+
+.admin-main-section {
+    padding: 2rem;
+    overflow-y: auto; /* Ensure this scrolls even if .bom-section inherited class doesn't */
+    height: 100%;
+}
+
+.admin-input {
+    width: 100%;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    outline: none;
+    transition: 0.2s;
+}
+
+.admin-input:focus {
+    border-color: var(--accent);
+}
+
+.admin-table-wrapper {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: auto; /* Enable both horizontal and vertical scrolling */
+    max-height: 70vh; /* Prevent it from being infinitely long */
+}
+
+.admin-table-wrapper h3 {
+    padding: 1rem;
+    font-size: 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-subtle);
+}
+
+.btn-danger {
+    color: #f44336;
+    border-color: rgba(244, 67, 54, 0.3);
+}
+
+.btn-danger:hover {
+    background: rgba(244, 67, 54, 0.1);
+    border-color: #f44336;
+}
+
+.btn-success {
+    color: #4caf50;
+    border-color: rgba(76, 175, 80, 0.3);
+    margin: 1rem;
+}
+
+.btn-success:hover {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: #4caf50;
+}
+
+/* --- ADMIN EDIT MODAL --- */
+.admin-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.2s ease;
+}
+
+.admin-modal-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.admin-modal-content {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    width: 500px;
+    max-width: 90vw;
+    max-height: 90vh; /* Added constraint */
+    display: flex; /* Flex layout for header/body/footer */
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    transform: translateY(20px);
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.admin-modal-overlay.active .admin-modal-content {
+    transform: translateY(0);
+}
+
+.admin-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.admin-modal-header h3 { font-size: 1.2rem; }
+.admin-modal-close { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.2rem; }
+.admin-modal-close:hover { color: #fff; }
+
+.modal-body { 
+    flex: 1; /* Take up available space */
+    min-height: 0; /* Important for flex-item to scroll */
+    display: flex; 
+    flex-direction: column; 
+    gap: 1rem; 
+    overflow-y: auto; /* Enable scrolling */
+    padding-right: 0.5rem; /* Space for scrollbar */
+}
+.modal-footer { margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem; }

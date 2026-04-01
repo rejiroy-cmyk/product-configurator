@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Big Konfigurator - Stückliste</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="index.css?v=1.0.2">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
+
 <body>
 
     <!-- HOME VIEW (LANDING PAGE) -->
@@ -17,6 +23,9 @@
                 <i class="ri-grid-fill" style="font-size: 1.5rem;"></i>
                 <span style="font-size: 1.4rem;">SanitasTroesch <strong>Big Konfigurator</strong></span>
             </div>
+            <div class="header-tools">
+                <button class="icon-btn" id="openAdminBtn"><i class="ri-settings-3-line"></i> Admin Mode</button>
+            </div>
         </header>
 
         <main class="landing-container">
@@ -24,7 +33,7 @@
                 <h1>Produktkategorien</h1>
                 <p>Wählen Sie eine Produktkategorie, um eine Stückliste zu konfigurieren.</p>
             </div>
-            
+
             <div class="category-grid" id="categoryGrid">
                 <!-- Javascript populates the main categories and subcategories here -->
             </div>
@@ -63,7 +72,7 @@
                     <span class="bom-count" id="bomCount">2 Artikel benötigt</span>
                 </div>
 
-                <div class="table-container">
+                <div class="table-container bom-table-wrapper">
                     <table class="bom-table">
                         <thead>
                             <tr>
@@ -81,12 +90,106 @@
                 </div>
 
                 <div class="action-footer">
-                    <p>Generiert für SAP ALV-Grid-Eingabe. Stellen Sie sicher, dass alle aufgelisteten Komponenten bestellt werden.</p>
+                    <p>Generiert für SAP ALV-Grid-Eingabe. Stellen Sie sicher, dass alle aufgelisteten Komponenten
+                        bestellt werden.</p>
                 </div>
             </section>
         </main>
     </section>
 
-    <script src="app.js"></script>
+    <!-- ADMIN VIEW -->
+    <section id="adminView" class="view hidden-view">
+        <header class="dashboard-header">
+            <div class="header-left-tools" style="display: flex; align-items: center; gap: 1rem;">
+                <button class="icon-btn highlight-btn" id="exitAdminBtn">
+                    <i class="ri-arrow-left-s-line"></i> Zurück zum Konfigurator
+                </button>
+
+                <div class="logo">
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;">
+                        Big Konfigurator / <strong style="color: #fff">Admin Panel</strong>
+                    </span>
+                </div>
+            </div>
+            <div class="header-tools">
+                <button class="icon-btn highlight-btn" id="resetAdminBtn"
+                    style="background: #ef5350; color: #fff; border: none; font-weight: 500; margin-right: 0.5rem;"
+                    title="Löscht alle selbst angelegten Daten dieser Kategorie.">
+                    <i class="ri-delete-bin-line"></i> Category Reset
+                </button>
+                <button class="icon-btn highlight-btn" id="resetAllAdminBtn"
+                    style="background: #c62828; color: #fff; border: none; font-weight: 500; margin-right: 1.5rem;"
+                    title="Löscht ALLE lokal gespeicherten Daten und lädt den Standard aus app.js.">
+                    <i class="ri-refresh-line"></i> Reset All (Sync with app.js)
+                </button>
+                <button class="icon-btn highlight-btn" id="saveAdminBtn"
+                    style="background: var(--accent); color: #000; border: none; font-weight: 500;">
+                    <i class="ri-save-3-line"></i> Änderungen Speichern
+                </button>
+            </div>
+        </header>
+
+        <main class="dashboard-layout">
+            <aside class="config-sidebar admin-sidebar">
+                <div class="sidebar-section">
+                    <h2>Kategorie wählen</h2>
+                    <p class="section-desc">Wählen Sie das Modul aus, das Sie bearbeiten möchten.</p>
+                    <div class="finish-buttons-grid" id="adminAppSelector">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </aside>
+
+            <section class="admin-main-section bom-section">
+                <div class="bom-header" style="flex-wrap: wrap; gap: 1rem;">
+                    <h2><i class="ri-database-2-fill"></i> Daten Editor: <span id="adminCurrentAppName"
+                            style="color:#fff;">Keine Auswahl</span></h2>
+
+                    <div class="admin-actions" style="display: flex; gap: 0.5rem; align-items:center;">
+                        <span style="font-size:0.85rem; color: #fff;">Schnell-Import:</span>
+                        <input type="file" id="uploadCsvInput"
+                            accept=".csv, text/csv, application/csv, text/plain, .txt" class="admin-input"
+                            style="display:none; width: auto; background: var(--bg-surface);">
+
+                        <span style="margin: 0 1rem; color: var(--border);">|</span>
+
+                        <button class="icon-btn" id="downloadExcelBtn" style="display:none;"><i
+                                class="ri-file-excel-2-line"></i> Template</button>
+                        <input type="file" id="uploadExcelInput" accept=".xlsx, .xls" style="display:none;">
+                        <button class="icon-btn highlight-btn" id="uploadExcelBtn" style="display:none;"><i
+                                class="ri-upload-2-line"></i> Upload .xlsx</button>
+                    </div>
+                </div>
+
+                <div class="table-container admin-editor-container" id="adminEditorArea"
+                    style="padding: 1.5rem; min-height: 400px; display: flex; flex-direction: column; gap: 1.5rem;">
+                    <p style="color: var(--text-secondary); text-align: center; margin-top: 2rem;">Bitte wählen Sie eine
+                        Kategorie links aus.</p>
+                </div>
+            </section>
+        </main>
+    </section>
+
+    <!-- ADMIN EDIT MODAL OVERLAY -->
+    <div class="admin-modal-overlay" id="adminEditModal">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h3><i class="ri-edit-2-line"></i> Produkt Bearbeiten</h3>
+                <button class="admin-modal-close" onclick="closeAdminEditModal()"><i class="ri-close-line"></i></button>
+            </div>
+
+            <div class="modal-body" id="adminEditModalBody">
+                <!-- Injected via JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="icon-btn" onclick="closeAdminEditModal()">Abbrechen</button>
+                <button class="icon-btn highlight-btn" id="saveEditModalBtn"
+                    style="background: var(--accent); color: #000; border: none;">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=1.0.2"></script>
 </body>
+
 </html>
