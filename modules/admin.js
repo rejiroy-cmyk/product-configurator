@@ -1699,7 +1699,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                 if (cat.name === 'Ablaufdeckel' && modelRule && !modelRule.deckel) return;
 
                 // Calima Logic: If tray is Calima, skip Groups 1 and 2
-                if (labelLower.includes('calima') && (cat.group === 'wannenträger' || cat.group === 'montagerahmen')) return;
+                if (labelLower.includes('calima') && cat.group === 'montagerahmen') return;
 
                 // Swiss Line Logic: If tray is Swiss Line, ONLY inject the Montageset
                 if (labelLower.includes('swiss line') && cat.name !== 'Montageset') return;
