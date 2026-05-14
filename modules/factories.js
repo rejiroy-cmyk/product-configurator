@@ -194,42 +194,94 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             trays: [],
             mainImgUrl: mainImgUrl,
             selectedTray: null,
-            extractSerie: function (t) {
-                if (t.serie) return t.serie;
-                let cleaned = t.label || '';
-                if (t.manufacturer && cleaned.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                    cleaned = cleaned.substring(t.manufacturer.length).trim();
-                }
-                const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-| \d+)/);
-                let serie = match && match[1] ? match[1].trim() : cleaned.trim();
+            normalizeSerie: function (label, manufacturer = '') {
+                let s = String(label || '').toLowerCase().trim();
+                const m = String(manufacturer || '').toLowerCase();
                 
-                // Strip redundant basin/wanne type prefixes from series names
-                const prefixes = [
-                    'Doppelwaschtisch', 'Möbelwaschtisch', 'Aufsatzwaschtisch', 
-                    'Waschtisch', 'Handwaschbecken', 'Einbaubecken', 'Wandbecken',
-                    'Waschtischanlage', 'Aufsatzbecken', 'Waschbecken',
-                    'Duschenwanne', 'Duschwanne', 'Badewanne', 'Duschfläche', 'Wanne'
-                ];
-                for (const prefix of prefixes) {
-                    if (serie.toLowerCase().startsWith(prefix.toLowerCase())) {
-                        serie = serie.substring(prefix.length).trim();
-                        if (serie.startsWith('-') || serie.startsWith('/')) serie = serie.substring(1).trim();
-                        // Strip manufacturer name again if it appears after the prefix (e.g. "Duschwanne Kaldewei...")
-                        if (t.manufacturer && serie.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                            serie = serie.substring(t.manufacturer.length).trim();
-                        }
+                // Remove leading junk and prefixes
+                s = s.replace(/^[-\s/]+/, '')
+                     .replace(/^-?\s*endmontageset\b/, '')
+                     .replace(/^-?\s*fertigmontageset\b/, '')
+                     .replace(/^[-\s/]+/, '');
+
+                if (m && s.startsWith(m)) s = s.slice(m.length).trim();
+                if (m) s = s.replace(new RegExp(`\\b${m.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'), '').trim();
+
+                // Advanced cleaning
+                s = s.replace(/^[-\s/]+/, '')
+                     .replace(/\babdeckplatte\b.*$/i, '')
+                     .replace(/\bdurchflussleistung\b.*$/i, '')
+                     .replace(/\bohne einbaukörper\b.*$/i, '')
+                     .replace(/\benergieeffizienzklasse\b.*$/i, '')
+                     .replace(/\bgeräuschgruppe\b.*$/i, '')
+                     .replace(/\barmhebel\b.*$/i, '')
+                     .replace(/\bselbstschliessend\b.*$/i, '')
+                     .replace(/\btemperaturgriff\b.*$/i, '')
+                     .replace(/^thermostat\s+/i, '')
+                     .replace(/\s+½["”]?\s+thermostat\b.*$/i, '')
+                     .replace(/\s+thermostat\b.*$/i, '')
+                     .replace(/\bmit sicherheitstaste\b.*$/i, '')
+                     .replace(/\b1-weg\b.*$/i, '')
+                     .replace(/\s+½["”]?$/i, '')
+                     .replace(/\bav\.0\b/g, 'Ava 2.0')
+                     .replace(/\bvit\.0\b/g, 'Vita 2.0')
+                     .replace(/\s*,\s*$/g, '')
+                     .replace(/\s+/g, ' ')
+                     .trim();
+
+                if (!s) return 'Andere';
+
+                // CamelCase formatting
+                return s.split(' ').map(word => {
+                    if (/^kwc$/i.test(word)) return 'KWC';
+                    if (/^\d/.test(word)) return word;
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                }).join(' ');
+            },
+            extractSerie: function (t) {
+                if (t.serie) return this.normalizeSerie(t.serie, t.manufacturer);
+                
+                const typeKeywords = ["aufputz-duschenmischer", "unterputz-duschenmischer", "duschenmischer", "duschmischer", "aufputz-bademischer", "unterputz-bademischer", "bademischer", "waschtischmischer", "thermostatmischer", "thermostat-duschenmischer", "einhebelmischer", "einlochmischer", "mischer"];
+                let label = (t.label || '').toLowerCase();
+                
+                if (t.manufacturer) {
+                    const m = t.manufacturer.toLowerCase();
+                    if (label.startsWith(m)) label = label.slice(m.length).trim();
+                }
+
+                for (const kw of typeKeywords) {
+                    if (label.startsWith(kw)) {
+                        label = label.slice(kw.length).trim();
                         break;
                     }
                 }
+
+                label = label.replace(/-?endmontageset/g, '').replace(/-?fertigmontageset/g, '').trim();
                 
-                // Final safety: if manufacturer is still at front, strip it
-                if (t.manufacturer && serie.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                    serie = serie.substring(t.manufacturer.length).trim();
+                if (t.manufacturer) {
+                    const m = t.manufacturer.toLowerCase();
+                    if (label.startsWith(m)) label = label.slice(m.length).trim();
                 }
 
-                return serie || 'Andere';
-
-                return serie || 'Andere';
+                const match = label.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm|\s+\d+\s*x\s*\d+)/);
+                let serie = match && match[1] ? match[1].trim() : label.trim();
+                
+                return this.normalizeSerie(serie, t.manufacturer);
+            },
+            extractMontage: function (t) {
+                const l = (t.label || '').toLowerCase();
+                const isBath = title.toLowerCase().includes('badewanne') || title.toLowerCase().includes('wanne');
+                
+                if (l.includes('unterputz') || l.includes(' up ') || l.includes('einbau') || l.includes('endmontageset') || l.includes('grundkörper')) {
+                    return 'Unterputz';
+                }
+                if (l.includes('aufputz') || l.includes(' ap ') || l.includes('wandbatterie') || l.includes('wandmischer') || l.includes('ad 153 mm')) {
+                    return 'Aufputz';
+                }
+                if (isBath && (l.includes('standmodell') || l.includes('freistehend'))) {
+                    return 'Standmodell';
+                }
+                return 'Aufputz';
             },
             getUniqueValues: function (key) {
                 if (key === 'serie') {
@@ -271,7 +323,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         return 'standmodell';
                     }
                     if (lblLower.includes('einbaukörper') || lblLower.includes('grundkörper') || lblLower.includes('ibox') || lblLower.includes('up-gehäuse')) {
-                        return 'common'; 
+                        return 'unterputz'; 
                     }
                     if (lblLower.includes('endmontage') || lblLower.includes('einbau') || lblLower.includes('anschlussbogen') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
                         return 'unterputz';
@@ -623,6 +675,21 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     if (this.currentMontageart !== 'alle' && this.currentMontageart !== 'all') {
                         const m = this.classifyAccessory(t);
                         if (m !== 'common' && m !== this.currentMontageart) return false;
+                        
+                        // For trays/products that are 'common' themselves, check their accessories
+                        if (m === 'common') {
+                            let hasMatchingAccessory = false;
+                            if (t.mountingMaterials) {
+                                t.mountingMaterials.forEach(mat => {
+                                    if (mat.options && mat.options[0]) {
+                                        if (this.classifyAccessory(mat.options[0]) === this.currentMontageart) {
+                                            hasMatchingAccessory = true;
+                                        }
+                                    }
+                                });
+                            }
+                            if (!hasMatchingAccessory && t.mountingMaterials && t.mountingMaterials.length > 0) return false;
+                        }
                     }
                     
                     return true;
@@ -2052,7 +2119,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
 
                 <div id="trayConfigurator_${suffix}" class="tray-configurator" style="display: none; margin-top: 2rem;">
                     <h3><i class="ri-settings-3-line"></i> Konfiguration</h3>
-                    <div class="config-block" id="trayConfigBlock_${suffix}"></div>
+                    <div class="config-block" id="trayConfiguratorInner_${suffix}"></div>
                 </div>
             `;
         },
@@ -5688,8 +5755,6 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 }
 
                 return serie || 'Andere';
-
-                return serie || 'Andere';
             },
             getUniqueValues: function (key) {
                 if (key === 'serie') {
@@ -6091,6 +6156,21 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     if (this.currentMontageart !== 'alle' && this.currentMontageart !== 'all') {
                         const m = this.classifyAccessory(t);
                         if (m !== 'common' && m !== this.currentMontageart) return false;
+                        
+                        // For trays/products that are 'common' themselves, check their accessories
+                        if (m === 'common') {
+                            let hasMatchingAccessory = false;
+                            if (t.mountingMaterials) {
+                                t.mountingMaterials.forEach(mat => {
+                                    if (mat.options && mat.options[0]) {
+                                        if (this.classifyAccessory(mat.options[0]) === this.currentMontageart) {
+                                            hasMatchingAccessory = true;
+                                        }
+                                    }
+                                });
+                            }
+                            if (!hasMatchingAccessory && t.mountingMaterials && t.mountingMaterials.length > 0) return false;
+                        }
                     }
                     
                     return true;
@@ -6803,8 +6883,6 @@ export function createDuschenwanneApp(title, desc, mainImgUrl, config = {}) {
                 }
 
                 return serie || 'Andere';
-
-                return serie || 'Andere';
             },
             getUniqueValues: function (key) {
                 if (key === 'serie') {
@@ -7198,6 +7276,21 @@ export function createDuschenwanneApp(title, desc, mainImgUrl, config = {}) {
                     if (this.currentMontageart !== 'alle' && this.currentMontageart !== 'all') {
                         const m = this.classifyAccessory(t);
                         if (m !== 'common' && m !== this.currentMontageart) return false;
+                        
+                        // For trays/products that are 'common' themselves, check their accessories
+                        if (m === 'common') {
+                            let hasMatchingAccessory = false;
+                            if (t.mountingMaterials) {
+                                t.mountingMaterials.forEach(mat => {
+                                    if (mat.options && mat.options[0]) {
+                                        if (this.classifyAccessory(mat.options[0]) === this.currentMontageart) {
+                                            hasMatchingAccessory = true;
+                                        }
+                                    }
+                                });
+                            }
+                            if (!hasMatchingAccessory && t.mountingMaterials && t.mountingMaterials.length > 0) return false;
+                        }
                     }
                     
                     return true;
@@ -7875,8 +7968,6 @@ export function createBadewanneApp(title, desc, mainImgUrl, config = {}) {
                 }
 
                 return serie || 'Andere';
-
-                return serie || 'Andere';
             },
             getUniqueValues: function (key) {
                 if (key === 'serie') {
@@ -8270,6 +8361,21 @@ export function createBadewanneApp(title, desc, mainImgUrl, config = {}) {
                     if (this.currentMontageart !== 'alle' && this.currentMontageart !== 'all') {
                         const m = this.classifyAccessory(t);
                         if (m !== 'common' && m !== this.currentMontageart) return false;
+                        
+                        // For trays/products that are 'common' themselves, check their accessories
+                        if (m === 'common') {
+                            let hasMatchingAccessory = false;
+                            if (t.mountingMaterials) {
+                                t.mountingMaterials.forEach(mat => {
+                                    if (mat.options && mat.options[0]) {
+                                        if (this.classifyAccessory(mat.options[0]) === this.currentMontageart) {
+                                            hasMatchingAccessory = true;
+                                        }
+                                    }
+                                });
+                            }
+                            if (!hasMatchingAccessory && t.mountingMaterials && t.mountingMaterials.length > 0) return false;
+                        }
                     }
                     
                     return true;

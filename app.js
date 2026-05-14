@@ -222,10 +222,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             const card = document.createElement('div');
             card.className = 'category-card';
 
-
             const header = document.createElement('div');
             header.className = 'cat-header';
-            header.innerHTML = `<img src="${cat.thumbnail}" class="cat-thumb" alt="${cat.name}"><h2>${cat.name}</h2>`;
+
+            // Use icon as primary; show thumbnail as background if it loads
+            const thumbBox = document.createElement('div');
+            thumbBox.className = 'cat-thumb-box';
+            thumbBox.innerHTML = `<i class="${cat.icon || 'ri-grid-fill'}" aria-hidden="true"></i>`;
+            if (cat.thumbnail) {
+                const testImg = new Image();
+                testImg.onload = () => { thumbBox.style.backgroundImage = `url('${cat.thumbnail}')`; thumbBox.querySelector('i').style.display = 'none'; };
+                testImg.src = cat.thumbnail;
+            }
+            header.appendChild(thumbBox);
+            const h2 = document.createElement('h2');
+            h2.textContent = cat.name;
+            header.appendChild(h2);
             card.appendChild(header);
 
             if (cat.subcategories.length > 0) {
@@ -629,154 +641,86 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // --- Boot Sequence ---
-    const syncGlobalData = () => {
-        const parsed = readStoredJson('sanitas_config_data', null);
-        if (parsed && typeof parsed === 'object') {
-            Object.keys(parsed).forEach(appId => {
-                if (productApps[appId]) {
-                    if (parsed[appId].trays) productApps[appId].trays = parsed[appId].trays;
-                    if (parsed[appId].parts) productApps[appId].parts = parsed[appId].parts;
-                    if (parsed[appId].finishes) productApps[appId].finishes = parsed[appId].finishes;
-                    if (parsed[appId].mainImgUrl !== undefined) productApps[appId].mainImgUrl = parsed[appId].mainImgUrl;
-                }
-            });
-        }
-    };
-    // syncGlobalData() moved to after version check logic to prevent stale data loading
+    // Priority: (1) Mac filesystem via /api/data  (2) IndexedDB backup
+    // localStorage is intentionally NOT used for data — the dataset (4.5MB+) exceeds the 5MB limit.
 
-    renderCatalog();
+    const modifiedApps = new Set();
 
-    const modifiedApps = new Set(); // Track which apps have local overrides
+    function applyDataToApps(data) {
+        Object.keys(data).forEach(appId => {
+            if (!productApps[appId]) return;
+            const src = data[appId];
+            const hasData = (src.trays?.length > 0 || src.parts?.length > 0 || src.finishes?.length > 0);
+            if (!hasData) return;
+            if (src.trays)    productApps[appId].trays    = src.trays;
+            if (src.parts)    productApps[appId].parts    = src.parts;
+            if (src.finishes) productApps[appId].finishes = src.finishes;
+            if (src.mainImgUrl !== undefined) productApps[appId].mainImgUrl = src.mainImgUrl;
+            modifiedApps.add(appId);
+        });
+    }
 
-    // Attempt to read from the Mac's local filesystem first
-    let bundledData = {};
-    try {
-        // This tells Vite to package custom-data.json into the final build (dist/index.html)
-        const files = import.meta.glob('./custom-data.json', { eager: true });
-        if (files['./custom-data.json']) bundledData = files['./custom-data.json'].default;
-    } catch(e) {}
+    let dataLoaded = false;
 
+    // 1. Primary: fetch from Mac filesystem via Vite dev server
     try {
         const res = await fetch('/api/data');
         if (res.ok) {
             const diskData = await res.json();
-            if (diskData && Object.keys(diskData).length > 0) {
-                bundledData = diskData; // Live data takes priority over bundled data
+            const keys = Object.keys(diskData);
+            if (keys.length > 0) {
+                applyDataToApps(diskData);
+                dataLoaded = true;
+                console.log(`[Konfigurator] Loaded from Mac file: ${keys.length} categories.`);
+            } else {
+                console.warn('[Konfigurator] /api/data returned empty — will try IndexedDB.');
             }
+        } else {
+            console.warn(`[Konfigurator] /api/data responded ${res.status} — will try IndexedDB.`);
         }
     } catch(e) {
-        // File system API not accessible (e.g. running outside dev server)
+        console.warn('[Konfigurator] /api/data unavailable (not in dev server?) — will try IndexedDB.', e.message);
     }
 
-    if (Object.keys(bundledData).length > 0) {
-        // ONLY set if we don't have user data yet, OR merge them
-        const existing = readStoredJson('sanitas_config_data', null);
-        if (!existing || typeof existing !== 'object') {
-            localStorage.setItem('sanitas_config_data', JSON.stringify(bundledData));
-        }
-    }
-
-    // Auto-invalidate stale LocalStorage when DATA_VERSION changes
-    const storedVersion = localStorage.getItem('sanitas_data_version');
-    if (storedVersion !== DATA_VERSION) {
-        // Version mismatch — replace stale localStorage with fresh bundled data
-        if (Object.keys(bundledData).length > 0) {
-            localStorage.setItem('sanitas_config_data', JSON.stringify(bundledData));
-            localStorage.setItem('sanitas_data_version', DATA_VERSION);
-            console.log(`[Konfigurator] Data version mismatch detected: ${storedVersion || 'none'} → ${DATA_VERSION}. Forcing reload...`);
-            window.location.reload(); 
-            return; // Stop execution, wait for reload
-        }
-    }
-
-    // Now that we have verified versions, sync the data into the apps
-    syncGlobalData();
-
-    const parsedSavedData = readStoredJson('sanitas_config_data', null);
-    if (parsedSavedData && typeof parsedSavedData === 'object') {
-        const parsed = parsedSavedData;
-        let needsSave = false;
-
-            const getSanitasImgUrl = (artNr) => {
-                if (!artNr) return null;
-                const cleanArt = String(artNr).replace(/[^0-9.]/g, '');
-                const parts = cleanArt.split('.');
-                let p1 = parts[0];
-                if (p1.length > 8) p1 = p1.substring(0, 8); 
-                p1 = p1.padStart(8, '0'); 
-                
-                if (parts.length >= 3) {
-                    return `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${p1}_${parts[1]}_${parts[2]}.png`;
-                }
-                return `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${p1}.png`;
-            };
-
-            Object.keys(parsed).forEach(appId => {
-                if (productApps[appId]) {
-                    if (parsed[appId].trays) {
-                        parsed[appId].trays.forEach(tray => {
-                            // Attach missing images magically (useful for new CSV imports)
-                            if (!tray.imgUrl && tray.artNr) {
-                                const newImg = getSanitasImgUrl(tray.artNr);
-                                if (newImg) { tray.imgUrl = newImg; needsSave = true; }
-                            }
-                            if (tray.variants) {
-                                tray.variants.forEach(v => {
-                                    if (!v.imgUrl && v.artNr) {
-                                        const newImg = getSanitasImgUrl(v.artNr);
-                                        if (newImg) { v.imgUrl = newImg; needsSave = true; }
-                                    }
-                                });
-                            }
-                            if (tray.mountingMaterials) {
-                                tray.mountingMaterials.forEach(m => {
-                                    if (!m.options && !m.imgUrl && m.artNr) {
-                                        const newImg = getSanitasImgUrl(m.artNr);
-                                        if (newImg) { m.imgUrl = newImg; needsSave = true; }
-                                    }
-                                    if (m.options) {
-                                        m.options.forEach(o => {
-                                            if (!o.imgUrl && o.artNr) {
-                                                const newImg = getSanitasImgUrl(o.artNr);
-                                                if (newImg) { o.imgUrl = newImg; needsSave = true; }
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                            if (tray.size && tray.size !== 'Standard' && !tray.size.includes(' x ')) {
-                                const parts = tray.size.replace(/\s/g, '').split(/[xX]/);
-                                if (parts.length === 2) {
-                                    let s1 = parseInt(parts[0], 10);
-                                    let s2 = parseInt(parts[1], 10);
-                                    if (s1 >= 400) s1 = Math.round(s1 / 10);
-                                    if (s2 >= 400) s2 = Math.round(s2 / 10);
-                                    if (s2 > s1) { const temp = s1; s1 = s2; s2 = temp; }
-                                    tray.size = `${s1} x ${s2}`;
-                                    needsSave = true;
-                                } else if (tray.size.toLowerCase().includes('mm')) {
-                                    let s1 = parseInt(tray.size, 10);
-                                    if (s1 >= 400) s1 = Math.round(s1 / 10);
-                                    tray.size = `${s1} x ${s1}`;
-                                    needsSave = true;
-                                }
-                            }
-                        });
-                    }
-                    Object.assign(productApps[appId], parsed[appId]);
-                    modifiedApps.add(appId);
-                }
-            });
-            
-            if (needsSave) {
-                localStorage.setItem('sanitas_config_data', JSON.stringify(parsed));
-                fetch('/api/save', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(parsed)
-                }).catch(() => {});
+    // 2. Fallback: load from IndexedDB if the file was unavailable
+    if (!dataLoaded) {
+        try {
+            const { loadFromIndexedDB } = await import('./modules/storage.js');
+            const backup = await loadFromIndexedDB('latest_config');
+            if (backup && Object.keys(backup).length > 0) {
+                applyDataToApps(backup);
+                dataLoaded = true;
+                console.log('[Konfigurator] Loaded from IndexedDB backup.');
+            } else {
+                console.warn('[Konfigurator] IndexedDB backup also empty. Using default empty state.');
             }
+        } catch(e) {
+            console.warn('[Konfigurator] IndexedDB unavailable.', e.message);
         }
+    }
+
+
+    // FINAL RENDER: Now that data is definitely in productApps, show the UI
+    console.log('[Konfigurator] Boot sequence complete. Rendering catalog...');
+    
+    // Debug: Log counts of all apps to verify data injection
+    const appStats = {};
+    Object.keys(productApps).forEach(id => {
+        const app = productApps[id];
+        const count = (app.trays?.length || 0) + (app.parts?.length || 0) + (app.finishes?.length || 0);
+        appStats[id] = count;
+    });
+    console.log('[Konfigurator] Final Data Payload Stats:');
+    console.table(appStats);
+
+    if (appStats['duschenwanne'] < 10) {
+        console.warn('[Konfigurator] WARNING: Low product count detected for Duschenwanne. Check bundledData integrity.');
+    }
+
+    renderCatalog();
+
+    // Note: Redundant localStorage-to-memory sync removed to prevent overwriting fresh API data with stale cache.
+    // Logic for image auto-healing and size normalization should be moved to the data injection phase or handled on-demand.
 
     // Initialize Admin
     setupAdmin(modifiedApps, renderCatalog);

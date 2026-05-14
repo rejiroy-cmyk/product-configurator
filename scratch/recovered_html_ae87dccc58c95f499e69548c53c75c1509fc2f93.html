@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeniston's Big Konfigurator - Stückliste</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="index.css?v=1.0.3">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+</head>
+
+<body>
+
+    <!-- HOME VIEW (LANDING PAGE) -->
+    <section id="homeView" class="view active-view">
+        <header class="dashboard-header loose-header">
+            <div class="logo">
+                <i class="ri-grid-fill" style="font-size: 1.5rem;"></i>
+                <span style="font-size: 1.4rem;">Jeniston's <strong>Big Konfigurator</strong></span>
+            </div>
+            <div class="header-tools" style="display: flex; gap: 1rem; align-items: center;">
+                <button class="icon-btn highlight-btn" id="openWishlistBtnHome" aria-label="Eigene Selektion öffnen" style="background: var(--accent); color: #000; border: none; font-weight: 600;">
+                    <i class="ri-bookmark-line" aria-hidden="true"></i> Eigene Selektion <span id="wishlistBadgeHome" class="badge" style="background: #000; color: var(--accent); margin-left: 5px;">0</span>
+                </button>
+                <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 0.5rem;"></div>
+                <button class="icon-btn theme-toggle-btn" aria-label="Toggle Theme" title="Hell/Dunkel Modus wechseln">
+                    <i class="ri-sun-fill theme-icon" aria-hidden="true"></i> Theme
+                </button>
+                <button class="icon-btn" id="openAdminBtn" aria-label="Admin Modus öffnen"><i class="ri-settings-3-line" aria-hidden="true"></i> Admin Mode</button>
+            </div>
+        </header>
+
+        <main class="landing-container">
+            <div class="landing-hero">
+                <h1>Produktkategorien</h1>
+                <p>Wählen Sie eine Produktkategorie, um eine Stückliste zu konfigurieren.</p>
+            </div>
+
+            <div class="category-grid" id="categoryGrid">
+                <!-- Javascript populates the main categories and subcategories here -->
+            </div>
+        </main>
+    </section>
+
+
+    <!-- CONFIGURATOR VIEW (DASHBOARD) -->
+    <section id="configView" class="view hidden-view">
+        <header class="dashboard-header">
+            <div class="header-left-tools" style="display: flex; align-items: center; gap: 1rem;">
+                <button class="icon-btn highlight-btn" id="backHomeBtn" aria-label="Zurück zur Übersicht">
+                    <i class="ri-arrow-left-s-line" aria-hidden="true"></i> Zurück zur Übersicht
+                </button>
+                <div class="logo">
+                    <span id="currentConfigBreadcrumb" style="color: var(--text-secondary); font-size: 0.9rem;">
+                        Jeniston's Big Konfigurator / Bad / <strong style="color: #fff">Bademischer</strong>
+                    </span>
+                </div>
+            </div>
+            <div class="header-tools" style="flex: 1; display: flex; justify-content: flex-end; align-items: center;">
+                <div class="master-search-container" style="position: relative; width: 400px; margin-right: 1rem;">
+                    <i class="ri-search-line" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                    <input type="text" id="masterSearchInput" class="admin-input" placeholder="Globale Suche (Art-Nr*, Bezeichnung...)" style="padding-left: 2.25rem; font-size: 0.9rem; border-radius: 20px; width: 100%; box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);">
+                    <div id="masterSearchResults" class="search-results-dropdown" style="display: none; position: absolute; top: 100%; right: 0; left: 0; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; margin-top: 0.5rem; max-height: 400px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+                    </div>
+                </div>
+                <!-- Wishlist Buttons inside Configurator Header -->
+                <button class="icon-btn highlight-btn" id="addAllToWishlistBtn" title="Aktuelle Stückliste zur Eigenen Selektion hinzufügen">
+                    <i class="ri-bookmark-3-line"></i> Zur Eigenen Selektion
+                </button>
+                <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 0.5rem;"></div>
+                <button class="icon-btn" id="copyBtn" aria-label="Artikelnummern kopieren"><i class="ri-clipboard-line" aria-hidden="true"></i> Artikelnummern kopieren</button>
+                <button class="icon-btn" id="copyLooseBtn" aria-label="Lose Artikel kopieren" style="display:none; background: rgba(99,202,183,0.12); border-color: rgba(99,202,183,0.4); color: #63cab7;"><i class="ri-scissors-cut-line" aria-hidden="true"></i> Lose Artikel (SAP)</button>
+                <button class="icon-btn highlight-btn" id="openWishlistBtnConfig" aria-label="Eigene Selektion öffnen" style="position: relative;">
+                    <i class="ri-bookmark-line"></i>
+                    <span id="wishlistBadgeConfig" class="badge" style="position: absolute; top: -8px; right: -8px; background: var(--accent); color: #000;">0</span>
+                </button>
+                <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 0.5rem;"></div>
+                <button class="icon-btn theme-toggle-btn" aria-label="Toggle Theme" title="Hell/Dunkel Modus wechseln">
+                    <i class="ri-sun-fill theme-icon" aria-hidden="true"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="dashboard-layout">
+            <aside class="config-sidebar" id="configSidebar">
+                <!-- App Engine injects specific sidebar modules here (Product Cards, Selectors, Alerts) -->
+            </aside>
+
+            <section class="bom-section">
+                <div class="bom-header">
+                    <h2><i class="ri-file-list-3-fill"></i> Stückliste (BOM)</h2>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span class="bom-count" id="bomCount">2 Artikel benötigt</span>
+                        <button class="icon-btn highlight-btn" id="addArtikelBtn" style="padding: 0.4rem 0.85rem; font-size: 0.85rem;" aria-label="Manuellen Artikel hinzufügen">
+                            <i class="ri-add-line" aria-hidden="true"></i> Artikel hinzufügen
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container bom-table-wrapper">
+                    <table class="bom-table">
+                        <thead>
+                            <tr>
+                                <th width="80">Vorschau</th>
+                                <th width="150">Artikelnummer (Art-Nr)</th>
+                                <th>Beschreibung</th>
+                                <th width="120">Typ</th>
+                                <th width="80">Menge</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bomTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="action-footer">
+                    <p></p>
+                </div>
+            </section>
+        </main>
+    </section>
+
+    <!-- ADD ARTIKEL MODAL ... (same) -->
+    
+    <!-- DROPZONE OVERLAY -->
+    <div id="dropzoneOverlay" class="dropzone-overlay">
+        <div class="dropzone-content">
+            <i class="ri-upload-cloud-2-line"></i>
+            <h3>Datei hier loslassen</h3>
+            <p>Unterstützt: .csv (Warenkorb) & .xlsx (Excel Template)</p>
+        </div>
+    </div>
+    <div class="admin-modal-overlay" id="addArtikelModal">
+        <div class="admin-modal-content" style="width: 460px;">
+            <div class="admin-modal-header">
+                <h3><i class="ri-add-circle-line" style="color: var(--accent);"></i> Artikel hinzufügen</h3>
+                <button class="admin-modal-close" onclick="document.getElementById('addArtikelModal').classList.remove('active')" aria-label="Modal schließen">
+                    <i class="ri-close-line" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="gap: 0.75rem;">
+                <div class="filter-group">
+                    <label>Artikelnummer (Art-Nr) *</label>
+                    <input type="text" id="newArtikelNr" class="admin-input" placeholder="z.B. 1234 567.100.000">
+                </div>
+                <div class="filter-group">
+                    <label>Beschreibung *</label>
+                    <input type="text" id="newArtikelLabel" class="admin-input" placeholder="z.B. Mischer Aufputz Chrom">
+                </div>
+                <div class="filter-group">
+                    <label>Typ</label>
+                    <input type="text" id="newArtikelTyp" class="admin-input" placeholder="z.B. Zubehör, Grundkörper ..." value="Manuell">
+                </div>
+                <div class="filter-group">
+                    <label>Menge</label>
+                    <input type="number" id="newArtikelMenge" class="admin-input" placeholder="1" value="1" min="1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="icon-btn" onclick="document.getElementById('addArtikelModal').classList.remove('active')">
+                    Abbrechen
+                </button>
+                <button class="icon-btn highlight-btn" id="confirmAddArtikelBtn" style="background: var(--accent); color: #000; border: none; font-weight: 600;">
+                    <i class="ri-add-line"></i> Hinzufügen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN VIEW -->
+    <section id="adminView" class="view hidden-view">
+        <header class="dashboard-header">
+            <div class="header-left-tools" style="display: flex; align-items: center; gap: 1rem;">
+                <button class="icon-btn highlight-btn" id="exitAdminBtn" aria-label="Admin Modus verlassen und zurück zum Konfigurator">
+                    <i class="ri-arrow-left-s-line" aria-hidden="true"></i> Zurück zum Konfigurator
+                </button>
+
+                <div class="logo">
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;">
+                        Jeniston's Big Konfigurator / <strong style="color: #fff">Admin Panel</strong>
+                    </span>
+                </div>
+            </div>
+
+            <div class="header-tools">
+                <div class="local-change-badge" id="adminLocalBadge">
+                    <i class="ri-history-line"></i> Lokale Änderungen aktiv
+                </div>
+                <button class="icon-btn theme-toggle-btn" aria-label="Toggle Theme" style="margin-left: 1rem;" title="Hell/Dunkel Modus wechseln">
+                    <i class="ri-sun-fill theme-icon" aria-hidden="true"></i>
+                </button>
+            </div>
+
+        </header>
+
+        <main class="dashboard-layout" style="height: auto; overflow: visible;">
+            <aside class="config-sidebar admin-sidebar" style="height: auto;">
+                <div class="sidebar-section">
+                    <h2>Globaler Search</h2>
+                    <div class="filter-group" style="margin-bottom: 2rem;">
+                        <div style="position: relative;">
+                            <i class="ri-search-line" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                            <input type="text" id="adminGlobalSearch" class="admin-input" placeholder="Art-Nr in allen Kategorien suchen..." style="padding-left: 2.25rem;">
+                        </div>
+                    </div>
+
+                    <h2>Kategorie wählen</h2>
+                    <p class="section-desc">Wählen Sie das Modul aus, das Sie bearbeiten möchten.</p>
+                    <div class="finish-buttons-grid" id="adminAppSelector">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </aside>
+
+            <section class="admin-main-section bom-section" style="height: auto; overflow: visible;">
+                <div class="bom-header" style="flex-wrap: wrap; gap: 1rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                        <h2 style="margin-bottom: 0;"><i class="ri-database-2-fill"></i> Data Editor</h2>
+                        <span id="adminCurrentAppName" style="color:var(--text-secondary); font-size: 0.9rem;">Bitte Kategorie wählen</span>
+                    </div>
+
+                    <div class="admin-actions" style="display: flex; gap: 1rem; align-items:center; margin-left: auto;">
+                        <div style="position: relative; width: 300px;">
+                            <i class="ri-filter-3-line" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                            <input type="text" id="adminTableFilter" class="admin-input" placeholder="Tabelle durchsuchen (Art-Nr, Label...)" style="padding-left: 2.25rem; background: var(--bg-surface);">
+                        </div>
+
+                        <span style="margin: 0 0.5rem; color: var(--border);">|</span>
+
+                        <button class="icon-btn highlight-btn" id="uploadCsvBtn" style="display:none;">
+                            <i class="ri-file-list-3-line"></i> Import
+                        </button>
+                        <input type="file" id="uploadCsvInput" accept=".csv, text/csv, application/csv, text/plain, .txt" style="display:none;">
+                    </div>
+                </div>
+
+
+
+                <div class="admin-editor-container" id="adminEditorArea"
+                    style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; height: auto;">
+                    <p style="color: var(--text-secondary); text-align: center; margin-top: 2rem;">Bitte wählen Sie eine
+                        Kategorie links aus.</p>
+                </div>
+            </section>
+        </main>
+    </section>
+
+    <!-- SEARCH RESULTS VIEW -->
+    <section id="searchResultView" class="view hidden-view" style="display: flex; flex-direction: column; height: 100vh;">
+        <header class="dashboard-header loose-header">
+            <button class="icon-btn highlight-btn" id="closeSearchBtn" style="border: 1px solid var(--border);"><i class="ri-arrow-left-line"></i> Zurück</button>
+            <div class="logo" style="margin-left: 1rem;">
+                <span style="font-size: 1.2rem;">Katalog Suche</span>
+            </div>
+        </header>
+
+        <main class="main-content" style="display: flex; flex-direction: column; overflow-y: auto; flex: 1;">
+            <div style="padding: 2rem;">
+                <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Suchergebnisse</h2>
+                <p class="section-desc" id="searchResultMeta">0 Ergebnisse</p>
+                
+                <div id="searchResultsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- ADMIN EDIT MODAL OVERLAY -->
+    <div class="admin-modal-overlay" id="adminEditModal">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h3><i class="ri-edit-2-line" aria-hidden="true"></i> Produkt Bearbeiten</h3>
+                <button class="admin-modal-close" onclick="closeAdminEditModal()" aria-label="Bearbeiten abbrechen"><i class="ri-close-line" aria-hidden="true"></i></button>
+            </div>
+
+            <div class="modal-body" id="adminEditModalBody">
+                <!-- Injected via JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="icon-btn" onclick="closeAdminEditModal()">Abbrechen</button>
+                <button class="icon-btn highlight-btn" id="saveEditModalBtn"
+                    style="background: var(--accent); color: #000; border: none;">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN POOL BROWSER MODAL OVERLAY -->
+    <div class="admin-modal-overlay" id="poolBrowserModal" style="z-index: 2100;">
+        <div class="admin-modal-content" style="width: 700px; max-width: 90vw; background: var(--bg-surface); backdrop-filter: blur(20px);">
+            <div class="admin-modal-header">
+                <h3><i class="ri-search-eye-line" style="color: var(--accent);"></i> Zubehör aus Pool wählen</h3>
+                <button class="admin-modal-close" onclick="document.getElementById('poolBrowserModal').classList.remove('active')"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Wählen Sie ein Produkt aus dem Zubehör-Pool, um es dieser Konfiguration hinzuzufügen.</p>
+                <div class="filter-group" style="margin-bottom: 1.5rem;">
+                    <div style="position: relative;">
+                        <i class="ri-search-line" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                        <input type="text" id="poolBrowserSearch" class="admin-input" placeholder="Nach Art-Nr oder Bezeichnung suchen..." style="padding-left: 2.25rem;">
+                    </div>
+                </div>
+                <div id="poolBrowserResults" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; background: rgba(0,0,0,0.2);">
+                     <!-- Injected via JS -->
+                </div>
+            </div>
+            <div class="modal-footer" id="poolBrowserFooter" style="display:none; justify-content: space-between; align-items: center;">
+                <span id="poolSelectionCount" style="font-size: 0.85rem; color: var(--text-secondary);">0 Artikel ausgewählt</span>
+                <div style="display:flex; gap:0.75rem;">
+                    <button class="icon-btn" onclick="document.getElementById('poolBrowserModal').classList.remove('active')">Abbrechen</button>
+                    <button class="icon-btn highlight-btn" onclick="linkSelectedPoolItems()" style="background: var(--accent); color: #000; border: none; font-weight: 600;">
+                        <i class="ri-add-line"></i> Markierte hinzufügen
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM LIST (WISHLIST) MODAL OVERLAY -->
+    <div class="admin-modal-overlay" id="wishlistModal">
+        <div class="admin-modal-content" style="width: 800px; max-width: 95vw; display: flex; flex-direction: column; max-height: 90vh;">
+            <div class="admin-modal-header">
+                <h3><i class="ri-bookmark-line" style="color: var(--accent);"></i> Eigene Selektion</h3>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <button class="icon-btn" id="clearWishlistBtn" style="font-size: 0.85rem;"><i class="ri-delete-bin-line"></i> Liste leeren</button>
+                    <button class="icon-btn highlight-btn" id="copyWishlistBtn" style="font-size: 0.85rem;"><i class="ri-clipboard-line"></i> Alles kopieren (SAP)</button>
+                    <button class="icon-btn highlight-btn" id="pdfWishlistBtn" style="font-size: 0.85rem; background: var(--accent); color: #000; border: none; font-weight: 600;"><i class="ri-file-pdf-line"></i> Als PDF exportieren</button>
+                    <button class="admin-modal-close" id="closeWishlistBtn" aria-label="Modal schließen">
+                        <i class="ri-close-line" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body" style="overflow-y: auto; flex: 1; padding: 0;">
+                <div class="table-container bom-table-wrapper" style="border: none; background: transparent; padding: 1rem;">
+                    <table class="bom-table">
+                        <thead>
+                            <tr>
+                                <th width="60">Bild</th>
+                                <th width="150">Art-Nr</th>
+                                <th>Beschreibung</th>
+                                <th width="120">Typ</th>
+                                <th width="60">Menge</th>
+                                <th width="60">Aktion</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wishlistTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+
+    <script type="module" src="app.js?v=2.1.0"></script>
+</body>
+</html>

@@ -260,6 +260,15 @@ data.duschenwanne.trays.forEach(tray => {
                     if (smMatch) {
                         let ew = parseInt(smMatch[1]), eh = parseInt(smMatch[2]);
                         if (lbl.includes('mm') || ew > 300) { ew /= 10; eh /= 10; }
+                        
+                        // Strict Depth Matching for Alterna Ecoplan
+                        const trayDepthMatch = tray.label.match(/x\s*(\d+)\s*mm/);
+                        const itemDepthMatch = lbl.match(/x\s*(\d+)\s*mm/);
+                        if (manufacturer === 'alterna' && labelLower.includes('ecoplan') && trayDepthMatch && itemDepthMatch) {
+                            const tDepth = parseInt(trayDepthMatch[1]);
+                            const iDepth = parseInt(itemDepthMatch[1]);
+                            if (tDepth !== iDepth) return false;
+                        }
                         const matchNormal = Math.abs(tw - ew) <= 2.0 && Math.abs(th - eh) <= 2.0;
                         const matchRotated = Math.abs(th - ew) <= 2.0 && Math.abs(tw - eh) <= 2.0;
                         if (!matchNormal && !matchRotated) return false;

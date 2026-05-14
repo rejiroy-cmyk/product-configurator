@@ -2,7 +2,6 @@ import { defineConfig } from 'vite';
 import fs from 'fs';
 import path from 'path';
 import { viteSingleFile } from 'vite-plugin-singlefile';
-import obfuscator from 'vite-plugin-javascript-obfuscator';
 
 export default defineConfig({
     server: {
@@ -18,7 +17,9 @@ export default defineConfig({
             name: 'local-api',
             configureServer(server) {
                 server.middlewares.use((req, res, next) => {
-                    if (req.url === '/api/data' && req.method === 'GET') {
+                    const url = req.url.split('?')[0]; // Ignore query params
+                    
+                    if (url === '/api/data' && req.method === 'GET') {
                         const dataPath = path.join(__dirname, 'custom-data.json');
                         if (fs.existsSync(dataPath)) {
                             res.setHeader('Content-Type', 'application/json');
@@ -30,12 +31,13 @@ export default defineConfig({
                         return;
                     }
 
-                    if (req.url === '/api/save' && req.method === 'POST') {
+                    if (url === '/api/save' && req.method === 'POST') {
                         let body = '';
                         req.on('data', chunk => {
                             body += chunk.toString();
                         });
                         req.on('end', () => {
+                            console.log('[VITE] /api/save called. Body length received:', body.length);
                             const dataPath = path.join(__dirname, 'custom-data.json');
                             fs.writeFileSync(dataPath, body);
                             res.setHeader('Content-Type', 'application/json');

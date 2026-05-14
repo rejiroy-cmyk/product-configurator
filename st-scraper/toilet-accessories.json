@@ -1,0 +1,2633 @@
+{
+  "2211 450.100.000": {
+    "seats": [
+      {
+        "artNr": "3313 110.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3313 117.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2211 451.100.000": {
+    "seats": [
+      {
+        "artNr": "3313 110.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3313 117.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2110 111.100.000": {
+    "seats": [
+      {
+        "artNr": "2110 112.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [],
+    "sleeves": []
+  },
+  "2110 110.100.000": {
+    "seats": [
+      {
+        "artNr": "2110 112.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [],
+    "sleeves": []
+  },
+  "2116 850.105.000": {
+    "seats": [
+      {
+        "artNr": "2116 856.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2116 900.105.000": {
+    "seats": [
+      {
+        "artNr": "2116 913.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2116 914.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2116 856.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 845.100.000": {
+    "seats": [
+      {
+        "artNr": "3313 117.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 885.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 899.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 884.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 897.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 898.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": [
+      {
+        "artNr": "3241 116.000.000",
+        "label": "",
+        "type": "Technik"
+      }
+    ]
+  },
+  "2111 854.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 885.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 884.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 897.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 898.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 899.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2112 453.100.000": {
+    "seats": [
+      {
+        "artNr": "2112 483.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 484.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 480.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 123.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 700.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 719.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 704.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 708.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 718.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 716.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 485.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 479.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [],
+    "sleeves": []
+  },
+  "2111 851.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 885.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 899.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 884.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 897.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 898.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 702.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 710.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 714.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 899.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 703.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 704.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 708.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 718.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 719.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 716.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 485.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 479.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [],
+    "sleeves": []
+  },
+  "2111 326.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 332.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 333.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 334.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      },
+      {
+        "artNr": "3381 123.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 327.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 332.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 333.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 334.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2112 758.100.000": {
+    "seats": [
+      {
+        "artNr": "2112 759.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 760.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 123.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 839.100.000": {
+    "seats": [
+      {
+        "artNr": "2112 485.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 479.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 899.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 849.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 885.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 899.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 884.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 897.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 898.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 840.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 899.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 479.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 884.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 897.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 485.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 885.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 898.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2112 881.100.000": {
+    "seats": [
+      {
+        "artNr": "2112 882.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 123.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2112 457.100.000": {
+    "seats": [
+      {
+        "artNr": "2112 485.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 479.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 846.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 885.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 899.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 884.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 897.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 898.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2112 455.100.000": {
+    "seats": [
+      {
+        "artNr": "2112 480.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 484.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 221.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 227.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 123.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2112 756.100.000": {
+    "seats": [
+      {
+        "artNr": "2112 759.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 760.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 123.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 325.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 332.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 333.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 334.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      },
+      {
+        "artNr": "3381 123.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2112 454.100.000": {
+    "seats": [
+      {
+        "artNr": "2112 483.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 484.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 480.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 123.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2112 699.100.000": {
+    "seats": [
+      {
+        "artNr": "2112 760.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [],
+    "sleeves": []
+  },
+  "2121 151.105.000": {
+    "seats": [
+      {
+        "artNr": "2121 181.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 123.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 114.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 119.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 115.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 116.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 157.100.000": {
+    "seats": [],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 134.100.000": {
+    "seats": [],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 158.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 115.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 119.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 153.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 155.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 137.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 142.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 143.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 145.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 146.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 147.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 148.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 151.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 152.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 152.105.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 113.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 119.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 115.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 116.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": [
+      {
+        "artNr": "3241 116.000.000",
+        "label": "",
+        "type": "Technik"
+      }
+    ]
+  },
+  "3231 140.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 142.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 143.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 145.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 146.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 147.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 148.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 151.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 131.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 131.536.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 136.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 136.536.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 141.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 142.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 143.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 145.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 146.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 147.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 148.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 151.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2514 381.105.000": {
+    "seats": [],
+    "isolation": [],
+    "sleeves": []
+  },
+  "3231 129.536.000": {
+    "seats": [],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 135.536.000": {
+    "seats": [],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 838.100.000": {
+    "seats": [
+      {
+        "artNr": "3313 117.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 885.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 899.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 884.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 897.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 898.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 320.100.000": {
+    "seats": [
+      {
+        "artNr": "3313 117.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": [
+      {
+        "artNr": "3241 130.000.000",
+        "label": "",
+        "type": "Technik"
+      }
+    ]
+  },
+  "2111 875.100.000": {
+    "seats": [
+      {
+        "artNr": "3313 117.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 885.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 899.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 884.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 897.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 898.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": [
+      {
+        "artNr": "3241 130.000.000",
+        "label": "",
+        "type": "Technik"
+      }
+    ]
+  },
+  "2111 879.100.000": {
+    "seats": [
+      {
+        "artNr": "3313 117.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 885.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 899.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 884.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 897.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 898.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": [
+      {
+        "artNr": "3241 130.000.000",
+        "label": "",
+        "type": "Technik"
+      }
+    ]
+  },
+  "3231 122.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 115.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 116.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 119.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 325.100.000": {
+    "seats": [],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2112 471.100.000": {
+    "seats": [
+      {
+        "artNr": "2112 479.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 478.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 480.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 483.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 484.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 485.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2112 467.100.000": {
+    "seats": [],
+    "isolation": [],
+    "sleeves": []
+  },
+  "2112 775.100.000": {
+    "seats": [
+      {
+        "artNr": "2112 759.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 760.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2112 470.100.000": {
+    "seats": [
+      {
+        "artNr": "2112 483.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 484.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 485.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 479.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 478.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 480.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 329.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 332.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 333.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 334.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 720.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 704.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 708.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 716.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 718.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2111 328.100.000": {
+    "seats": [
+      {
+        "artNr": "2111 332.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 333.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2111 334.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 121.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 115.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 116.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 119.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2141 845.100.000": {
+    "seats": [
+      {
+        "artNr": "2141 851.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2141 852.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2112 774.100.000": {
+    "seats": [
+      {
+        "artNr": "2112 759.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2112 760.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": [
+      {
+        "artNr": "3241 102.000.000",
+        "label": "",
+        "type": "Technik"
+      }
+    ]
+  },
+  "2141 846.100.000": {
+    "seats": [
+      {
+        "artNr": "2141 851.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2141 852.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2144 313.100.000": {
+    "seats": [],
+    "isolation": [],
+    "sleeves": []
+  },
+  "2311 687.100.000": {
+    "seats": [
+      {
+        "artNr": "2311 691.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2311 692.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2311 693.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2147 176.100.000": {
+    "seats": [
+      {
+        "artNr": "2147 183.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": [
+      {
+        "artNr": "2147 187.100.000",
+        "label": "",
+        "type": "Technik"
+      }
+    ]
+  },
+  "2143 171.100.000": {
+    "seats": [
+      {
+        "artNr": "2143 173.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2143 174.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 154.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 156.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2317 361.100.000": {
+    "seats": [
+      {
+        "artNr": "2317 374.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 138.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 142.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 143.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 145.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 146.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 147.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 148.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 133.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 133.536.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 139.100.000": {
+    "seats": [
+      {
+        "artNr": "3231 142.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 143.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 145.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 146.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 147.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "3231 148.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2311 688.105.000": {
+    "seats": [
+      {
+        "artNr": "2311 691.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2311 692.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2311 693.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2231 376.105.000": {
+    "seats": [
+      {
+        "artNr": "2116 913.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2116 914.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2116 917.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 132.536.000": {
+    "seats": [],
+    "isolation": [
+      {
+        "artNr": "3381 310.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2116 901.105.000": {
+    "seats": [
+      {
+        "artNr": "2116 913.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2116 914.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2116 856.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2231 357.105.000": {
+    "seats": [
+      {
+        "artNr": "2116 913.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2116 914.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2116 917.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2231 359.105.000": {
+    "seats": [
+      {
+        "artNr": "2231 387.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2231 360.105.000": {
+    "seats": [
+      {
+        "artNr": "2116 913.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2116 914.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2116 917.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2142 651.100.000": {
+    "seats": [
+      {
+        "artNr": "2142 692.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2142 693.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2147 974.100.000": {
+    "seats": [
+      {
+        "artNr": "2147 982.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2147 983.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 203.100.000": {
+    "seats": [],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2143 481.100.000": {
+    "seats": [
+      {
+        "artNr": "2143 485.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2143 486.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2144 150.100.000": {
+    "seats": [
+      {
+        "artNr": "2144 182.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2141 842.100.000": {
+    "seats": [
+      {
+        "artNr": "2141 851.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2141 852.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 201.100.000": {
+    "seats": [],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2147 970.100.000": {
+    "seats": [
+      {
+        "artNr": "2147 980.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2147 981.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2142 654.100.000": {
+    "seats": [
+      {
+        "artNr": "2142 692.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2142 693.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2143 182.100.000": {
+    "seats": [
+      {
+        "artNr": "2143 183.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2147 972.100.000": {
+    "seats": [
+      {
+        "artNr": "2147 980.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2147 981.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2147 554.100.000": {
+    "seats": [
+      {
+        "artNr": "2147 582.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2147 581.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2141 122.100.000": {
+    "seats": [
+      {
+        "artNr": "2141 128.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2141 129.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2141 844.100.000": {
+    "seats": [
+      {
+        "artNr": "2141 853.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2141 854.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2147 551.100.000": {
+    "seats": [
+      {
+        "artNr": "2147 581.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2147 582.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2147 550.100.000": {
+    "seats": [
+      {
+        "artNr": "2147 581.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2147 582.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "3231 202.100.000": {
+    "seats": [],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2147 971.100.000": {
+    "seats": [
+      {
+        "artNr": "2147 980.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2147 981.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2141 843.100.000": {
+    "seats": [
+      {
+        "artNr": "2141 853.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2141 854.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2147 552.100.000": {
+    "seats": [
+      {
+        "artNr": "2147 581.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2147 582.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2141 841.100.000": {
+    "seats": [
+      {
+        "artNr": "2141 851.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2141 852.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2142 655.100.000": {
+    "seats": [
+      {
+        "artNr": "2142 692.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2142 693.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2317 358.100.000": {
+    "seats": [
+      {
+        "artNr": "2317 379.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2317 380.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2317 351.100.000": {
+    "seats": [
+      {
+        "artNr": "2317 375.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2317 376.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2313 150.100.000": {
+    "seats": [
+      {
+        "artNr": "2911 121.000.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2313 161.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2313 162.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2317 354.100.000": {
+    "seats": [
+      {
+        "artNr": "2911 121.000.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2317 379.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2317 380.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2311 685.100.000": {
+    "seats": [
+      {
+        "artNr": "2311 691.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2311 692.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2311 693.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2311 686.105.000": {
+    "seats": [
+      {
+        "artNr": "2311 691.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2311 692.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2311 693.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 122.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2311 109.105.000": {
+    "seats": [
+      {
+        "artNr": "2311 110.105.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 120.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  },
+  "2231 632.105.000": {
+    "seats": [
+      {
+        "artNr": "2231 632.105.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2231 633.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      },
+      {
+        "artNr": "2231 634.100.000",
+        "label": "",
+        "type": "WC-Sitz"
+      }
+    ],
+    "isolation": [
+      {
+        "artNr": "3381 121.000.000",
+        "label": "",
+        "type": "Schallschutz"
+      }
+    ],
+    "sleeves": []
+  }
+}

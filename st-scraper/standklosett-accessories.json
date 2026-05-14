@@ -1,0 +1,497 @@
+{
+  "2111 838.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2111 810.100.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "3351 131.100.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [
+      {
+        "artNr": "3242 110.000.000",
+        "label": "",
+        "type": "Ablaufanschluss"
+      }
+    ],
+    "screws": [
+      {
+        "artNr": "2111 838.111.000",
+        "label": "",
+        "type": "Befestigung"
+      },
+      {
+        "artNr": "2111 838.143.000",
+        "label": "",
+        "type": "Befestigung"
+      },
+      {
+        "artNr": "2111 838.133.000",
+        "label": "",
+        "type": "Befestigung"
+      }
+    ]
+  },
+  "3231 320.100.000": {
+    "reservoir": [
+      {
+        "artNr": "3353 106.100.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [
+      {
+        "artNr": "3241 130.000.000",
+        "label": "",
+        "type": "Ablaufanschluss"
+      }
+    ],
+    "screws": [
+      {
+        "artNr": "8212 254.501.000",
+        "label": "",
+        "type": "Befestigung"
+      }
+    ]
+  },
+  "2111 875.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2111 810.100.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "3351 131.100.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [
+      {
+        "artNr": "3241 130.000.000",
+        "label": "",
+        "type": "Ablaufanschluss"
+      }
+    ],
+    "screws": [
+      {
+        "artNr": "8212 254.501.000",
+        "label": "",
+        "type": "Befestigung"
+      }
+    ]
+  },
+  "2111 879.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2111 810.100.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "3351 131.100.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [
+      {
+        "artNr": "3241 130.000.000",
+        "label": "",
+        "type": "Ablaufanschluss"
+      }
+    ],
+    "screws": [
+      {
+        "artNr": "8212 254.501.000",
+        "label": "",
+        "type": "Befestigung"
+      }
+    ]
+  },
+  "3231 122.100.000": {
+    "reservoir": [
+      {
+        "artNr": "3231 122.100.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "3231 122.105.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "3351 130.100.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "3351 131.100.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "3351 132.100.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [
+      {
+        "artNr": "3241 120.000.000",
+        "label": "",
+        "type": "Ablaufanschluss"
+      }
+    ],
+    "screws": []
+  },
+  "3231 325.100.000": {
+    "reservoir": [],
+    "sleeves": [],
+    "screws": []
+  },
+  "2112 471.100.000": {
+    "reservoir": [],
+    "sleeves": [],
+    "screws": []
+  },
+  "2112 467.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2112 493.100.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2112 495.100.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": [
+      {
+        "artNr": "2112 467.105.000",
+        "label": "",
+        "type": "Befestigung"
+      }
+    ]
+  },
+  "2112 775.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2112 775.105.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2112 775.536.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2112 775.350.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2112 788.100.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2112 789.100.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": []
+  },
+  "2112 470.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2112 470.100.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": []
+  },
+  "2111 329.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2111 329.105.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2111 330.100.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2111 331.100.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": []
+  },
+  "2111 720.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2111 330.100.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": []
+  },
+  "2111 328.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2111 328.105.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": []
+  },
+  "3231 121.100.000": {
+    "reservoir": [
+      {
+        "artNr": "3231 121.100.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "3231 121.105.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "3351 130.100.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "3351 131.100.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "3351 132.100.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [
+      {
+        "artNr": "3241 120.000.000",
+        "label": "",
+        "type": "Ablaufanschluss"
+      }
+    ],
+    "screws": []
+  },
+  "2141 845.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2141 845.100.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2141 845.536.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": []
+  },
+  "2112 774.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2112 774.536.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2112 774.105.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2112 774.350.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [
+      {
+        "artNr": "3241 102.000.000",
+        "label": "",
+        "type": "Ablaufanschluss"
+      }
+    ],
+    "screws": []
+  },
+  "2141 846.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2141 846.100.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": []
+  },
+  "2144 313.100.000": {
+    "reservoir": [],
+    "sleeves": [],
+    "screws": []
+  },
+  "2311 687.100.000": {
+    "reservoir": [],
+    "sleeves": [],
+    "screws": []
+  },
+  "2147 176.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2147 187.100.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": [
+      {
+        "artNr": "2147 176.100.000",
+        "label": "",
+        "type": "Befestigung"
+      }
+    ]
+  },
+  "2143 171.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2143 171.100.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2143 172.100.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": []
+  },
+  "3231 154.100.000": {
+    "reservoir": [
+      {
+        "artNr": "3231 154.105.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": []
+  },
+  "2317 361.100.000": {
+    "reservoir": [
+      {
+        "artNr": "2317 361.105.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": []
+  },
+  "3231 138.100.000": {
+    "reservoir": [
+      {
+        "artNr": "3231 138.105.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": []
+  },
+  "3231 133.100.000": {
+    "reservoir": [],
+    "sleeves": [],
+    "screws": []
+  },
+  "3231 139.100.000": {
+    "reservoir": [
+      {
+        "artNr": "3231 139.105.000",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": []
+  },
+  "2311 688.105.000": {
+    "reservoir": [],
+    "sleeves": [],
+    "screws": []
+  },
+  "2231 376.105.000": {
+    "reservoir": [
+      {
+        "artNr": "2231 376.105.000",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2231 376.228.202",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2231 376.536.202",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2231 376.423.202",
+        "label": "",
+        "type": "Reservoir"
+      },
+      {
+        "artNr": "2231 376.535.202",
+        "label": "",
+        "type": "Reservoir"
+      }
+    ],
+    "sleeves": [],
+    "screws": []
+  },
+  "3231 132.536.000": {
+    "reservoir": [],
+    "sleeves": [],
+    "screws": []
+  }
+}
