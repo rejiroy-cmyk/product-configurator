@@ -1685,7 +1685,10 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                 { name: 'Mittenabstützsystem (Conoflat)', keywords: [], artNr: '1435 433.000.000', group: 'montagerahmen', condition: (manufacturer === 'kaldewei' && isLargeTray && labelLower.includes('conoflat')) },
 
                 // Group 3: Calima Stelzfüsse System
-                { name: 'Stelzfüsse-Pack (4 Stk)', keywords: ['stelzfüsse', 'stelzfuss'], group: 'stelzfüsse', condition: labelLower.includes('calima') }
+                { name: 'Stelzfüsse-Pack (4 Stk)', keywords: ['stelzfüsse', 'stelzfuss'], group: 'stelzfüsse', condition: labelLower.includes('calima') },
+
+                // Group 4: Swiss Line Sets
+                { name: 'Montageset', keywords: ['montageset', 'swiss line'], group: 'montageset', condition: labelLower.includes('swiss line') }
             ];
 
             categories.forEach(cat => {
@@ -1697,6 +1700,9 @@ export function setupAdmin(modifiedApps, renderCatalog) {
 
                 // Calima Logic: If tray is Calima, skip Groups 1 and 2
                 if (labelLower.includes('calima') && (cat.group === 'wannenträger' || cat.group === 'montagerahmen')) return;
+
+                // Swiss Line Logic: If tray is Swiss Line, ONLY inject the Montageset
+                if (labelLower.includes('swiss line') && cat.name !== 'Montageset') return;
 
                 // --- DEPENDENCY CHECK ---
                 // Foam and Noise Set (1445 782) ONLY if Wannenträger is present
@@ -1908,7 +1914,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                         if (series.length >= 3 && !isFuzzySeriesMatch && !isUniversalFrame) return false;
 
                         // Size Check (only for carriers/frames with dimensions)
-                        if (sizeParts && cat.name === 'Wannenträger') {
+                        if (sizeParts && (cat.name === 'Wannenträger' || cat.name === 'Montageset')) {
                             const tw = sizeParts[0];
                             const th = sizeParts[1];
 
