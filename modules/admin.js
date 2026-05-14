@@ -41,6 +41,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
             adminActions.insertBefore(recoveryBtn, adminActions.firstChild);
         }
 
+
         let currentAdminAppId = null;
 
         const safeJsonParse = (value, fallback) => {
@@ -76,7 +77,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
             if (l.includes('vitra')) return 'Vitra';
             if (l.includes('burgbad')) return 'Burgbad';
             if (l.includes('keuco')) return 'Keuco';
-            
+
             // Fallback to existing or Andere
             return tray.manufacturer && tray.manufacturer !== 'Andere' ? tray.manufacturer : 'Andere';
         }
@@ -85,13 +86,13 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         function syncProduct(tray, appId) {
             if (!tray) return;
             tray.manufacturer = detectManufacturer(tray);
-            
+
             if (appId === 'duschenwanne') {
                 tray.mountingMaterials = [];
                 autoLinkShowerAccessories(tray);
             } else if (appId === 'duschenmischer' || appId === 'bademischer') {
                 tray.mountingMaterials = [];
-                autoLinkMixerAccessories(tray);
+                autoLinkMixerAccessories(tray, appId);
             }
             return tray;
         }
@@ -114,9 +115,10 @@ export function setupAdmin(modifiedApps, renderCatalog) {
 
 
         async function saveAllData(showSuccessAlert = true) {
+            const apps = window.productApps || productApps;
             const dataToSave = {};
-            Object.keys(productApps).forEach(appId => {
-                const app = productApps[appId];
+            Object.keys(apps).forEach(appId => {
+                const app = apps[appId];
                 dataToSave[appId] = {};
                 if (app.trays) dataToSave[appId].trays = app.trays;
                 if (app.parts) dataToSave[appId].parts = app.parts;
@@ -124,30 +126,47 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                 if (app.mainImgUrl !== undefined) dataToSave[appId].mainImgUrl = app.mainImgUrl;
             });
             const dataString = JSON.stringify(dataToSave);
-            
-            // 1. Save to IndexedDB (Browser Local Backup - No 5MB limit)
+
+            // 1. Save to IndexedDB (browser backup — no size limit)
             await saveToIndexedDB('latest_config', dataToSave);
 
-            // 2. Sync to local filesystem via Vite bridge
-            fetch('/api/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: dataString
-            }).catch(e => console.log('File sync unavailable.'));
+            // 2. Write to Mac filesystem via Vite dev server bridge (primary source of truth)
+            // NOTE: localStorage is intentionally NOT used here — the dataset (4.5MB+) exceeds
+            // the browser's 5MB localStorage limit and causes silent crashes.
+            try {
+                const res = await fetch('/api/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: dataString
+                });
+                if (!res.ok) {
+                    console.error('[Konfigurator] /api/save failed:', res.status);
+                } else {
+                    console.log('[Konfigurator] /api/save SUCCESS. File should be written.');
+                }
+            } catch(e) {
+                console.warn('[Konfigurator] File sync unavailable (not running in dev server?):', e.message);
+            }
 
             if (showSuccessAlert) alert('Änderungen gespeichert!');
         }
 
+
         async function restoreFromBackup() {
+            console.log('[Konfigurator Admin] Attempting to restore from IndexedDB...');
             const localSnapshot = await loadFromIndexedDB('latest_config');
+            console.log('[Konfigurator Admin] Local snapshot retrieved:', localSnapshot ? 'Success' : 'Empty');
+
             if (!localSnapshot) {
                 alert('Kein lokaler Backup im Browser gefunden.');
                 return;
             }
             if (confirm('Möchten Sie alle Daten aus dem Browser-Backup wiederherstellen? Dies überschreibt den aktuellen Speicherzustand.')) {
+                const apps = window.productApps || productApps;
                 Object.keys(localSnapshot).forEach(appId => {
-                    if (productApps[appId]) {
-                        Object.assign(productApps[appId], localSnapshot[appId]);
+                    if (apps[appId]) {
+                        console.log(`[Konfigurator Admin] Restoring app: ${appId} (${localSnapshot[appId].trays?.length || 0} items)`);
+                        Object.assign(apps[appId], localSnapshot[appId]);
                     }
                 });
                 alert('Daten aus Browser-Backup wiederhergestellt.');
@@ -188,331 +207,335 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                 const file = e.target.files[0];
                 if (!file) return;
                 const reader = new FileReader();
-                reader.onload = (evt) => {
+                reader.onload = async (evt) => {
                     try {
                         const text = evt.target.result;
                         const lines = text.split(/\r?\n|\r/);
                         if (lines.filter(l => l.trim().length > 0).length < 1) return;
 
-                    let del = lines[0].includes('\t') ? '\t' : (lines[0].includes(';') ? ';' : ',');
-                    const app = productApps[currentAdminAppId];
-                    let added = 0, updated = 0;
+                        let del = lines[0].includes('\t') ? '\t' : (lines[0].includes(';') ? ';' : ',');
+                        const currentApps = window.productApps || productApps;
+                        const app = currentApps[currentAdminAppId];
+                        let added = 0, updated = 0;
 
-                    if (app.trays) {
-                        let currentTray = null;
-                        let targetAppId = currentAdminAppId;
-                        let targetApp = productApps[targetAppId];
+                        if (app.trays) {
+                            let currentTray = null;
+                            let targetAppId = currentAdminAppId;
+                            let targetApp = (window.productApps || productApps)[targetAppId];
 
-                        // Detect if first row is header
-                        let startIdx = 0;
-                        let headers = null;
-                        const firstLineLower = lines[0].toLowerCase();
-                        if (firstLineLower.includes('artikel') || firstLineLower.includes('art') || firstLineLower.includes('typ') || firstLineLower.includes('hersteller') || firstLineLower.includes('label')) {
-                            console.log('Admin: Header row detected in CSV.');
-                            startIdx = 1;
-                            headers = { typ: -1, artNr: -1, label: -1, menge: -1, manufacturer: -1, size: -1, ablage: -1, form: -1 };
-                            const hCols = parseCsvLine(lines[0], del);
-                            hCols.forEach((h, idx) => {
-                                h = h.trim().toLowerCase();
-                                if (h.includes('typ')) headers.typ = idx;
-                                else if (h.includes('art') || h.includes('artikel')) headers.artNr = idx;
-                                else if (h.includes('bez') || h.includes('label') || h.includes('text')) headers.label = idx;
-                                else if (h.includes('menge') || h.includes('anzahl') || h.includes('amount') || h.includes('qty')) headers.menge = idx;
-                                else if (h.includes('hersteller') || h.includes('brand') || h.includes('manuf')) headers.manufacturer = idx;
-                                else if (h.includes('grösse') || h.includes('size')) headers.size = idx;
-                                else if (h.includes('form') || h.includes('shape') || h.includes('format')) headers.form = idx;
-                                else if (h.includes('ablage') || h.includes('abstell')) headers.ablage = idx;
-                            });
-                        }
-
-                        try {
-                        for (let i = startIdx; i < lines.length; i++) {
-                            const line = lines[i].trim();
-                            let cols = parseCsvLine(line, del);
-                            const isRowEmpty = line === '' || cols.every(c => !c || c.trim() === '');
-
-                            if (isRowEmpty) {
-                                currentTray = null; // Blank line means next row is a new product block
-                                continue;
+                            // Detect if first row is header
+                            let startIdx = 0;
+                            let headers = null;
+                            const firstLineLower = lines[0].toLowerCase();
+                            if (firstLineLower.includes('artikel') || firstLineLower.includes('art') || firstLineLower.includes('typ') || firstLineLower.includes('hersteller') || firstLineLower.includes('label')) {
+                                console.log('Admin: Header row detected in CSV.');
+                                startIdx = 1;
+                                headers = { typ: -1, artNr: -1, label: -1, menge: -1, manufacturer: -1, size: -1, ablage: -1, form: -1 };
+                                const hCols = parseCsvLine(lines[0], del);
+                                hCols.forEach((h, idx) => {
+                                    h = h.trim().toLowerCase();
+                                    if (h.includes('typ')) headers.typ = idx;
+                                    else if (h.includes('art') || h.includes('artikel')) headers.artNr = idx;
+                                    else if (h.includes('bez') || h.includes('label') || h.includes('text')) headers.label = idx;
+                                    else if (h.includes('menge') || h.includes('anzahl') || h.includes('amount') || h.includes('qty')) headers.menge = idx;
+                                    else if (h.includes('hersteller') || h.includes('brand') || h.includes('manuf')) headers.manufacturer = idx;
+                                    else if (h.includes('grösse') || h.includes('size')) headers.size = idx;
+                                    else if (h.includes('form') || h.includes('shape') || h.includes('format')) headers.form = idx;
+                                    else if (h.includes('ablage') || h.includes('abstell')) headers.ablage = idx;
+                                });
                             }
 
-                            let isAlt = false;
-                            let artNrColIdx = 0;
-                            let labelIdx = 1;
+                            try {
+                                for (let i = startIdx; i < lines.length; i++) {
+                                    const line = lines[i].trim();
+                                    let cols = parseCsvLine(line, del);
+                                    const isRowEmpty = line === '' || cols.every(c => !c || c.trim() === '');
 
-                            if (headers && headers.artNr !== -1) {
-                                artNrColIdx = headers.artNr;
-                                if (headers.typ !== -1) {
-                                    const t = cols[headers.typ] ? cols[headers.typ].trim().toUpperCase() : '';
-                                    if (t === 'ALT' || t === 'OR') isAlt = true;
-                                } else if (cols[0].trim().toUpperCase() === 'ALT' || cols[0].trim().toUpperCase() === 'OR' || cols[0].trim() === '') {
-                                    if (cols[0].trim() !== '') isAlt = true;
-                                    if (artNrColIdx === 0) artNrColIdx = 1;
-                                }
-                                labelIdx = headers.label !== -1 ? headers.label : artNrColIdx + 2;
-                            } else {
-                                if (cols.length > 1 && (cols[0].trim().toUpperCase() === 'ALT' || cols[0].trim().toUpperCase() === 'OR' || cols[0].trim() === '')) {
-                                    if (cols[0].trim() !== '') isAlt = true;
-                                    artNrColIdx = 1;
-                                } else if (cols[0].toUpperCase().startsWith('ALT') || cols[0].toUpperCase().startsWith('OR')) {
-                                    isAlt = true;
-                                    cols[0] = cols[0].replace(/^(ALT|OR),?\s*/i, '').trim();
-                                    artNrColIdx = 0;
-                                }
-                                labelIdx = artNrColIdx + 1;
-                                if (cols.length > artNrColIdx + 3 && !cols[artNrColIdx + 1].includes(' ')) {
-                                    labelIdx = artNrColIdx + 3;
-                                } else if (cols.length > artNrColIdx + 2 && !cols[artNrColIdx + 1].includes(' ')) {
-                                    labelIdx = artNrColIdx + 2;
-                                }
-                            }
+                                    if (isRowEmpty) {
+                                        currentTray = null; // Blank line means next row is a new product block
+                                        continue;
+                                    }
 
-                            if (cols.length <= artNrColIdx) continue;
-                            const artNr = (cols[artNrColIdx] || '').trim();
-                            if (!artNr) continue;
+                                    let isAlt = false;
+                                    let artNrColIdx = 0;
+                                    let labelIdx = 1;
 
-                            let label = (cols[labelIdx] || cols[artNrColIdx + 1] || '').trim();
-                            const menge = (headers && headers.menge !== -1 && cols[headers.menge]) ? parseInt(cols[headers.menge]) || 1 : 1;
-
-                            const looksLikeNewMain = !isAlt && cols[0].trim() !== '';
-
-                            if (!currentTray || (looksLikeNewMain && !headers)) {
-                                targetAppId = currentAdminAppId;
-                                const lblLower = label.toLowerCase();
-
-                                // Auto-routing based on Label Keywords
-                                const isAblauf = lblLower.includes('ablauf') || lblLower.includes('siebventil') || lblLower.includes('schaftventil') ||
-                                    lblLower.includes('click') || lblLower.includes('clack') || lblLower.includes('clic') || lblLower.includes('clac');
-
-                                if (isAlt) {
-                                    // If we hit an ALT item with NO currentTray, it's an orphan accessory from the pool!
-                                    // UNLESS it's an Ablauf item and we are in a Mischer/Armatur tab - keep it here!
-                                    if (isAblauf && (currentAdminAppId.includes('mischer') || currentAdminAppId.includes('match'))) {
-                                        targetAppId = currentAdminAppId;
+                                    if (headers && headers.artNr !== -1) {
+                                        artNrColIdx = headers.artNr;
+                                        if (headers.typ !== -1) {
+                                            const t = cols[headers.typ] ? cols[headers.typ].trim().toUpperCase() : '';
+                                            if (t === 'ALT' || t === 'OR') isAlt = true;
+                                        } else if (cols[0].trim().toUpperCase() === 'ALT' || cols[0].trim().toUpperCase() === 'OR' || cols[0].trim() === '') {
+                                            if (cols[0].trim() !== '') isAlt = true;
+                                            if (artNrColIdx === 0) artNrColIdx = 1;
+                                        }
+                                        labelIdx = headers.label !== -1 ? headers.label : artNrColIdx + 2;
                                     } else {
-                                        targetAppId = 'zubehoer_pool';
-                                    }
-                                } else if (currentAdminAppId === 'zubehoer_pool') {
-                                    // If we are EXPLICITLY in the Pool, don't let Auto-Routing hijack the products!
-                                    targetAppId = 'zubehoer_pool';
-                                } else {
-                                    // High Priority: If it's a valve and we're in a faucet context, don't let Ceramcis route hijack it!
-                                    // Priority 1: Toilets (WC / Klosett)
-                                    if (lblLower.includes('klosett') || lblLower.match(/\bwc\b/)) {
-                                        if (lblLower.includes('stand')) targetAppId = 'standklosett';
-                                        else targetAppId = 'wandklosett';
-                                    } 
-                                    // Priority 2: Other Categories
-                                    else if (isAblauf && (currentAdminAppId.includes('mischer') || currentAdminAppId.includes('match'))) {
-                                        targetAppId = currentAdminAppId;
-                                    } else if (lblLower.includes('duschmischer') || lblLower.includes('duschenmischer')) {
-                                        targetAppId = 'duschenmischer';
-                                    } else if (lblLower.includes('bademischer')) {
-                                        targetAppId = 'bademischer';
-                                    } else if (lblLower.includes('wandbatterie') || lblLower.includes('wandmischer')) {
-                                        targetAppId = 'waschtischmischer';
-                                    } else if (lblLower.includes('einlochmischer')) {
-                                        targetAppId = 'waschtischmischer';
-                                    } else if (lblLower.includes('eckventil') || lblLower.includes('waschautomat')) {
-                                        targetAppId = 'wasch_einbausifon';
-                                    } else if (lblLower.includes('spültischmischer')) {
-                                        targetAppId = 'kueche_1teilig';
-                                    } else if (lblLower.includes('waschtisch') || lblLower.includes('lavabo') || lblLower.includes('becken')) {
-                                        targetAppId = 'waschtisch';
-                                    } else if (lblLower.includes('duschenwanne') || lblLower.includes('duschwanne')) {
-                                        targetAppId = 'duschenwanne';
-                                    }
-                                }
-
-                                if (!productApps[targetAppId]) targetAppId = currentAdminAppId;
-                                targetApp = productApps[targetAppId];
-                                if (!targetApp.trays) targetApp.trays = [];
-                                modifiedApps.add(targetAppId);
-
-                                const isToilet = (targetAppId === 'wandklosett' || targetAppId === 'standklosett');
-                                let parsedSize = "Standard";
-                                let parsedForm = "Standard";
-                                let parsedMontageart = "alle";
-                                let parsedSeries = undefined;
-
-                                if (isToilet) {
-                                    // 1. Label Extraction: Keep only Series
-                                    let seriesLabel = label.split(',')[0].trim();
-                                    const mfr = detectManufacturer({ label: lblLower });
-                                    
-                                    // Remove all variations of technical prefixes
-                                    const toiletPrefixes = [/Wand-?\s*Klosett/gi, /Stand-?\s*Klosett/gi, /Wand-?\s*WC/gi, /Stand-?\s*WC/gi, /Bodenstehend/gi];
-                                    toiletPrefixes.forEach(p => seriesLabel = seriesLabel.replace(p, ''));
-                                    
-                                    // Remove manufacturer
-                                    seriesLabel = seriesLabel.replace(new RegExp(mfr, 'gi'), '').trim();
-                                    
-                                    // Clean up commas/dashes at the start
-                                    seriesLabel = seriesLabel.replace(/^[\s,-/]+/, '').trim();
-                                    parsedSeries = seriesLabel;
-
-                                    // 2. Size Extraction (Compact < 53, Standard >= 53, SIA 500 = 70)
-                                    // Match depth like ", 53," or " 53 cm"
-                                    const depthMatch = lblLower.match(/,?\s*(\d{2,3})\s*(?:cm|,)/);
-                                    if (depthMatch) {
-                                        const depth = parseInt(depthMatch[1], 10);
-                                        if (depth >= 70) parsedSize = "SIA 500";
-                                        else if (depth < 53) parsedSize = "Compact";
-                                        else parsedSize = "Standard";
-                                    }
-
-                                    // 3. Montage Visibility (Sichtbar / Verdeckt)
-                                    if (lblLower.includes('verdeckt')) {
-                                        parsedForm = "Verdeckt";
-                                    } else if (lblLower.includes('sichtbar') || lblLower.includes('befestigung seitlich')) {
-                                        parsedForm = "Sichtbar";
-                                    }
-
-                                    // 4. System (Unterputz / Aufputz)
-                                    if (lblLower.includes('einbauspülkasten') || lblLower.includes('up-spülkasten')) {
-                                        parsedMontageart = "unterputz";
-                                    } else if (lblLower.includes('spülkastenmontage auf klosett') || lblLower.includes('für spülkastenmontage')) {
-                                        parsedMontageart = "aufputz";
-                                    } else if (lblLower.includes('unterputz')) {
-                                        parsedMontageart = "unterputz";
-                                    } else if (lblLower.includes('aufputz')) {
-                                        parsedMontageart = "aufputz";
-                                    }
-                                    
-                                } else {
-                                    // Standard logic for other apps
-                                    if (headers && headers.size !== -1 && cols[headers.size]) {
-                                        parsedSize = cols[headers.size].trim();
-                                    } else {
-                                        const sizeMatch = label.match(/(\d{2,4})\s?[xX\*/]\s?(\d{2,4})/);
-                                        const singleSizeMatch = label.match(/(\d{2,4})\s?(cm|mm)/i);
-
-                                        if (sizeMatch) {
-                                            let s1 = parseInt(sizeMatch[1], 10);
-                                            let s2 = parseInt(sizeMatch[2], 10);
-                                            if (s1 >= 400) s1 = Math.round(s1 / 10);
-                                            if (s2 >= 400) s2 = Math.round(s2 / 10);
-                                            parsedForm = (s1 === s2) ? "Quadratisch" : "Rechteckig";
-                                            if (s2 > s1) { const temp = s1; s1 = s2; s2 = temp; }
-                                            parsedSize = `${s1} x ${s2}`;
-                                        } else if (singleSizeMatch) {
-                                            let s1 = parseInt(singleSizeMatch[1], 10);
-                                            if (singleSizeMatch[2].toLowerCase() === 'mm' || s1 >= 400) s1 = Math.round(s1 / 10);
-                                            parsedSize = `${s1} x ${s1}`;
-                                            parsedForm = "Quadratisch";
+                                        if (cols.length > 1 && (cols[0].trim().toUpperCase() === 'ALT' || cols[0].trim().toUpperCase() === 'OR' || cols[0].trim() === '')) {
+                                            if (cols[0].trim() !== '') isAlt = true;
+                                            artNrColIdx = 1;
+                                        } else if (cols[0].toUpperCase().startsWith('ALT') || cols[0].toUpperCase().startsWith('OR')) {
+                                            isAlt = true;
+                                            cols[0] = cols[0].replace(/^(ALT|OR),?\s*/i, '').trim();
+                                            artNrColIdx = 0;
+                                        }
+                                        labelIdx = artNrColIdx + 1;
+                                        if (cols.length > artNrColIdx + 3 && !cols[artNrColIdx + 1].includes(' ')) {
+                                            labelIdx = artNrColIdx + 3;
+                                        } else if (cols.length > artNrColIdx + 2 && !cols[artNrColIdx + 1].includes(' ')) {
+                                            labelIdx = artNrColIdx + 2;
                                         }
                                     }
 
-                                    if (headers && headers.form !== -1 && cols[headers.form]) {
-                                        parsedForm = cols[headers.form].trim();
+                                    if (cols.length <= artNrColIdx) continue;
+                                    const artNr = (cols[artNrColIdx] || '').trim();
+                                    if (!artNr) continue;
+
+                                    let label = (cols[labelIdx] || cols[artNrColIdx + 1] || '').trim();
+                                    const menge = (headers && headers.menge !== -1 && cols[headers.menge]) ? parseInt(cols[headers.menge]) || 1 : 1;
+
+                                    const looksLikeNewMain = !isAlt && cols[0].trim() !== '';
+
+                                    if (!currentTray || (looksLikeNewMain && !headers)) {
+                                        targetAppId = currentAdminAppId;
+                                        const lblLower = label.toLowerCase();
+
+                                        // Auto-routing based on Label Keywords
+                                        const isAblauf = lblLower.includes('ablauf') || lblLower.includes('siebventil') || lblLower.includes('schaftventil') ||
+                                            lblLower.includes('click') || lblLower.includes('clack') || lblLower.includes('clic') || lblLower.includes('clac');
+
+                                        if (isAlt) {
+                                            // If we hit an ALT item with NO currentTray, it's an orphan accessory from the pool!
+                                            // UNLESS it's an Ablauf item and we are in a Mischer/Armatur tab - keep it here!
+                                            if (isAblauf && (currentAdminAppId.includes('mischer') || currentAdminAppId.includes('match'))) {
+                                                targetAppId = currentAdminAppId;
+                                            } else {
+                                                targetAppId = 'zubehoer_pool';
+                                            }
+                                        } else if (currentAdminAppId === 'zubehoer_pool') {
+                                            // If we are EXPLICITLY in the Pool, don't let Auto-Routing hijack the products!
+                                            targetAppId = 'zubehoer_pool';
+                                        } else {
+                                            // High Priority: If it's a valve and we're in a faucet context, don't let Ceramcis route hijack it!
+                                            // Priority 1: Toilets (WC / Klosett)
+                                            if (lblLower.includes('klosett') || lblLower.match(/\bwc\b/)) {
+                                                if (lblLower.includes('stand')) targetAppId = 'standklosett';
+                                                else targetAppId = 'wandklosett';
+                                            }
+                                            // Priority 2: Other Categories
+                                            else if (isAblauf && (currentAdminAppId.includes('mischer') || currentAdminAppId.includes('match'))) {
+                                                targetAppId = currentAdminAppId;
+                                            } else if (lblLower.includes('duschmischer') || lblLower.includes('duschenmischer')) {
+                                                targetAppId = 'duschenmischer';
+                                            } else if (lblLower.includes('bademischer')) {
+                                                targetAppId = 'bademischer';
+                                            } else if (lblLower.includes('wandbatterie') || lblLower.includes('wandmischer')) {
+                                                targetAppId = 'waschtischmischer';
+                                            } else if (lblLower.includes('einlochmischer')) {
+                                                targetAppId = 'waschtischmischer';
+                                            } else if (lblLower.includes('eckventil') || lblLower.includes('waschautomat')) {
+                                                targetAppId = 'wasch_einbausifon';
+                                            } else if (lblLower.includes('spültischmischer')) {
+                                                targetAppId = 'kueche_1teilig';
+                                            } else if (lblLower.includes('waschtisch') || lblLower.includes('lavabo') || lblLower.includes('becken')) {
+                                                targetAppId = 'waschtisch';
+                                            } else if (lblLower.includes('duschenwanne') || lblLower.includes('duschwanne')) {
+                                                targetAppId = 'duschenwanne';
+                                            } else if (lblLower.includes('badewanne')) {
+                                                targetAppId = 'badewanne';
+                                            }
+                                        }
+
+                                        const currentApps = window.productApps || productApps;
+                                        if (!currentApps[targetAppId]) targetAppId = currentAdminAppId;
+                                        targetApp = currentApps[targetAppId];
+                                        if (!targetApp.trays) targetApp.trays = [];
+                                        modifiedApps.add(targetAppId);
+
+                                        const isToilet = (targetAppId === 'wandklosett' || targetAppId === 'standklosett');
+                                        let parsedSize = "Standard";
+                                        let parsedForm = "Standard";
+                                        let parsedMontageart = "alle";
+                                        let parsedSeries = undefined;
+
+                                        if (isToilet) {
+                                            // 1. Label Extraction: Keep only Series
+                                            let seriesLabel = label.split(',')[0].trim();
+                                            const mfr = detectManufacturer({ label: lblLower });
+
+                                            // Remove all variations of technical prefixes
+                                            const toiletPrefixes = [/Wand-?\s*Klosett/gi, /Stand-?\s*Klosett/gi, /Wand-?\s*WC/gi, /Stand-?\s*WC/gi, /Bodenstehend/gi];
+                                            toiletPrefixes.forEach(p => seriesLabel = seriesLabel.replace(p, ''));
+
+                                            // Remove manufacturer
+                                            seriesLabel = seriesLabel.replace(new RegExp(mfr, 'gi'), '').trim();
+
+                                            // Clean up commas/dashes at the start
+                                            seriesLabel = seriesLabel.replace(/^[\s,-/]+/, '').trim();
+                                            parsedSeries = seriesLabel;
+
+                                            // 2. Size Extraction (Compact < 53, Standard >= 53, SIA 500 = 70)
+                                            // Match depth like ", 53," or " 53 cm"
+                                            const depthMatch = lblLower.match(/,?\s*(\d{2,3})\s*(?:cm|,)/);
+                                            if (depthMatch) {
+                                                const depth = parseInt(depthMatch[1], 10);
+                                                if (depth >= 70) parsedSize = "SIA 500";
+                                                else if (depth < 53) parsedSize = "Compact";
+                                                else parsedSize = "Standard";
+                                            }
+
+                                            // 3. Montage Visibility (Sichtbar / Verdeckt)
+                                            if (lblLower.includes('verdeckt')) {
+                                                parsedForm = "Verdeckt";
+                                            } else if (lblLower.includes('sichtbar') || lblLower.includes('befestigung seitlich')) {
+                                                parsedForm = "Sichtbar";
+                                            }
+
+                                            // 4. System (Unterputz / Aufputz)
+                                            if (lblLower.includes('einbauspülkasten') || lblLower.includes('up-spülkasten')) {
+                                                parsedMontageart = "unterputz";
+                                            } else if (lblLower.includes('spülkastenmontage auf klosett') || lblLower.includes('für spülkastenmontage')) {
+                                                parsedMontageart = "aufputz";
+                                            } else if (lblLower.includes('unterputz')) {
+                                                parsedMontageart = "unterputz";
+                                            } else if (lblLower.includes('aufputz')) {
+                                                parsedMontageart = "aufputz";
+                                            }
+
+                                        } else {
+                                            // Standard logic for other apps
+                                            if (headers && headers.size !== -1 && cols[headers.size]) {
+                                                parsedSize = cols[headers.size].trim();
+                                            } else {
+                                                const sizeMatch = label.match(/(\d{2,4})\s?[xX\*/]\s?(\d{2,4})/);
+                                                const singleSizeMatch = label.match(/(\d{2,4})\s?(cm|mm)/i);
+
+                                                if (sizeMatch) {
+                                                    let s1 = parseInt(sizeMatch[1], 10);
+                                                    let s2 = parseInt(sizeMatch[2], 10);
+                                                    if (s1 >= 400) s1 = Math.round(s1 / 10);
+                                                    if (s2 >= 400) s2 = Math.round(s2 / 10);
+                                                    parsedForm = (s1 === s2) ? "Quadratisch" : "Rechteckig";
+                                                    if (s2 > s1) { const temp = s1; s1 = s2; s2 = temp; }
+                                                    parsedSize = `${s1} x ${s2}`;
+                                                } else if (singleSizeMatch) {
+                                                    let s1 = parseInt(singleSizeMatch[1], 10);
+                                                    if (singleSizeMatch[2].toLowerCase() === 'mm' || s1 >= 400) s1 = Math.round(s1 / 10);
+                                                    parsedSize = `${s1} x ${s1}`;
+                                                    parsedForm = "Quadratisch";
+                                                }
+                                            }
+
+                                            if (headers && headers.form !== -1 && cols[headers.form]) {
+                                                parsedForm = cols[headers.form].trim();
+                                            } else {
+                                                if (lblLower.includes('viertelkreis') || lblLower.includes('1/4') || lblLower.includes('rund')) parsedForm = "Viertelkreis";
+                                                else if (lblLower.includes('fünfeck') || lblLower.includes('5-eck') || lblLower.includes('fuenfeck')) parsedForm = "Fünfeck";
+                                                else if (lblLower.includes('oval')) parsedForm = "Oval";
+                                            }
+                                        }
+
+                                        let manufacturer = detectManufacturer({ label: lblLower, manufacturer: 'Andere' });
+
+                                        let productImgUrl = undefined;
+                                        const parts = artNr.replace(/\s/g, '').split('.');
+                                        if (parts.length >= 3) {
+                                            productImgUrl = `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${parts[0].padStart(8, '0')}_${parts[1]}_${parts[2]}.png`;
+                                            if (!targetApp.mainImgUrl) targetApp.mainImgUrl = productImgUrl;
+                                        }
+
+                                        let existingIdx = targetApp.trays.findIndex(t => t.artNr === artNr);
+
+                                        // Read Ablage column → overrideAbstell
+                                        let overrideAbstell = undefined;
+                                        if (headers && headers.ablage !== -1 && cols[headers.ablage]) {
+                                            const ablageVal = cols[headers.ablage].trim().toLowerCase();
+                                            if (['links', 'rechts', 'beidseitig', 'ohne'].includes(ablageVal)) {
+                                                overrideAbstell = ablageVal;
+                                            }
+                                        }
+
+                                        currentTray = {
+                                            id: existingIdx >= 0 ? targetApp.trays[existingIdx].id : 'csv_' + Math.random().toString(36).substr(2, 5),
+                                            manufacturer, form: parsedForm, size: parsedSize, montageart: parsedMontageart,
+                                            serie: isToilet ? parsedSeries : undefined,
+                                            artNr, label, menge,
+                                            imgUrl: (existingIdx >= 0 && targetApp.trays[existingIdx].imgUrl) ? targetApp.trays[existingIdx].imgUrl : (productImgUrl || undefined),
+                                            variants: [], mountingMaterials: [],
+                                            ...(overrideAbstell ? { overrideAbstell } : {})
+                                        };
+                                        if (existingIdx >= 0) { targetApp.trays[existingIdx] = currentTray; updated++; }
+                                        else { targetApp.trays.push(currentTray); added++; }
+
+                                        // Unified Sync Logic for all categories
+                                        syncProduct(currentTray, targetAppId);
+                                    } else if (isAlt && currentTray.mountingMaterials.length === 0) {
+                                        let vImgUrl = undefined;
+                                        const vParts = artNr.replace(/\s/g, '').split('.');
+                                        if (vParts.length >= 3) vImgUrl = `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${vParts[0].padStart(8, '0')}_${vParts[1]}_${vParts[2]}.png`;
+                                        currentTray.variants.push({ artNr, label, menge, imgUrl: vImgUrl || undefined });
+                                        added++;
                                     } else {
-                                        if (lblLower.includes('viertelkreis') || lblLower.includes('1/4') || lblLower.includes('rund')) parsedForm = "Viertelkreis";
-                                        else if (lblLower.includes('fünfeck') || lblLower.includes('5-eck') || lblLower.includes('fuenfeck')) parsedForm = "Fünfeck";
-                                        else if (lblLower.includes('oval')) parsedForm = "Oval";
+                                        // This is an accessory (Mandatory or Option)
+                                        if (isAlt) {
+                                            let oImgUrl = undefined;
+                                            const oParts = artNr.replace(/\s/g, '').split('.');
+                                            if (oParts.length >= 3) oImgUrl = `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${oParts[0].padStart(8, '0')}_${oParts[1]}_${oParts[2]}.png`;
+
+                                            const lastGroup = currentTray.mountingMaterials[currentTray.mountingMaterials.length - 1];
+                                            if (lastGroup) lastGroup.options.push({ artNr, label, menge, type: 'Option', imgUrl: oImgUrl || undefined });
+                                        } else {
+                                            const accId = 'mat_' + Math.random().toString(36).substr(2, 5);
+                                            const accName = label.split(' ')[0] || 'Zubehör';
+
+                                            let accImgUrl = undefined;
+                                            const aParts = artNr.replace(/\s/g, '').split('.');
+                                            if (aParts.length >= 3) accImgUrl = `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${aParts[0].padStart(8, '0')}_${aParts[1]}_${aParts[2]}.png`;
+
+                                            currentTray.mountingMaterials.push({
+                                                id: accId,
+                                                name: accName,
+                                                options: [{ artNr, label, menge, type: 'Zubehör', imgUrl: accImgUrl || undefined }]
+                                            });
+                                        }
                                     }
                                 }
-
-                                let manufacturer = detectManufacturer({ label: lblLower, manufacturer: 'Andere' });
-
-                                let productImgUrl = undefined;
-                                const parts = artNr.replace(/\s/g, '').split('.');
-                                if (parts.length >= 3) {
-                                    productImgUrl = `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${parts[0].padStart(8, '0')}_${parts[1]}_${parts[2]}.png`;
-                                    if (!targetApp.mainImgUrl) targetApp.mainImgUrl = productImgUrl;
-                                }
-
-                                let existingIdx = targetApp.trays.findIndex(t => t.artNr === artNr);
-
-                                // Read Ablage column → overrideAbstell
-                                let overrideAbstell = undefined;
-                                if (headers && headers.ablage !== -1 && cols[headers.ablage]) {
-                                    const ablageVal = cols[headers.ablage].trim().toLowerCase();
-                                    if (['links', 'rechts', 'beidseitig', 'ohne'].includes(ablageVal)) {
-                                        overrideAbstell = ablageVal;
-                                    }
-                                }
-
-                                currentTray = {
-                                    id: existingIdx >= 0 ? targetApp.trays[existingIdx].id : 'csv_' + Math.random().toString(36).substr(2, 5),
-                                    manufacturer, form: parsedForm, size: parsedSize, montageart: parsedMontageart, 
-                                    serie: isToilet ? parsedSeries : undefined,
-                                    artNr, label, menge,
-                                    imgUrl: (existingIdx >= 0 && targetApp.trays[existingIdx].imgUrl) ? targetApp.trays[existingIdx].imgUrl : (productImgUrl || undefined),
-                                    variants: [], mountingMaterials: [],
-                                    ...(overrideAbstell ? { overrideAbstell } : {})
-                                };
-                                if (existingIdx >= 0) { targetApp.trays[existingIdx] = currentTray; updated++; }
-                                else { targetApp.trays.push(currentTray); added++; }
-
-                                // Unified Sync Logic for all categories
-                                syncProduct(currentTray, targetAppId);
-                            } else if (isAlt && currentTray.mountingMaterials.length === 0) {
-                                let vImgUrl = undefined;
-                                const vParts = artNr.replace(/\s/g, '').split('.');
-                                if (vParts.length >= 3) vImgUrl = `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${vParts[0].padStart(8, '0')}_${vParts[1]}_${vParts[2]}.png`;
-                                currentTray.variants.push({ artNr, label, menge, imgUrl: vImgUrl || undefined });
-                                added++;
-                            } else {
-                                // This is an accessory (Mandatory or Option)
-                                if (isAlt) {
-                                    let oImgUrl = undefined;
-                                    const oParts = artNr.replace(/\s/g, '').split('.');
-                                    if (oParts.length >= 3) oImgUrl = `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${oParts[0].padStart(8, '0')}_${oParts[1]}_${oParts[2]}.png`;
-
-                                    const lastGroup = currentTray.mountingMaterials[currentTray.mountingMaterials.length - 1];
-                                    if (lastGroup) lastGroup.options.push({ artNr, label, menge, type: 'Option', imgUrl: oImgUrl || undefined });
+                            } catch (err) {
+                                console.error('Import Error:', err);
+                                alert(`Import Error: ${err.message}`);
+                            }
+                        } else if (app.parts) {
+                            lines.filter(l => l.trim().length > 0).forEach(line => {
+                                let cols = parseCsvLine(line, del);
+                                if (cols.length < 2) return;
+                                let existingIdx = app.parts.findIndex(p => p.artNr === cols[0]);
+                                if (existingIdx >= 0) {
+                                    app.parts[existingIdx].label = cols[cols.length > 3 ? 3 : 1];
+                                    updated++;
                                 } else {
-                                    const accId = 'mat_' + Math.random().toString(36).substr(2, 5);
-                                    const accName = label.split(' ')[0] || 'Zubehör';
-
-                                    let accImgUrl = undefined;
-                                    const aParts = artNr.replace(/\s/g, '').split('.');
-                                    if (aParts.length >= 3) accImgUrl = `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${aParts[0].padStart(8, '0')}_${aParts[1]}_${aParts[2]}.png`;
-
-                                    currentTray.mountingMaterials.push({
-                                        id: accId,
-                                        name: accName,
-                                        options: [{ artNr, label, menge, type: 'Zubehör', imgUrl: accImgUrl || undefined }]
-                                    });
+                                    app.parts.push({ artNr: cols[0], label: cols[cols.length > 3 ? 3 : 1], type: 'CSV Import' });
+                                    added++;
                                 }
-                            }
+                            });
+                        } else if (app.finishes) {
+                            lines.filter(l => l.trim().length > 0).forEach(line => {
+                                let cols = parseCsvLine(line, del);
+                                if (cols.length < 2) return;
+                                let existingIdx = app.finishes.findIndex(f => f.artNr === cols[0]);
+                                if (existingIdx >= 0) {
+                                    app.finishes[existingIdx].label = cols[cols.length > 3 ? 3 : 1];
+                                    updated++;
+                                } else {
+                                    app.finishes.push({ id: 'csv_' + Math.random().toString(36).substr(2, 5), artNr: cols[0], label: cols[cols.length > 3 ? 3 : 1], color: '#cccccc' });
+                                    added++;
+                                }
+                            });
                         }
-                        } catch (err) {
-                            console.error('Import Error:', err);
-                            alert(`Import Error: ${err.message}`);
-                        }
-                    } else if (app.parts) {
-                        lines.filter(l => l.trim().length > 0).forEach(line => {
-                            let cols = parseCsvLine(line, del);
-                            if (cols.length < 2) return;
-                            let existingIdx = app.parts.findIndex(p => p.artNr === cols[0]);
-                            if (existingIdx >= 0) {
-                                app.parts[existingIdx].label = cols[cols.length > 3 ? 3 : 1];
-                                updated++;
-                            } else {
-                                app.parts.push({ artNr: cols[0], label: cols[cols.length > 3 ? 3 : 1], type: 'CSV Import' });
-                                added++;
-                            }
-                        });
-                    } else if (app.finishes) {
-                        lines.filter(l => l.trim().length > 0).forEach(line => {
-                            let cols = parseCsvLine(line, del);
-                            if (cols.length < 2) return;
-                            let existingIdx = app.finishes.findIndex(f => f.artNr === cols[0]);
-                            if (existingIdx >= 0) {
-                                app.finishes[existingIdx].label = cols[cols.length > 3 ? 3 : 1];
-                                updated++;
-                            } else {
-                                app.finishes.push({ id: 'csv_' + Math.random().toString(36).substr(2, 5), artNr: cols[0], label: cols[cols.length > 3 ? 3 : 1], color: '#cccccc' });
-                                added++;
-                            }
-                        });
-                    }
 
-                    saveAllData(false);
-                    modifiedApps.add(currentAdminAppId);
-                    renderAdminEditorArea();
-                    renderAdminSidebar();
+                        await saveAllData(false);
+                        modifiedApps.add(currentAdminAppId);
+                        renderAdminEditorArea();
+                        renderAdminSidebar();
 
                         alert(`IMPORT ERFOLGREICH!\n\nNeu hinzugefügt: ${added}\nAktualisiert: ${updated}`);
                         uploadCsvInput.value = '';
@@ -532,9 +555,9 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                 const q = e.target.value.trim().toLowerCase();
                 if (q.length < 2) return;
                 let foundId = null;
-                Object.keys(productApps).forEach(id => {
+                Object.keys(window.productApps || productApps).forEach(id => {
                     if (foundId) return;
-                    const items = (productApps[id].trays || []).concat(productApps[id].parts || []).concat(productApps[id].finishes || []);
+                    const items = ((window.productApps || productApps)[id].trays || []).concat((window.productApps || productApps)[id].parts || []).concat((window.productApps || productApps)[id].finishes || []);
                     if (items.some(i => (i.artNr && i.artNr.toLowerCase().includes(q)) || (i.label && i.label.toLowerCase().includes(q)))) foundId = id;
                 });
                 if (foundId) {
@@ -581,12 +604,23 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         }
 
         function renderAdminSidebar() {
+            if (!adminAppSelector) return;
             adminAppSelector.innerHTML = '';
+            const apps = window.productApps || productApps;
             const excludedApps = ['mixandmatch']; // Composite apps have no independent data
+
+            console.log('[Konfigurator Admin] Rendering Sidebar. App counts:',
+                Object.keys(apps).map(id => `${id}: ${(apps[id].trays || apps[id].parts || apps[id].finishes || []).length}`).join(', ')
+            );
+
             catalog.forEach(cat => {
                 cat.subcategories.forEach(sub => {
                     if (sub.hasApp && sub.appId && !excludedApps.includes(sub.appId)) {
-                        const app = productApps[sub.appId];
+                        const app = apps[sub.appId];
+                        if (!app) {
+                            console.warn(`[Konfigurator Admin] App definition missing for ID: ${sub.appId}`);
+                            return;
+                        }
                         const count = (app.trays || app.parts || app.finishes || []).length;
                         const btn = document.createElement('button');
                         btn.className = `finish-row-btn ${currentAdminAppId === sub.appId ? 'active' : ''}`;
@@ -605,7 +639,8 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         function openAdminEditor(appId, name) {
             currentAdminAppId = appId;
             adminCurrentAppName.textContent = name;
-            const app = productApps[appId];
+            const apps = window.productApps || productApps;
+            const app = apps[appId];
             const hasDataRows = (app.trays || app.parts || app.finishes);
 
             if (uploadCsvBtn) uploadCsvBtn.style.display = hasDataRows ? 'flex' : 'none';
@@ -614,7 +649,8 @@ export function setupAdmin(modifiedApps, renderCatalog) {
 
         function renderAdminEditorArea() {
             if (!currentAdminAppId) return;
-            const app = productApps[currentAdminAppId];
+            const apps = window.productApps || productApps;
+            const app = apps[currentAdminAppId];
             adminEditorArea.innerHTML = '';
 
             const header = document.createElement('div');
@@ -644,33 +680,34 @@ export function setupAdmin(modifiedApps, renderCatalog) {
             };
 
 
-                    document.getElementById('adminResyncBtn').onclick = () => {
-                        const appIds = Object.keys(productApps);
-                        const stats = appIds.map(id => `${id}: ${productApps[id]?.trays?.length || 0}`).join('\n');
-                        const diagMsg = `--- SYSTEM AUDIT ---\n${stats}\n------------------\n\nProceed with Patching & Syncing all rules for ALL categories?`;
-                        
-                        if (!confirm(diagMsg)) return;
+            document.getElementById('adminResyncBtn').onclick = () => {
+                const currentApps = window.productApps || productApps;
+                const appIds = Object.keys(currentApps);
+                const stats = appIds.map(id => `${id}: ${currentApps[id]?.trays?.length || 0}`).join('\n');
+                const diagMsg = `--- SYSTEM AUDIT ---\n${stats}\n------------------\n\nProceed with Patching & Syncing all rules for ALL categories?`;
 
-                        let count = 0;
-                        console.log("🚀 Starting Global Patch & Sync...");
-                        
-                        appIds.forEach(appId => {
-                            const app = productApps[appId];
-                            if (app && app.trays) {
-                                app.trays.forEach(tray => {
-                                    syncProduct(tray, appId);
-                                    count++;
-                                });
-                            }
+                if (!confirm(diagMsg)) return;
+
+                let count = 0;
+                console.log("🚀 Starting Global Patch & Sync...");
+
+                appIds.forEach(appId => {
+                    const app = currentApps[appId];
+                    if (app && app.trays) {
+                        app.trays.forEach(tray => {
+                            syncProduct(tray, appId);
+                            count++;
                         });
+                    }
+                });
 
-                        saveAllData(false);
-                        setTimeout(() => {
-                            renderAdminSidebar();
-                            renderAdminEditorArea();
-                            alert(`✅ PATCH COMPLETE\n\n${count} items processed and synchronized.`);
-                        }, 100);
-                    };
+                saveAllData(false);
+                setTimeout(() => {
+                    renderAdminSidebar();
+                    renderAdminEditorArea();
+                    alert(`✅ PATCH COMPLETE\n\n${count} items processed and synchronized.`);
+                }, 100);
+            };
 
             const tableWrap = document.createElement('div');
             tableWrap.className = 'admin-table-wrapper';
@@ -754,8 +791,8 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                     toDelete.sort((a, b) => b.idx - a.idx);
 
                     toDelete.forEach(item => {
-                        if (productApps[appId] && productApps[appId][item.type]) {
-                            productApps[appId][item.type].splice(item.idx, 1);
+                        if ((window.productApps || productApps)[appId] && (window.productApps || productApps)[appId][item.type]) {
+                            (window.productApps || productApps)[appId][item.type].splice(item.idx, 1);
                         }
                     });
 
@@ -788,8 +825,8 @@ export function setupAdmin(modifiedApps, renderCatalog) {
 
         window.confirmDelete = (type, idx) => {
             console.log('Deleting item at index', idx, 'from type', type);
-            if (productApps[currentAdminAppId][type]) {
-                productApps[currentAdminAppId][type].splice(idx, 1);
+            if ((window.productApps || productApps)[currentAdminAppId][type]) {
+                (window.productApps || productApps)[currentAdminAppId][type].splice(idx, 1);
                 saveAllData(false);
                 modifiedApps.add(currentAdminAppId);
                 renderAdminEditorArea();
@@ -798,15 +835,18 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         };
 
         window.openEditModal = (type, idx) => {
-            const item = productApps[currentAdminAppId][type][idx];
+            const currentApps = window.productApps || productApps;
+            const item = currentApps[currentAdminAppId][type][idx];
             const isMixerApp = currentAdminAppId.toLowerCase().includes('mischer');
             const isTemplateApp = currentAdminAppId === 'vorlagen';
 
+            const safeVal = (v) => String(v || '').replace(/"/g, '&quot;');
+
             let html = `
-                <div class="filter-group"><label>${isTemplateApp ? 'Vorlagen-Name' : 'Art-Nr'}</label><input type="text" id="edit_artNr" class="admin-input" value="${item.artNr || ''}"></div>
-                <div class="filter-group"><label>${isTemplateApp ? 'Beschreibung (Intern)' : 'Label'}</label><input type="text" id="edit_label" class="admin-input" value="${item.label || ''}"></div>
+                <div class="filter-group"><label>${isTemplateApp ? 'Vorlagen-Name' : 'Art-Nr'}</label><input type="text" id="edit_artNr" class="admin-input" value="${safeVal(item.artNr)}"></div>
+                <div class="filter-group"><label>${isTemplateApp ? 'Beschreibung (Intern)' : 'Label'}</label><input type="text" id="edit_label" class="admin-input" value="${safeVal(item.label)}"></div>
                 ${!isTemplateApp ? `<div class="filter-group"><label>Anzahl (Vorgabe)</label><input type="number" id="edit_menge" class="admin-input" value="${item.menge || 1}"></div>` : ''}
-                ${item.imgUrl !== undefined ? `<div class="filter-group"><label>Bild URL</label><input type="text" id="edit_imgUrl" class="admin-input" value="${item.imgUrl}"></div>` : ''}
+                ${item.imgUrl !== undefined ? `<div class="filter-group"><label>Bild URL</label><input type="text" id="edit_imgUrl" class="admin-input" value="${safeVal(item.imgUrl)}"></div>` : ''}
             `;
 
             // Add Montageart Override for main products if relational
@@ -872,7 +912,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         };
 
         window.openTemplateSelector = () => {
-            const templates = productApps['vorlagen'].trays;
+            const templates = (window.productApps || productApps)['vorlagen'].trays;
             if (templates.length === 0) {
                 alert('Keine Vorlagen gefunden. Speichern Sie zuerst eine Konfiguration als Vorlage.');
                 return;
@@ -881,7 +921,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
             if (name) {
                 const idx = parseInt(name) - 1;
                 if (templates[idx]) {
-                    const item = productApps[currentAdminAppId]['trays'][window.currentEditIdx];
+                    const item = (window.productApps || productApps)[currentAdminAppId]['trays'][window.currentEditIdx];
                     // Deep copy accessories
                     item.mountingMaterials = JSON.parse(JSON.stringify(templates[idx].mountingMaterials));
                     renderAccessoriesEditor(item);
@@ -890,10 +930,10 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         };
 
         window.saveCurrentAsTemplate = () => {
-            const item = productApps[currentAdminAppId]['trays'][window.currentEditIdx];
+            const item = (window.productApps || productApps)[currentAdminAppId]['trays'][window.currentEditIdx];
             const name = prompt('Name für diese Vorlage (z.B. Axor Chrome Standard):');
             if (name) {
-                productApps['vorlagen'].trays.push({
+                (window.productApps || productApps)['vorlagen'].trays.push({
                     id: 'temp_' + Math.random().toString(36).substr(2, 5),
                     artNr: name,
                     label: `Vorlage für ${item.label}`,
@@ -1007,28 +1047,28 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         }
 
         window.moveAccessoryGroup = (mIdx, dir) => {
-            const item = productApps[currentAdminAppId]['trays'][window.currentEditIdx];
+            const item = (window.productApps || productApps)[currentAdminAppId]['trays'][window.currentEditIdx];
             if (!item || !item.mountingMaterials) return;
             const targetIdx = mIdx + dir;
             if (targetIdx < 0 || targetIdx >= item.mountingMaterials.length) return;
-            
+
             const temp = item.mountingMaterials[mIdx];
             item.mountingMaterials[mIdx] = item.mountingMaterials[targetIdx];
             item.mountingMaterials[targetIdx] = temp;
-            
+
             renderAccessoriesEditor(item);
         };
 
         window.moveAccessoryOption = (mIdx, oIdx, dir) => {
-            const item = productApps[currentAdminAppId]['trays'][window.currentEditIdx];
+            const item = (window.productApps || productApps)[currentAdminAppId]['trays'][window.currentEditIdx];
             if (!item || !item.mountingMaterials) return;
             const targetIdx = oIdx + dir;
             if (targetIdx < 0 || targetIdx >= item.mountingMaterials[mIdx].options.length) return;
-            
+
             const temp = item.mountingMaterials[mIdx].options[oIdx];
             item.mountingMaterials[mIdx].options[oIdx] = item.mountingMaterials[mIdx].options[targetIdx];
             item.mountingMaterials[mIdx].options[targetIdx] = temp;
-            
+
             renderAccessoriesEditor(item);
         };
 
@@ -1049,7 +1089,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
 
             const renderPoolResults = (filter = '') => {
                 const q = filter.toLowerCase();
-                const pool = productApps['zubehoer_pool'] ? (productApps['zubehoer_pool'].trays || []) : [];
+                const pool = (window.productApps || productApps)['zubehoer_pool'] ? ((window.productApps || productApps)['zubehoer_pool'].trays || []) : [];
                 const filtered = pool.filter(p => !q || (p.artNr || '').toLowerCase().includes(q) || (p.label || '').toLowerCase().includes(q));
 
                 window.lastFilteredPool = filtered;
@@ -1086,7 +1126,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
             if (window.selectedPoolIndices.size === 0) return;
 
             const mIdx = window.currentPoolTargetGroup;
-            const item = productApps[currentAdminAppId]['trays'][window.currentEditIdx];
+            const item = (window.productApps || productApps)[currentAdminAppId]['trays'][window.currentEditIdx];
             const selectedIndices = Array.from(window.selectedPoolIndices);
 
             if (mIdx === -1) {
@@ -1117,20 +1157,20 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         };
 
         window.updateAccessoryGroupName = (mIdx, val) => {
-            const item = productApps[currentAdminAppId]['trays'][window.currentEditIdx];
+            const item = (window.productApps || productApps)[currentAdminAppId]['trays'][window.currentEditIdx];
             item.mountingMaterials[mIdx].name = val;
         };
         window.updateAccessoryOption = (mIdx, oIdx, field, val) => {
-            const item = productApps[currentAdminAppId]['trays'][window.currentEditIdx];
+            const item = (window.productApps || productApps)[currentAdminAppId]['trays'][window.currentEditIdx];
             item.mountingMaterials[mIdx].options[oIdx][field] = val;
         };
         window.addAccessoryOption = (mIdx) => {
-            const item = productApps[currentAdminAppId]['trays'][window.currentEditIdx];
+            const item = (window.productApps || productApps)[currentAdminAppId]['trays'][window.currentEditIdx];
             item.mountingMaterials[mIdx].options.push({ artNr: '', label: '', type: 'Option' });
             renderAccessoriesEditor(item);
         };
         window.removeAccessoryOption = (mIdx, oIdx) => {
-            const item = productApps[currentAdminAppId]['trays'][window.currentEditIdx];
+            const item = (window.productApps || productApps)[currentAdminAppId]['trays'][window.currentEditIdx];
             item.mountingMaterials[mIdx].options.splice(oIdx, 1);
             if (item.mountingMaterials[mIdx].options.length === 0) {
                 item.mountingMaterials.splice(mIdx, 1);
@@ -1140,7 +1180,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
 
         const saveModalBtn = document.getElementById('saveEditModalBtn');
         saveModalBtn.onclick = () => {
-            const item = productApps[currentAdminAppId][window.currentEditType][window.currentEditIdx];
+            const item = (window.productApps || productApps)[currentAdminAppId][window.currentEditType][window.currentEditIdx];
             item.artNr = document.getElementById('edit_artNr').value;
             item.label = document.getElementById('edit_label').value;
             item.menge = parseInt(document.getElementById('edit_menge').value) || 1;
@@ -1156,12 +1196,97 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         };
     }
 
+    function getBrandSpecificHandbrausen(mixerManufacturer, mixerLabel, appId) {
+        const currentApps = window.productApps || productApps;
+        if (!currentApps['zubehoer_pool']) return [];
+        const pool = [
+            ...(currentApps['zubehoer_pool'].trays || []),
+            ...(currentApps['zubehoer_pool'].parts || []),
+            ...(currentApps['zubehoer_pool'].finishes || [])
+        ];
+        
+        const allHb = pool.filter(p => {
+            // Use first word of label as the product type — unambiguous and brand-agnostic
+            const firstWord = (p.label || '').trim().split(/\s+/)[0].toLowerCase();
+            return firstWord === 'handbrause';
+        });
 
-    function autoLinkMixerAccessories(tray) {
+        let results = [];
+        let standardArtNr = null;
+
+        if (mixerManufacturer) {
+            const m = mixerManufacturer.toLowerCase();
+            const l = (mixerLabel || '').toLowerCase();
+            
+            // Map standards based on user requirements
+            if (m === 'kwc') {
+                standardArtNr = appId === 'bademischer' ? '6541 152.501.000' : '6541 147.501.000';
+            } else if (m === 'laufen') {
+                standardArtNr = appId === 'bademischer' ? '6541 608.501.000' : '6541 670.501.000';
+            } else if (m === 'hansgrohe') {
+                const isSquare = l.includes(' e,') || l.includes(' e ') || l.includes(' square') || l.includes(' e-') || l.includes('eckig') || l.includes('finoris');
+                if (appId === 'bademischer') {
+                    standardArtNr = isSquare ? '6541 871.501.000' : '6541 873.501.000';
+                } else {
+                    standardArtNr = isSquare ? '6541 852.501.000' : '6541 853.501.000';
+                }
+            } else if (m === 'alterna') {
+                standardArtNr = appId === 'bademischer' ? '6541 328.501.000' : '6541 336.501.000';
+            }
+
+            // Filter brand items
+            let brandMatch = allHb.filter(p => p.label.toLowerCase().includes(m));
+            if (brandMatch.length > 0) {
+                if (standardArtNr) {
+                    const stdItem = brandMatch.find(p => p.artNr === standardArtNr);
+                    if (stdItem) {
+                        // Put standard item first
+                        results = [stdItem, ...brandMatch.filter(p => p.artNr !== standardArtNr)];
+                    } else {
+                        results = brandMatch;
+                    }
+                } else {
+                    results = brandMatch;
+                }
+            }
+        }
+        
+        // Fallback to Alterna, or generic
+        if (results.length === 0) {
+            results = allHb.filter(p => p.label.toLowerCase().includes('alterna') || p.label.toLowerCase().includes('easyline') || p.label.toLowerCase().includes('simijet'));
+        }
+        
+        // Hard fallback
+        if (results.length === 0) {
+            results = [{
+                artNr: "6541 326.501.000",
+                label: "Handbrause Alterna easyline, Ø 101 mm, 1-jet",
+                imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541326_501_000.png"
+            }];
+        }
+        
+        return results.map((hb, i) => ({
+            artNr: hb.artNr,
+            label: hb.label,
+            type: i === 0 ? "Zubehör" : "Option",
+            imgUrl: hb.imgUrl || `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/0${hb.artNr.replace(/\s+/g, '').replace(/\./g, '_')}.png`,
+            menge: 1
+        }));
+    }
+    function autoLinkMixerAccessories(tray, appId) {
         if (!tray || !tray.label) return;
         const l = tray.label.toLowerCase();
         const manufacturer = (tray.manufacturer || '').toLowerCase();
-        
+
+        // Brauseschlauch: Duschenmischer = 1600mm standard + 1800mm option only
+        //                 Bademischer   = 1250mm standard + 1800mm option only
+        const isBadeMixer = appId === 'bademischer';
+        const S1600 = { artNr: '6542 317.501.000', label: 'Brauseschlauch Alterna flexline, 1600 mm, ½"x½", Kunststoff mit Metalleffekt', type: 'Zubehör', imgUrl: 'https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06542317_501_000.png', menge: 1 };
+        const S1250 = { artNr: '6542 316.501.000', label: 'Brauseschlauch Alterna flexline, 1250 mm, ½"x½", Kunststoff mit Metalleffekt', type: 'Zubehör', imgUrl: 'https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06542316_501_000.png', menge: 1 };
+        const S1800 = { artNr: '6542 318.501.000', label: 'Brauseschlauch Alterna flexline, 1800 mm, ½"x½", Kunststoff mit Metalleffekt', type: 'Option', imgUrl: 'https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06542318_501_000.png', menge: 1 };
+        const OHNE  = { artNr: 'ohne_schlauch', label: 'Ohne Brauseschlauch', type: 'Option', imgUrl: '', menge: 0 };
+        const schlauchOptions = isBadeMixer ? [S1250, S1800, OHNE] : [S1600, S1800, OHNE];
+
         // --- 1. AUFPUTZ LOGIC (AD 153 mm) ---
         if (l.includes('ad 153 mm') && !l.includes('endmontageset') && !l.includes('grundkörper')) {
             const accessories = [
@@ -1181,28 +1306,12 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                 {
                     id: "mat_dweg4",
                     name: "Brauseschlauch",
-                    options: [
-                        {
-                            artNr: "6542 317.501.000",
-                            label: "Brauseschlauch Alterna flexline, 1600 mm, ½\"x½\", Kunststoff mit Metalleffekt,",
-                            menge: 1,
-                            type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06542317_501_000.png"
-                        }
-                    ]
+                    options: schlauchOptions
                 },
                 {
                     id: "mat_5utlf",
                     name: "Handbrause",
-                    options: [
-                        {
-                            artNr: "6541 326.501.000",
-                            label: "Handbrause Alterna easyline, Ø 101 mm, 1-jet, SoftRain, Einlage des",
-                            menge: 1,
-                            type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541326_501_000.png"
-                        }
-                    ]
+                    options: getBrandSpecificHandbrausen(manufacturer, tray.label, appId)
                 },
                 {
                     id: "mat_37d4w",
@@ -1225,7 +1334,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                 if (name.includes('abstell') && l.includes('abstellverschraubung')) return l.includes('ohne abstellverschraubung');
                 if (name.includes('schlauch') && l.includes('brauseschlauch')) return l.includes('ohne brauseschlauch');
                 if (name.includes('handbrause') && l.includes('handbrause')) return l.includes('ohne handbrause');
-                return true; 
+                return true;
             });
         }
 
@@ -1234,7 +1343,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
             // Dynamically extract Einbaukörper IDs from label
             const gkMatches = l.match(/einbauk[öo]rper\s*([0-9\s.\/]+)/);
             let gkOptions = [];
-            
+
             if (gkMatches && gkMatches[1]) {
                 // Extract all 7-digit patterns like "6158 110" or "6158 112"
                 const parts = gkMatches[1].match(/\b\d{4}\s*\d{3}\b/g) || [];
@@ -1303,35 +1412,12 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                 {
                     id: "mat_schlauch",
                     name: "4. Brauseschlauch",
-                    options: [
-                        {
-                            artNr: "6542 317.501.000",
-                            label: "Brauseschlauch Alterna flexline, 1600 mm, ½\"x½\", Kunststoff mit Metalleffekt",
-                            type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06542317_501_000.png",
-                            menge: 1
-                        },
-                        {
-                            artNr: "6542 316.501.000",
-                            label: "Brauseschlauch Alterna flexline, 1250 mm, ½\"x½\", Kunststoff mit Metalleffekt",
-                            type: "Option",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06542316_501_000.png",
-                            menge: 1
-                        }
-                    ]
+                    options: schlauchOptions
                 },
                 {
                     id: "mat_handbrause",
                     name: "5. Handbrause",
-                    options: [
-                        {
-                            artNr: "6541 326.501.000",
-                            label: "Handbrause Alterna easyline, Ø 101 mm, 1-jet, SoftRain",
-                            type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541326_501_000.png",
-                            menge: 1
-                        }
-                    ]
+                    options: getBrandSpecificHandbrausen(manufacturer, tray.label, appId)
                 },
                 {
                     id: "mat_halter",
@@ -1382,12 +1468,12 @@ export function setupAdmin(modifiedApps, renderCatalog) {
             // Regex handles spaces, dots, and common patterns
             const gkMatch = l.match(/einbauk[öo]rper\s*([0-9\s.]+)/);
             let gkArtNr = gkMatch ? gkMatch[1].trim() : (l.includes('homebox') ? "6118 135.000.000" : "Z.538.705.000");
-            
+
             // Cleanup gkArtNr to standard format if it looks like a sequence of numbers
             if (gkArtNr.replace(/\s+/g, '').length === 7) {
                 gkArtNr = gkArtNr.replace(/(\d{4})\s*(\d{3})/, "$1 $2");
             }
-            
+
             const isHomebox = l.includes('homebox');
 
             tray.mountingMaterials = [
@@ -1420,28 +1506,12 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                 {
                     id: "mat_kwc_schlauch",
                     name: "3. Brauseschlauch",
-                    options: [
-                        {
-                            artNr: "6542 317.501.000",
-                            label: "Brauseschlauch Alterna flexline, 1600 mm, ½\"x½\"",
-                            type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06542317_501_000.png",
-                            menge: 1
-                        }
-                    ]
+                    options: schlauchOptions
                 },
                 {
                     id: "mat_kwc_handbrause",
                     name: "4. Handbrause",
-                    options: [
-                        {
-                            artNr: "6541 326.501.000",
-                            label: "Handbrause Alterna easyline, Ø 101 mm, 1-jet",
-                            type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541326_501_000.png",
-                            menge: 1
-                        }
-                    ]
+                    options: getBrandSpecificHandbrausen(manufacturer, tray.label, appId)
                 },
                 {
                     id: "mat_kwc_halter",
@@ -1462,24 +1532,24 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         // --- 4. DYNAMIC POOL SCANNER (Fallback / Auto-Injector) ---
         // Scans the product label for "ohne [ArtNr]" and injects missing items from Zubehör Pool
         // Example: "ohne Einbaukörper 6158 112"
-        if (productApps['zubehoer_pool'] && tray.mountingMaterials.length === 0) {
+        if ((window.productApps || productApps)['zubehoer_pool'] && tray.mountingMaterials.length === 0) {
             const fullPool = [
-                ...(productApps['zubehoer_pool'].trays || []),
-                ...(productApps['zubehoer_pool'].parts || []),
-                ...(productApps['zubehoer_pool'].finishes || [])
+                ...((window.productApps || productApps)['zubehoer_pool'].trays || []),
+                ...((window.productApps || productApps)['zubehoer_pool'].parts || []),
+                ...((window.productApps || productApps)['zubehoer_pool'].finishes || [])
             ];
-            
+
             // Look for standard 7-digit Swiss ArtNrs in the label, e.g. "6158 110" or "6158 112"
             const artNrMatches = l.match(/\b\d{4}\s*\d{3}\b/g) || [];
-            
+
             let addedGroup = false;
             let addedIbox = false;
             artNrMatches.forEach((match, idx) => {
                 const searchArtNr = match.replace(/\s+/g, ''); // "6158110"
-                
+
                 // Find matching items in pool (some might be .000.000, some .501.000)
                 const foundItems = fullPool.filter(p => p.artNr && p.artNr.replace(/\s+/g, '').startsWith(searchArtNr));
-                
+
                 if (foundItems.length > 0) {
                     tray.mountingMaterials.push({
                         id: "mat_auto_" + searchArtNr + "_" + idx,
@@ -1521,464 +1591,477 @@ export function setupAdmin(modifiedApps, renderCatalog) {
 
     function autoLinkShowerAccessories(tray) {
         try {
-            if (!productApps['zubehoer_pool']) return;
+            if (!(window.productApps || productApps)['zubehoer_pool']) return;
 
-        // Search in ALL pool categories (trays, parts, finishes) to find accessories
-        const fullPool = [
-            ...(productApps['zubehoer_pool'].trays || []),
-            ...(productApps['zubehoer_pool'].parts || []),
-            ...(productApps['zubehoer_pool'].finishes || [])
-        ];
-        
-        const manufacturer = (tray.manufacturer || '').toLowerCase().trim();
-        const labelLower = (tray.label || '').toLowerCase().trim();
-        const size = (tray.size || '').replace(/\s/g, '').toLowerCase();
+            // Search in ALL pool categories (trays, parts, finishes) to find accessories
+            const fullPool = [
+                ...((window.productApps || productApps)['zubehoer_pool'].trays || []),
+                ...((window.productApps || productApps)['zubehoer_pool'].parts || []),
+                ...((window.productApps || productApps)['zubehoer_pool'].finishes || [])
+            ];
 
-        // Robust size parsing: handles "120x80", "120 x 80", "110.5 x 75", and mm conversion
-        const normalizeSize = (s) => {
-            if (!s) return null;
-            const matches = s.match(/(\d+(?:[.,]\d+)?)\s*[xX\/\*\-]\s*(\d+(?:[.,]\d+)?)/);
-            if (!matches) return null;
-            let w = parseFloat(matches[1].replace(',', '.'));
-            let h = parseFloat(matches[2].replace(',', '.'));
-            // Auto-convert mm to cm if values are large (e.g. 1200 -> 120)
-            if (w > 300) w /= 10;
-            if (h > 300) h /= 10;
-            return [w, h];
-        };
-        const sizeParts = normalizeSize(tray.size);
-        const isLargeTray = sizeParts ? (Math.max(sizeParts[0], sizeParts[1]) > 90) : false;
+            const manufacturer = (tray.manufacturer || '').toLowerCase().trim();
+            const labelLower = (tray.label || '').toLowerCase().trim();
+            const size = (tray.size || '').replace(/\s/g, '').toLowerCase();
 
-        const SHOWER_RULES = {
-            "alterna": {
-                "ecoplan": { deckel: "1422 118.501.000", siphon: "1422 117.000.000" },
-                "loa": { deckel: "1311 698.501.000", siphon: "1311 701.000.000" }
-            },
-            "schmidlin": {
-                "duschwanne": { deckel: "1422 118.501.000", siphon: "1422 117.000.000" },
-                "viva": { deckel: "1311 698.100.000", siphon: "1311 701.000.000" },
-                "floor": { deckel: "1311 698.100.000", siphon: "1311 701.000.000" }
-            },
-            "kaldewei": {
-                "superplan zero": { siphon: "1313 271.501.000" },
-                "cayonoplan": { siphon: "1313 271.501.000" },
-                "calima": { deckel: "1313 284.100.185", siphon: "1313 277.501.000" },
-                "superplan": { siphon: "1313 271.501.000" },
-                "duschplan": { deckel: "1422 118.501.000", siphon: "1422 117.000.000" },
-                "sanidusch": { siphon: "1421 111.501.000" },
-                "superplan classic": { siphon: "1313 271.501.000" },
-                "conoflat": { deckel: "1313 282.100.000", siphon: "1313 274.000.000" }
-            },
-            "laufen": {
-                "pro s superflach": { siphon: "1425 561.000.000" },
-                "pro superflach": { siphon: "1171 405.000.000" }
-            }
-        };
+            // Robust size parsing: handles "120x80", "120 x 80", "110.5 x 75", and mm conversion
+            const normalizeSize = (s) => {
+                if (!s) return null;
+                const matches = s.match(/(\d+(?:[.,]\d+)?)\s*[xX\/\*\-]\s*(\d+(?:[.,]\d+)?)/);
+                if (!matches) return null;
+                let w = parseFloat(matches[1].replace(',', '.'));
+                let h = parseFloat(matches[2].replace(',', '.'));
+                // Auto-convert mm to cm if values are large (e.g. 1200 -> 120)
+                if (w > 300) w /= 10;
+                if (h > 300) h /= 10;
+                return [w, h];
+            };
+            const sizeParts = normalizeSize(tray.size);
+            const isLargeTray = sizeParts ? (Math.max(sizeParts[0], sizeParts[1]) > 90) : false;
 
-        let modelRule = null;
-        if (SHOWER_RULES[manufacturer]) {
-            for (const series in SHOWER_RULES[manufacturer]) {
-                if (labelLower.includes(series)) {
-                    modelRule = SHOWER_RULES[manufacturer][series];
-                    break;
+            const SHOWER_RULES = {
+                "alterna": {
+                    "ecoplan": { deckel: "1422 118.501.000", siphon: "1422 117.000.000" },
+                    "loa": { deckel: "1311 698.501.000", siphon: "1311 701.000.000" }
+                },
+                "schmidlin": {
+                    "duschwanne": { deckel: "1422 118.501.000", siphon: "1422 117.000.000" },
+                    "viva": { deckel: "1311 698.501.000", siphon: "1311 701.000.000" },
+                    "floor": { deckel: "1311 698.501.000", siphon: "1311 701.000.000" }
+                },
+                "kaldewei": {
+                    "superplan zero": { siphon: "1313 271.501.000" },
+                    "cayonoplan": { siphon: "1313 271.501.000" },
+                    "calima": { deckel: "1313 284.100.185", siphon: "1313 277.501.000" },
+                    "superplan": { siphon: "1313 271.501.000" },
+                    "duschplan": { deckel: "1422 118.501.000", siphon: "1422 117.000.000" },
+                    "sanidusch": { siphon: "1422 117.000.000" },
+                    "superplan classic": { siphon: "1313 271.501.000" },
+                    "conoflat": { deckel: "1313 282.100.000", siphon: "1313 274.000.000" }
+                },
+                "laufen": {
+                    "pro s superflach": { siphon: "1425 561.000.000" },
+                    "pro superflach": { siphon: "1171 405.000.000" }
                 }
-            }
-        }
+            };
 
-        const CALIMA_FEET_MAP = {
-            "800x800": 16, "900x700": 12, "900x750": 16, "900x800": 16, "900x900": 16,
-            "1000x700": 12, "1000x750": 16, "1000x800": 16, "1000x900": 16, "1000x1000": 16,
-            "1100x700": 15, "1100x750": 20, "1100x800": 20, "1100x900": 20,
-            "1200x700": 15, "1200x750": 20, "1200x800": 20, "1200x900": 20, "1200x1000": 20,
-            "1300x700": 15, "1300x750": 20, "1300x800": 20, "1300x900": 20,
-            "1400x700": 18, "1400x750": 24, "1400x800": 24, "1400x900": 24, "1400x1000": 24,
-            "1500x700": 18, "1500x750": 24, "1500x800": 24, "1500x900": 24,
-            "1600x700": 18, "1600x750": 24, "1600x800": 24, "1600x900": 24,
-            "1700x700": 21, "1700x750": 28, "1700x800": 28, "1700x900": 28,
-            "1800x700": 21, "1800x750": 28, "1800x800": 28, "1800x900": 28
-        };
-
-        const categories = [
-            { name: 'Ablaufdeckel', keywords: ['ablaufdeckel', 'deckel'] },
-            { name: 'Ablaufgarnitur', keywords: ['ablaufgarnitur', 'siphon', 'garnitur'] },
-            { name: 'Zargen-Wannendichtband', keywords: ['zargen', 'dichtband'] },
-
-            // Group 1: Wannenträger System
-            { name: 'Wannenträger', keywords: ['wannenträger'], group: 'wannenträger' },
-            { name: 'Montageschaum', keywords: ['montageschaum', 'schaum'], group: 'wannenträger' },
-            { name: 'Schallschutzset (Träger)', keywords: [], artNr: '1445 782.000.000', group: 'wannenträger' },
-
-            // Group 2: Montagerahmen System
-            { name: 'Montagerahmen', keywords: ['montagerahmen', 'einbaurahmen', 'omnia', 'ineo', 'fr 5300'], group: 'montagerahmen' },
-            { name: 'Wannenfüsse', keywords: [], artNr: '1435 191.000.000', group: 'montagerahmen', condition: labelLower.includes('omnia') || labelLower.includes('loa') },
-            { name: 'Mittenabstützsystem (Standard)', keywords: [], artNr: '1435 435.000.000', group: 'montagerahmen', condition: (manufacturer === 'kaldewei' && isLargeTray && !labelLower.includes('conoflat')) },
-            { name: 'Mittenabstützsystem (Conoflat)', keywords: [], artNr: '1435 433.000.000', group: 'montagerahmen', condition: (manufacturer === 'kaldewei' && isLargeTray && labelLower.includes('conoflat')) },
-
-            // Group 3: Calima Stelzfüsse System
-            { name: 'Stelzfüsse-Pack (4 Stk)', keywords: ['stelzfüsse', 'stelzfuss'], group: 'stelzfüsse', condition: labelLower.includes('calima') }
-        ];
-
-        categories.forEach(cat => {
-            if (tray.mountingMaterials.some(m => m.name === cat.name)) return;
-
-            // Technical Conditions check
-            if (cat.condition === false) return;
-            if (cat.name === 'Ablaufdeckel' && modelRule && !modelRule.deckel) return;
-
-            // Calima Logic: If tray is Calima, skip Groups 1 and 2
-            if (labelLower.includes('calima') && (cat.group === 'wannenträger' || cat.group === 'montagerahmen')) return;
-
-            // --- DEPENDENCY CHECK ---
-            // Foam and Noise Set (1445 782) ONLY if Wannenträger is present
-            if (cat.name === 'Montageschaum' || (cat.artNr === '1445 782.000.000' && cat.group === 'wannenträger')) {
-                const hasCarrier = tray.mountingMaterials.some(m => m.name === 'Wannenträger');
-                if (!hasCarrier) return;
-            }
-
-            let matches = fullPool.filter(item => {
-                const lbl = item.label.toLowerCase();
-                // Deep clean ArtNr for comparison (Remove all non-alphanumeric)
-                const artNrClean = (item.artNr || '').replace(/[^a-zA-Z0-9]/g, '');
-                
-                // 1. Direct Article Number Match (Highest Priority)
-                if (cat.artNr) {
-                    const targetArtNrClean = cat.artNr.replace(/[^a-zA-Z0-9]/g, '');
-                    return artNrClean === targetArtNrClean;
-                }
-
-                // 1b. HARD PAIRING OVERRIDES (User Request)
-                if (cat.name === 'Wannenträger') {
-                    const tArt = (tray.artNr || '').replace(/[^0-9]/g, '');
-                    const iArt = (item.artNr || '').replace(/[^0-9]/g, '');
-                    // Pair 1: 1313 311 -> 1445 727
-                    if (tArt === '1313311100000' && iArt === '1445727000000') return true;
-                    // Pair 2: 1313 307 -> 1445 726
-                    if (tArt === '1313307100000' && iArt === '1445726000000') return true;
-                    // FORCE MATCH for 547 and 545 to OMNIA Frames (Article numbers for frames search)
-                    if ((tArt === '1111547100000' || tArt === '1111545100000') && iArt.startsWith('1435')) {
-                        if (lbl.includes('omnia') || lbl.includes('montagerahmen')) return true;
+            let modelRule = null;
+            if (SHOWER_RULES[manufacturer]) {
+                for (const series in SHOWER_RULES[manufacturer]) {
+                    if (labelLower.includes(series)) {
+                        modelRule = SHOWER_RULES[manufacturer][series];
+                        break;
                     }
                 }
+            }
 
-                const isOmnia = lbl.includes('omnia');
-                const isLoa = labelLower.includes('loa');
+            const CALIMA_FEET_MAP = {
+                "800x800": 16, "900x700": 12, "900x750": 16, "900x800": 16, "900x900": 16,
+                "1000x700": 12, "1000x750": 16, "1000x800": 16, "1000x900": 16, "1000x1000": 16,
+                "1100x700": 15, "1100x750": 20, "1100x800": 20, "1100x900": 20,
+                "1200x700": 15, "1200x750": 20, "1200x800": 20, "1200x900": 20, "1200x1000": 20,
+                "1300x700": 15, "1300x750": 20, "1300x800": 20, "1300x900": 20,
+                "1400x700": 18, "1400x750": 24, "1400x800": 24, "1400x900": 24, "1400x1000": 24,
+                "1500x700": 18, "1500x750": 24, "1500x800": 24, "1500x900": 24,
+                "1600x700": 18, "1600x750": 24, "1600x800": 24, "1600x900": 24,
+                "1700x700": 21, "1700x750": 28, "1700x800": 28, "1700x900": 28,
+                "1800x700": 21, "1800x750": 28, "1800x800": 28, "1800x900": 28
+            };
 
-                if (isOmnia && isLoa) {
-                    // Let's log why it might fail later
-                    if (cat.name === 'Montagerahmen') console.log(`🔍 Testing Loa Tray against Omnia Frame: ${item.artNr} - ${item.label}`);
+            const categories = [
+                { name: 'Ablaufdeckel', keywords: ['ablaufdeckel', 'deckel'] },
+                { name: 'Ablaufgarnitur', keywords: ['ablaufgarnitur', 'siphon', 'garnitur'] },
+                { name: 'Zargen-Wannendichtband', keywords: ['zargen', 'dichtband'] },
+
+                // Group 1: Wannenträger System
+                { name: 'Wannenträger', keywords: ['wannenträger'], group: 'wannenträger', condition: manufacturer !== 'laufen' },
+                { name: 'Montageschaum', keywords: ['montageschaum', 'schaum'], group: 'wannenträger' },
+                { name: 'Schallschutzset (Träger)', keywords: [], artNr: '1445 782.000.000', group: 'wannenträger' },
+
+                // Group 2: Montagerahmen System
+                { name: 'Montagerahmen', keywords: ['montagerahmen', 'einbaurahmen', 'omnia', 'ineo', 'fr 5300'], group: 'montagerahmen' },
+                { name: 'Wannenfüsse', keywords: [], artNr: '1435 191.000.000', group: 'montagerahmen', condition: labelLower.includes('omnia') || labelLower.includes('loa') || manufacturer === 'schmidlin' },
+                { name: 'Mittenabstützsystem (Standard)', keywords: [], artNr: '1435 435.000.000', group: 'montagerahmen', condition: (manufacturer === 'kaldewei' && isLargeTray && !labelLower.includes('conoflat')) },
+                { name: 'Mittenabstützsystem (Conoflat)', keywords: [], artNr: '1435 433.000.000', group: 'montagerahmen', condition: (manufacturer === 'kaldewei' && isLargeTray && labelLower.includes('conoflat')) },
+
+                // Group 3: Calima Stelzfüsse System
+                { name: 'Stelzfüsse-Pack (4 Stk)', keywords: ['stelzfüsse', 'stelzfuss'], group: 'stelzfüsse', condition: labelLower.includes('calima') }
+            ];
+
+            categories.forEach(cat => {
+                if (tray.mountingMaterials.some(m => m.name === cat.name)) return;
+
+                // Technical Conditions check
+                if (cat.condition === false) return;
+                if (cat.name === 'Ablaufdeckel' && modelRule && !modelRule.deckel) return;
+
+                // Calima Logic: If tray is Calima, skip Groups 1 and 2
+                if (labelLower.includes('calima') && (cat.group === 'wannenträger' || cat.group === 'montagerahmen')) return;
+
+                // --- DEPENDENCY CHECK ---
+                // Foam and Noise Set (1445 782) ONLY if Wannenträger is present
+                if (cat.name === 'Montageschaum' || (cat.artNr === '1445 782.000.000' && cat.group === 'wannenträger')) {
+                    const hasCarrier = tray.mountingMaterials.some(m => m.name === 'Wannenträger');
+                    if (!hasCarrier) return;
                 }
 
-                if (cat.name === 'Montagerahmen' || cat.group === 'montagerahmen') {
-                    // Brand Lockdown (Hard Isolation)
+                let matches = fullPool.filter(item => {
+                    const lbl = item.label.toLowerCase();
+                    // Deep clean ArtNr for comparison (Remove all non-alphanumeric)
+                    const artNrClean = (item.artNr || '').replace(/[^a-zA-Z0-9]/g, '');
+
+                    // 1. Direct Article Number Match (Highest Priority)
+                    if (cat.artNr) {
+                        const targetArtNrClean = cat.artNr.replace(/[^a-zA-Z0-9]/g, '');
+                        return artNrClean === targetArtNrClean;
+                    }
+
+                    // 1b. HARD PAIRING OVERRIDES (User Request)
+                    if (cat.name === 'Wannenträger') {
+                        const tArt = (tray.artNr || '').replace(/[^0-9]/g, '');
+                        const iArt = (item.artNr || '').replace(/[^0-9]/g, '');
+                        // Pair 1: 1313 311 -> 1445 727
+                        if (tArt === '1313311100000' && iArt === '1445727000000') return true;
+                        // Pair 2: 1313 307 -> 1445 726
+                        if (tArt === '1313307100000' && iArt === '1445726000000') return true;
+                        // FORCE MATCH for 547 and 545 to OMNIA Frames (Article numbers for frames search)
+                        if ((tArt === '1111547100000' || tArt === '1111545100000') && iArt.startsWith('1435')) {
+                            if (lbl.includes('omnia') || lbl.includes('montagerahmen')) return true;
+                        }
+                    }
+
                     const isOmnia = lbl.includes('omnia');
                     const isLoa = labelLower.includes('loa');
-                    const isIneo = lbl.includes('ineo');
-                    const isFR = lbl.includes('fr 5300');
-                    const isUniversal = isOmnia || isIneo || isFR;
 
-                    if (manufacturer === 'kaldewei' && !lbl.includes('kaldewei')) return false;
-                    if (manufacturer === 'schmidlin' && !isOmnia) return false;
-                    if (manufacturer === 'laufen' && !lbl.includes('laufen')) return false;
-                    
-                    // Specific Exception: Loa can use Omnia
-                    if (isLoa && isOmnia) {
-                        // EXPLICIT HANDSHAKE: Loa and Omnia are always compatible
-                        return true; 
-                    } else if (manufacturer === 'alterna' && isOmnia) {
-                        // General Alterna/Omnia handshake
+                    if (isOmnia && isLoa) {
+                        // Let's log why it might fail later
+                        if (cat.name === 'Montagerahmen') console.log(`🔍 Testing Loa Tray against Omnia Frame: ${item.artNr} - ${item.label}`);
+                    }
+
+                    if (cat.name === 'Montagerahmen' || cat.group === 'montagerahmen') {
+                        if (cat.name === 'Montagerahmen' && (lbl.includes('klosett') || lbl.includes('sitz') || lbl.includes('wannenfüsse') || artNrClean === '1435191000000')) return false;
+                        // Brand Lockdown (Hard Isolation)
+                        const isOmnia = lbl.includes('omnia');
+                        const isLoa = labelLower.includes('loa');
+                        const isIneo = lbl.includes('ineo');
+                        const isFR = lbl.includes('fr 5300');
+                        const isUniversal = isOmnia || isIneo || isFR;
+
+                        if (manufacturer === 'kaldewei' && !lbl.includes('kaldewei')) return false;
+                        if (manufacturer === 'schmidlin' && !isOmnia) return false;
+                        if (manufacturer === 'laufen' && !lbl.includes('laufen')) return false;
+
+                        // Specific Exception: Loa can use Omnia
+                        if (isLoa && isOmnia) {
+                            // EXPLICIT HANDSHAKE: Loa and Omnia are always compatible
+                            return true;
+                        } else if (manufacturer === 'alterna' && isOmnia) {
+                            // General Alterna/Omnia handshake
+                            return true;
+                        } else if (manufacturer === 'alterna' && !lbl.includes('alterna')) {
+                            return false;
+                        }
+
+                        if (manufacturer === 'laufen' && !isIneo && !lbl.includes('pro s')) return false;
+
+                        // Size Fitting logic
+                        if (sizeParts) {
+                            const tw = sizeParts[0];
+                            const th = sizeParts[1];
+                            const trayLong = Math.max(tw, th);
+                            const trayShort = Math.min(tw, th);
+
+                            if (isIneo || lbl.includes('laufen pro s')) {
+                                const m1 = lbl.match(/(\d+)\s*[xX]\s*(\d+)\s*-\s*(\d+)\s*mm/);
+                                const m2 = lbl.match(/breite\s*(\d+)\s*mm\s*länge\s*\(ausziehbar\)\s*(\d+)\s*-\s*(\d+)\s*mm/);
+                                const ineoMatch = m1 || m2;
+                                if (ineoMatch) {
+                                    const b = parseInt(ineoMatch[1]) / 10;
+                                    const minL = parseInt(ineoMatch[2]) / 10;
+                                    const maxL = parseInt(ineoMatch[3]) / 10;
+                                    if ((Math.abs(tw - b) < 1 && th >= minL - 1 && th <= maxL + 1) ||
+                                        (Math.abs(th - b) < 1 && tw >= minL - 1 && tw <= maxL + 1)) return true;
+                                    return false;
+                                }
+                            }
+
+                            const frameSizeMatch = lbl.match(/bis\s*(\d+(?:[.,]\d+)?)\s*[xX\/\*\-]\s*(\d+(?:[.,]\d+)?)/);
+                            const exactSizeMatch = !lbl.includes('bis') ? lbl.match(/(\d+(?:[.,]\d+)?)\s*[xX\/\*\-]\s*(\d+(?:[.,]\d+)?)/) : null;
+
+                            if (frameSizeMatch) {
+                                const fw = parseFloat(frameSizeMatch[1].replace(',', '.'));
+                                const fh = parseFloat(frameSizeMatch[2].replace(',', '.'));
+                                if (trayLong > Math.max(fw, fh) + 0.5 || trayShort > Math.min(fw, fh) + 0.5) return false;
+                            } else if (exactSizeMatch) {
+                                let ew = parseFloat(exactSizeMatch[1].replace(',', '.'));
+                                let eh = parseFloat(exactSizeMatch[2].replace(',', '.'));
+                                if (lbl.includes('mm') || ew > 300) { ew /= 10; eh /= 10; }
+
+                                const matchNormal = Math.abs(tw - ew) <= 2.0 && Math.abs(th - eh) <= 2.0;
+                                const matchRotated = Math.abs(th - ew) <= 2.0 && Math.abs(tw - eh) <= 2.0;
+
+                                if (isLoa && isOmnia) {
+                                    console.log(`   📏 Size Check: Tray ${tw}x${th} vs Frame ${ew}x${eh} - Match: ${matchNormal || matchRotated}`);
+                                }
+
+                                if (!matchNormal && !matchRotated) return false;
+                            } else {
+                                const hasKeyword = cat.keywords.some(k => lbl.includes(k));
+                                if (!hasKeyword) return false;
+                            }
+                        }
+
+                        // If we made it here as a Montagerahmen, it's likely a match
                         return true;
-                    } else if (manufacturer === 'alterna' && !lbl.includes('alterna')) {
-                        return false; 
-                    }
-                    
-                    if (manufacturer === 'laufen' && !isIneo && !lbl.includes('pro s')) return false;
-
-                    // Size Fitting logic
-                    if (sizeParts) {
-                        const tw = sizeParts[0];
-                        const th = sizeParts[1];
-                        const trayLong = Math.max(tw, th);
-                        const trayShort = Math.min(tw, th);
-
-                        if (isIneo || lbl.includes('laufen pro s')) {
-                            const m1 = lbl.match(/(\d+)\s*[xX]\s*(\d+)\s*-\s*(\d+)\s*mm/);
-                            const m2 = lbl.match(/breite\s*(\d+)\s*mm\s*länge\s*\(ausziehbar\)\s*(\d+)\s*-\s*(\d+)\s*mm/);
-                            const ineoMatch = m1 || m2;
-                            if (ineoMatch) {
-                                const b = parseInt(ineoMatch[1]) / 10;
-                                const minL = parseInt(ineoMatch[2]) / 10;
-                                const maxL = parseInt(ineoMatch[3]) / 10;
-                                if ((Math.abs(tw - b) < 1 && th >= minL - 1 && th <= maxL + 1) || 
-                                    (Math.abs(th - b) < 1 && tw >= minL - 1 && tw <= maxL + 1)) return true;
-                                return false;
-                            }
-                        }
-
-                        const frameSizeMatch = lbl.match(/bis\s*(\d+(?:[.,]\d+)?)\s*[xX\/\*\-]\s*(\d+(?:[.,]\d+)?)/);
-                        const exactSizeMatch = !lbl.includes('bis') ? lbl.match(/(\d+(?:[.,]\d+)?)\s*[xX\/\*\-]\s*(\d+(?:[.,]\d+)?)/) : null;
-
-                        if (frameSizeMatch) {
-                            const fw = parseFloat(frameSizeMatch[1].replace(',', '.'));
-                            const fh = parseFloat(frameSizeMatch[2].replace(',', '.'));
-                            if (trayLong > Math.max(fw, fh) + 0.5 || trayShort > Math.min(fw, fh) + 0.5) return false;
-                        } else if (exactSizeMatch) {
-                            let ew = parseFloat(exactSizeMatch[1].replace(',', '.'));
-                            let eh = parseFloat(exactSizeMatch[2].replace(',', '.'));
-                            if (lbl.includes('mm') || ew > 300) { ew /= 10; eh /= 10; }
-                            
-                            const matchNormal = Math.abs(tw - ew) <= 2.0 && Math.abs(th - eh) <= 2.0;
-                            const matchRotated = Math.abs(th - ew) <= 2.0 && Math.abs(tw - eh) <= 2.0;
-
-                            if (isLoa && isOmnia) {
-                                console.log(`   📏 Size Check: Tray ${tw}x${th} vs Frame ${ew}x${eh} - Match: ${matchNormal || matchRotated}`);
-                            }
-
-                            if (!matchNormal && !matchRotated) return false;
-                        } else {
-                            const hasKeyword = cat.keywords.some(k => lbl.includes(k));
-                            if (!hasKeyword) return false;
-                        }
-                    }
-                    
-                    // If we made it here as a Montagerahmen, it's likely a match
-                    return true;
-                }
-
-                if (cat.group === 'montagerahmen' && labelLower.includes('calima')) return false;
-
-                if (modelRule) {
-                    if (cat.name === 'Ablaufdeckel' && modelRule.deckel && artNrClean.includes(modelRule.deckel.replace(/[^a-zA-Z0-9]/g, ''))) return true;
-                    if (cat.name === 'Ablaufgarnitur' && modelRule.siphon && artNrClean.includes(modelRule.siphon.replace(/[^a-zA-Z0-9]/g, ''))) return true;
-                    if ((modelRule.deckel || modelRule.siphon) && (cat.name === 'Ablaufdeckel' || cat.name === 'Ablaufgarnitur')) return false;
-                }
-
-                const hasKeyword = cat.keywords.some(k => lbl.includes(k));
-                if (!hasKeyword) return false;
-
-                // CRITICAL: Montageschaum label contains 'wannenträger' as a substring.
-                // Block it from being matched as a Wannenträger carrier.
-                if (cat.name === 'Wannenträger' && lbl.includes('montageschaum')) return false;
-
-                if (cat.name === 'Wannenträger') {
-                    const pMfr = (item.manufacturer || '').toLowerCase();
-                    
-                    // 1. HARD BLOCK: Loa handshake already handled above for Rahmen.
-                    // Carriers (styrofoam) must match brand unless forced.
-                    if (cat.group === 'montagerahmen') {
-                        if (labelLower.includes('calima')) return false;
-                        if (manufacturer === 'alterna' && labelLower.includes('ecoplan')) return false;
                     }
 
-                    // 3. HARD BLOCK: Kaldewei Frames (FR 5300) NEVER match Alterna
-                    if (manufacturer === 'alterna' && pMfr === 'kaldewei') return false;
+                    if (cat.group === 'montagerahmen' && labelLower.includes('calima')) return false;
 
-                    // 4. Mandatory Manufacturer Match (with legacy Handshake)
-                    if (pMfr && manufacturer && pMfr !== manufacturer) {
-                        return false;
-                    }
-                    
-                    // 5. Content-Level Brand Check
-                    if (!lbl.includes(manufacturer) && (!pMfr || pMfr === 'andere')) {
-                        return false;
+                    if (modelRule) {
+                        if (cat.name === 'Ablaufdeckel' && modelRule.deckel && artNrClean.includes(modelRule.deckel.replace(/[^a-zA-Z0-9]/g, ''))) return true;
+                        if (cat.name === 'Ablaufgarnitur' && modelRule.siphon && artNrClean.includes(modelRule.siphon.replace(/[^a-zA-Z0-9]/g, ''))) return true;
+                        if ((modelRule.deckel || modelRule.siphon) && (cat.name === 'Ablaufdeckel' || cat.name === 'Ablaufgarnitur')) return false;
                     }
 
-                    // 5. SERIES ISOLATION (Zero-Tolerance Variant Matching for Wannenträger only)
+                    const hasKeyword = cat.keywords.some(k => lbl.includes(k));
+                    if (!hasKeyword) return false;
+
+                    if (cat.name === 'Zargen-Wannendichtband') {
+                        if (lbl.includes('montageset')) return false;
+                    }
+
+                    // CRITICAL: Prevent false positives for carriers
                     if (cat.name === 'Wannenträger') {
-                        const trayLabel = tray.label.toLowerCase();
-                        const variants = ['classic', 'zero', 'duschplan', 'superplan zero', 'superplan classic'];
+                        if (lbl.includes('montageschaum')) return false;
+                        if (lbl.includes('schallschutzset')) return false;
+                        if (lbl.includes('nicht in zusammenhang mit wannenträger')) return false;
+                        if (lbl.includes('badewannenträger')) return false;
+                    }
+
+                    if (cat.name === 'Wannenträger') {
+                        const pMfr = (item.manufacturer || '').toLowerCase();
+
+                        // 1. HARD BLOCK: Loa handshake already handled above for Rahmen.
+                        // Carriers (styrofoam) must match brand unless forced.
+                        if (cat.group === 'montagerahmen') {
+                            if (labelLower.includes('calima')) return false;
+                            if (manufacturer === 'alterna' && labelLower.includes('ecoplan')) return false;
+                        }
+
+                        // 3. HARD BLOCK: Kaldewei Frames (FR 5300) NEVER match Alterna
+                        if (manufacturer === 'alterna' && pMfr === 'kaldewei') return false;
+
+                        // 4. Mandatory Manufacturer Match (with legacy Handshake)
+                        if (pMfr && manufacturer && pMfr !== manufacturer) {
+                            return false;
+                        }
+
+                        // 5. Content-Level Brand Check
+                        if (!lbl.includes(manufacturer) && (!pMfr || pMfr === 'andere')) {
+                            return false;
+                        }
+
+                        // 5. SERIES ISOLATION (Zero-Tolerance Variant Matching for Wannenträger only)
+                        if (cat.name === 'Wannenträger') {
+                            const trayLabel = tray.label.toLowerCase();
+                            const variants = ['classic', 'zero', 'duschplan', 'superplan zero', 'superplan classic'];
+
+                            for (const v of variants) {
+                                const trayHasVariant = trayLabel.includes(v);
+                                const itemHasVariant = lbl.includes(v);
+
+                                // If one has the variant and the other doesn't, it is a hard mismatch
+                                if (trayHasVariant !== itemHasVariant) {
+                                    // Only apply if the base series (like 'superplan') is present in both
+                                    if (trayLabel.includes('superplan') && lbl.includes('superplan')) return false;
+                                    if (trayLabel.includes('duschplan') && lbl.includes('duschplan')) return false;
+                                }
+                            }
+                        }
+
+                        // Extra Brand Isolation for Alterna vs Laufen
+                        if (manufacturer === 'alterna' && (lbl.includes('laufen') || lbl.includes('ineo'))) return false;
+                        if (manufacturer === 'laufen' && lbl.includes('alterna')) return false;
+
+                        // 3. Extract Core Series (e.g., ecoplan, Calima, etc.)
+                        const seriesRaw = tray.label.toLowerCase()
+                            .replace(manufacturer, '')
+                            .replace('duschwanne', '')
+                            .replace('duschenwanne', '')
+                            .replace('duschfläche', '')
+                            .split(',')[0].trim();
                         
-                        for (const v of variants) {
-                            const trayHasVariant = trayLabel.includes(v);
-                            const itemHasVariant = lbl.includes(v);
-                            
-                            // If one has the variant and the other doesn't, it is a hard mismatch
-                            if (trayHasVariant !== itemHasVariant) {
-                                // Only apply if the base series (like 'superplan') is present in both
-                                if (trayLabel.includes('superplan') && lbl.includes('superplan')) return false;
-                                if (trayLabel.includes('duschplan') && lbl.includes('duschplan')) return false;
+                        // Strip any remaining non-letters
+                        const series = seriesRaw.replace(/[^a-z]/g, '').trim();
+
+                        // Deep Scan: Check if ANY part of the series name is in the accessory label
+                        const seriesWords = series.split(' ').filter(w => w.length >= 3);
+                        const seriesMatch = seriesWords.length > 0 && seriesWords.some(w => lbl.includes(w));
+
+                        // Special fallback for short names like "loa"
+                        const isFuzzySeriesMatch = seriesMatch || (series.length >= 3 && lbl.includes(series));
+
+                        // Universal Frames Exception: If it's a known universal frame system, skip series check
+                        const isUniversalFrame = lbl.includes('omnia') || lbl.includes('ineo') || lbl.includes('fr 5300');
+
+                        // ALLOW generic trays (no series name) to pass
+                        if (series.length >= 3 && !isFuzzySeriesMatch && !isUniversalFrame) return false;
+
+                        // Size Check (only for carriers/frames with dimensions)
+                        if (sizeParts && cat.name === 'Wannenträger') {
+                            const tw = sizeParts[0];
+                            const th = sizeParts[1];
+
+                            const smMatch = lbl.match(/(\d+)\s*[xX]\s*(\d+)/);
+                            if (smMatch) {
+                                let ew = parseInt(smMatch[1]);
+                                let eh = parseInt(smMatch[2]);
+                                if (lbl.includes('mm') || ew > 300) { ew /= 10; eh /= 10; }
+
+                                const matchNormal = Math.abs(tw - ew) <= 2.0 && Math.abs(th - eh) <= 2.0;
+                                const matchRotated = Math.abs(th - ew) <= 2.0 && Math.abs(tw - eh) <= 2.0;
+                                if (!matchNormal && !matchRotated) return false;
                             }
                         }
                     }
+                    return true;
+                });
 
-                    // Extra Brand Isolation for Alterna vs Laufen
-                    if (manufacturer === 'alterna' && (lbl.includes('laufen') || lbl.includes('ineo'))) return false;
-                    if (manufacturer === 'laufen' && lbl.includes('alterna')) return false;
+                // --- USER REQUEST: OMNIA SIZE PRIORITIZATION ---
+                if (cat.name === 'Montagerahmen' && matches.length > 0 && sizeParts) {
+                    const tw = sizeParts[0];
+                    const th = sizeParts[1];
 
-                    // 3. Extract Core Series (e.g., ecoplan, Calima, etc.)
-                    const series = tray.label.toLowerCase()
-                        .replace(manufacturer, '')
-                        .replace('duschwanne', '')
-                        .replace('duschenwanne', '')
-                        .replace('duschfläche', '')
-                        .split(',')[0].trim();
+                    const exactMatches = matches.filter(m => {
+                        const mlbl = m.label.toLowerCase();
+                        if (mlbl.includes('bis')) return false;
+                        const mSize = normalizeSize(mlbl);
+                        if (mSize) {
+                            const ew = mSize[0];
+                            const eh = mSize[1];
 
-                    // Deep Scan: Check if ANY part of the series name is in the accessory label
-                    const seriesWords = series.split(' ').filter(w => w.length >= 3);
-                    const seriesMatch = seriesWords.length > 0 && seriesWords.some(w => lbl.includes(w));
+                            const matchNormal = Math.abs(tw - ew) <= 1.5 && Math.abs(th - eh) <= 1.5;
+                            const matchRotated = Math.abs(th - ew) <= 1.5 && Math.abs(tw - eh) <= 1.5;
+                            return matchNormal || matchRotated;
+                        }
+                        return false;
+                    });
 
-                    // Special fallback for short names like "loa"
-                    const isFuzzySeriesMatch = seriesMatch || (series.length >= 3 && lbl.includes(series));
+                    if (exactMatches.length > 0) {
+                        matches = exactMatches;
+                    }
+                }
 
-                    // Universal Frames Exception: If it's a known universal frame system, skip series check
-                    const isUniversalFrame = lbl.includes('omnia') || lbl.includes('ineo') || lbl.includes('fr 5300');
+                // Sorting for Montagerahmen: Smallest Fit first
+                matches.sort((a, b) => {
+                    if (cat.name === 'Montagerahmen') {
+                        const getFrameArea = (lbl) => {
+                            const m = lbl.toLowerCase().match(/bis\s*(\d+)\s*[xX]\s*(\d+)/);
+                            return m ? parseInt(m[1]) * parseInt(m[2]) : 999999;
+                        };
+                        return getFrameArea(a.label) - getFrameArea(b.label);
+                    }
+                    const aLbl = a.label.toLowerCase();
+                    const bLbl = b.label.toLowerCase();
+                    const aBrand = aLbl.includes(manufacturer);
+                    const bBrand = bLbl.includes(manufacturer);
+                    const aAlterna = aLbl.includes('alterna');
+                    const bAlterna = bLbl.includes('alterna');
+                    if (aBrand && !bBrand) return -1;
+                    if (!aBrand && bBrand) return 1;
+                    if (aAlterna && !bAlterna) return -1;
+                    if (!aAlterna && bAlterna) return 1;
+                    return 0;
+                });
 
-                    if (!isFuzzySeriesMatch && !isUniversalFrame) return false;
+                // Zargen Logic (Preserve L/U logic + 20cm margin)
+                if (cat.name === 'Zargen-Wannendichtband') {
+                    const sizeMatch = (tray.size || '').match(/(\d+)\s*x\s*(\d+)/);
+                    if (sizeMatch) {
+                        const s1 = parseInt(sizeMatch[1]);
+                        const s2 = parseInt(sizeMatch[2]);
+                        const longSide = Math.max(s1, s2);
+                        const shortSide = Math.min(s1, s2);
 
-                    // Size Check (only for carriers/frames with dimensions)
-                    if (sizeParts && cat.name === 'Wannenträger') {
-                        const tw = sizeParts[0];
-                        const th = sizeParts[1];
-                        
-                        const smMatch = lbl.match(/(\d+)\s*[xX]\s*(\d+)/);
-                        if (smMatch) {
-                            let ew = parseInt(smMatch[1]);
-                            let eh = parseInt(smMatch[2]);
-                            if (lbl.includes('mm') || ew > 300) { ew /= 10; eh /= 10; }
-                            
-                            const matchNormal = Math.abs(tw - ew) <= 2.0 && Math.abs(th - eh) <= 2.0;
-                            const matchRotated = Math.abs(th - ew) <= 2.0 && Math.abs(tw - eh) <= 2.0;
-                            if (!matchNormal && !matchRotated) return false;
+                        // New logic: add 20cm safety margin
+                        const reqL = (longSide + shortSide + 20) / 100;
+                        const reqU = (longSide + (2 * shortSide) + 20) / 100;
+
+                        const getTapeLength = (item) => parseFloat(item.label.match(/(\d+[.,]\d+)\s*m/)?.[1].replace(',', '.') || 0);
+                        const allTapes = matches.sort((a, b) => getTapeLength(a) - getTapeLength(b));
+                        const lTape = allTapes.find(t => getTapeLength(t) >= reqL);
+                        const uTape = allTapes.find(t => getTapeLength(t) >= reqU);
+                        if (lTape || uTape) {
+                            const options = [];
+                            if (lTape) options.push({ artNr: lTape.artNr, label: lTape.label, dropdownLabel: '2-seitige Montage (L-Variante)', menge: 1, type: 'Zubehör', imgUrl: lTape.imgUrl });
+                            if (uTape && uTape.artNr !== (lTape ? lTape.artNr : '')) {
+                                options.push({ artNr: uTape.artNr, label: uTape.label, dropdownLabel: '3-seitige Montage (U-Variante)', menge: 1, type: 'Option', imgUrl: uTape.imgUrl });
+                            }
+                            if (options.length > 0) {
+                                tray.mountingMaterials.push({ id: 'mat_' + Math.random().toString(36).substr(2, 5), name: cat.name, options });
+                                return;
+                            }
                         }
                     }
                 }
-                return true;
+
+                if (matches.length > 0) {
+                    let menge = 1;
+                    if (cat.name === 'Montageschaum') {
+                        const sParts = tray.size ? tray.size.match(/(\d+)\s*x\s*(\d+)/) : null;
+                        if (sParts && (parseInt(sParts[1]) > 100 || parseInt(sParts[2]) > 100)) {
+                            menge = 2;
+                        }
+                    }
+                    if (cat.name.includes('Stelzfüsse')) {
+                        const sParts = tray.size ? tray.size.match(/(\d+)\s*x\s*(\d+)/) : null;
+                        if (sParts) {
+                            // Sizes stored in cm (e.g. "120 x 80"), map uses mm keys ("1200x800")
+                            const cmW = parseInt(sParts[1]);
+                            const cmH = parseInt(sParts[2]);
+                            const mmKey = `${cmW * 10}x${cmH * 10}`;
+                            const mmKeyRotated = `${cmH * 10}x${cmW * 10}`;
+                            const feetCount = CALIMA_FEET_MAP[mmKey] || CALIMA_FEET_MAP[mmKeyRotated] || 16;
+                            menge = Math.ceil(feetCount / 4);
+                        } else {
+                            menge = 4; // safe default: 4 packs = 16 feet
+                        }
+                    }
+
+                    tray.mountingMaterials.push({
+                        id: 'mat_' + Math.random().toString(36).substr(2, 5),
+                        name: cat.name,
+                        options: [{
+                            artNr: matches[0].artNr,
+                            label: matches[0].label,
+                            menge: menge,
+                            type: cat.group ? cat.group : 'Zubehör',
+                            imgUrl: matches[0].imgUrl
+                        }]
+                    });
+                }
             });
 
-            // --- USER REQUEST: OMNIA SIZE PRIORITIZATION ---
-            if (cat.name === 'Montagerahmen' && matches.length > 0 && sizeParts) {
-                const tw = sizeParts[0];
-                const th = sizeParts[1];
-                
-                const exactMatches = matches.filter(m => {
-                    const mlbl = m.label.toLowerCase();
-                    if (mlbl.includes('bis')) return false;
-                    const mSize = normalizeSize(mlbl);
-                    if (mSize) {
-                        const ew = mSize[0];
-                        const eh = mSize[1];
-                        
-                        const matchNormal = Math.abs(tw - ew) <= 1.5 && Math.abs(th - eh) <= 1.5;
-                        const matchRotated = Math.abs(th - ew) <= 1.5 && Math.abs(tw - eh) <= 1.5;
-                        return matchNormal || matchRotated;
-                    }
-                    return false;
-                });
-                
-                if (exactMatches.length > 0) {
-                    matches = exactMatches;
+            // --- HARDCODE INJECTION FOR LAUFEN SCHALLSCHUTZ ---
+            if (manufacturer === 'laufen' && labelLower.includes('superflach')) {
+                const isProS = labelLower.includes('pro s');
+                const targetArtNr = isProS ? "1311 200.000.000" : "1311 201.000.000";
+                const setName = isProS ? "Schallschutzset (Rahmen Pro S)" : "Schallschutzset (Rahmen Pro)";
+
+                // Avoid duplicates
+                if (!tray.mountingMaterials.some(m => m.name.includes('Schallschutzset (Rahmen)'))) {
+                    tray.mountingMaterials.push({
+                        id: 'mat_' + Math.random().toString(36).substr(2, 5),
+                        name: setName,
+                        options: [{
+                            artNr: targetArtNr,
+                            label: `Schallschutz- Set Laufen, Art. ${targetArtNr}`,
+                            menge: 1,
+                            type: 'montagerahmen',
+                            imgUrl: `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/0${targetArtNr.replace(/[^0-9]/g, '')}.png`
+                        }]
+                    });
                 }
-            }
-
-            // Sorting for Montagerahmen: Smallest Fit first
-            matches.sort((a, b) => {
-                if (cat.name === 'Montagerahmen') {
-                    const getFrameArea = (lbl) => {
-                        const m = lbl.toLowerCase().match(/bis\s*(\d+)\s*[xX]\s*(\d+)/);
-                        return m ? parseInt(m[1]) * parseInt(m[2]) : 999999;
-                    };
-                    return getFrameArea(a.label) - getFrameArea(b.label);
-                }
-                const aLbl = a.label.toLowerCase();
-                const bLbl = b.label.toLowerCase();
-                const aBrand = aLbl.includes(manufacturer);
-                const bBrand = bLbl.includes(manufacturer);
-                const aAlterna = aLbl.includes('alterna');
-                const bAlterna = bLbl.includes('alterna');
-                if (aBrand && !bBrand) return -1;
-                if (!aBrand && bBrand) return 1;
-                if (aAlterna && !bAlterna) return -1;
-                if (!aAlterna && bAlterna) return 1;
-                return 0;
-            });
-
-            // Zargen Logic (Preserve L/U logic + 20cm margin)
-            if (cat.name === 'Zargen-Wannendichtband') {
-                const sizeMatch = (tray.size || '').match(/(\d+)\s*x\s*(\d+)/);
-                if (sizeMatch) {
-                    const s1 = parseInt(sizeMatch[1]);
-                    const s2 = parseInt(sizeMatch[2]);
-                    const longSide = Math.max(s1, s2);
-                    const shortSide = Math.min(s1, s2);
-
-                    // New logic: add 20cm safety margin
-                    const reqL = (longSide + shortSide + 20) / 100;
-                    const reqU = (longSide + (2 * shortSide) + 20) / 100;
-
-                    const getTapeLength = (item) => parseFloat(item.label.match(/(\d+[.,]\d+)\s*m/)?.[1].replace(',', '.') || 0);
-                    const allTapes = matches.sort((a, b) => getTapeLength(a) - getTapeLength(b));
-                    const lTape = allTapes.find(t => getTapeLength(t) >= reqL);
-                    const uTape = allTapes.find(t => getTapeLength(t) >= reqU);
-                    if (lTape || uTape) {
-                        const options = [];
-                        if (lTape) options.push({ artNr: lTape.artNr, label: lTape.label, dropdownLabel: '2-seitige Montage (L-Variante)', menge: 1, type: 'Zubehör', imgUrl: lTape.imgUrl });
-                        if (uTape && uTape.artNr !== (lTape ? lTape.artNr : '')) {
-                            options.push({ artNr: uTape.artNr, label: uTape.label, dropdownLabel: '3-seitige Montage (U-Variante)', menge: 1, type: 'Option', imgUrl: uTape.imgUrl });
-                        }
-                        if (options.length > 0) {
-                            tray.mountingMaterials.push({ id: 'mat_' + Math.random().toString(36).substr(2, 5), name: cat.name, options });
-                            return;
-                        }
-                    }
-                }
-            }
-
-            if (matches.length > 0) {
-                let menge = 1;
-                if (cat.name === 'Montageschaum') {
-                    const sParts = tray.size ? tray.size.match(/(\d+)\s*x\s*(\d+)/) : null;
-                    if (sParts && (parseInt(sParts[1]) > 100 || parseInt(sParts[2]) > 100)) {
-                        menge = 2;
-                    }
-                }
-                if (cat.name.includes('Stelzfüsse')) {
-                    const sParts = tray.size ? tray.size.match(/(\d+)\s*x\s*(\d+)/) : null;
-                    if (sParts) {
-                        // Sizes stored in cm (e.g. "120 x 80"), map uses mm keys ("1200x800")
-                        const cmW = parseInt(sParts[1]);
-                        const cmH = parseInt(sParts[2]);
-                        const mmKey = `${cmW * 10}x${cmH * 10}`;
-                        const mmKeyRotated = `${cmH * 10}x${cmW * 10}`;
-                        const feetCount = CALIMA_FEET_MAP[mmKey] || CALIMA_FEET_MAP[mmKeyRotated] || 16;
-                        menge = Math.ceil(feetCount / 4);
-                    } else {
-                        menge = 4; // safe default: 4 packs = 16 feet
-                    }
-                }
-
-                tray.mountingMaterials.push({
-                    id: 'mat_' + Math.random().toString(36).substr(2, 5),
-                    name: cat.name,
-                    options: [{
-                        artNr: matches[0].artNr,
-                        label: matches[0].label,
-                        menge: menge,
-                        type: cat.group ? cat.group : 'Zubehör',
-                        imgUrl: matches[0].imgUrl
-                    }]
-                });
-            }
-        });
-
-        // --- HARDCODE INJECTION FOR LAUFEN SCHALLSCHUTZ ---
-        if (manufacturer === 'laufen' && labelLower.includes('superflach')) {
-            const isProS = labelLower.includes('pro s');
-            const targetArtNr = isProS ? "1311 200.000.000" : "1311 201.000.000";
-            const setName = isProS ? "Schallschutzset (Rahmen Pro S)" : "Schallschutzset (Rahmen Pro)";
-            
-            // Avoid duplicates
-            if (!tray.mountingMaterials.some(m => m.name.includes('Schallschutzset (Rahmen)'))) {
-                tray.mountingMaterials.push({
-                    id: 'mat_' + Math.random().toString(36).substr(2, 5),
-                    name: setName,
-                    options: [{
-                        artNr: targetArtNr,
-                        label: `Schallschutz- Set Laufen, Art. ${targetArtNr}`,
-                        menge: 1,
-                        type: 'montagerahmen',
-                        imgUrl: `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/0${targetArtNr.replace(/[^0-9]/g, '')}.png`
-                    }]
-                });
-            }
             }
         } catch (err) {
             console.warn('Auto-Link Error for tray:', tray.artNr, err);
