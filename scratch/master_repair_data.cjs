@@ -1,46 +1,86 @@
 const fs = require('fs');
-const content = fs.readFileSync('/Users/jenistonsellathamby/Desktop/product-configurator/old_dist/dist/index.html', 'utf8');
+const path = require('path');
 
-// Find the beginning of the big data block. It starts with a key like "dusche"
-const startTag = '{"dusche":';
-const startIdx = content.indexOf(startTag);
+// 1. Read current custom-data.json
+const currentDataPath = '/Users/jenistonsellathamby/Desktop/product-configurator/custom-data.json';
+const currentData = JSON.parse(fs.readFileSync(currentDataPath, 'utf8'));
 
-if (startIdx === -1) {
-    console.log("Could not find start tag");
-    process.exit(1);
+// 2. Read old dist file
+const oldDistPath = '/Users/jenistonsellathamby/Desktop/product-configurator/old_dist/dist/index.html';
+const oldHtml = fs.readFileSync(oldDistPath, 'utf8');
+
+// 3. Extractor helper for a minified variable in index.html
+function extractVarFromHtml(varName) {
+    const regex = new RegExp(`(?:const\\s+|,|\\b)(${varName})\\s*=\\s*\\{`, 'g');
+    let match = regex.exec(oldHtml);
+    if (!match) return null;
+    
+    const startIdx = match.index + match[0].length - 1; // '{'
+    let braceCount = 1;
+    let endIdx = startIdx + 1;
+    
+    while (braceCount > 0 && endIdx < oldHtml.length) {
+        const char = oldHtml[endIdx];
+        if (char === '{') {
+            braceCount++;
+        } else if (char === '}') {
+            braceCount--;
+        }
+        endIdx++;
+    }
+    
+    const valueStr = oldHtml.substring(startIdx, endIdx);
+    return eval(`(${valueStr})`);
 }
 
-// Find the end by balancing braces starting from startIdx
-let braceCount = 0;
-let endIdx = -1;
-let foundStart = false;
+// 4. Overwrite categories mapping
+const targetCategories = {
+    bademischer: 'Ke',
+    duschenmischer: 'Oe',
+    duschtrennwand: 'qe',
+    badewanne: 'je',
+    duschenwanne: 'Je',
+    zubehoer_pool: 'Ye',
+    vorlagen: 'et'
+};
 
-for (let i = startIdx; i < content.length; i++) {
-    if (content[i] === '{') {
-        braceCount++;
-        foundStart = true;
-    } else if (content[i] === '}') {
-        braceCount--;
-    }
+// 5. Let's count current items before overwrite
+const statsBefore = {};
+const statsAfter = {};
 
-    if (foundStart && braceCount === 0) {
-        endIdx = i;
-        break;
+Object.keys(currentData).forEach(cat => {
+    const beforeCount = (currentData[cat].trays?.length || 0) + (currentData[cat].parts?.length || 0) + (currentData[cat].finishes?.length || 0);
+    statsBefore[cat] = beforeCount;
+});
+
+// 6. Overwrite target categories from old dist
+console.log('--- Overwriting categories from old dist index.html ---');
+for (const [catName, varName] of Object.entries(targetCategories)) {
+    console.log(`Extracting ${catName} using var ${varName}...`);
+    const oldObj = extractVarFromHtml(varName);
+    if (oldObj) {
+        currentData[catName] = oldObj;
+        console.log(`- SUCCESSFULLY overwritten ${catName}.`);
+    } else {
+        console.warn(`- WARNING: Could not find or parse ${varName} for category ${catName}`);
     }
 }
 
-if (endIdx !== -1) {
-    const jsonStr = content.substring(startIdx, endIdx + 1);
-    try {
-        // Attempt to clean it if it's an object literal (unquoted keys)
-        // But if it's already JSON (likely from a build), it will parse.
-        const data = eval('(' + jsonStr + ')');
-        fs.writeFileSync('custom-data.json', JSON.stringify(data, null, 2));
-        console.log('REPAIR SUCCESS: Restored custom-data.json from old_dist! Length:', jsonStr.length);
-    } catch (e) {
-        console.log('Eval failed, trying to save raw string to investigate:', e.message);
-        fs.writeFileSync('scratch/failed_eval.txt', jsonStr);
-    }
-} else {
-    console.log("Could not find matching end brace");
-}
+// 7. Count items after overwrite
+Object.keys(currentData).forEach(cat => {
+    const afterCount = (currentData[cat].trays?.length || 0) + (currentData[cat].parts?.length || 0) + (currentData[cat].finishes?.length || 0);
+    statsAfter[cat] = afterCount;
+});
+
+// 8. Save updated custom-data.json
+fs.writeFileSync(currentDataPath, JSON.stringify(currentData, null, 4));
+console.log('\n--- SUCCESSFULLY saved overwritten data to custom-data.json! ---');
+
+// 9. Print beautiful summary table
+console.log('\nCategory Overwrite Statistics Comparison:');
+console.table(Object.keys(currentData).map(cat => ({
+    Category: cat,
+    'Current Count': statsBefore[cat],
+    'New Count (Old Dist)': statsAfter[cat],
+    Status: targetCategories[cat] ? 'OVERWRITTEN' : 'EXCLUDED (PRESERVED)'
+})));

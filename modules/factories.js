@@ -10,19 +10,19 @@ const getVariantColor = (label, artNr) => {
         if (match) {
             const code = match[1];
             switch (code) {
-                case '000': return '#FFFFFF'; 
-                case '100': return '#FFFFFF'; 
-                case '757': return '#F5F5F5'; 
-                case '071': return '#F5F5F5'; 
-                case '020': return '#222222'; 
-                case '070': return '#2A2C2E'; 
-                case '068': return '#2A2C2E'; 
-                case '073': return '#EAE2D6'; 
-                case '004': return '#E8EAED'; 
+                case '000': return '#FFFFFF';
+                case '100': return '#FFFFFF';
+                case '757': return '#F5F5F5';
+                case '071': return '#F5F5F5';
+                case '020': return '#222222';
+                case '070': return '#2A2C2E';
+                case '068': return '#2A2C2E';
+                case '073': return '#EAE2D6';
+                case '004': return '#E8EAED';
                 case '400': return '#E8EAED';
-                case '061': return '#A0A0A0'; 
-                case '040': return '#FFD700'; 
-                case '062': return '#CD7F32'; 
+                case '061': return '#A0A0A0';
+                case '040': return '#FFD700';
+                case '062': return '#CD7F32';
             }
         }
     }
@@ -39,8 +39,8 @@ const getVariantColor = (label, artNr) => {
     if (l.includes('sand') || l.includes('beige')) return '#d2b48c';
     if (l.includes('grau') || l.includes('grey') || l.includes('beton')) return '#888888';
     if (l.includes('pergamon') || l.includes('bahamabeige')) return '#eae2d6';
-    
-    return '#4FC3F7'; 
+
+    return '#4FC3F7';
 };
 
 const getSanitasImgUrl = (artNr) => {
@@ -51,7 +51,7 @@ const getSanitasImgUrl = (artNr) => {
 
     const parts = cleanArt.split('.');
     let p1 = parts[0];
-    
+
     // Sanitas usually uses 8-digit codes. If 7 digits, it almost always needs a leading 0.
     // If 4 digits (old style), we keep it as is.
     if (p1.length === 7) p1 = '0' + p1;
@@ -60,7 +60,7 @@ const getSanitasImgUrl = (artNr) => {
     if (parts.length >= 3) {
         return `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${p1}_${parts[1]}_${parts[2]}.png`;
     }
-    
+
     // Fallback to single block (Common for Wannenträger and Accessories)
     return `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${p1}.png`;
 };
@@ -86,21 +86,28 @@ const applyPillUI = (headId, listId, currentVal, title, resetFn) => {
     }
 };
 
+const Ae = configSidebar;
+const re = bomTableBody;
+const me = bomCountCounter;
+const ke = getVariantColor;
+const Be = getSanitasImgUrl;
+const X = applyPillUI;
+
 export function createFinishesApp(title, desc, mainImgUrl, baseBodyLabel, baseBodyArtNr, baseBodyImg) {
     return {
         finishes: [
-                { id: "chrome", label: "Chrom Standard", artNr: "XY-12345", color: "#e8eaed" }
-            ],
-            baseBody: {
-                label: baseBodyLabel,
-                artNr: baseBodyArtNr,
-                imgUrl: baseBodyImg
-            },
-            mainImgUrl: mainImgUrl,
-            currentFinishId: "chrome",
-            init: function () { this.renderSidebar(); this.updateBOM(); },
-            renderSidebar: function () {
-                configSidebar.innerHTML = `
+            { id: "chrome", label: "Chrom Standard", artNr: "XY-12345", color: "#e8eaed" }
+        ],
+        baseBody: {
+            label: baseBodyLabel,
+            artNr: baseBodyArtNr,
+            imgUrl: baseBodyImg
+        },
+        mainImgUrl: mainImgUrl,
+        currentFinishId: "chrome",
+        init: function () { this.renderSidebar(); this.updateBOM(); },
+        renderSidebar: function () {
+            configSidebar.innerHTML = `
                     <div class="sidebar-section">
                         <h2>Produktsystem</h2>
                         <div class="product-selection-card">
@@ -116,23 +123,23 @@ export function createFinishesApp(title, desc, mainImgUrl, baseBodyLabel, baseBo
                         <p class="section-desc">Konfigurieren Sie die Eigenschaften des Systems über die verfügbaren Optionen.</p>
                         <div class="finish-selector">
                             <label>Sichtbare Oberfläche</label>
-                            <div class="finish-buttons-grid" id="finishOptionsContainer_${title.replace(/\s/g,'')}"></div>
+                            <div class="finish-buttons-grid" id="finishOptionsContainer_${title.replace(/\s/g, '')}"></div>
                         </div>
                     </div>
                 `;
-                const container = document.getElementById(`finishOptionsContainer_${title.replace(/\s/g,'')}`);
-                this.finishes.forEach(finish => {
-                    const btn = document.createElement('button');
-                    btn.className = `finish-row-btn ${finish.id === this.currentFinishId ? 'active' : ''}`;
-                    
-                    const imgUrl = getSanitasImgUrl(finish.artNr);
-                    const fallbackColor = finish.color || getVariantColor(finish.label, finish.artNr);
-                    
-                    btn.style.width = '100%';
-                    btn.style.display = 'flex';
-                    btn.style.alignItems = 'center';
-                    
-                    btn.innerHTML = `
+            const container = document.getElementById(`finishOptionsContainer_${title.replace(/\s/g, '')}`);
+            this.finishes.forEach(finish => {
+                const btn = document.createElement('button');
+                btn.className = `finish-row-btn ${finish.id === this.currentFinishId ? 'active' : ''}`;
+
+                const imgUrl = getSanitasImgUrl(finish.artNr);
+                const fallbackColor = finish.color || getVariantColor(finish.label, finish.artNr);
+
+                btn.style.width = '100%';
+                btn.style.display = 'flex';
+                btn.style.alignItems = 'center';
+
+                btn.innerHTML = `
                         <div class="finish-swatch" style="position: relative; overflow: hidden; background-color: ${fallbackColor}; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); width: 28px; height: 28px; border-radius: 50%; margin-right: 12px; border: 1px solid rgba(0,0,0,0.2);">
                             ${imgUrl ? `<img src="${imgUrl}" style="position: absolute; width: 100%; height: 100%; object-fit: cover; background: #fff; top: 0; left: 0;" onerror="this.style.display='none';">` : ''}
                         </div>
@@ -141,22 +148,22 @@ export function createFinishesApp(title, desc, mainImgUrl, baseBodyLabel, baseBo
                             <span class="finish-artnr" style="margin-left: 0;">${finish.artNr}</span>
                         </div>
                     `;
-                    btn.addEventListener('click', () => {
-                        container.querySelector('.finish-row-btn.active')?.classList.remove('active');
-                        btn.classList.add('active');
-                        this.currentFinishId = finish.id;
-                        this.updateBOM();
-                    });
-                    container.appendChild(btn);
+                btn.addEventListener('click', () => {
+                    container.querySelector('.finish-row-btn.active')?.classList.remove('active');
+                    btn.classList.add('active');
+                    this.currentFinishId = finish.id;
+                    this.updateBOM();
                 });
-            },
-            updateBOM: function () {
-                const finish = this.finishes.find(f => f.id === this.currentFinishId) || this.finishes[0];
-                if (!finish) return;
-                const finishMenge = finish.menge || 1;
-                const baseMenge = this.baseBody.menge || 1;
-                bomCountCounter.textContent = `${finishMenge + baseMenge} Artikel benötigt`;
-                bomTableBody.innerHTML = `
+                container.appendChild(btn);
+            });
+        },
+        updateBOM: function () {
+            const finish = this.finishes.find(f => f.id === this.currentFinishId) || this.finishes[0];
+            if (!finish) return;
+            const finishMenge = finish.menge || 1;
+            const baseMenge = this.baseBody.menge || 1;
+            bomCountCounter.textContent = `${finishMenge + baseMenge} Artikel benötigt`;
+            bomTableBody.innerHTML = `
                     <tr>
                         <td><div class="img-cell"><img src="${this.mainImgUrl}"></div></td>
                         <td><span class="bom-code">${finish.artNr}</span></td>
@@ -172,217 +179,225 @@ export function createFinishesApp(title, desc, mainImgUrl, baseBodyLabel, baseBo
                         <td><strong>${baseMenge}</strong></td>
                     </tr>
                 `;
-            },
-            copyToClipboard: function () {
-                const finish = this.finishes.find(f => f.id === this.currentFinishId) || this.finishes[0];
-                if (!finish) return;
-                const text = `${finish.artNr}\t${finish.menge || 1}\n${this.baseBody.artNr}\t${this.baseBody.menge || 1}`;
-                navigator.clipboard.writeText(text).then(() => alert("SAP Format kopiert:\n\n" + text.replace(/\t/g,"    "))).catch(e => alert("Fehler."));
-            }
-        };
-    }
+        },
+        copyToClipboard: function () {
+            const finish = this.finishes.find(f => f.id === this.currentFinishId) || this.finishes[0];
+            if (!finish) return;
+            const text = `${finish.artNr}\t${finish.menge || 1}\n${this.baseBody.artNr}\t${this.baseBody.menge || 1}`;
+            navigator.clipboard.writeText(text).then(() => alert("SAP Format kopiert:\n\n" + text.replace(/\t/g, "    "))).catch(e => alert("Fehler."));
+        }
+    };
+}
 
 export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
     const isMixer = config.isMixer || title.toLowerCase().includes('mischer') || title.toLowerCase().includes('armatur');
     const montageLabel1 = config.montageLabel1 || (isMixer ? "Aufputz" : "Wannenträger");
     const montageLabel2 = config.montageLabel2 || (isMixer ? "Unterputz" : "Montagerahmen");
     const montageLabel3 = config.montageLabel3 || "";
+    const montageLabel4 = config.montageLabel4 || "";
+    const montageLabel5 = config.montageLabel5 || "";
     const hideSizeForm = config.hideSizeForm || isMixer;
-    const suffix = title.replace(/\s/g,'');
+    const suffix = title.replace(/\s/g, '');
 
     return {
-            trays: [],
-            mainImgUrl: mainImgUrl,
-            selectedTray: null,
-            normalizeSerie: function (label, manufacturer = '') {
-                let s = String(label || '').toLowerCase().trim();
-                const m = String(manufacturer || '').toLowerCase();
-                
-                // Remove leading junk and prefixes
-                s = s.replace(/^[-\s/]+/, '')
-                     .replace(/^-?\s*endmontageset\b/, '')
-                     .replace(/^-?\s*fertigmontageset\b/, '')
-                     .replace(/^[-\s/]+/, '');
+        trays: [],
+        mainImgUrl: mainImgUrl,
+        selectedTray: null,
+        normalizeSerie: function (label, manufacturer = '') {
+            let s = String(label || '').toLowerCase().trim();
+            const m = String(manufacturer || '').toLowerCase();
 
-                if (m && s.startsWith(m)) s = s.slice(m.length).trim();
-                if (m) s = s.replace(new RegExp(`\\b${m.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'), '').trim();
+            // Remove leading junk and prefixes
+            s = s.replace(/^[-\s/]+/, '')
+                .replace(/^-?\s*endmontageset\b/, '')
+                .replace(/^-?\s*fertigmontageset\b/, '')
+                .replace(/^[-\s/]+/, '');
 
-                // Advanced cleaning
-                s = s.replace(/^[-\s/]+/, '')
-                     .replace(/\babdeckplatte\b.*$/i, '')
-                     .replace(/\bdurchflussleistung\b.*$/i, '')
-                     .replace(/\bohne einbaukörper\b.*$/i, '')
-                     .replace(/\benergieeffizienzklasse\b.*$/i, '')
-                     .replace(/\bgeräuschgruppe\b.*$/i, '')
-                     .replace(/\barmhebel\b.*$/i, '')
-                     .replace(/\bselbstschliessend\b.*$/i, '')
-                     .replace(/\btemperaturgriff\b.*$/i, '')
-                     .replace(/^thermostat\s+/i, '')
-                     .replace(/\s+½["”]?\s+thermostat\b.*$/i, '')
-                     .replace(/\s+thermostat\b.*$/i, '')
-                     .replace(/\bmit sicherheitstaste\b.*$/i, '')
-                     .replace(/\b1-weg\b.*$/i, '')
-                     .replace(/\s+½["”]?$/i, '')
-                     .replace(/\bav\.0\b/g, 'Ava 2.0')
-                     .replace(/\bvit\.0\b/g, 'Vita 2.0')
-                     .replace(/\s*,\s*$/g, '')
-                     .replace(/\s+/g, ' ')
-                     .trim();
+            if (m && s.startsWith(m)) s = s.slice(m.length).trim();
+            if (m) s = s.replace(new RegExp(`\\b${m.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'), '').trim();
 
-                if (!s) return 'Andere';
+            // Advanced cleaning
+            s = s.replace(/^[-\s/]+/, '')
+                .replace(/\babdeckplatte\b.*$/i, '')
+                .replace(/\bdurchflussleistung\b.*$/i, '')
+                .replace(/\bohne einbaukörper\b.*$/i, '')
+                .replace(/\benergieeffizienzklasse\b.*$/i, '')
+                .replace(/\bgeräuschgruppe\b.*$/i, '')
+                .replace(/\barmhebel\b.*$/i, '')
+                .replace(/\bselbstschliessend\b.*$/i, '')
+                .replace(/\btemperaturgriff\b.*$/i, '')
+                .replace(/^thermostat\s+/i, '')
+                .replace(/\s+½["”]?\s+thermostat\b.*$/i, '')
+                .replace(/\s+thermostat\b.*$/i, '')
+                .replace(/\bmit sicherheitstaste\b.*$/i, '')
+                .replace(/\b1-weg\b.*$/i, '')
+                .replace(/\s+½["”]?$/i, '')
+                .replace(/\bav\.0\b/g, 'Ava 2.0')
+                .replace(/\bvit\.0\b/g, 'Vita 2.0')
+                .replace(/\s*,\s*$/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
 
-                // CamelCase formatting
-                return s.split(' ').map(word => {
-                    if (/^kwc$/i.test(word)) return 'KWC';
-                    if (/^\d/.test(word)) return word;
-                    return word.charAt(0).toUpperCase() + word.slice(1);
-                }).join(' ');
-            },
-            extractSerie: function (t) {
-                if (t.serie) return this.normalizeSerie(t.serie, t.manufacturer);
-                
-                const typeKeywords = ["aufputz-duschenmischer", "unterputz-duschenmischer", "duschenmischer", "duschmischer", "aufputz-bademischer", "unterputz-bademischer", "bademischer", "waschtischmischer", "thermostatmischer", "thermostat-duschenmischer", "einhebelmischer", "einlochmischer", "mischer"];
-                let label = (t.label || '').toLowerCase();
-                
-                if (t.manufacturer) {
-                    const m = t.manufacturer.toLowerCase();
-                    if (label.startsWith(m)) label = label.slice(m.length).trim();
+            if (!s) return 'Andere';
+
+            // CamelCase formatting
+            return s.split(' ').map(word => {
+                if (/^kwc$/i.test(word)) return 'KWC';
+                if (/^\d/.test(word)) return word;
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            }).join(' ');
+        },
+        extractSerie: function (t) {
+            if (t.serie) return this.normalizeSerie(t.serie, t.manufacturer);
+
+            const typeKeywords = ["aufputz-duschenmischer", "unterputz-duschenmischer", "duschenmischer", "duschmischer", "aufputz-bademischer", "unterputz-bademischer", "bademischer", "waschtischmischer", "thermostatmischer", "thermostat-duschenmischer", "einhebelmischer", "einlochmischer", "mischer"];
+            let label = (t.label || '').toLowerCase();
+
+            if (t.manufacturer) {
+                const m = t.manufacturer.toLowerCase();
+                if (label.startsWith(m)) label = label.slice(m.length).trim();
+            }
+
+            for (const kw of typeKeywords) {
+                if (label.startsWith(kw)) {
+                    label = label.slice(kw.length).trim();
+                    break;
                 }
+            }
 
-                for (const kw of typeKeywords) {
-                    if (label.startsWith(kw)) {
-                        label = label.slice(kw.length).trim();
-                        break;
-                    }
-                }
+            label = label.replace(/-?endmontageset/g, '').replace(/-?fertigmontageset/g, '').trim();
 
-                label = label.replace(/-?endmontageset/g, '').replace(/-?fertigmontageset/g, '').trim();
-                
-                if (t.manufacturer) {
-                    const m = t.manufacturer.toLowerCase();
-                    if (label.startsWith(m)) label = label.slice(m.length).trim();
-                }
+            if (t.manufacturer) {
+                const m = t.manufacturer.toLowerCase();
+                if (label.startsWith(m)) label = label.slice(m.length).trim();
+            }
 
-                const match = label.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm|\s+\d+\s*x\s*\d+)/);
-                let serie = match && match[1] ? match[1].trim() : label.trim();
-                
-                return this.normalizeSerie(serie, t.manufacturer);
-            },
-            extractMontage: function (t) {
-                const l = (t.label || '').toLowerCase();
-                const isBath = title.toLowerCase().includes('badewanne') || title.toLowerCase().includes('wanne');
-                
-                if (l.includes('unterputz') || l.includes(' up ') || l.includes('einbau') || l.includes('endmontageset') || l.includes('grundkörper')) {
-                    return 'Unterputz';
-                }
-                if (l.includes('aufputz') || l.includes(' ap ') || l.includes('wandbatterie') || l.includes('wandmischer') || l.includes('ad 153 mm')) {
-                    return 'Aufputz';
-                }
-                if (isBath && (l.includes('standmodell') || l.includes('freistehend'))) {
-                    return 'Standmodell';
-                }
+            const match = label.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm|\s+\d+\s*x\s*\d+)/);
+            let serie = match && match[1] ? match[1].trim() : label.trim();
+
+            return this.normalizeSerie(serie, t.manufacturer);
+        },
+        extractMontage: function (t) {
+            const l = (t.label || '').toLowerCase();
+            const isBath = title.toLowerCase().includes('badewanne') || title.toLowerCase().includes('wanne');
+
+            if (l.includes('unterputz') || l.includes(' up ') || l.includes('einbau') || l.includes('endmontageset') || l.includes('grundkörper')) {
+                return 'Unterputz';
+            }
+            if (l.includes('aufputz') || l.includes(' ap ') || l.includes('wandbatterie') || l.includes('wandmischer') || l.includes('ad 153 mm')) {
                 return 'Aufputz';
-            },
-            getUniqueValues: function (key) {
-                if (key === 'serie') {
-                    return [...new Set(this.trays.map(t => this.extractSerie(t)))].sort();
-                }
-                return [...new Set(this.trays.map(t => t[key]))].sort();
-            },
-            classifyAccessory: function (obj) {
-                if (!obj) return 'common';
-                
-                // 1. Check for manual admin override first
-                if (obj.overrideMontageart && obj.overrideMontageart !== 'auto') {
-                    return obj.overrideMontageart.toLowerCase();
-                }
+            }
+            if (isBath && (l.includes('standmodell') || l.includes('freistehend'))) {
+                return 'Standmodell';
+            }
+            return 'Aufputz';
+        },
+        getUniqueValues: function (key) {
+            if (key === 'serie') {
+                return [...new Set(this.trays.map(t => this.extractSerie(t)))].sort();
+            }
+            return [...new Set(this.trays.map(t => t[key]))].sort();
+        },
+        classifyAccessory: function (obj) {
+            if (!obj) return 'common';
 
-                // 2. Clean input data
-                const label = (obj.label || obj.name || '').toLowerCase();
-                const artNr = (obj.artNr || '').replace(/\s/g, '');
+            // 1. Check for manual admin override first
+            if (obj.overrideMontageart && obj.overrideMontageart !== 'auto') {
+                return obj.overrideMontageart.toLowerCase();
+            }
 
-                // 3. HARD EXCEPTIONS (Firm IDs)
-                if (artNr === '1445782.000.000' || artNr === '1441782.000.000') {
+            // 2. CHECK CATEGORY NAME / ID FIRST (New & Robust)
+            // If the object is a category (mat) or an option, check its container name
+            const catName = (obj.name || '').toLowerCase();
+            const catId = (obj.id || '').toLowerCase();
+            if (catName.includes('träger') || catName.includes('wannenträger') || catId.includes('carrier') || catId.includes('träger')) return 'wannenträger';
+            if (catName.includes('rahmen') || catName.includes('montagerahmen') || catId.includes('rahmen') || catId.includes('frame')) return 'montagerahmen';
+            if (catName.includes('stelz')) return 'stelzfüsse';
+
+            // 3. Clean input data for keyword matching
+            const label = (obj.label || obj.name || '').toLowerCase();
+            const artNr = (obj.artNr || '').replace(/\s/g, '');
+
+            // 4. HARD EXCEPTIONS (Firm IDs)
+            if (artNr === '1445782.000.000' || artNr === '1441782.000.000') {
+                return 'wannenträger';
+            }
+            if (artNr === '1431191.000.000' || artNr === '1431190.000.000' || artNr === '1435435.000.000') {
+                return 'montagerahmen';
+            }
+
+            // 5. KEYWORD LOGIC
+            // Special Rule: If it's a Siphon (Ablauf) or Deckel, it's ALWAYS common
+            if (label.includes('ablauf') || label.includes('siphon') || label.includes('garnitur') || label.includes('ventil') || label.includes('deckel')) {
+                return 'common';
+            }
+
+            if (label.includes('schallschutzset') || label.includes('schallschutz')) {
+                return isMixer ? 'unterputz' : 'montagerahmen';
+            }
+
+            const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
+
+            if (isMixer) {
+                const lblLower = label.toLowerCase();
+                if (lblLower.includes('standmodell') || lblLower.includes('freien stand')) {
+                    return 'standmodell';
+                }
+                if (lblLower.includes('einbaukörper') || lblLower.includes('grundkörper') || lblLower.includes('ibox') || lblLower.includes('up-gehäuse')) {
+                    return 'unterputz';
+                }
+                if (lblLower.includes('endmontage') || lblLower.includes('einbau') || lblLower.includes('anschlussbogen') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
+                    return 'unterputz';
+                }
+                if (lblLower.includes('aufputz') || lblLower.includes(' ap ') || lblLower.includes('ausserhalb') || lblLower.includes('mischer') || lblLower.includes('batterie')) {
+                    return 'aufputz';
+                }
+            } else if (isToilet) {
+                const lblLower = label.toLowerCase();
+                if (lblLower.includes('einbauspülkasten') || lblLower.includes('einbauspulkasten')) {
+                    return 'unterputz';
+                }
+                return 'aufputz';
+            } else {
+                if (label.includes('träger') || label.includes('wannenträger') || label.includes('montageschaum')) {
                     return 'wannenträger';
                 }
-                if (artNr === '1431191.000.000' || artNr === '1431190.000.000' || artNr === '1435435.000.000') {
+                if (label.includes('rahmen') || label.includes('füsse') || label.includes('fussset')) {
                     return 'montagerahmen';
                 }
-
-                // 4. KEYWORD LOGIC
-                // Special Rule: If it mentions "schallschutz", it's ALWAYS Montagerahmen (unless it matched the IDs above)
                 if (label.includes('schallschutzset') || label.includes('schallschutz')) {
-                    return isMixer ? 'unterputz' : 'montagerahmen';
+                    return 'montagerahmen';
                 }
-
-                const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
-
-                if (isMixer) {
-                    const lblLower = label.toLowerCase();
-                    if (lblLower.includes('standmodell') || lblLower.includes('freien stand')) {
-                        return 'standmodell';
-                    }
-                    if (lblLower.includes('einbaukörper') || lblLower.includes('grundkörper') || lblLower.includes('ibox') || lblLower.includes('up-gehäuse')) {
-                        return 'unterputz'; 
-                    }
-                    if (lblLower.includes('endmontage') || lblLower.includes('einbau') || lblLower.includes('anschlussbogen') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
-                        return 'unterputz';
-                    }
-                    if (lblLower.includes('aufputz') || lblLower.includes(' ap ') || lblLower.includes('ausserhalb') || lblLower.includes('mischer') || lblLower.includes('batterie')) {
-                        return 'aufputz';
-                    }
-                } else if (isToilet) {
-                    const lblLower = label.toLowerCase();
-                    // STRICT RULE for Standklosett:
-                    // Unterputz ONLY if description explicitly states 'Einbauspülkasten'
-                    // Everything else is Aufputz
-                    if (lblLower.includes('einbauspülkasten') || lblLower.includes('einbauspulkasten')) {
-                        return 'unterputz';
-                    }
-                    return 'aufputz';
-                } else {
-                    // Carrier Logic First (Higher Priority than Schallschutz)
-                    if (label.includes('träger') || label.includes('wannenträger') || label.includes('montageschaum')) {
-                        return 'wannenträger';
-                    }
-                    // Frame Logic
-                    if (label.includes('rahmen') || label.includes('füsse') || label.includes('fussset')) {
-                        return 'montagerahmen';
-                    }
-                    // Schallschutz as Fallback for Frames
-                    if (label.includes('schallschutzset') || label.includes('schallschutz')) {
-                        return 'montagerahmen';
-                    }
-                    if (label.includes('stelzfüss') || label.includes('stelzfuss')) {
-                        return 'stelzfüsse';
-                    }
+                if (label.includes('stelzfüss') || label.includes('stelzfuss')) {
+                    return 'stelzfüsse';
                 }
+            }
 
-                return 'common';
-            },
-            init: function () {
-                this.isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
-                this.selectedTray = null;
-                this.currentMontageart = 'alle';
-                this.currentManufacturer = 'all';
-                this.currentSerie = 'all';
-                this.currentForm = 'all';
-                this.currentSize = 'all';
-                this.renderSidebar();
-                this.bindFilters();
-                this.filterResults(); // initial run
-                this.clearBOM();
-            },
-            renderSidebar: function () {
-                const isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
-                console.log(`[Configurator] Rendering Sidebar for ${title}. isToiletApp: ${isToiletApp}`);
-                const manufacturers = this.getUniqueValues('manufacturer');
-                const forms = this.getUniqueValues('form');
-                const sizes = this.getUniqueValues('size');
-                const formLabel = isToiletApp ? "Montage" : "Form";
-                const systemLabel = isToiletApp ? "System" : "Montageart";
+            return 'common';
+        },
+        init: function () {
+            this.isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
+            this.selectedTray = null;
+            this.currentMontageart = 'alle';
+            this.currentManufacturer = 'all';
+            this.currentSerie = 'all';
+            this.currentForm = 'all';
+            this.currentSize = 'all';
+            this.renderSidebar();
+            this.bindFilters();
+            this.filterResults(); // initial run
+            this.clearBOM();
+        },
+        renderSidebar: function () {
+            const isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
+            console.log(`[Configurator] Rendering Sidebar for ${title}. isToiletApp: ${isToiletApp}`);
+            const manufacturers = this.getUniqueValues('manufacturer');
+            const forms = this.getUniqueValues('form');
+            const sizes = this.getUniqueValues('size');
+            const formLabel = isToiletApp ? "Montage" : "Form";
+            const systemLabel = isToiletApp ? "System" : "Montageart";
 
-                configSidebar.innerHTML = `
+            configSidebar.innerHTML = `
                     <div class="sidebar-section">
                         <h2>Filter: ${title}</h2>
                         
@@ -435,281 +450,281 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     <div class="sidebar-section" id="trayConfigurator_${suffix}" style="display:none; margin-top:2rem;">
                         <h2>Konfiguration</h2>
                         <p class="section-desc">Wählen Sie das passende Zubehör.</p>
-                        <div id="trayConfiguratorInner_${title.replace(/\s/g,'')}"></div>
+                        <div id="trayConfiguratorInner_${title.replace(/\s/g, '')}"></div>
                     </div>
                 `;
-                this.updatePillFilters();
-            },
-            updatePillFilters: function() {
-                const suffix = title.replace(/\s/g,'');
-                const mList = document.getElementById(`list_rel_mfr_${suffix}`);
-                const serList = document.getElementById(`list_rel_serie_${suffix}`);
-                const fList = document.getElementById(`list_rel_form_${suffix}`);
-                const sList = document.getElementById(`list_rel_size_${suffix}`);
-                const monList = document.getElementById(`list_rel_montage_${suffix}`);
+            this.updatePillFilters();
+        },
+        updatePillFilters: function () {
+            const suffix = title.replace(/\s/g, '');
+            const mList = document.getElementById(`list_rel_mfr_${suffix}`);
+            const serList = document.getElementById(`list_rel_serie_${suffix}`);
+            const fList = document.getElementById(`list_rel_form_${suffix}`);
+            const sList = document.getElementById(`list_rel_size_${suffix}`);
+            const monList = document.getElementById(`list_rel_montage_${suffix}`);
 
-                if (!mList) return;
+            if (!mList) return;
 
-                const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
-                const isUpAp = isMixer || isToilet;
-                const formLabel = isToilet ? "Montage" : "Form";
-                const systemLabel = isToilet ? "System" : "Montageart";
-                const label1 = isUpAp ? "Aufputz" : (config.montageLabel1 || "Wannenträger");
-                const label2 = isUpAp ? "Unterputz" : (config.montageLabel2 || "Montagerahmen");
-                const label3 = config.montageLabel3 || "";
+            const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
+            const isUpAp = isMixer || isToilet;
+            const formLabel = isToilet ? "Montage" : "Form";
+            const systemLabel = isToilet ? "System" : "Montageart";
+            const label1 = isUpAp ? "Aufputz" : (config.montageLabel1 || "Wannenträger");
+            const label2 = isUpAp ? "Unterputz" : (config.montageLabel2 || "Montagerahmen");
+            const label3 = config.montageLabel3 || "";
 
-                // 1. Manufacturer
-                const manufacturers = this.getUniqueValues('manufacturer');
-                mList.innerHTML = `<button class="pill-btn ${this.currentManufacturer === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + manufacturers.map(m => `
+            // 1. Manufacturer
+            const manufacturers = this.getUniqueValues('manufacturer');
+            mList.innerHTML = `<button class="pill-btn ${this.currentManufacturer === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + manufacturers.map(m => `
                     <button class="pill-btn ${this.currentManufacturer === m ? 'active' : ''}" data-val="${m}">${m}</button>
                 `).join('');
-                applyPillUI(`head_rel_mfr_${suffix}`, `list_rel_mfr_${suffix}`, this.currentManufacturer, 'Hersteller', () => {
-                    this.currentManufacturer = 'all';
-                    this.currentSerie = 'all';
+            applyPillUI(`head_rel_mfr_${suffix}`, `list_rel_mfr_${suffix}`, this.currentManufacturer, 'Hersteller', () => {
+                this.currentManufacturer = 'all';
+                this.currentSerie = 'all';
+                this.currentForm = 'all';
+                this.currentSize = 'all';
+                this.updatePillFilters();
+                this.filterResults();
+            });
+
+            mList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
+                this.currentManufacturer = btn.dataset.val;
+                this.updatePillFilters();
+                this.filterResults();
+            }));
+
+            // 2. Serie
+            let validTraysForSerie = this.trays;
+            if (this.currentManufacturer !== 'all') {
+                validTraysForSerie = validTraysForSerie.filter(t => t.manufacturer === this.currentManufacturer);
+            }
+            const series = [...new Set(validTraysForSerie.map(t => this.extractSerie(t)))].sort();
+            serList.innerHTML = `<button class="pill-btn ${this.currentSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + series.map(s => `
+                    <button class="pill-btn ${this.currentSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>
+                `).join('');
+            applyPillUI(`head_rel_serie_${suffix}`, `list_rel_serie_${suffix}`, this.currentSerie, 'Serie', () => {
+                this.currentSerie = 'all';
+                this.currentSize = 'all';
+                this.updatePillFilters();
+                this.filterResults();
+            });
+            serList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
+                this.currentSerie = btn.dataset.val;
+                this.updatePillFilters();
+                this.filterResults();
+            }));
+
+            // 3. Form (Montage)
+            if (fList) {
+                let validTraysForForm = validTraysForSerie;
+                if (this.currentSerie !== 'all') {
+                    validTraysForForm = validTraysForForm.filter(t => this.extractSerie(t) === this.currentSerie);
+                }
+                const forms = [...new Set(validTraysForForm.map(t => t.form))].filter(Boolean).sort();
+
+                fList.innerHTML = `<button class="pill-btn ${this.currentForm === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + forms.map(f => `
+                        <button class="pill-btn ${this.currentForm === f ? 'active' : ''}" data-val="${f}">${f}</button>
+                    `).join('');
+                applyPillUI(`head_rel_form_${suffix}`, `list_rel_form_${suffix}`, this.currentForm, formLabel, () => {
                     this.currentForm = 'all';
                     this.currentSize = 'all';
                     this.updatePillFilters();
                     this.filterResults();
                 });
-
-                mList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                    this.currentManufacturer = btn.dataset.val;
+                fList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
+                    this.currentForm = btn.dataset.val;
                     this.updatePillFilters();
                     this.filterResults();
                 }));
+            }
 
-                // 2. Serie
-                let validTraysForSerie = this.trays;
-                if (this.currentManufacturer !== 'all') {
-                    validTraysForSerie = validTraysForSerie.filter(t => t.manufacturer === this.currentManufacturer);
+            // 4. Size
+            if (sList) {
+                let validTraysForSize = validTraysForSerie;
+                if (this.currentSerie !== 'all') {
+                    validTraysForSize = validTraysForSize.filter(t => this.extractSerie(t) === this.currentSerie);
                 }
-                const series = [...new Set(validTraysForSerie.map(t => this.extractSerie(t)))].sort();
-                serList.innerHTML = `<button class="pill-btn ${this.currentSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + series.map(s => `
-                    <button class="pill-btn ${this.currentSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>
-                `).join('');
-                applyPillUI(`head_rel_serie_${suffix}`, `list_rel_serie_${suffix}`, this.currentSerie, 'Serie', () => {
-                    this.currentSerie = 'all';
+                if (this.currentForm !== 'all') {
+                    validTraysForSize = validTraysForSize.filter(t => t.form === this.currentForm);
+                }
+                const sizes = [...new Set(validTraysForSize.map(t => t.size))].sort();
+                sList.innerHTML = `<button class="pill-btn ${this.currentSize === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + sizes.map(s => `
+                        <button class="pill-btn ${this.currentSize === s ? 'active' : ''}" data-val="${s}">${s}</button>
+                    `).join('');
+                applyPillUI(`head_rel_size_${suffix}`, `list_rel_size_${suffix}`, this.currentSize, 'Grösse', () => {
                     this.currentSize = 'all';
                     this.updatePillFilters();
                     this.filterResults();
                 });
-                serList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                    this.currentSerie = btn.dataset.val;
+                sList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
+                    this.currentSize = btn.dataset.val;
                     this.updatePillFilters();
                     this.filterResults();
                 }));
+            }
 
-                // 3. Form (Montage)
-                if (fList) {
-                    let validTraysForForm = validTraysForSerie;
-                    if (this.currentSerie !== 'all') {
-                        validTraysForForm = validTraysForForm.filter(t => this.extractSerie(t) === this.currentSerie);
-                    }
-                    const forms = [...new Set(validTraysForForm.map(t => t.form))].filter(Boolean).sort();
+            const val1 = label1.toLowerCase();
+            const val2 = label2.toLowerCase();
+            const val3 = label3 ? label3.toLowerCase() : '';
 
-                    fList.innerHTML = `<button class="pill-btn ${this.currentForm === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + forms.map(f => `
-                        <button class="pill-btn ${this.currentForm === f ? 'active' : ''}" data-val="${f}">${f}</button>
-                    `).join('');
-                    applyPillUI(`head_rel_form_${suffix}`, `list_rel_form_${suffix}`, this.currentForm, formLabel, () => {
-                        this.currentForm = 'all';
-                        this.currentSize = 'all';
-                        this.updatePillFilters();
-                        this.filterResults();
-                    });
-                    fList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                        this.currentForm = btn.dataset.val;
-                        this.updatePillFilters();
-                        this.filterResults();
-                    }));
-                }
-
-                // 4. Size
-                if (sList) {
-                    let validTraysForSize = validTraysForSerie;
-                    if (this.currentSerie !== 'all') {
-                        validTraysForSize = validTraysForSize.filter(t => this.extractSerie(t) === this.currentSerie);
-                    }
-                    if (this.currentForm !== 'all') {
-                        validTraysForSize = validTraysForSize.filter(t => t.form === this.currentForm);
-                    }
-                    const sizes = [...new Set(validTraysForSize.map(t => t.size))].sort();
-                    sList.innerHTML = `<button class="pill-btn ${this.currentSize === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + sizes.map(s => `
-                        <button class="pill-btn ${this.currentSize === s ? 'active' : ''}" data-val="${s}">${s}</button>
-                    `).join('');
-                    applyPillUI(`head_rel_size_${suffix}`, `list_rel_size_${suffix}`, this.currentSize, 'Grösse', () => {
-                        this.currentSize = 'all';
-                        this.updatePillFilters();
-                        this.filterResults();
-                    });
-                    sList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                        this.currentSize = btn.dataset.val;
-                        this.updatePillFilters();
-                        this.filterResults();
-                    }));
-                }
-
-                const val1 = label1.toLowerCase();
-                const val2 = label2.toLowerCase();
-                const val3 = label3 ? label3.toLowerCase() : '';
-
-                monList.innerHTML = `
+            monList.innerHTML = `
                     <button class="pill-btn ${this.currentMontageart === 'alle' ? 'active' : ''}" data-val="alle">Alle</button>
                     <button class="pill-btn ${this.currentMontageart === val1 ? 'active' : ''}" data-val="${val1}">${label1}</button>
                     <button class="pill-btn ${this.currentMontageart === val2 ? 'active' : ''}" data-val="${val2}">${label2}</button>
                     ${label3 ? `<button class="pill-btn ${this.currentMontageart === val3 ? 'active' : ''}" data-val="${val3}">${label3}</button>` : ''}
                 `;
-                applyPillUI(`head_rel_montage_${suffix}`, `list_rel_montage_${suffix}`, this.currentMontageart, systemLabel, () => {
-                    this.currentMontageart = 'alle';
-                    this.updatePillFilters();
-                    this.filterResults();
-                });
-                monList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                    this.currentMontageart = btn.dataset.val;
-                    this.updatePillFilters();
-                    this.filterResults();
-                }));
-                if (!hideSizeForm) this.updateManualInputs();
-            },
-            bindFilters: function () {
-                // Re-bind click events for manual length/width inputs if hideSizeForm is false
-                if (!hideSizeForm) {
-                    const lInput = document.getElementById(`filterLength_${suffix}`);
-                    const wInput = document.getElementById(`filterWidth_${suffix}`);
-                    const onManualInput = () => {
-                        this.updateSizeDropdownFromManual();
-                        this.filterResults();
-                    };
-                    if (lInput) lInput.addEventListener('input', onManualInput);
-                    if (wInput) wInput.addEventListener('input', onManualInput);
-                }
-            },
-
-            updateManualInputs: function () {
-                const val = this.currentSize;
+            applyPillUI(`head_rel_montage_${suffix}`, `list_rel_montage_${suffix}`, this.currentMontageart, systemLabel, () => {
+                this.currentMontageart = 'alle';
+                this.updatePillFilters();
+                this.filterResults();
+            });
+            monList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
+                this.currentMontageart = btn.dataset.val;
+                this.updatePillFilters();
+                this.filterResults();
+            }));
+            if (!hideSizeForm) this.updateManualInputs();
+        },
+        bindFilters: function () {
+            // Re-bind click events for manual length/width inputs if hideSizeForm is false
+            if (!hideSizeForm) {
                 const lInput = document.getElementById(`filterLength_${suffix}`);
                 const wInput = document.getElementById(`filterWidth_${suffix}`);
-                
-                if (!lInput || !wInput) return; // Skip if inputs are hidden (e.g. for toilets)
-                
-                if (val === 'all') {
-                    lInput.value = '';
-                    wInput.value = '';
-                } else {
-                    const parts = val.split(/[xX]/).map(p => p.trim());
-                    if (parts.length === 2) {
-                        lInput.value = parts[0];
-                        wInput.value = parts[1];
-                    }
-                }
-            },
-            updateSizeDropdownFromManual: function () {
-                const lEl = document.getElementById(`filterLength_${suffix}`);
-                const wEl = document.getElementById(`filterWidth_${suffix}`);
-                if (!lEl || !wEl) return;
+                const onManualInput = () => {
+                    this.updateSizeDropdownFromManual();
+                    this.filterResults();
+                };
+                if (lInput) lInput.addEventListener('input', onManualInput);
+                if (wInput) wInput.addEventListener('input', onManualInput);
+            }
+        },
 
-                const lInput = lEl.value;
-                const wInput = wEl.value;
-                
-                if (lInput && wInput) {
-                    const sizeStr = `${lInput} x ${wInput}`;
-                    const sizeStrRev = `${wInput} x ${lInput}`;
-                    
-                    const found = this.trays.find(t => t.size === sizeStr || t.size === sizeStrRev);
-                    if (found) {
-                        this.currentSize = found.size;
-                    } else {
-                        this.currentSize = 'all';
-                    }
+        updateManualInputs: function () {
+            const val = this.currentSize;
+            const lInput = document.getElementById(`filterLength_${suffix}`);
+            const wInput = document.getElementById(`filterWidth_${suffix}`);
+
+            if (!lInput || !wInput) return; // Skip if inputs are hidden (e.g. for toilets)
+
+            if (val === 'all') {
+                lInput.value = '';
+                wInput.value = '';
+            } else {
+                const parts = val.split(/[xX]/).map(p => p.trim());
+                if (parts.length === 2) {
+                    lInput.value = parts[0];
+                    wInput.value = parts[1];
+                }
+            }
+        },
+        updateSizeDropdownFromManual: function () {
+            const lEl = document.getElementById(`filterLength_${suffix}`);
+            const wEl = document.getElementById(`filterWidth_${suffix}`);
+            if (!lEl || !wEl) return;
+
+            const lInput = lEl.value;
+            const wInput = wEl.value;
+
+            if (lInput && wInput) {
+                const sizeStr = `${lInput} x ${wInput}`;
+                const sizeStrRev = `${wInput} x ${lInput}`;
+
+                const found = this.trays.find(t => t.size === sizeStr || t.size === sizeStrRev);
+                if (found) {
+                    this.currentSize = found.size;
                 } else {
                     this.currentSize = 'all';
                 }
-                this.updatePillFilters();
-            },
-            filterResults: function () {
-                const mFilter = this.currentManufacturer || 'all';
-                const serieFilter = this.currentSerie || 'all';
-                const fFilter = this.currentForm || 'all';
-                const sFilter = this.currentSize || 'all';
-                const lFilter = document.getElementById(`filterLength_${suffix}`)?.value || '';
-                const wFilter = document.getElementById(`filterWidth_${suffix}`)?.value || '';
+            } else {
+                this.currentSize = 'all';
+            }
+            this.updatePillFilters();
+        },
+        filterResults: function () {
+            const mFilter = this.currentManufacturer || 'all';
+            const serieFilter = this.currentSerie || 'all';
+            const fFilter = this.currentForm || 'all';
+            const sFilter = this.currentSize || 'all';
+            const lFilter = document.getElementById(`filterLength_${suffix}`)?.value || '';
+            const wFilter = document.getElementById(`filterWidth_${suffix}`)?.value || '';
 
-                const isToilet = this.isToiletApp || (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
+            const isToilet = this.isToiletApp || (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
 
-                const filtered = this.trays.filter(t => {
-                    if (mFilter !== 'all' && mFilter !== 'alle' && t.manufacturer !== mFilter) return false;
-                    
-                    if (serieFilter !== 'all' && serieFilter !== 'alle') {
-                        const s = this.extractSerie(t);
-                        if (s !== serieFilter) return false;
-                    }
-                    
-                    if (!hideSizeForm) {
-                        const fFilterClean = fFilter.toLowerCase();
-                        const tFormClean = (t.form || '').toLowerCase();
-                        if (fFilterClean !== 'all' && fFilterClean !== 'alle' && !tFormClean.includes(fFilterClean) && !fFilterClean.includes(tFormClean)) return false;
-                        
-                        if (sFilter !== 'all' && sFilter !== 'alle') {
-                            if (t.size !== sFilter) return false;
-                        } else if (!isToilet && (lFilter || wFilter)) {
-                            // Only run numeric parsing if it's NOT a toilet and looks like "120 x 80"
-                            if (t.size && t.size.includes('x')) {
-                                const parts = t.size.toLowerCase().split('x').map(p => p.trim());
-                                if (parts.length === 2) {
-                                    let [l, w] = parts.map(p => parseFloat(p));
-                                    let lf = parseFloat(lFilter);
-                                    let wf = parseFloat(wFilter);
-                                    const norm = (v) => (v < 400 ? v * 10 : v);
-                                    if (lFilter && wFilter) {
-                                        if (!((norm(l) == norm(lf) && norm(w) == norm(wf)) || (norm(l) == norm(wf) && norm(w) == norm(lf)))) return false;
-                                    } else if (lFilter) {
-                                        if (norm(l) != norm(lf) && norm(w) != norm(lf)) return false;
-                                    } else if (wFilter) {
-                                        if (norm(l) != norm(wf) && norm(w) != norm(wf)) return false;
-                                    }
+            const filtered = this.trays.filter(t => {
+                if (mFilter !== 'all' && mFilter !== 'alle' && t.manufacturer !== mFilter) return false;
+
+                if (serieFilter !== 'all' && serieFilter !== 'alle') {
+                    const s = this.extractSerie(t);
+                    if (s !== serieFilter) return false;
+                }
+
+                if (!hideSizeForm) {
+                    const fFilterClean = fFilter.toLowerCase();
+                    const tFormClean = (t.form || '').toLowerCase();
+                    if (fFilterClean !== 'all' && fFilterClean !== 'alle' && !tFormClean.includes(fFilterClean) && !fFilterClean.includes(tFormClean)) return false;
+
+                    if (sFilter !== 'all' && sFilter !== 'alle') {
+                        if (t.size !== sFilter) return false;
+                    } else if (!isToilet && (lFilter || wFilter)) {
+                        // Only run numeric parsing if it's NOT a toilet and looks like "120 x 80"
+                        if (t.size && t.size.includes('x')) {
+                            const parts = t.size.toLowerCase().split('x').map(p => p.trim());
+                            if (parts.length === 2) {
+                                let [l, w] = parts.map(p => parseFloat(p));
+                                let lf = parseFloat(lFilter);
+                                let wf = parseFloat(wFilter);
+                                const norm = (v) => (v < 400 ? v * 10 : v);
+                                if (lFilter && wFilter) {
+                                    if (!((norm(l) == norm(lf) && norm(w) == norm(wf)) || (norm(l) == norm(wf) && norm(w) == norm(lf)))) return false;
+                                } else if (lFilter) {
+                                    if (norm(l) != norm(lf) && norm(w) != norm(lf)) return false;
+                                } else if (wFilter) {
+                                    if (norm(l) != norm(wf) && norm(w) != norm(wf)) return false;
                                 }
                             }
                         }
                     }
-                    
-                    // Filter Main Products by Montageart if chosen
-                    if (this.currentMontageart !== 'alle' && this.currentMontageart !== 'all') {
-                        const m = this.classifyAccessory(t);
-                        if (m !== 'common' && m !== this.currentMontageart) return false;
-                        
-                        // For trays/products that are 'common' themselves, check their accessories
-                        if (m === 'common') {
-                            let hasMatchingAccessory = false;
-                            if (t.mountingMaterials) {
-                                t.mountingMaterials.forEach(mat => {
-                                    if (mat.options && mat.options[0]) {
-                                        if (this.classifyAccessory(mat.options[0]) === this.currentMontageart) {
-                                            hasMatchingAccessory = true;
-                                        }
-                                    }
-                                });
-                            }
-                            if (!hasMatchingAccessory && t.mountingMaterials && t.mountingMaterials.length > 0) return false;
-                        }
-                    }
-                    
-                    return true;
-                });
-
-                console.log(`[Configurator] ${title} Filter Results: ${filtered.length} of ${this.trays.length} visible. (M:${mFilter}, S:${serieFilter}, F:${fFilter})`);
-
-                document.getElementById(`resultCount_${suffix}`).textContent = filtered.length;
-                const resultsContainer = document.getElementById(`searchResults_${suffix}`);
-                resultsContainer.innerHTML = '';
-
-                if (filtered.length === 0) {
-                    resultsContainer.innerHTML = '<div class="no-results">Keine Produkte gefunden. Bitte Filter anpassen.</div>';
-                    return;
                 }
 
-                filtered.forEach(t => {
-                    const btn = document.createElement('button');
-                    btn.className = `result-item-btn ${this.selectedTray && this.selectedTray.id === t.id ? 'active' : ''}`;
-                    btn.innerHTML = `
+                // Filter Main Products by Montageart if chosen
+                if (this.currentMontageart !== 'alle' && this.currentMontageart !== 'all') {
+                    const m = this.classifyAccessory(t);
+                    if (m !== 'common' && m !== this.currentMontageart) return false;
+
+                    // For trays/products that are 'common' themselves, check their accessories
+                    if (m === 'common') {
+                        let hasMatchingAccessory = false;
+                        if (t.mountingMaterials) {
+                            t.mountingMaterials.forEach(mat => {
+                                if (mat.options && mat.options[0]) {
+                                    if (this.classifyAccessory(mat.options[0]) === this.currentMontageart) {
+                                        hasMatchingAccessory = true;
+                                    }
+                                }
+                            });
+                        }
+                        if (!hasMatchingAccessory && t.mountingMaterials && t.mountingMaterials.length > 0) return false;
+                    }
+                }
+
+                return true;
+            });
+
+            console.log(`[Configurator] ${title} Filter Results: ${filtered.length} of ${this.trays.length} visible. (M:${mFilter}, S:${serieFilter}, F:${fFilter})`);
+
+            document.getElementById(`resultCount_${suffix}`).textContent = filtered.length;
+            const resultsContainer = document.getElementById(`searchResults_${suffix}`);
+            resultsContainer.innerHTML = '';
+
+            if (filtered.length === 0) {
+                resultsContainer.innerHTML = '<div class="no-results">Keine Produkte gefunden. Bitte Filter anpassen.</div>';
+                return;
+            }
+
+            filtered.forEach(t => {
+                const btn = document.createElement('button');
+                btn.className = `result-item-btn ${this.selectedTray && this.selectedTray.id === t.id ? 'active' : ''}`;
+                btn.innerHTML = `
                         <div class="result-info">
                             <strong>${t.label}</strong>
                             <div class="result-meta">
@@ -718,97 +733,97 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         </div>
                         <span class="finish-artnr">${t.artNr}</span>
                     `;
-                    btn.addEventListener('click', () => this.selectTray(t.id));
-                    resultsContainer.appendChild(btn);
-                });
+                btn.addEventListener('click', () => this.selectTray(t.id));
+                resultsContainer.appendChild(btn);
+            });
 
-                // Ensure the active configuration refreshes when filters change
-                if (this.selectedTray) {
-                    this.renderConfigurator();
-                    this.updateBOM();
-                }
-            },
-            selectTray: function (id) {
-                this.selectedTray = this.trays.find(t => t.id === id);
-                
-                if (this.currentMontageart === 'alle') {
-                    const supportedMethods = new Set();
-                    if (this.selectedTray.mountingMaterials) {
-                        this.selectedTray.mountingMaterials.forEach(mat => {
-                            const ft = mat.options && mat.options[0];
-                            if (ft) {
-                                const cls = this.classifyAccessory(ft);
-                                if (cls !== 'common') supportedMethods.add(cls);
-                            }
-                        });
-                    }
-                    if (supportedMethods.has('wannenträger')) {
-                        this.currentMontageart = 'wannenträger';
-                    } else if (supportedMethods.size > 0) {
-                        this.currentMontageart = Array.from(supportedMethods)[0];
-                    }
-                    this.updatePillFilters();
-                }
+            // Ensure the active configuration refreshes when filters change
+            if (this.selectedTray) {
+                this.renderConfigurator();
+                this.updateBOM();
+            }
+        },
+        selectTray: function (id) {
+            this.selectedTray = this.trays.find(t => t.id === id);
 
-                // Ensure data structure and setup selections
-                this.selectedTray.selections = {};
-                
-                // Initialize default variant
-                if (this.selectedTray.variants && this.selectedTray.variants.length > 0) {
-                    this.selectedTray.selections['__variant__'] = this.selectedTray.artNr;
-                }
+            if (this.currentMontageart === 'alle') {
+                const supportedMethods = new Set();
                 if (this.selectedTray.mountingMaterials) {
-                    this.selectedTray.mountingMaterials.forEach((mat, mIdx) => {
-                        if (!mat.options) {
-                            mat = {
-                                id: mat.id || 'mat_'+Math.random().toString(36).substr(2,5),
-                                name: mat.label ? mat.label.split(' ')[0] : 'Zubehör',
-                                options: [{ artNr: mat.artNr || '', label: mat.label || '', type: mat.type || 'Zubehör' }]
-                            };
-                            this.selectedTray.mountingMaterials[mIdx] = mat;
-                        }
-                        if (mat.options.length > 0) {
-                            this.selectedTray.selections[mat.id] = mat.options[0].artNr;
+                    this.selectedTray.mountingMaterials.forEach(mat => {
+                        const ft = mat.options && mat.options[0];
+                        if (ft) {
+                            const cls = this.classifyAccessory(ft);
+                            if (cls !== 'common') supportedMethods.add(cls);
                         }
                     });
                 }
+                if (supportedMethods.has('wannenträger')) {
+                    this.currentMontageart = 'wannenträger';
+                } else if (supportedMethods.size > 0) {
+                    this.currentMontageart = Array.from(supportedMethods)[0];
+                }
+                this.updatePillFilters();
+            }
 
-                this.filterResults(); // re-render to highlight active
-                this.renderConfigurator();
-                this.updateBOM();
-            },
-            renderConfigurator: function () {
-                const configBlock = document.getElementById(`trayConfigurator_${suffix}`);
-                const inner = document.getElementById(`trayConfiguratorInner_${suffix}`);
-                inner.innerHTML = '';
+            // Ensure data structure and setup selections
+            this.selectedTray.selections = {};
 
-                let hasConfig = false;
+            // Initialize default variant
+            if (this.selectedTray.variants && this.selectedTray.variants.length > 0) {
+                this.selectedTray.selections['__variant__'] = this.selectedTray.artNr;
+            }
+            if (this.selectedTray.mountingMaterials) {
+                this.selectedTray.mountingMaterials.forEach((mat, mIdx) => {
+                    if (!mat.options) {
+                        mat = {
+                            id: mat.id || 'mat_' + Math.random().toString(36).substr(2, 5),
+                            name: mat.label ? mat.label.split(' ')[0] : 'Zubehör',
+                            options: [{ artNr: mat.artNr || '', label: mat.label || '', type: mat.type || 'Zubehör' }]
+                        };
+                        this.selectedTray.mountingMaterials[mIdx] = mat;
+                    }
+                    if (mat.options.length > 0) {
+                        this.selectedTray.selections[mat.id] = mat.options[0].artNr;
+                    }
+                });
+            }
 
-                // 1. Render Variant Dropdown (if exists)
-                if (this.selectedTray && this.selectedTray.variants && this.selectedTray.variants.length > 0) {
-                    hasConfig = true;
-                    const variantDiv = document.createElement('div');
-                    variantDiv.className = 'filter-group';
-                    variantDiv.style.marginBottom = '1.5rem';
-                    const vLabel = document.createElement('label');
-                    vLabel.textContent = "Ausführung / Variante / Farbe";
-                    
-                    const swatchGrid = document.createElement('div');
-                    swatchGrid.className = 'finish-buttons-grid';
-                    swatchGrid.style.marginTop = '0.5rem';
-                    
-                    const renderVariantSwatch = (artNr, label) => {
-                        const btn = document.createElement('button');
-                        const isActive = this.selectedTray.selections['__variant__'] === artNr;
-                        btn.className = `finish-row-btn ${isActive ? 'active' : ''}`;
-                        btn.style.width = '100%';
-                        btn.style.display = 'flex';
-                        btn.style.alignItems = 'center';
-                        
-                        const imgUrl = getSanitasImgUrl(artNr);
-                        const fallbackColor = getVariantColor(label, artNr);
+            this.filterResults(); // re-render to highlight active
+            this.renderConfigurator();
+            this.updateBOM();
+        },
+        renderConfigurator: function () {
+            const configBlock = document.getElementById(`trayConfigurator_${suffix}`);
+            const inner = document.getElementById(`trayConfiguratorInner_${suffix}`);
+            inner.innerHTML = '';
 
-                        btn.innerHTML = `
+            let hasConfig = false;
+
+            // 1. Render Variant Dropdown (if exists)
+            if (this.selectedTray && this.selectedTray.variants && this.selectedTray.variants.length > 0) {
+                hasConfig = true;
+                const variantDiv = document.createElement('div');
+                variantDiv.className = 'filter-group';
+                variantDiv.style.marginBottom = '1.5rem';
+                const vLabel = document.createElement('label');
+                vLabel.textContent = "Ausführung / Variante / Farbe";
+
+                const swatchGrid = document.createElement('div');
+                swatchGrid.className = 'finish-buttons-grid';
+                swatchGrid.style.marginTop = '0.5rem';
+
+                const renderVariantSwatch = (artNr, label) => {
+                    const btn = document.createElement('button');
+                    const isActive = this.selectedTray.selections['__variant__'] === artNr;
+                    btn.className = `finish-row-btn ${isActive ? 'active' : ''}`;
+                    btn.style.width = '100%';
+                    btn.style.display = 'flex';
+                    btn.style.alignItems = 'center';
+
+                    const imgUrl = getSanitasImgUrl(artNr);
+                    const fallbackColor = getVariantColor(label, artNr);
+
+                    btn.innerHTML = `
                             <div class="finish-swatch" style="position: relative; overflow: hidden; background-color: ${fallbackColor}; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); width: 28px; height: 28px; border-radius: 50%; margin-right: 12px; border: 1px solid rgba(0,0,0,0.2);">
                                 ${imgUrl ? `<img src="${imgUrl}" style="position: absolute; width: 100%; height: 100%; object-fit: cover; background: #fff; top: 0; left: 0;" onerror="this.style.display='none';">` : ''}
                             </div>
@@ -817,100 +832,100 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                                 <span class="finish-artnr" style="margin-left: 0;">${artNr}</span>
                             </div>
                         `;
-                        
-                        btn.addEventListener('click', (e) => {
-                            this.selectedTray.selections['__variant__'] = artNr;
-                            
-                            // Auto-Match Accessories by Color
-                            const selectedVariantLabel = label.toLowerCase();
-                            const colors = ['schwarz', 'black', 'matt', 'chrom', 'weiss', 'white', 'gold', 'bronze', 'nickel', 'edelstahl', 'inox', 'pvd', 'messing', 'brushed', 'poliert', 'gebürstet', 'copper', 'kupfer'];
-                            const activeColors = colors.filter(c => selectedVariantLabel.includes(c));
-                            
-                            // 1. Get specific color code from variant artNr (e.g. .340)
-                            const variantMatch = artNr && String(artNr).match(/\.(\d{3})(?:\.|$)/);
-                            const variantColorCode = variantMatch ? variantMatch[1] : null;
-                            
-                            this.selectedTray.mountingMaterials.forEach(mat => {
-                                if (mat.options && mat.options.length > 1) {
-                                    let bestMatchOpt = null;
-                                    let bestMatchScore = 0;
-                                    
-                                    mat.options.forEach(opt => {
-                                        let score = 0;
-                                        // Priority 1: Exact color code suffix match (Score 100)
-                                        if (variantColorCode) {
-                                            const optMatch = opt.artNr && String(opt.artNr).match(/\.(\d{3})(?:\.|$)/);
-                                            if (optMatch && optMatch[1] === variantColorCode) {
-                                                score += 100;
-                                            }
+
+                    btn.addEventListener('click', (e) => {
+                        this.selectedTray.selections['__variant__'] = artNr;
+
+                        // Auto-Match Accessories by Color
+                        const selectedVariantLabel = label.toLowerCase();
+                        const colors = ['schwarz', 'black', 'matt', 'chrom', 'weiss', 'white', 'gold', 'bronze', 'nickel', 'edelstahl', 'inox', 'pvd', 'messing', 'brushed', 'poliert', 'gebürstet', 'copper', 'kupfer'];
+                        const activeColors = colors.filter(c => selectedVariantLabel.includes(c));
+
+                        // 1. Get specific color code from variant artNr (e.g. .340)
+                        const variantMatch = artNr && String(artNr).match(/\.(\d{3})(?:\.|$)/);
+                        const variantColorCode = variantMatch ? variantMatch[1] : null;
+
+                        this.selectedTray.mountingMaterials.forEach(mat => {
+                            if (mat.options && mat.options.length > 1) {
+                                let bestMatchOpt = null;
+                                let bestMatchScore = 0;
+
+                                mat.options.forEach(opt => {
+                                    let score = 0;
+                                    // Priority 1: Exact color code suffix match (Score 100)
+                                    if (variantColorCode) {
+                                        const optMatch = opt.artNr && String(opt.artNr).match(/\.(\d{3})(?:\.|$)/);
+                                        if (optMatch && optMatch[1] === variantColorCode) {
+                                            score += 100;
                                         }
-                                        // Priority 2: Label matches variant colors (Score 1 per word)
-                                        const optLbl = opt.label.toLowerCase();
-                                        activeColors.forEach(c => {
-                                            if (optLbl.includes(c)) score++;
-                                        });
-                                        
-                                        if (score > bestMatchScore) {
-                                            bestMatchScore = score;
-                                            bestMatchOpt = opt;
-                                        }
+                                    }
+                                    // Priority 2: Label matches variant colors (Score 1 per word)
+                                    const optLbl = opt.label.toLowerCase();
+                                    activeColors.forEach(c => {
+                                        if (optLbl.includes(c)) score++;
                                     });
-                                    
-                                    // Fallback: If no match and variant is standard, fall back to option 0
-                                    const hasExotic = activeColors.some(c => !['chrom', 'weiss', 'white'].includes(c)) || (variantColorCode && !['000', '100'].includes(variantColorCode));
-                                    if (!bestMatchOpt && !hasExotic) {
-                                        bestMatchOpt = mat.options[0];
+
+                                    if (score > bestMatchScore) {
+                                        bestMatchScore = score;
+                                        bestMatchOpt = opt;
                                     }
-                                    
-                                    if (bestMatchOpt && (bestMatchScore > 0 || !hasExotic)) {
-                                        this.selectedTray.selections[mat.id] = bestMatchOpt.artNr;
-                                    }
+                                });
+
+                                // Fallback: If no match and variant is standard, fall back to option 0
+                                const hasExotic = activeColors.some(c => !['chrom', 'weiss', 'white'].includes(c)) || (variantColorCode && !['000', '100'].includes(variantColorCode));
+                                if (!bestMatchOpt && !hasExotic) {
+                                    bestMatchOpt = mat.options[0];
                                 }
-                            });
 
-                            this.updateBOM();
-                            this.renderConfigurator();
+                                if (bestMatchOpt && (bestMatchScore > 0 || !hasExotic)) {
+                                    this.selectedTray.selections[mat.id] = bestMatchOpt.artNr;
+                                }
+                            }
                         });
-                        return btn;
-                    };
 
-                    // Add base item (Standard)
-                    const standardLabel = `Standard ${this.selectedTray.label.split(',').pop().trim()}`;
-                    swatchGrid.appendChild(renderVariantSwatch(this.selectedTray.artNr, standardLabel));
-
-                    // Add all specific variants
-                    this.selectedTray.variants.forEach(v => {
-                        swatchGrid.appendChild(renderVariantSwatch(v.artNr, v.label));
+                        this.updateBOM();
+                        this.renderConfigurator();
                     });
+                    return btn;
+                };
 
-                    variantDiv.appendChild(vLabel);
-                    variantDiv.appendChild(swatchGrid);
-                    inner.appendChild(variantDiv);
-                }
+                // Add base item (Standard)
+                const standardLabel = `Standard ${this.selectedTray.label.split(',').pop().trim()}`;
+                swatchGrid.appendChild(renderVariantSwatch(this.selectedTray.artNr, standardLabel));
 
-                // 2. Render Accessories
-                if (this.selectedTray && this.selectedTray.mountingMaterials && this.selectedTray.mountingMaterials.length > 0) {
-                    hasConfig = true;
-                }
+                // Add all specific variants
+                this.selectedTray.variants.forEach(v => {
+                    swatchGrid.appendChild(renderVariantSwatch(v.artNr, v.label));
+                });
 
-                if (!hasConfig) {
-                    configBlock.style.display = 'none';
-                    return;
-                }
+                variantDiv.appendChild(vLabel);
+                variantDiv.appendChild(swatchGrid);
+                inner.appendChild(variantDiv);
+            }
 
-                configBlock.style.display = 'block';
+            // 2. Render Accessories
+            if (this.selectedTray && this.selectedTray.mountingMaterials && this.selectedTray.mountingMaterials.length > 0) {
+                hasConfig = true;
+            }
 
-                // --- Technical Compatibility Warning ---
-                if (this.currentMontageart === 'wannenträger') {
-                    const hasCarrier = this.selectedTray.mountingMaterials.some(m => {
-                        const firstOpt = m.options?.[0];
-                        return firstOpt && this.classifyAccessory(firstOpt) === 'wannenträger';
-                    });
-                    
-                    if (!hasCarrier) {
-                        const warnDiv = document.createElement('div');
-                        warnDiv.className = 'compatibility-warning';
-                        warnDiv.innerHTML = `
+            if (!hasConfig) {
+                configBlock.style.display = 'none';
+                return;
+            }
+
+            configBlock.style.display = 'block';
+
+            // --- Technical Compatibility Warning ---
+            if (this.currentMontageart === 'wannenträger') {
+                const hasCarrier = this.selectedTray.mountingMaterials.some(m => {
+                    const firstOpt = m.options?.[0];
+                    return firstOpt && this.classifyAccessory(firstOpt) === 'wannenträger';
+                });
+
+                if (!hasCarrier) {
+                    const warnDiv = document.createElement('div');
+                    warnDiv.className = 'compatibility-warning';
+                    warnDiv.innerHTML = `
                             <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); color: #e65100; padding: 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1.5rem; display: flex; align-items: start; gap: 0.75rem;">
                                 <span style="font-size: 1.2rem;">⚠️</span>
                                 <div>
@@ -919,358 +934,408 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                                 </div>
                             </div>
                         `;
-                        inner.appendChild(warnDiv);
-                    }
+                    inner.appendChild(warnDiv);
+                }
+            }
+
+            // Create a sorted copy of mountingMaterials for UI rendering
+            const sortedMaterials = [...this.selectedTray.mountingMaterials].sort((a, b) => {
+                const getPri = (mat) => {
+                    const lbl = (mat.name || '').toLowerCase();
+                    if (lbl.includes('sitz') || lbl.includes('deckel')) return 2;
+                    if (lbl.includes('platte') || lbl.includes('betätigung')) return 3;
+                    if (lbl.includes('schall') || lbl.includes('isolation')) return 4;
+                    if (lbl.includes('manschette') || lbl.includes('garnitur')) return 5;
+                    return 99;
+                };
+                return getPri(a) - getPri(b);
+            });
+
+            sortedMaterials.forEach(mat => {
+                if (!mat.options || mat.options.length === 0) return;
+
+                const matClass = this.classifyAccessory(mat.options[0]) !== 'common' ? this.classifyAccessory(mat.options[0]) : this.classifyAccessory(mat);
+
+                if (this.currentMontageart !== 'alle') {
+                    if (matClass !== 'common' && matClass !== this.currentMontageart) return;
                 }
 
-                // Create a sorted copy of mountingMaterials for UI rendering
-                const sortedMaterials = [...this.selectedTray.mountingMaterials].sort((a, b) => {
-                    const getPri = (mat) => {
-                        const lbl = (mat.name || '').toLowerCase();
-                        if (lbl.includes('sitz') || lbl.includes('deckel')) return 2;
-                        if (lbl.includes('platte') || lbl.includes('betätigung')) return 3;
-                        if (lbl.includes('schall') || lbl.includes('isolation')) return 4;
-                        if (lbl.includes('manschette') || lbl.includes('garnitur')) return 5;
-                        return 99;
-                    };
-                    return getPri(a) - getPri(b);
-                });
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'filter-group';
+                const label = document.createElement('label');
+                label.textContent = mat.name || "Zubehör";
 
-                sortedMaterials.forEach(mat => {
-                    if (!mat.options || mat.options.length === 0) return;
+                const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
 
-                    const matClass = this.classifyAccessory(mat.options[0]) !== 'common' ? this.classifyAccessory(mat.options[0]) : this.classifyAccessory(mat);
-                    
-                    if (this.currentMontageart !== 'alle') {
-                        if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                    }
+                if (mat.options.length === 1) {
+                    const opt = mat.options[0];
+                    const foundZub = zubPool.find(z => z.artNr === opt.artNr);
+                    const finalLabel = foundZub ? foundZub.label : opt.label;
 
-                    const groupDiv = document.createElement('div');
-                    groupDiv.className = 'filter-group';
-                    const label = document.createElement('label');
-                    label.textContent = mat.name || "Zubehör";
-                    
-                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-
-                    if (mat.options.length === 1) {
-                        const opt = mat.options[0];
-                        const foundZub = zubPool.find(z => z.artNr === opt.artNr);
-                        const finalLabel = foundZub ? foundZub.label : opt.label;
-                        
-                        groupDiv.innerHTML = `<label>${mat.name}</label>
+                    groupDiv.innerHTML = `<label>${mat.name}</label>
                             <div style="background:var(--bg-surface); padding:0.75rem; border-radius:6px; font-size:0.85rem; color:var(--text-primary); border:1px solid var(--border);">
                                 <strong style="display:block; margin-bottom:0.25rem;">${finalLabel}</strong>
                                 <span style="color:var(--text-secondary); font-family:monospace;">${opt.artNr}</span>
                             </div>`;
-                    } else {
-                        const select = document.createElement('select');
-                        select.className = 'filter-select';
-                        mat.options.forEach(opt => {
-                            const foundZub = zubPool.find(z => z.artNr === opt.artNr);
-                            const finalLabel = foundZub ? foundZub.label : opt.label;
-
-                            const option = document.createElement('option');
-                            option.value = opt.artNr;
-                            option.textContent = opt.dropdownLabel ? opt.dropdownLabel : `${finalLabel} (${opt.artNr})`;
-                            if (this.selectedTray.selections[mat.id] === opt.artNr) option.selected = true;
-                            select.appendChild(option);
-                        });
-                        select.addEventListener('change', (e) => {
-                            this.selectedTray.selections[mat.id] = e.target.value;
-                            this.updateBOM();
-                        });
-                        groupDiv.appendChild(label);
-                        groupDiv.appendChild(select);
-                    }
-                    inner.appendChild(groupDiv);
-                });
-            },
-            clearBOM: function () {
-                bomCountCounter.textContent = "0 Artikel ausgewählt";
-                bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9da3ad; padding: 2rem;">Bitte wählen Sie ein Produkt aus den Suchergebnissen.</td></tr>';
-            },
-            updateBOM: function () {
-                if (!this.selectedTray) return;
-
-                const materials = this.selectedTray.mountingMaterials || [];
-                bomTableBody.innerHTML = '';
-                const finalBOM = [];
-
-                const titleLower = title.toLowerCase();
-                const isWandKlosett = titleLower.includes('wandklosett');
-                const isStandKlosett = titleLower.includes('standklosett');
-                const isWanne = titleLower.includes('wanne') || titleLower.includes('duschfläche');
-
-                // 1. Ceramic (Main Item)
-                let activeTrayArtNr = this.selectedTray.artNr;
-                let activeTrayLabel = this.selectedTray.label;
-                let activeTrayMenge = this.selectedTray.menge || 1;
-                if (this.selectedTray.selections['__variant__'] && this.selectedTray.selections['__variant__'] !== this.selectedTray.artNr) {
-                    const variant = (this.selectedTray.variants || []).find(v => v.artNr === this.selectedTray.selections['__variant__']);
-                    if (variant) {
-                        activeTrayArtNr = variant.artNr;
-                        activeTrayLabel = variant.label;
-                        activeTrayMenge = variant.menge || 1;
-                    }
-                }
-
-                const isAufputz = activeTrayArtNr === '2111 845.100.000' || activeTrayArtNr === '3231 113.100.000';
-                const ceramicPriority = isAufputz ? 2 : 1;
-                
-                finalBOM.push({ artNr: activeTrayArtNr, label: activeTrayLabel, typ: title, menge: activeTrayMenge, img: this.selectedTray.imgUrl || this.mainImgUrl, note: 'Hauptartikel', priority: ceramicPriority });
-
-                // ─── STANDKLOSETT: Dedicated BOM Priority Engine ─────────────────────
-                if (isStandKlosett) {
-                    const standLbl = activeTrayLabel.toLowerCase();
-                    const isStandUnterputz = standLbl.includes('einbauspülkasten') || standLbl.includes('einbauspulkasten');
-
-                    // Ceramic priority: Aufputz → 2 (Spülkasten is #1), Unterputz → 1
-                    const standCeramicPriority = isStandUnterputz ? 1 : 2;
-                    // Override the ceramic priority that was already pushed
-                    finalBOM[finalBOM.length - 1].priority = standCeramicPriority;
-
-                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-
-                    materials.forEach(mat => {
-                        const selectedArtNr = this.selectedTray.selections[mat.id];
-                        const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                        if (!selectedOption) return;
-
-                        // Check against active Montageart filter
-                        const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
-                        if (this.currentMontageart !== 'alle') {
-                            if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                        }
-
-                        const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
-                        const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
-                        const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
-
-                        const lbl = enrichedLabel.toLowerCase();
-                        const matName = mat.name.toLowerCase();
-
-                        let priority = 99;
-                        const note = mat.name || 'Zubehör';
-
-                        if (isStandUnterputz) {
-                            // UNTERPUTZ: 1=Klosett 2=Sitz 3=Platte 4=Schall 5=Screws 6=Ablaufmanschette 7=Duofix 8=Rückwand 9=Ablaufbogen
-                            if (matName === 'wc-sitz' || matName === 'klosettsitz') priority = 2;
-                            else if (matName === 'betätigungsplatte') priority = 3;
-                            else if (matName === 'schallschutz') priority = 4;
-                            else if (matName === 'befestigungsschrauben') priority = 5;
-                            else if (matName === 'ablaufmanschette') priority = 6;
-                            else if (matName === 'duofix element' || selectedOption.artNr === '3612 348.000.000') priority = 7;
-                            else if (matName === 'rückwandbefestigungssatz' || selectedOption.artNr === '3612 500.000.000') priority = 8;
-                            else if (matName === 'ablaufbogen' || selectedOption.artNr === '3612 374.000.000') priority = 9;
-                        } else {
-                            // AUFPUTZ: 1=Spülkasten 2=Klosett 3=Sitz 4=Schall 5=Screws 6=Ablaufanschluss
-                            if (matName === 'spülkasten') priority = 1;
-                            else if (matName === 'wc-sitz' || matName === 'klosettsitz') priority = 3;
-                            else if (matName === 'schallschutz') priority = 4;
-                            else if (matName === 'befestigungsschrauben') priority = 5;
-                            else if (matName === 'ablaufanschluss') priority = 6;
-                        }
-
-                        finalBOM.push({
-                            artNr: selectedOption.artNr,
-                            label: enrichedLabel,
-                            typ: selectedOption.type || mat.name || 'Zubehör',
-                            menge: selectedOption.menge || 1,
-                            img: enrichedImg,
-                            note: note,
-                            priority: priority
-                        });
-                    });
-
-                } else if (isWanne) {
-                    // ─── DUSCHENWANNE / BADEWANNE: Dedicated Priority Engine ──────────
-                    materials.forEach(mat => {
-                        const selectedArtNr = this.selectedTray.selections[mat.id];
-                        const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                        if (!selectedOption) return;
-
-                        // Check against active Montageart filter
-                        const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
-                        if (this.currentMontageart !== 'alle') {
-                            if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                        }
-
-                        const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-                        const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
-                        const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
-                        const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
-
-                        const combinedLbl = (enrichedLabel + ' ' + (selectedOption.type || mat.name || '')).toLowerCase();
-
-                        let priority = 99; // Fallback
-                        const note = mat.name || 'Zubehör';
-
-                        // 1. Wanne / Duschfläche (Handled earlier, priority: 1)
-                        // 2. Ablaufdeckel
-                        // 3. Ablaufgarnitur / Sifon
-                        // 4. Zargen-Wannendichtband
-                        // 5. Wannenträger OR Montagerahmen
-                        // 6. Montageschaum OR Fussset OR Mittenabstützsystem
-                        // 7. Schallschutzset
-
-                        if (combinedLbl.includes('deckel')) priority = 2;
-                        else if (combinedLbl.includes('ablauf') || combinedLbl.includes('siphon') || combinedLbl.includes('garnitur') || combinedLbl.includes('sifon')) priority = 3;
-                        else if (combinedLbl.includes('dichtband') || combinedLbl.includes('wannenband') || combinedLbl.includes('zargen') || combinedLbl.includes('dichtset')) priority = 4;
-                        else if (combinedLbl.includes('träger') || combinedLbl.includes('rahmen') || combinedLbl.includes('wannenträger') || combinedLbl.includes('montagerahmen')) priority = 5;
-                        else if (combinedLbl.includes('schaum') || combinedLbl.includes('fuss') || combinedLbl.includes('füsse') || combinedLbl.includes('mittenabstütz') || combinedLbl.includes('wannenanker') || combinedLbl.includes('stütz')) priority = 6;
-                        else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = 7;
-                        else priority = 8; // Any generic unclassified accessories
-
-                        let calculatedMenge = selectedOption.menge || 1;
-
-                        // RULE: Do not overwrite Calima logic without asking the user for keyword 'Jariel'
-                        // Dynamic quantity calculation for Kaldewei Calima Stelzfüsse (Pack of 4)
-                        const trayLbl = (this.selectedTray.label || '').toLowerCase();
-                        if (trayLbl.includes('calima') && combinedLbl.includes('stelz')) {
-                            const dims = trayLbl.match(/(\d{3,4})\s*x\s*(\d{3,4})/);
-                            if (dims) {
-                                const l = Math.max(parseInt(dims[1]), parseInt(dims[2]));
-                                const w = Math.min(parseInt(dims[1]), parseInt(dims[2]));
-                                
-                                let req = 16;
-                                if (w <= 700) {
-                                    if (l <= 1000) req = 12;
-                                    else if (l <= 1300) req = 15;
-                                    else if (l <= 1600) req = 18;
-                                    else req = 21;
-                                } else {
-                                    if (l <= 1000) req = 16;
-                                    else if (l <= 1300) req = 20;
-                                    else if (l <= 1600) req = 24;
-                                    else req = 28;
-                                }
-                                // Feet are sold in packs of 4. Round up to the nearest pack.
-                                calculatedMenge = Math.ceil(req / 4);
-                            }
-                        }
-
-                        finalBOM.push({
-                            artNr: selectedOption.artNr,
-                            label: enrichedLabel,
-                            typ: selectedOption.type || mat.name || 'Zubehör',
-                            menge: calculatedMenge,
-                            img: enrichedImg,
-                            note: note,
-                            priority: priority
-                        });
-                    });
-
                 } else {
-                    // ─── WANDKLOSETT / OTHER: Original Priority Engine ────────────────
-                    materials.forEach(mat => {
-                        const selectedArtNr = this.selectedTray.selections[mat.id];
-                        const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                        if (!selectedOption) return;
+                    const select = document.createElement('select');
+                    select.className = 'filter-select';
+                    mat.options.forEach(opt => {
+                        const foundZub = zubPool.find(z => z.artNr === opt.artNr);
+                        const finalLabel = foundZub ? foundZub.label : opt.label;
 
-                        // Check against active Montageart filter
-                        const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
-                        if (this.currentMontageart !== 'alle') {
-                            if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                        }
-
-                        // Dynamically enrich from zubehoer_pool (for imported seats/plates)
-                        const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-                        const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
-                        
-                        const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
-                        const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
-
-                        const lbl = enrichedLabel.toLowerCase();
-                        const typeLbl = (selectedOption.type || mat.name || '').toLowerCase();
-                        const combinedLbl = lbl + ' ' + typeLbl;
-                        
-                        let priority = 99; // Default for unknown
-                        let note = mat.name || 'Zubehör';
-
-                        if (combinedLbl.includes('sitz') || combinedLbl.includes('deckel')) priority = isAufputz ? 3 : 2;
-                        else if (combinedLbl.includes('platte') || combinedLbl.includes('betätigung')) priority = 3;
-                        else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = isAufputz ? 5 : 4;
-                        else if (combinedLbl.includes('reservoir') || combinedLbl.includes('spülkasten') || combinedLbl.includes('ap128') || combinedLbl.includes('ap116')) priority = 1;
-                        else if (combinedLbl.includes('manschette') || combinedLbl.includes('garnitur') || combinedLbl.includes('ablaufanschluss') || selectedOption.artNr.includes('3241 116') || selectedOption.artNr.includes('3241 101') || selectedOption.artNr.includes('3241 102')) priority = 5;
-
-                        finalBOM.push({ 
-                            artNr: selectedOption.artNr, 
-                            label: enrichedLabel, 
-                            typ: selectedOption.type || mat.name || 'Zubehör', 
-                            menge: selectedOption.menge || 1, 
-                            img: enrichedImg,
-                            note: note,
-                            priority: priority
-                        });
+                        const option = document.createElement('option');
+                        option.value = opt.artNr;
+                        option.textContent = opt.dropdownLabel ? opt.dropdownLabel : `${finalLabel} (${opt.artNr})`;
+                        if (this.selectedTray.selections[mat.id] === opt.artNr) option.selected = true;
+                        select.appendChild(option);
                     });
+                    select.addEventListener('change', (e) => {
+                        this.selectedTray.selections[mat.id] = e.target.value;
+                        this.updateBOM();
+                    });
+                    groupDiv.appendChild(label);
+                    groupDiv.appendChild(select);
                 }
+                inner.appendChild(groupDiv);
+            });
+        },
+        clearBOM: function () {
+            bomCountCounter.textContent = "0 Artikel ausgewählt";
+            bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9da3ad; padding: 2rem;">Bitte wählen Sie ein Produkt aus den Suchergebnissen.</td></tr>';
+        },
+        updateBOM: function () {
+            if (!this.selectedTray) return;
 
-                // 5-8. Technical Injection for Wandklosett (with Dynamic Lookup)
-                if (isWandKlosett) {
-                    const mainLbl = activeTrayLabel.toLowerCase();
-                    
-                    // Access the global pool if available
-                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-                    
-                    const getZub = (art) => {
-                        const found = zubPool.find(z => z.artNr === art);
-                        return found ? { artNr: found.artNr, label: found.label, img: found.imgUrl } : null;
-                    };
+            const materials = this.selectedTray.mountingMaterials || [];
+            bomTableBody.innerHTML = '';
+            const finalBOM = [];
 
-                    if (isAufputz) {
-                        const screws = getZub('8211 114.000.000') || { artNr: '8211 114.000.000', label: 'Befestigungsschrauben' };
-                        finalBOM.push({ ...screws, typ: 'Technik', menge: 2, priority: 4, note: 'Aufputz-Technik' });
-                    } else {
-                        const hasManschette = mainLbl.includes('manschette') || mainLbl.includes('garnitur');
-                        const hasScrapedSleeve = finalBOM.some(item => item.priority === 5);
+            const titleLower = title.toLowerCase();
+            const isWandKlosett = titleLower.includes('wandklosett');
+            const isStandKlosett = titleLower.includes('standklosett');
+            const isWanne = titleLower.includes('wanne') || titleLower.includes('duschfläche');
 
-                        if (!hasManschette && !hasScrapedSleeve) {
-                            const item = getZub('3241 101.000.000') || { artNr: '3241 101.000.000', label: 'Manschettengarnitur' };
-                            finalBOM.push({ ...item, typ: 'Technik', menge: 1, priority: 5, note: 'Standard-Technik' });
-                        }
-                        
-                        const step6 = getZub('3612 348.000.000') || { artNr: '3612 348.000.000', label: 'Wandklosettelement Geberit Duofix' };
-                        finalBOM.push({ ...step6, typ: 'Technik', menge: 1, priority: 6, note: 'Standard-Technik' });
+            // 1. Ceramic (Main Item)
+            let activeTrayArtNr = this.selectedTray.artNr;
+            let activeTrayLabel = this.selectedTray.label;
+            let activeTrayMenge = this.selectedTray.menge || 1;
+            if (this.selectedTray.selections['__variant__'] && this.selectedTray.selections['__variant__'] !== this.selectedTray.artNr) {
+                const variant = (this.selectedTray.variants || []).find(v => v.artNr === this.selectedTray.selections['__variant__']);
+                if (variant) {
+                    activeTrayArtNr = variant.artNr;
+                    activeTrayLabel = variant.label;
+                    activeTrayMenge = variant.menge || 1;
+                }
+            }
 
-                        const step7 = getZub('3612 500.000.000') || { artNr: '3612 500.000.000', label: 'Rückwandbefestigungssatz Geberit Duofix' };
-                        finalBOM.push({ ...step7, typ: 'Technik', menge: 1, priority: 7, note: 'Standard-Technik' });
+            const isAufputz = activeTrayArtNr === '2111 845.100.000' || activeTrayArtNr === '3231 113.100.000';
+            const ceramicPriority = isAufputz ? 2 : 1;
 
-                        const step8 = getZub('3612 374.000.000') || { artNr: '3612 374.000.000', label: 'Ablaufbogen Geberit- Silent' };
-                        finalBOM.push({ ...step8, typ: 'Technik', menge: 1, priority: 8, note: 'Standard-Technik' });
+            finalBOM.push({ artNr: activeTrayArtNr, label: activeTrayLabel, typ: title, menge: activeTrayMenge, img: this.selectedTray.imgUrl || this.mainImgUrl, note: 'Hauptartikel', priority: ceramicPriority });
+
+            // ─── STANDKLOSETT: Dedicated BOM Priority Engine ─────────────────────
+            if (isStandKlosett) {
+                const standLbl = activeTrayLabel.toLowerCase();
+                const isStandUnterputz = standLbl.includes('einbauspülkasten') || standLbl.includes('einbauspulkasten');
+
+                // Ceramic priority: Aufputz → 2 (Spülkasten is #1), Unterputz → 1
+                const standCeramicPriority = isStandUnterputz ? 1 : 2;
+                // Override the ceramic priority that was already pushed
+                finalBOM[finalBOM.length - 1].priority = standCeramicPriority;
+
+                const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
+
+                materials.forEach(mat => {
+                    const selectedArtNr = this.selectedTray.selections[mat.id];
+                    const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
+                    if (!selectedOption) return;
+
+                    // Check against active Montageart filter
+                    const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
+                    if (this.currentMontageart !== 'alle') {
+                        if (matClass !== 'common' && matClass !== this.currentMontageart) return;
                     }
-                }
 
-                // Final Sort and Independent Deduplication Checks
-                const mainLblLower = activeTrayLabel.toLowerCase();
-                
-                // Seat Deduplication: Catch 'inkl. sitz', 'inkl. klosettsitz', 'inkl. wc-sitz', 'm. sitz'
-                const ceramicIncludesSeat = mainLblLower.includes('pack') || 
-                                            /m\.\s*(klosett|wc-)?sitz/.test(mainLblLower) || 
-                                            /inkl\.\s*(klosett|wc-)?sitz/.test(mainLblLower) ||
-                                            (/\bset\b/.test(mainLblLower) && !mainLblLower.includes('schallschutz'));
-                
-                // Isolation Deduplication: Only if explicitly included or stated as 'Schallschutz-Set'
-                const ceramicIncludesSchallschutz = mainLblLower.includes('inkl. schall') || 
-                                                    mainLblLower.includes('m. schall') ||
-                                                    mainLblLower.includes('schallschutz-set') ||
-                                                    mainLblLower.includes('schallschutzset') ||
-                                                    mainLblLower.includes('inkl. isolation');
+                    const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
+                    const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
+                    const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
 
-                let sortedBOM = finalBOM.sort((a, b) => a.priority - b.priority);
-                
-                // Remove redundant line items if they are already physically bundled with the main ceramic
-                if (ceramicIncludesSeat) {
-                    sortedBOM = sortedBOM.filter(item => item.priority !== 2);
-                }
-                if (ceramicIncludesSchallschutz) {
-                    sortedBOM = sortedBOM.filter(item => item.priority !== 4);
-                }
+                    const lbl = enrichedLabel.toLowerCase();
+                    const matName = mat.name.toLowerCase();
 
-                // Render
-                let totalCount = 0;
-                sortedBOM.forEach(item => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
+                    let priority = 99;
+                    const note = mat.name || 'Zubehör';
+
+                    if (isStandUnterputz) {
+                        // UNTERPUTZ: 1=Klosett 2=Sitz 3=Platte 4=Schall 5=Screws 6=Ablaufmanschette 7=Duofix 8=Rückwand 9=Ablaufbogen
+                        if (matName === 'wc-sitz' || matName === 'klosettsitz') priority = 2;
+                        else if (matName === 'betätigungsplatte') priority = 3;
+                        else if (matName === 'schallschutz') priority = 4;
+                        else if (matName === 'befestigungsschrauben') priority = 6;
+                        else if (matName === 'ablaufmanschette') priority = 7;
+                        else if (matName === 'duofix element' || selectedOption.artNr === '3612 348.000.000') priority = 8;
+                        else if (matName === 'rückwandbefestigungssatz' || selectedOption.artNr === '3612 500.000.000') priority = 8;
+                        else if (matName === 'ablaufbogen' || selectedOption.artNr === '3612 374.000.000') priority = 9;
+                    } else {
+                        // AUFPUTZ: 1=Spülkasten 2=Klosett 3=Sitz 4=Schall 5=Screws 6=Ablaufanschluss
+                        if (matName === 'spülkasten') priority = 1;
+                        else if (matName === 'wc-sitz' || matName === 'klosettsitz') priority = 3;
+                        else if (matName === 'schallschutz') priority = 4;
+                        else if (matName === 'befestigungsschrauben') priority = 6;
+                        else if (matName === 'ablaufanschluss') priority = 7;
+                    }
+
+                    finalBOM.push({
+                        artNr: selectedOption.artNr,
+                        label: enrichedLabel,
+                        typ: selectedOption.type || mat.name || 'Zubehör',
+                        menge: selectedOption.menge || 1,
+                        img: enrichedImg,
+                        note: note,
+                        priority: priority
+                    });
+                });
+
+            } else if (isWanne) {
+                // ─── DUSCHENWANNE / BADEWANNE: Dedicated Priority Engine ──────────
+                materials.forEach(mat => {
+                    const selectedArtNr = this.selectedTray.selections[mat.id];
+                    const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
+                    if (!selectedOption) return;
+
+                    // Check against active Montageart filter
+                    const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
+                    if (this.currentMontageart !== 'alle') {
+                        if (matClass !== 'common' && matClass !== this.currentMontageart) return;
+                    }
+
+                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
+                    const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
+                    const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
+                    const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
+
+                    const combinedLbl = (enrichedLabel + ' ' + (selectedOption.type || mat.name || '')).toLowerCase();
+
+                    let priority = 99; // Fallback
+                    const note = mat.name || 'Zubehör';
+
+                    // 1. Wanne / Duschfläche (Handled earlier, priority: 1)
+                    // 2. Ablaufdeckel
+                    // 3. Ablaufgarnitur / Sifon
+                    // 4. Zargen-Wannendichtband
+                    // 5. Sealing / Montageset
+                    // 6. Mounting method: Wannenträger / Montagerahmen / Nivodübel / Wannenanker
+                    // 7. Montageschaum OR Fussset OR Mittenabstützsystem
+                    // 8. Schallschutzset
+
+                    if ((combinedLbl.includes('deckel') || combinedLbl.includes('ablaufabdeckung')) && !combinedLbl.includes('ohne ablaufdeckel') && !combinedLbl.includes('ohne deckel') && !combinedLbl.includes('ohne ablaufabdeckung')) {
+                        priority = 2;
+                    } else if (combinedLbl.includes('ablauf') || combinedLbl.includes('siphon') || combinedLbl.includes('garnitur') || combinedLbl.includes('sifon')) {
+                        priority = 3;
+                    }
+                    else if (combinedLbl.includes('dichtband') || combinedLbl.includes('wannenband') || combinedLbl.includes('zargen')) priority = 4;
+                    else if (combinedLbl.includes("montageset") || combinedLbl.includes("dichtset") || combinedLbl.includes("einbauset")) priority = 5;
+                    else if (combinedLbl.includes('träger') || combinedLbl.includes('rahmen') || combinedLbl.includes('wannenträger') || combinedLbl.includes('montagerahmen')) priority = 6;
+                    else if (combinedLbl.includes('schaum') || combinedLbl.includes('fuss') || combinedLbl.includes('füsse') || combinedLbl.includes('mittenabstütz') || combinedLbl.includes('wannenanker') || combinedLbl.includes('stütz')) priority = 7;
+                    else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = 8;
+                    else priority = 9; // Any generic unclassified accessories
+
+                    let calculatedMenge = selectedOption.menge || 1;
+
+                    // RULE: Do not overwrite Calima logic without asking the user for keyword 'Jariel'
+                    // Dynamic quantity calculation for Kaldewei Calima Stelzfüsse (Pack of 4)
+                    const trayLbl = (this.selectedTray.label || '').toLowerCase();
+                    if (trayLbl.includes('calima') && combinedLbl.includes('stelz')) {
+                        const dims = trayLbl.match(/(\d{3,4})\s*x\s*(\d{3,4})/);
+                        if (dims) {
+                            const l = Math.max(parseInt(dims[1]), parseInt(dims[2]));
+                            const w = Math.min(parseInt(dims[1]), parseInt(dims[2]));
+
+                            let req = 16;
+                            if (w <= 700) {
+                                if (l <= 1000) req = 12;
+                                else if (l <= 1300) req = 15;
+                                else if (l <= 1600) req = 18;
+                                else req = 21;
+                            } else {
+                                if (l <= 1000) req = 16;
+                                else if (l <= 1300) req = 20;
+                                else if (l <= 1600) req = 24;
+                                else req = 28;
+                            }
+                            // Feet are sold in packs of 4. Round up to the nearest pack.
+                            calculatedMenge = Math.ceil(req / 4);
+                        }
+                    }
+
+                    finalBOM.push({
+                        artNr: selectedOption.artNr,
+                        label: enrichedLabel,
+                        typ: selectedOption.type || mat.name || 'Zubehör',
+                        menge: calculatedMenge,
+                        img: enrichedImg,
+                        note: note,
+                        priority: priority
+                    });
+
+                    // ─── BUNDLE INJECTION (Logic 3) ──────────────────────────────
+                    if (mat.bundle && mat.bundle.length > 0) {
+                        mat.bundle.forEach(b => {
+                            const bArtClean = (b.artNr || '').replace(/\s/g, '');
+                            const foundZubB = zubPool.find(z => (z.artNr || '').replace(/\s/g, '') === bArtClean);
+                            const labelB = foundZubB ? foundZubB.label : b.label;
+                            const imgB = foundZubB ? foundZubB.imgUrl : b.imgUrl;
+                            const combinedLblB = (labelB + ' ' + (b.type || '')).toLowerCase();
+                            let priB = 99;
+                            if (combinedLblB.includes('schaum') || combinedLblB.includes('kleber') || combinedLblB.includes('mittenabstütz')) priB = 7;
+                            else if (combinedLblB.includes('schall') || combinedLblB.includes('isolation')) priB = 8;
+                            else priB = priority + 0.1; // Stay close to parent item
+
+                            finalBOM.push({
+                                artNr: b.artNr,
+                                label: labelB,
+                                typ: b.type || 'Bündelartikel',
+                                menge: b.menge || 1,
+                                img: imgB,
+                                note: `Inkl. zu ${mat.name}`,
+                                priority: priB
+                            });
+                        });
+                    }
+                });
+
+            } else {
+                // ─── WANDKLOSETT / OTHER: Original Priority Engine ────────────────
+                materials.forEach(mat => {
+                    const selectedArtNr = this.selectedTray.selections[mat.id];
+                    const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
+                    if (!selectedOption) return;
+
+                    // Check against active Montageart filter
+                    const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
+                    if (this.currentMontageart !== 'alle') {
+                        if (matClass !== 'common' && matClass !== this.currentMontageart) return;
+                    }
+
+                    // Dynamically enrich from zubehoer_pool (for imported seats/plates)
+                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
+                    const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
+
+                    const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
+                    const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
+
+                    const lbl = enrichedLabel.toLowerCase();
+                    const typeLbl = (selectedOption.type || mat.name || '').toLowerCase();
+                    const combinedLbl = lbl + ' ' + typeLbl;
+
+                    let priority = 99; // Default for unknown
+                    let note = mat.name || 'Zubehör';
+
+                    if (combinedLbl.includes('sitz') || combinedLbl.includes('deckel')) priority = isAufputz ? 3 : 2;
+                    else if (combinedLbl.includes('platte') || combinedLbl.includes('betätigung')) priority = 3;
+                    else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = isAufputz ? 5 : 4;
+                    else if (combinedLbl.includes('reservoir') || combinedLbl.includes('spülkasten') || combinedLbl.includes('ap128') || combinedLbl.includes('ap116')) priority = 1;
+                    else if (combinedLbl.includes('manschette') || combinedLbl.includes('garnitur') || combinedLbl.includes('ablaufanschluss') || selectedOption.artNr.includes('3241 116') || selectedOption.artNr.includes('3241 101') || selectedOption.artNr.includes('3241 102')) priority = 5;
+
+                    finalBOM.push({
+                        artNr: selectedOption.artNr,
+                        label: enrichedLabel,
+                        typ: selectedOption.type || mat.name || 'Zubehör',
+                        menge: selectedOption.menge || 1,
+                        img: enrichedImg,
+                        note: note,
+                        priority: priority
+                    });
+                });
+            }
+
+            // 5-8. Technical Injection for Wandklosett (with Dynamic Lookup)
+            if (isWandKlosett) {
+                const mainLbl = activeTrayLabel.toLowerCase();
+
+                // Access the global pool if available
+                const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
+
+                const getZub = (art) => {
+                    const found = zubPool.find(z => z.artNr === art);
+                    return found ? { artNr: found.artNr, label: found.label, img: found.imgUrl } : null;
+                };
+
+                if (isAufputz) {
+                    const screws = getZub('8211 114.000.000') || { artNr: '8211 114.000.000', label: 'Befestigungsschrauben' };
+                    finalBOM.push({ ...screws, typ: 'Technik', menge: 2, priority: 4, note: 'Aufputz-Technik' });
+                } else {
+                    const hasManschette = mainLbl.includes('manschette') || mainLbl.includes('garnitur');
+                    const hasScrapedSleeve = finalBOM.some(item => item.priority === 5);
+
+                    if (!hasManschette && !hasScrapedSleeve) {
+                        const item = getZub('3241 101.000.000') || { artNr: '3241 101.000.000', label: 'Manschettengarnitur' };
+                        finalBOM.push({ ...item, typ: 'Technik', menge: 1, priority: 5, note: 'Standard-Technik' });
+                    }
+
+                    const step6 = getZub('3612 348.000.000') || { artNr: '3612 348.000.000', label: 'Wandklosettelement Geberit Duofix' };
+                    finalBOM.push({ ...step6, typ: 'Technik', menge: 1, priority: 6, note: 'Standard-Technik' });
+
+                    const step7 = getZub('3612 500.000.000') || { artNr: '3612 500.000.000', label: 'Rückwandbefestigungssatz Geberit Duofix' };
+                    finalBOM.push({ ...step7, typ: 'Technik', menge: 1, priority: 7, note: 'Standard-Technik' });
+
+                    const step8 = getZub('3612 374.000.000') || { artNr: '3612 374.000.000', label: 'Ablaufbogen Geberit- Silent' };
+                    finalBOM.push({ ...step8, typ: 'Technik', menge: 1, priority: 8, note: 'Standard-Technik' });
+                }
+            }
+
+            // Final Sort and Independent Deduplication Checks
+            const mainLblLower = (activeTrayLabel || '').toLowerCase();
+
+            // Seat Deduplication: Catch 'inkl. sitz', 'inkl. klosettsitz', 'inkl. wc-sitz', 'm. sitz'
+            const ceramicIncludesSeat = mainLblLower.includes('pack') ||
+                /m\.\s*(klosett|wc-)?sitz/.test(mainLblLower) ||
+                /inkl\.\s*(klosett|wc-)?sitz/.test(mainLblLower) ||
+                (/\bset\b/.test(mainLblLower) && !mainLblLower.includes('schallschutz'));
+
+            // Isolation Deduplication: Only if explicitly included or stated as 'Schallschutz-Set'
+            const ceramicIncludesSchallschutz = mainLblLower.includes('inkl. schall') ||
+                mainLblLower.includes('m. schall') ||
+                mainLblLower.includes('schallschutz-set') ||
+                mainLblLower.includes('schallschutzset') ||
+                mainLblLower.includes('inkl. isolation');
+
+            let sortedBOM = finalBOM.sort((a, b) => a.priority - b.priority);
+
+            // Remove redundant line items if they are already physically bundled with the main ceramic
+            if (ceramicIncludesSeat) {
+                sortedBOM = sortedBOM.filter(item => item.priority !== 2);
+            }
+            if (ceramicIncludesSchallschutz) {
+                sortedBOM = sortedBOM.filter(item => item.priority !== 8);
+            }
+
+            console.log(`[BOM] Raw BOM for ${activeTrayArtNr}:`);
+            console.table(finalBOM.map(i => ({ ArtNr: i.artNr, Label: i.label.substring(0, 30), Pri: i.priority })));
+
+            const artNrMap = new Map();
+            sortedBOM.forEach(item => {
+                const art = (item.artNr || '').replace(/\s/g, '');
+                if (artNrMap.has(art)) {
+                    const existing = artNrMap.get(art);
+                    // Keep the one with LOWER priority (1 is most important)
+                    if (item.priority < existing.priority) {
+                        artNrMap.set(art, item);
+                    }
+                } else {
+                    artNrMap.set(art, item);
+                }
+            });
+            let dedupedBOM = Array.from(artNrMap.values()).sort((a, b) => a.priority - b.priority);
+
+            console.log(`[BOM] Deduped BOM:`, dedupedBOM.map(i => i.artNr).join(', '));
+
+            // Render
+            let totalCount = 0;
+            dedupedBOM.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
                         <td><div class="img-cell" ${!item.img ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>
                             ${item.img ? `<img src="${item.img}" alt="${item.label}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>'}
                         </div></td>
@@ -1282,47 +1347,47 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         <td><span class="bom-type">${item.typ}</span></td>
                         <td><strong>${item.menge}</strong></td>
                     `;
-                    bomTableBody.appendChild(row);
-                    totalCount += item.menge;
-                });
+                bomTableBody.appendChild(row);
+                totalCount += item.menge;
+            });
 
-                bomCountCounter.textContent = `${totalCount} Artikel benötigt`;
-            },
-            copyToClipboard: function () {
-                if (!this.selectedTray) {
-                    alert('Bitte wählen Sie zuerst ein Produkt aus.');
-                    return;
-                }
-
-                let textLines = [];
-                const bomTableBody = document.getElementById('bomTableBody');
-                
-                if (bomTableBody) {
-                    const rows = bomTableBody.querySelectorAll('tr');
-                    rows.forEach(row => {
-                        const codeSpan = row.querySelector('.bom-code');
-                        const qtyStrong = row.querySelector('strong');
-                        if (codeSpan && qtyStrong) {
-                            const code = codeSpan.textContent.replace(/\t/g, '').trim();
-                            const menge = qtyStrong.textContent.replace(/\t/g, '').trim();
-                            textLines.push(`${code}\t${menge}`);
-                        }
-                    });
-                } else {
-                    alert("Tabelle konnte nicht gefunden werden.");
-                    return;
-                }
-
-                const text = textLines.join('\n');
-                navigator.clipboard.writeText(text).then(() => {
-                    alert("Artikel und Menge kopiert für SAP:\n\n" + text.replace(/\t/g, "    "));
-                }).catch(e => alert("Kopieren fehlgeschlagen."));
+            bomCountCounter.textContent = `${totalCount} Artikel benötigt`;
+        },
+        copyToClipboard: function () {
+            if (!this.selectedTray) {
+                alert('Bitte wählen Sie zuerst ein Produkt aus.');
+                return;
             }
-        };
+
+            let textLines = [];
+            const bomTableBody = document.getElementById('bomTableBody');
+
+            if (bomTableBody) {
+                const rows = bomTableBody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const codeSpan = row.querySelector('.bom-code');
+                    const qtyStrong = row.querySelector('strong');
+                    if (codeSpan && qtyStrong) {
+                        const code = codeSpan.textContent.replace(/\t/g, '').trim();
+                        const menge = qtyStrong.textContent.replace(/\t/g, '').trim();
+                        textLines.push(`${code}\t${menge}`);
+                    }
+                });
+            } else {
+                alert("Tabelle konnte nicht gefunden werden.");
+                return;
+            }
+
+            const text = textLines.join('\n');
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Artikel und Menge kopiert für SAP:\n\n" + text.replace(/\t/g, "    "));
+            }).catch(e => alert("Kopieren fehlgeschlagen."));
+        }
+    };
 }
 
 export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
-    const suffix = title.replace(/\s/g,'');
+    const suffix = title.replace(/\s/g, '');
 
     return {
         trays: [],
@@ -1358,23 +1423,23 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             if (obj.overrideUeberlauf) return obj.overrideUeberlauf;
 
             // 2. Specific "Ohne Überlauf" indicators
-            if (text.includes('ohne überlauf') || text.includes('ohne ueberlauf') || 
+            if (text.includes('ohne überlauf') || text.includes('ohne ueberlauf') ||
                 text.includes('ohne ü-') || text.includes('o.ü') || text.includes('o. ue') ||
                 text.includes('kein überlauf')) return 'ohne';
-            
+
             // 3. Specific "Mit Überlauf" indicators
-            if (text.includes('mit überlauf') || text.includes('mit ueberlauf') || 
+            if (text.includes('mit überlauf') || text.includes('mit ueberlauf') ||
                 text.includes('mit ü-') || text.includes('m.ü') || text.includes('m. ue') ||
                 text.includes('überlauf') || text.includes('ueberlauf')) return 'mit';
 
             // 4. Fallback for generic "mit" / "ohne" (only if NOT clearly attached to Armaturenloch)
             if (text.includes('ohne') && !text.includes('ohne armaturenloch') && !text.includes('ohne hahnloch')) return 'ohne';
             if (text.includes('mit') && !text.includes('mit armaturenloch') && !text.includes('mit hahnloch')) return 'mit';
-            
+
             // 4. Smart Inference (Defaulting based on product type)
             // Most "Aufsatzbecken" (countertop bowls) don't have overflows.
             if (lbl.includes('aufsatz') || lbl.includes('schale') || lbl.includes('countertop')) return 'ohne';
-            
+
             // Most standard furniture/wall basins DO have overflows.
             if (lbl.includes('möbel') || lbl.includes('wandwaschtisch') || lbl.includes('waschtisch')) return 'mit';
 
@@ -1494,7 +1559,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             `;
         },
 
-        updatePillFilters: function() {
+        updatePillFilters: function () {
             const brandList = document.getElementById(`list_wb_brand_${suffix}`);
             const serList = document.getElementById(`list_wb_serie_${suffix}`);
             const aList = document.getElementById(`list_wb_ausf_${suffix}`);
@@ -1644,7 +1709,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                 if (aFilter !== 'all' && this.extractAusfuehrung(t) !== aFilter) return false;
                 if (serieFilter !== 'all' && this.extractSerie(t) !== serieFilter) return false;
                 if (sFilter !== 'all' && t.size !== sFilter) return false;
-                
+
                 const tHahn = this.extractHahnloch(t);
                 const tUeber = this.extractUeberlauf(t);
                 const tAbstell = this.extractAbstellflaeche(t);
@@ -1667,7 +1732,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             filtered.sort((a, b) => {
                 const sA = this.extractSerie(a).toLowerCase();
                 const sB = this.extractSerie(b).toLowerCase();
-                if(sA !== sB) return sA.localeCompare(sB);
+                if (sA !== sB) return sA.localeCompare(sB);
                 return (a.size || '').localeCompare(b.size || '');
             });
 
@@ -1683,7 +1748,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             filtered.forEach(t => {
                 const btn = document.createElement('button');
                 btn.className = `result-item-btn ${this.selectedTray && this.selectedTray.id === t.id ? 'active' : ''}`;
-                
+
                 // Badges
                 const hLoch = this.extractHahnloch(t);
                 const uLauf = this.extractUeberlauf(t);
@@ -1692,10 +1757,10 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                 if (hLoch === '2') badgesHtml += '<span class="mini-badge blue">2 Löcher</span>';
                 if (hLoch === '3') badgesHtml += '<span class="mini-badge blue">3 Löcher</span>';
                 if (hLoch === 'ohne') badgesHtml += '<span class="mini-badge gray">Ohne Hahnloch</span>';
-                
+
                 if (uLauf === 'mit') badgesHtml += '<span class="mini-badge blue">Mit Überlauf</span>';
                 if (uLauf === 'ohne') badgesHtml += '<span class="mini-badge red">Ohne Überlauf</span>';
-                
+
                 const aFlaeche = this.extractAbstellflaeche(t);
                 if (aFlaeche === 'links') badgesHtml += '<span class="mini-badge gray">Ablage Links</span>';
                 if (aFlaeche === 'rechts') badgesHtml += '<span class="mini-badge gray">Ablage Rechts</span>';
@@ -1725,7 +1790,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
         selectTray: function (id) {
             this.selectedTray = this.trays.find(t => t.id === id);
             this.selectedTray.selections = {};
-            
+
             if (this.selectedTray.mountingMaterials) {
                 this.selectedTray.mountingMaterials.forEach((mat) => {
                     const filteredOptions = this.getCompatibleOptions(mat);
@@ -1747,11 +1812,11 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
 
             return mat.options.filter(opt => {
                 const oLbl = opt.label.toLowerCase();
-                
+
                 // Rule 1: Ohne Überlauf -> Force Always Open Ventile
                 if (rUeber === 'ohne') {
                     if (oLbl.includes('push-open') || oLbl.includes('zugstange') || oLbl.includes('verschliessbar')) {
-                        return false; 
+                        return false;
                     }
                 }
 
@@ -1759,10 +1824,10 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                 // (Assuming mischers are added as optional accessories in the future)
                 if (rHahn === 'ohne') {
                     if (oLbl.includes('einlochmischer') && !oLbl.includes('hoher')) {
-                        return false; 
+                        return false;
                     }
                 }
-                
+
                 return true;
             });
         },
@@ -1775,7 +1840,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
 
             if (this.selectedTray && this.selectedTray.mountingMaterials && this.selectedTray.mountingMaterials.length > 0) {
                 hasConfig = true;
-                
+
                 // Warn User contextually
                 const rUeber = this.extractUeberlauf(this.selectedTray);
                 if (rUeber === 'ohne') {
@@ -1802,7 +1867,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                 groupDiv.className = 'filter-group';
                 const label = document.createElement('label');
                 label.textContent = mat.name || "Zubehör (Mischer / Ablauf)";
-                
+
                 if (filteredOptions.length === 1) {
                     const opt = filteredOptions[0];
                     groupDiv.innerHTML = `<label>${mat.name || label.textContent}</label>
@@ -1871,7 +1936,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             materials.forEach(mat => {
                 const selectedArtNr = this.selectedTray.selections[mat.id];
                 const selectedOption = this.getCompatibleOptions(mat).find(o => o.artNr === selectedArtNr);
-                
+
                 if (selectedOption) {
                     const matRow = document.createElement('tr');
                     matRow.innerHTML = `
@@ -1909,7 +1974,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
     };
 }
 export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {}) {
-    const suffix = title.replace(/\s/g,'');
+    const suffix = title.replace(/\s/g, '');
 
     return {
         trays: [],
@@ -1976,23 +2041,23 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
         extractSerie: function (t) {
             if (t.serie) return t.serie;
             let lbl = (t.label || '');
-            
+
             lbl = lbl.split(',')[0].trim();
             lbl = lbl.replace(/A\s*\d+/i, '').trim();
 
             const brand = (t.manufacturer || '').toLowerCase();
             const skipWords = [
-                'einlochmischer', 'waschtischmischer', 'waschtischbatterie', 'batterie', 
+                'einlochmischer', 'waschtischmischer', 'waschtischbatterie', 'batterie',
                 'mischer', 'armatur', 'wandmischer', 'standmischer', 'm.', 'm', 'waschtisch-',
-                'u-mischer', 'aufbau', brand, 'hansgrohe', 'axor', 'laufen', 'alterna', 'gessi', 'kwc', 
+                'u-mischer', 'aufbau', brand, 'hansgrohe', 'axor', 'laufen', 'alterna', 'gessi', 'kwc',
                 'auslauf', 'fest', 'schwenkbar', 'mit', 'ohne', 'ablaufventil'
             ];
 
             let remainingWords = lbl.split(/\s+/).filter(w => {
-                 let clean = w.toLowerCase().replace(/[^a-z0-9-]/g, '');
-                 if (!clean) return false;
-                 if (skipWords.includes(clean)) return false;
-                 return true;
+                let clean = w.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                if (!clean) return false;
+                if (skipWords.includes(clean)) return false;
+                return true;
             });
 
             let serie = remainingWords.join(' ');
@@ -2009,18 +2074,18 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             if (tl.includes('einbaukosten')) return true;
 
             // Faucet keywords (if these are present, it's likely a faucet even if it mentions valves)
-            const isFaucet = tl.includes('mischer') || tl.includes('batterie') || tl.includes('armatur') || 
-                            tl.includes('hansgrohe') || tl.includes('axor') || tl.includes('laufen') || 
-                            tl.includes('gessi') || tl.includes('kwc') || tl.includes('dornbracht') ||
-                            tl.includes('alterna');
+            const isFaucet = tl.includes('mischer') || tl.includes('batterie') || tl.includes('armatur') ||
+                tl.includes('hansgrohe') || tl.includes('axor') || tl.includes('laufen') ||
+                tl.includes('gessi') || tl.includes('kwc') || tl.includes('dornbracht') ||
+                tl.includes('alterna');
 
             if (isFaucet) return false;
 
             // Standalone valve keywords
-            const isValve = tl.includes('siebventil') || tl.includes('schaftventil') || tl.includes('ventilstopfen') || 
-                            tl.includes('click') || tl.includes('clack') || tl.includes('clic') || tl.includes('clac') ||
-                            tl.includes('ablauf');
-            
+            const isValve = tl.includes('siebventil') || tl.includes('schaftventil') || tl.includes('ventilstopfen') ||
+                tl.includes('click') || tl.includes('clack') || tl.includes('clic') || tl.includes('clac') ||
+                tl.includes('ablauf');
+
             return isValve;
         },
         extractAusladung: function (obj) {
@@ -2056,7 +2121,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
         getUniqueValues: function (key) {
             const nonAblaufTrays = this.trays.filter(t => !this.isAblaufItem(t));
             if (key === 'serie') return [...new Set(nonAblaufTrays.map(t => this.extractSerie(t)))].sort();
-            if (key === 'ausladung') return [...new Set(nonAblaufTrays.map(t => this.extractAusladung(t)))].filter(a => a !== 'unknown').sort((a,b) => parseInt(a) - parseInt(b));
+            if (key === 'ausladung') return [...new Set(nonAblaufTrays.map(t => this.extractAusladung(t)))].filter(a => a !== 'unknown').sort((a, b) => parseInt(a) - parseInt(b));
             if (key === 'ausfuehrung') return [...new Set(nonAblaufTrays.map(t => this.extractAusfuehrung(t)))].sort();
             return [...new Set(nonAblaufTrays.map(t => t[key]))].filter(x => x).sort();
         },
@@ -2124,7 +2189,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             `;
         },
 
-        updatePillFilters: function() {
+        updatePillFilters: function () {
             const brandList = document.getElementById(`list_misch_brand_${suffix}`);
             const ausfList = document.getElementById(`list_misch_ausf_${suffix}`);
             const serList = document.getElementById(`list_misch_serie_${suffix}`);
@@ -2155,7 +2220,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             // 2. Typ (formerly Ausführung)
             let f1 = nonAblaufTrays;
             if (this.currentBrand !== 'all') f1 = f1.filter(t => (t.manufacturer || 'Andere') === this.currentBrand);
-            
+
             const ausf = [...new Set(f1.map(t => this.extractAusfuehrung(t)))].sort();
             ausfList.innerHTML = `<button class="pill-btn ${this.currentAusfuehrung === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + ausf.map(a => `
                 <button class="pill-btn ${this.currentAusfuehrung === a ? 'active' : ''}" data-val="${a}">${this.formatPillLabel('type', a)}</button>
@@ -2174,7 +2239,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             // 3. Ausführung (formerly Serie)
             let f2 = f1;
             if (this.currentAusfuehrung !== 'all') f2 = f2.filter(t => this.extractAusfuehrung(t) === this.currentAusfuehrung);
-            
+
             const series = [...new Set(f2.map(t => this.extractSerie(t)))].sort();
             serList.innerHTML = `<button class="pill-btn ${this.currentSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + series.map(s => `
                 <button class="pill-btn ${this.currentSerie === s ? 'active' : ''}" data-val="${s}">${this.formatPillLabel('serie', s)}</button>
@@ -2195,7 +2260,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             if (this.currentSerie !== 'all') {
                 validForAusl = validForAusl.filter(t => this.extractSerie(t) === this.currentSerie);
             }
-            const ausladungen = [...new Set(validForAusl.map(t => this.extractAusladung(t)))].filter(a => a !== 'unknown').sort((a,b) => parseInt(a) - parseInt(b));
+            const ausladungen = [...new Set(validForAusl.map(t => this.extractAusladung(t)))].filter(a => a !== 'unknown').sort((a, b) => parseInt(a) - parseInt(b));
             auslList.innerHTML = `<button class="pill-btn ${this.currentAusladung === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + ausladungen.map(a => `
                 <button class="pill-btn ${this.currentAusladung === a ? 'active' : ''}" data-val="${a}">${a} mm</button>
             `).join('');
@@ -2265,7 +2330,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                 if (this.currentAusladung !== 'all' && ausladung !== this.currentAusladung) return false;
                 if (this.currentAuslauf !== 'all' && auslauf !== this.currentAuslauf) return false;
                 if (this.currentAblauf !== 'all' && ablauf !== this.currentAblauf) return false;
-                
+
                 return true;
             });
 
@@ -2274,7 +2339,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
 
             const container = document.getElementById(`searchResults_${suffix}`);
             if (!container) return;
-            
+
             container.innerHTML = '';
             const configPanel = document.getElementById(`trayConfigurator_${suffix}`);
             if (configPanel) configPanel.style.display = 'none';
@@ -2288,7 +2353,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                 const isSelected = this.selectedTray && this.selectedTray.artNr === t.artNr;
                 const card = document.createElement('button');
                 card.className = `result-item-btn ${isSelected ? 'active' : ''}`;
-                
+
                 const ablaufText = this.extractAblauf(t) === 'mit' ? 'Mit Ablauf' : 'Ohne Ablauf';
                 const auslaufText = this.extractAuslauf(t) === 'schwenkbar' ? 'Schwenkbar' : 'Fest';
                 const ausladungText = this.extractAusladung(t);
@@ -2329,9 +2394,9 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                     if (inlineSelect) {
                         const ablaufTrays = this.trays.filter(it => this.isAblaufItem(it));
                         // Sort Click-Clack to top
-                        ablaufTrays.sort((a,b) => {
-                            const al = (a.label||'').toLowerCase();
-                            const bl = (b.label||'').toLowerCase();
+                        ablaufTrays.sort((a, b) => {
+                            const al = (a.label || '').toLowerCase();
+                            const bl = (b.label || '').toLowerCase();
                             const aC = al.includes('clic') || al.includes('click');
                             const bC = bl.includes('clic') || bl.includes('click');
                             return (aC === bC) ? 0 : aC ? -1 : 1;
@@ -2342,7 +2407,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                             { artNr: 'none', label: '— Ohne Ablaufventil —' }
                         ];
 
-                        inlineSelect.innerHTML = options.map(opt => 
+                        inlineSelect.innerHTML = options.map(opt =>
                             `<option value="${opt.artNr}" ${(this.selectedTray.selections && this.selectedTray.selections['ablaufventil_virtual'] === opt.artNr) ? 'selected' : ''}>${opt.label}</option>`
                         ).join('');
 
@@ -2373,8 +2438,8 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
         selectTray: function (tray) {
             this.selectedTray = JSON.parse(JSON.stringify(tray));
             if (!this.selectedTray.selections) this.selectedTray.selections = {};
-            this.selectedTray.selections.variant = this.selectedTray.artNr; 
-            
+            this.selectedTray.selections.variant = this.selectedTray.artNr;
+
             const l = (this.selectedTray.label || '').toLowerCase();
             const ablaufState = this.extractAblauf(this.selectedTray);
             const isWand = this.extractAusfuehrung(this.selectedTray) === 'Wandmischer';
@@ -2385,17 +2450,17 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                 const ablaufTrays = this.trays.filter(t => this.isAblaufItem(t));
                 if (ablaufTrays.length > 0) {
                     if (!this.selectedTray.mountingMaterials) this.selectedTray.mountingMaterials = [];
-                    
-                    ablaufTrays.sort((a,b) => {
-                       const al = (a.label||'').toLowerCase();
-                       const bl = (b.label||'').toLowerCase();
-                       const aClick = al.includes('click') || al.includes('clic');
-                       const bClick = bl.includes('click') || bl.includes('clic');
-                       if (aClick && !bClick) return -1;
-                       if (bClick && !aClick) return 1;
-                       return 0;
+
+                    ablaufTrays.sort((a, b) => {
+                        const al = (a.label || '').toLowerCase();
+                        const bl = (b.label || '').toLowerCase();
+                        const aClick = al.includes('click') || al.includes('clic');
+                        const bClick = bl.includes('click') || bl.includes('clic');
+                        if (aClick && !bClick) return -1;
+                        if (bClick && !aClick) return 1;
+                        return 0;
                     });
-                    
+
                     const matOptions = [
                         ...ablaufTrays.map(t => ({
                             artNr: t.artNr,
@@ -2412,13 +2477,13 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                         name: 'Ablaufventil',
                         options: matOptions
                     });
-                    
+
                     if (!this.selectedTray.selections['ablaufventil_virtual']) {
                         this.selectedTray.selections['ablaufventil_virtual'] = matOptions[0].artNr;
                     }
                 }
             }
-            
+
             const confContainer = document.getElementById(`trayConfigurator_${suffix}`);
             const inner = document.getElementById(`trayConfiguratorInner_${suffix}`);
             confContainer.style.display = 'block';
@@ -2429,7 +2494,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
         renderConfigurator: function () {
             const confContainer = document.getElementById(`trayConfigurator_${suffix}`);
             const inner = document.getElementById(`trayConfiguratorInner_${suffix}`);
-            
+
             if (!this.selectedTray) {
                 confContainer.style.display = 'none';
                 return;
@@ -2437,7 +2502,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
 
             confContainer.style.display = 'block';
             inner.innerHTML = '';
-            
+
             // Color Variants
             if (this.selectedTray.variants && this.selectedTray.variants.length > 0) {
                 const selArtNr = this.selectedTray.selections.variant || this.selectedTray.artNr;
@@ -2467,7 +2532,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                 this.selectedTray.variants.forEach(v => {
                     const btn = document.createElement('div');
                     btn.className = `accessory-item ${selArtNr === v.artNr ? 'active' : ''}`;
-                    
+
                     btn.innerHTML = `
                         ${v.imgUrl ? `<img src="${v.imgUrl}" class="acc-thumb" style="width:40px;height:40px;object-fit:contain;border-radius:4px;border:1px solid #eee;">` : ''}
                         <div class="acc-info" style="margin-left:10px;">
@@ -2593,7 +2658,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                     if (nativeTray && nativeTray.mountingMaterials) {
                         nativeTray.mountingMaterials.forEach(subMat => {
                             const subOpt = subMat.options && subMat.options[0];
-                            if(subOpt) {
+                            if (subOpt) {
                                 bomHtml += `
                                     <tr style="background-color: rgba(59, 130, 246, 0.03);">
                                         <td><div class="img-cell">${(subOpt.imgUrl && !subOpt.label.toLowerCase().includes('einbaukosten') && !subOpt.label.toLowerCase().includes('montage')) ? `<img src="${subOpt.imgUrl}" onerror="this.parentNode.innerHTML='<div style=\\'width:40px;height:40px;background:#e0e7ff;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#4f46e5;\\'>&#9874;</div>'" style="width:40px;height:40px;object-fit:contain;">` : `<div style="width:40px;height:40px;background:#e0e7ff;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#4f46e5;"><i class="ri-tools-fill"></i></div>`}</div></td>
@@ -2630,19 +2695,19 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             (this.selectedTray.mountingMaterials || []).forEach(mat => {
                 const selectedArtNr = this.selectedTray.selections[mat.id];
                 if (selectedArtNr === 'none') return;
-                
+
                 const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
                 if (selectedOption && selectedOption.artNr && selectedOption.artNr !== 'none' && !selectedOption.label.toLowerCase().startsWith('ohne')) {
                     textLines.push(`${selectedOption.artNr}\t${selectedOption.menge || 1}`);
-                    
+
                     const nativeTray = this.trays.find(t => t.artNr === selectedOption.artNr);
                     if (nativeTray && nativeTray.mountingMaterials) {
-                         nativeTray.mountingMaterials.forEach(subMat => {
-                             const subOpt = subMat.options && subMat.options[0];
-                             if (subOpt && subOpt.artNr && subOpt.artNr !== 'none' && !subOpt.label.toLowerCase().startsWith('ohne')) {
-                                 textLines.push(`${subOpt.artNr}\t${subOpt.menge || 1}`);
-                             }
-                         });
+                        nativeTray.mountingMaterials.forEach(subMat => {
+                            const subOpt = subMat.options && subMat.options[0];
+                            if (subOpt && subOpt.artNr && subOpt.artNr !== 'none' && !subOpt.label.toLowerCase().startsWith('ohne')) {
+                                textLines.push(`${subOpt.artNr}\t${subOpt.menge || 1}`);
+                            }
+                        });
                     }
                 }
             });
@@ -2723,7 +2788,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             this.currentBasinUeberlauf = 'all';
             this.currentBasinAbstell = 'all';
             this.currentBasinBreite = 'all';
-            
+
             this.currentFaucetBrand = 'all';
             this.currentFaucetType = 'all';
             this.currentFaucetAuslauf = 'all';
@@ -2733,7 +2798,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             this.currentSpiegelschrankBrand = 'all';
             this.currentSpiegelschrankSerie = 'all';
-            
+
             this.basinSearchQuery = '';
             this.faucetSearchQuery = '';
 
@@ -2745,7 +2810,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             let label = (t.label || t.name || '').trim();
             const manufacturer = (t.manufacturer || '').toLowerCase();
             const types = ['spiegelschrank', 'spiegelkabinett', 'miroir', 'mirror'];
-            
+
             let changed = true;
             while (changed) {
                 changed = false;
@@ -2770,15 +2835,15 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             if (t.serie) return t.serie;
             let cleaned = (t.label || t.name || '').trim().toLowerCase();
             const manufacturer = (t.manufacturer || '').toLowerCase();
-            
+
             // 1. Strip product-type prefixes
             const typeWords = [
                 'spiegelschrank', 'spiegelkabinett', 'miroir', 'mirror',
-                'doppelwaschtisch', 'möbelwaschtisch', 'aufsatzwaschbecken', 'aufsatzbecken', 
+                'doppelwaschtisch', 'möbelwaschtisch', 'aufsatzwaschbecken', 'aufsatzbecken',
                 'auflegewaschtisch', 'wandbecken', 'handwaschbecken', 'waschtisch', 'becken', 'waschbecken',
                 'wandmischer', 'einlochmischer', 'mischer', 'batterie', 'armatur'
             ];
-            
+
             let changed = true;
             while (changed) {
                 changed = false;
@@ -2787,7 +2852,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         cleaned = cleaned.substring(word.length).trim();
                         if (['-', ':', '/', ','].includes(cleaned[0])) cleaned = cleaned.substring(1).trim();
                         changed = true;
-                        break; 
+                        break;
                     }
                 }
             }
@@ -2797,11 +2862,11 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 cleaned = cleaned.substring(manufacturer.length).trim();
                 if (['-', ':', '/', ','].includes(cleaned[0])) cleaned = cleaned.substring(1).trim();
             }
-            
+
             // 3. Extract the first part of what remains (usually the series name)
             const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d)/);
             let serie = match && match[1] ? match[1].trim() : cleaned.trim();
-            
+
             // 4. Capitalize each word
             serie = serie.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
@@ -2833,22 +2898,22 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             if (obj.overrideUeberlauf) return obj.overrideUeberlauf;
 
-            if (text.includes('ohne überlauf') || text.includes('ohne ueberlauf') || 
+            if (text.includes('ohne überlauf') || text.includes('ohne ueberlauf') ||
                 text.includes('ohne ü-') || text.includes('o.ü') || text.includes('o. ue') ||
                 text.includes('kein überlauf')) return 'ohne';
-            
-            if (text.includes('mit überlauf') || text.includes('mit ueberlauf') || 
+
+            if (text.includes('mit überlauf') || text.includes('mit ueberlauf') ||
                 text.includes('mit ü-') || text.includes('m.ü') || text.includes('m. ue') ||
                 text.includes('überlauf') || text.includes('ueberlauf')) return 'mit';
 
-            if (text.includes('ohne') && 
-                !text.includes('ohne armaturenloch') && 
+            if (text.includes('ohne') &&
+                !text.includes('ohne armaturenloch') &&
                 !text.includes('ohne armaturenlöcher') &&
-                !text.includes('ohne hahnloch') && 
+                !text.includes('ohne hahnloch') &&
                 !text.includes('ohne abstellfläche') &&
                 !text.includes('ohne ablauf')) return 'ohne';
             if (text.includes('mit') && !text.includes('mit armaturenloch') && !text.includes('mit hahnloch')) return 'mit';
-            
+
             if (lbl.includes('aufsatz') || lbl.includes('schale') || lbl.includes('countertop')) return 'ohne';
             if (lbl.includes('möbel') || lbl.includes('wandwaschtisch') || lbl.includes('waschtisch')) return 'mit';
 
@@ -2859,7 +2924,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             const label = (obj.label || '').toLowerCase();
             if (label.includes('ohne ablauf')) return 'ohne';
             if (label.includes('ablauf')) return 'mit';
-            return 'ohne'; 
+            return 'ohne';
         },
 
         extractAbstellflaeche: function (obj) {
@@ -3188,10 +3253,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             }
 
             // 8. Items list
-            serieList.innerHTML = f8.length === 0 ? '<div class="no-results">Keine Waschtische gefunden.</div>' : f8.sort((a,b) => {
+            serieList.innerHTML = f8.length === 0 ? '<div class="no-results">Keine Waschtische gefunden.</div>' : f8.sort((a, b) => {
                 const sA = this.extractSerie(a).toLowerCase();
                 const sB = this.extractSerie(b).toLowerCase();
-                if(sA !== sB) return sA.localeCompare(sB);
+                if (sA !== sB) return sA.localeCompare(sB);
                 return (a.size || '').localeCompare(b.size || '');
             }).map(t => {
                 const imgHTML = t.imgUrl ? `<img src="${t.imgUrl}" style="width:36px; height:36px; object-fit:contain; background:white; border-radius:4px; border:1px solid rgba(0,0,0,0.1);" onerror="this.style.display='none'">` : '';
@@ -3270,31 +3335,31 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         extractFaucetSerie: function (t) {
             if (t.serie) return t.serie;
             let lbl = (t.label || '');
-            
+
             lbl = lbl.split(',')[0].trim();
             lbl = lbl.replace(/A\s*\d+/i, '').trim();
 
             const brand = (t.manufacturer || '').toLowerCase();
             const skipWords = [
-                'einlochmischer', 'waschtischmischer', 'waschtischbatterie', 'batterie', 
+                'einlochmischer', 'waschtischmischer', 'waschtischbatterie', 'batterie',
                 'mischer', 'armatur', 'wandmischer', 'standmischer', 'm.', 'm', 'waschtisch-',
-                'u-mischer', 'aufbau', brand, 'hansgrohe', 'axor', 'laufen', 'alterna', 'gessi', 'kwc', 
+                'u-mischer', 'aufbau', brand, 'hansgrohe', 'axor', 'laufen', 'alterna', 'gessi', 'kwc',
                 'auslauf', 'fest', 'schwenkbar', 'mit', 'ohne', 'ablaufventil',
                 'endmontageset', 'fertigset', 'fertigbauset'
             ];
 
             let remainingWords = lbl.split(/\s+/).filter(w => {
-                 let clean = w.toLowerCase().replace(/[^a-z0-9-]/g, '');
-                 if (!clean) return false;
-                 if (skipWords.includes(clean)) return false;
-                 return true;
+                let clean = w.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                if (!clean) return false;
+                if (skipWords.includes(clean)) return false;
+                return true;
             });
 
             let serie = remainingWords.join(' ');
-            
+
             // Clean common technical suffixes often attached to series names
             serie = serie.replace(/(ComfortZone|CoolStart|EcoSmart|Normalstrahl|Waterfall|WaterfallStream).*/i, '').trim();
-            
+
             return serie || 'Andere';
         },
 
@@ -3400,7 +3465,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             if (this.currentFaucetSerie !== 'all') f3 = f3.filter(t => this.extractFaucetSerie(t) === this.currentFaucetSerie);
 
             // 4. Ausladung
-            const ausladungen = [...new Set(f3.map(t => this.extractAusladung(t)))].filter(a => a !== 'unknown').sort((a,b) => parseInt(a) - parseInt(b));
+            const ausladungen = [...new Set(f3.map(t => this.extractAusladung(t)))].filter(a => a !== 'unknown').sort((a, b) => parseInt(a) - parseInt(b));
             auslList.innerHTML = `<button class="pill-btn ${this.currentFaucetAusladung === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + ausladungen.map(a => `
                 <button class="pill-btn ${this.currentFaucetAusladung === a ? 'active' : ''}" data-val="${a}">${a} mm</button>
             `).join('');
@@ -3450,7 +3515,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         else if (target === 'ausl') this.currentFaucetAusladung = val;
                         else if (target === 'auslauf') this.currentFaucetAuslauf = val;
                         else if (target === 'ablauf') this.currentFaucetAblauf = val;
-                        
+
                         this.updateFaucetTiers();
                     });
                 });
@@ -3462,15 +3527,15 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 f7 = f7.filter(t => (t.label || '').toLowerCase().includes(q) || (t.artNr || '').toLowerCase().includes(q));
             }
 
-            const itemsHTML = f7.length === 0 ? '<div class="no-results">Keine Armaturen gefunden.</div>' : f7.sort((a,b) => {
+            const itemsHTML = f7.length === 0 ? '<div class="no-results">Keine Armaturen gefunden.</div>' : f7.sort((a, b) => {
                 const sA = this.extractFaucetSerie(a).toLowerCase();
                 const sB = this.extractFaucetSerie(b).toLowerCase();
-                if(sA !== sB) return sA.localeCompare(sB);
+                if (sA !== sB) return sA.localeCompare(sB);
                 return (a.artNr || '').localeCompare(b.artNr || '');
             }).map(t => {
                 const ausladung = this.extractAusladung(t);
                 const ablauf = this.extractAblauf(t);
-                
+
                 const tags = [];
                 if (ausladung !== 'unknown') tags.push(`<span style="background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">${ausladung} mm</span>`);
                 if (ablauf === 'mit') tags.push(`<span style="background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">mit Ablaufventil</span>`);
@@ -3496,7 +3561,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             itemList.querySelectorAll('.finder-item').forEach(el => {
                 el.addEventListener('click', () => {
-                    this.selectedFaucet = this.faucetTrays.find(x => x.id === el.dataset.id); 
+                    this.selectedFaucet = this.faucetTrays.find(x => x.id === el.dataset.id);
                     this.updateFaucetTiers();
                     this.updateValveTier();
                     this.updatePreview();
@@ -3647,14 +3712,14 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             // 1. Check strict "zu [Art-Nr]" rule for Möbel
                             if (target === 'moebel') {
                                 const basinId7 = (this.selectedBasin.artNr || '').replace(/[^\d]/g, '').substring(0, 7);
-                                
+
                                 // Parse label for "zu 2112 409 / 410 / ..."
                                 const zuMatch = t.label.match(/zu\s+([\d\s\/]+)/i);
                                 if (zuMatch && basinId7.length === 7) {
                                     const digits = zuMatch[1].match(/\d+/g);
                                     let validIds = [];
                                     let lastPrefix = "";
-                                    
+
                                     if (digits) {
                                         digits.forEach(d => {
                                             if (d.length === 7) {
@@ -3670,7 +3735,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
                                     if (validIds.length > 0) {
                                         // Strict check: if "zu" exists, it MUST match exactly
-                                        if (!validIds.includes(basinId7)) return; 
+                                        if (!validIds.includes(basinId7)) return;
                                         matchFound = true;
                                     }
                                 }
@@ -3680,14 +3745,14 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             if (target === 'spiegelschrank') {
                                 const basinWStr = this.extractBreite(this.selectedBasin);
                                 const cabinetWStr = this.extractBreite(t);
-                                
+
                                 if (basinWStr !== 'unknown' && cabinetWStr !== 'unknown') {
                                     const bW = parseFloat(basinWStr);
                                     const cW = parseFloat(cabinetWStr);
                                     // Round both to nearest integer cm (handles 59.5 vs 60 cases)
                                     if (Math.round(bW) !== Math.round(cW)) return;
                                     // If width matches, we consider it a found match (even if series differ)
-                                    matchFound = true; 
+                                    matchFound = true;
                                 } else if (target === 'spiegelschrank' && basinWStr !== 'unknown') {
                                     // Basin has a width, but cabinet doesn't? Skip it to be safe.
                                     return;
@@ -3723,13 +3788,13 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 if (brandListEl && serieListEl) {
                     // Gather brands from base candidates
                     const brands = [...new Set(baseCandidates.map(c => c.manufacturer).filter(Boolean))].sort();
-                    brandListEl.innerHTML = `<button class="pill-btn ${this.currentSpiegelschrankBrand === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + 
+                    brandListEl.innerHTML = `<button class="pill-btn ${this.currentSpiegelschrankBrand === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
                         brands.map(b => `<button class="pill-btn ${this.currentSpiegelschrankBrand === b ? 'active' : ''}" data-val="${b}">${b}</button>`).join('');
 
                     brandListEl.querySelectorAll('.pill-btn').forEach(btn => {
                         btn.addEventListener('click', () => {
                             this.currentSpiegelschrankBrand = btn.dataset.val;
-                            this.currentSpiegelschrankSerie = 'all'; 
+                            this.currentSpiegelschrankSerie = 'all';
                             this.populateAddonPanel('spiegelschrank');
                         });
                     });
@@ -3739,7 +3804,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     if (this.currentSpiegelschrankBrand !== 'all') fSeries = fSeries.filter(c => c.manufacturer === this.currentSpiegelschrankBrand);
                     const series = [...new Set(fSeries.map(c => this.extractSerie(c)))].sort();
 
-                    serieListEl.innerHTML = `<button class="pill-btn ${this.currentSpiegelschrankSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + 
+                    serieListEl.innerHTML = `<button class="pill-btn ${this.currentSpiegelschrankSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
                         series.map(s => `<button class="pill-btn ${this.currentSpiegelschrankSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
 
                     serieListEl.querySelectorAll('.pill-btn').forEach(btn => {
@@ -3832,13 +3897,13 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             <h3 style="font-size: 0.75rem; margin-bottom: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Zusammenfassung</h3>
                             <div style="background: rgba(255,255,255,0.02); border-radius: 12px; padding: 0.75rem 1rem; border: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: 24px 1fr auto; gap: 0.4rem 0.75rem; align-items: start;">
                                 ${this.getBOMPreviewItems().map(item => {
-                                    if (item.isSpacer) return '<div style="grid-column: 1 / -1; margin: 0.3rem 0; border-top: 1px dashed rgba(255,255,255,0.1);"></div>';
-                                    return `
+                if (item.isSpacer) return '<div style="grid-column: 1 / -1; margin: 0.3rem 0; border-top: 1px dashed rgba(255,255,255,0.1);"></div>';
+                return `
                                         <div style="color: var(--text-secondary); font-size: 0.7rem; padding-top: 2px;">${item.qty}x</div>
                                         <div style="font-weight: 500; color: var(--text-primary); line-height: 1.35; font-size: 0.76rem; max-width: 380px;">${item.label}</div>
                                         <div style="font-family: monospace; color: var(--accent); font-weight: 700; font-size: 0.76rem; white-space: nowrap; text-align: right;">${item.artNr}</div>
                                     `;
-                                }).join('')}
+            }).join('')}
                             </div>
                         </div>
                     </div>
@@ -3851,7 +3916,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             if (!this.selectedBasin) return [];
             const hLochStatus = this.extractHahnloch(this.selectedBasin);
             const isDoppel = (this.selectedBasin.label || '').toLowerCase().includes('doppel');
-            
+
             const label = (this.selectedFaucet?.label || '').toLowerCase();
             const isSelectedWandModel = label.includes('wandmischer') || label.includes('wandbatterie');
 
@@ -3867,7 +3932,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             const items = [];
             const faucetItems = [];
-            
+
             // 1. Process Faucet (or Wandmischer) first for positioning logic
             if (this.selectedFaucet) {
                 const label = (this.selectedFaucet.label || '').toLowerCase();
@@ -3880,7 +3945,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
                 if (isWandModel) {
                     // Wandmischer Logic: No Einbaukosten
-                    
+
                     // KWC Specific Logic
                     const kwcMapping = {
                         '6113 266.501.000': ['6118 132.000.000', '6118 137.000.000'],
@@ -3926,10 +3991,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     if (isHG && hgWandModels.includes(currentArtNr)) {
                         const accArtNr = '6418 132.000.000';
                         const acc = this.faucetTrays.find(t => t.artNr === accArtNr);
-                        faucetItems.push({ 
-                            qty: faucetQty, 
-                            label: acc ? acc.label : 'Einbaukörper Hansgrohe ½"', 
-                            artNr: accArtNr 
+                        faucetItems.push({
+                            qty: faucetQty,
+                            label: acc ? acc.label : 'Einbaukörper Hansgrohe ½"',
+                            artNr: accArtNr
                         });
                     }
 
@@ -3962,7 +4027,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     if (!hasEinbau && faucetQty > 0) {
                         const ablauf = this.extractAblauf(this.selectedFaucet);
                         const isMehrloch = label.includes('dreiloch') || label.includes('zweiloch');
-                        
+
                         if (isMehrloch) {
                             faucetItems.push({ qty: faucetQty, label: 'Einbaukosten, Zwei- und Dreilocharmatur, Nettopreis', artNr: '6000 015.000.000' });
                         } else if (ablauf === 'mit') {
@@ -3984,15 +4049,15 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     // Core order: Wandmischer items -> G1 -> Waschtisch -> Einbaukosten
                     const cleanFaucetItems = faucetItems.filter(it => !it.label.toLowerCase().includes('einbaukosten'));
                     const einbauItems = faucetItems.filter(it => it.label.toLowerCase().includes('einbaukosten'));
-                    
+
                     items.push(...cleanFaucetItems);
                     items.push({ qty: 1, label: 'Gürtelset', artNr: 'G1' });
                     items.push({ qty: 1, label: this.selectedBasin.label, artNr: this.selectedBasin.artNr });
-                    
+
                     // Standalone valve article if selected
                     if (this.selectedAblauf) {
-                         const valve = this.faucetTrays.find(t => t.artNr === this.selectedAblauf);
-                         if (valve) items.push({ qty: valveQty, label: valve.label, artNr: valve.artNr });
+                        const valve = this.faucetTrays.find(t => t.artNr === this.selectedAblauf);
+                        if (valve) items.push({ qty: valveQty, label: valve.label, artNr: valve.artNr });
                     }
 
                     // Einbaukosten always at the bottom of the core set
@@ -4018,7 +4083,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 const valve = this.faucetTrays.find(t => t.artNr === this.selectedAblauf);
                 if (valve) {
                     items.push({ qty: valveQty, label: valve.label, artNr: valve.artNr });
-                    
+
                     let hasEinbau = false;
                     if (valve.mountingMaterials) {
                         valve.mountingMaterials.forEach(mat => {
@@ -4216,7 +4281,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     bomHtml += `<tr><td colspan="5" style="height: 1.5rem; background: transparent; border: none;"></td></tr>`;
                     return;
                 }
-                
+
                 const isService = item.label.toLowerCase().includes('einbaukosten');
                 bomHtml += `
                     <tr style="${isService ? 'background: rgba(59, 130, 246, 0.03);' : ''}">
@@ -4236,7 +4301,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             bomTableBody.innerHTML = bomHtml;
             bomCountCounter.textContent = `${totalCount} Artikel`;
-            
+
             if (window.saveWishlist) window.saveWishlist();
         }
     };
@@ -4245,1034 +4310,472 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 /* Mischer Factory */
 
 export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
-    const isBath = config.isBath || false;
-    const suffix = title.replace(/\s/g,'');
-
-    return {
-        trays: [],
-        mainImgUrl: mainImgUrl,
-        selectedTray: null,
-        mischerOptionsState: {},
-
-	        currentHersteller: 'all',
-	        currentMontage: 'all',
-	        currentSerie: 'all',
-
-        init: function () {
-            this.selectedTray = null;
-            this.mischerOptionsState = {};
-            this.currentHersteller = 'all';
-            this.currentMontage = 'all';
-            this.currentSerie = 'all';
-            
-            this.renderSidebar();
-            this.bindFilters();
-            this.filterResults();
-            this.clearBOM();
-        },
-
-	        normalizeDuschenmischerSerie: function (value, manufacturer = '') {
-	            let serie = String(value || '').toLowerCase().trim();
-	            const brand = String(manufacturer || '').toLowerCase();
-
-	            serie = serie
-	                .replace(/^[-\s/]+/, '')
-	                .replace(/^-?\s*endmontageset\b/, '')
-	                .replace(/^-?\s*fertigmontageset\b/, '')
-	                .replace(/^[-\s/]+/, '');
-
-	            if (brand && serie.startsWith(brand)) {
-	                serie = serie.slice(brand.length).trim();
-	            }
-	            if (brand) {
-	                serie = serie.replace(new RegExp(`\\b${brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'), '').trim();
-	            }
-
-	            serie = serie
-	                .replace(/^[-\s/]+/, '')
-	                .replace(/\babdeckplatte\b.*$/i, '')
-	                .replace(/\bdurchflussleistung\b.*$/i, '')
-	                .replace(/\bohne einbaukörper\b.*$/i, '')
-	                .replace(/\benergieeffizienzklasse\b.*$/i, '')
-	                .replace(/\bgeräuschgruppe\b.*$/i, '')
-	                .replace(/\barmhebel\b.*$/i, '')
-	                .replace(/\bselbstschliessend\b.*$/i, '')
-	                .replace(/\btemperaturgriff\b.*$/i, '')
-	                .replace(/^thermostat\s+/i, '')
-	                .replace(/\s+½[\"”]?\s+thermostat\b.*$/i, '')
-	                .replace(/\s+thermostat\b.*$/i, '')
-	                .replace(/\bmit sicherheitstaste\b.*$/i, '')
-	                .replace(/\b1-weg\b.*$/i, '')
-	                .replace(/\s+½[\"”]?$/i, '')
-	                .replace(/\bav\.0\b/g, 'ava 2.0')
-	                .replace(/\bvit\.0\b/g, 'vita 2.0')
-	                .replace(/\s*,\s*$/g, '')
-	                .replace(/\s+/g, ' ')
-	                .trim();
-
-	            if (!serie) return 'Andere';
-
-	            return serie.split(' ').map(w => {
-	                if (/^kwc$/i.test(w)) return 'KWC';
-	                if (/^\d/.test(w)) return w;
-	                return w.charAt(0).toUpperCase() + w.slice(1);
-	            }).join(' ');
-	        },
-
-	        extractSerie: function (t) {
-	            if (t.serie) {
-	                return this.normalizeDuschenmischerSerie(t.serie, t.manufacturer);
-	            }
-
-            // Product-type prefixes to strip from labels
-            const typePrefixes = [
-                'aufputz-duschenmischer', 'unterputz-duschenmischer',
-                'duschenmischer', 'duschmischer',
-                'aufputz-bademischer', 'unterputz-bademischer',
-                'bademischer', 'waschtischmischer',
-                'thermostatmischer', 'thermostat-duschenmischer',
-                'einhebelmischer', 'einlochmischer', 'mischer'
-            ];
-
-            let cleaned = (t.label || '').toLowerCase();
-
-            // 1. Strip manufacturer name from the start
-            if (t.manufacturer) {
-                const mLower = t.manufacturer.toLowerCase();
-                if (cleaned.startsWith(mLower)) {
-                    cleaned = cleaned.slice(mLower.length).trim();
-                }
-            }
-
-            // 2. Strip product-type prefix
-            for (const prefix of typePrefixes) {
-                if (cleaned.startsWith(prefix)) {
-                    cleaned = cleaned.slice(prefix.length).trim();
-                    break;
-                }
-            }
-
-            // 3. Remove "endmontageset" specifically (often follows a hyphen)
-            cleaned = cleaned.replace(/-?endmontageset/g, '').trim();
-            cleaned = cleaned.replace(/-?fertigmontageset/g, '').trim();
-
-            // 4. Strip manufacturer name AGAIN (in case it was after the prefix)
-            if (t.manufacturer) {
-                const mLower = t.manufacturer.toLowerCase();
-                if (cleaned.startsWith(mLower)) {
-                    cleaned = cleaned.slice(mLower.length).trim();
-                }
-            }
-
-            // Take only the part before a size, comma, bracket or number
-            const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/);
-	            let serie = match && match[1] ? match[1].trim() : cleaned.trim();
-
-	            return this.normalizeDuschenmischerSerie(serie, t.manufacturer);
-
-	            // Title-case
-	            serie = serie.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-
-            return serie || 'Andere';
-        },
-
-        extractMontage: function (t) {
-            const label = (t.label || '').toLowerCase();
-
-            // --- Unterputz detection ---
-            if (
-                label.includes('unterputz') ||
-                label.includes(' up ') ||
-                label.includes('einbau') ||
-                label.includes('endmontageset') ||
-                label.includes('grundkörper') ||
-                label.includes('grundkoerper')
-            ) return 'Unterputz';
-
-            // --- Aufputz detection ---
-            if (
-                label.includes('aufputz') ||
-                label.includes(' ap ') ||
-                label.includes('wandbatterie') ||
-                label.includes('wandmischer') ||
-                label.includes('ad 153 mm') ||   // KWC/Alterna Aufputz identifier
-                label.includes('aufputz-duschenmischer') ||
-                label.includes('thermostat-duschenmischer')
-            ) return 'Aufputz';
-
-            // --- Bademischer specific ---
-            if (isBath && (label.includes('standmodell') || label.includes('freistehend'))) return 'Standmodell';
-
-            return 'Aufputz';
-        },
-
-        getUniqueValues: function (key, filteredTrays) {
-            const src = filteredTrays || this.trays;
-            if (key === 'hersteller') {
-                const list = this.trays.map(t => t.manufacturer || 'Andere');
-                return [...new Set(list)].filter(Boolean).sort();
-            }
-            if (key === 'montage') return [...new Set(src.map(t => this.extractMontage(t)))].sort();
-            if (key === 'serie') return [...new Set(src.map(t => this.extractSerie(t)))].sort();
-            return [];
-        },
-
-        renderSidebar: function () {
-            const configSidebar = document.getElementById('configSidebar');
-            if(!configSidebar) return;
-            
-            // Get filtered sets for dependent UI
-            const traysForMontage = this.currentHersteller === 'all' 
-                ? this.trays 
-                : this.trays.filter(t => t.manufacturer === this.currentHersteller);
-            
-            const traysForSerie = traysForMontage.filter(t => {
-                if (this.currentMontage === 'all') return true;
-                return this.extractMontage(t) === this.currentMontage;
-            });
-
-            const herstellers = this.getUniqueValues('hersteller');
-            const series = this.getUniqueValues('serie', traysForSerie);
-            const montages = this.getUniqueValues('montage', traysForMontage);
-
-            configSidebar.innerHTML = `
+    function ut(B,F,R,N={}){const m=N.isBath||!1,s=B.replace(/\s/g,"")
+return{trays:[],mainImgUrl:R,selectedTray:null,mischerOptionsState:{},currentHersteller:"all",currentMontage:"all",currentSerie:"all",init:function(){this.selectedTray=null,this.mischerOptionsState={},this.currentHersteller="all",this.currentMontage="all",this.currentSerie="all",this.renderSidebar(),this.bindFilters(),this.filterResults(),this.clearBOM()},normalizeDuschenmischerSerie:function(r,e=""){let t=String(r||"").toLowerCase().trim()
+const n=String(e||"").toLowerCase()
+return t=t.replace(/^[-\s/]+/,"").replace(/^-?\s*endmontageset\b/,"").replace(/^-?\s*fertigmontageset\b/,"").replace(/^[-\s/]+/,""),n&&t.startsWith(n)&&(t=t.slice(n.length).trim()),n&&(t=t.replace(new RegExp(`\\b${n.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}\\b`,"gi"),"").trim()),t=t.replace(/^[-\s/]+/,"").replace(/\babdeckplatte\b.*$/i,"").replace(/\bdurchflussleistung\b.*$/i,"").replace(/\bohne einbaukörper\b.*$/i,"").replace(/\benergieeffizienzklasse\b.*$/i,"").replace(/\bgeräuschgruppe\b.*$/i,"").replace(/\barmhebel\b.*$/i,"").replace(/\bselbstschliessend\b.*$/i,"").replace(/\btemperaturgriff\b.*$/i,"").replace(/^thermostat\s+/i,"").replace(/\s+½[\"”]?\s+thermostat\b.*$/i,"").replace(/\s+thermostat\b.*$/i,"").replace(/\bmit sicherheitstaste\b.*$/i,"").replace(/\b1-weg\b.*$/i,"").replace(/\s+½[\"”]?$/i,"").replace(/\bav\.0\b/g,"ava 2.0").replace(/\bvit\.0\b/g,"vita 2.0").replace(/\s*,\s*$/g,"").replace(/\s+/g," ").trim(),t?t.split(" ").map(i=>/^kwc$/i.test(i)?"KWC":/^\d/.test(i)?i:i.charAt(0).toUpperCase()+i.slice(1)).join(" "):"Andere"},extractSerie:function(r){if(r.serie)return this.normalizeDuschenmischerSerie(r.serie,r.manufacturer)
+const e=["aufputz-duschenmischer","unterputz-duschenmischer","duschenmischer","duschmischer","aufputz-bademischer","unterputz-bademischer","bademischer","waschtischmischer","thermostatmischer","thermostat-duschenmischer","einhebelmischer","einlochmischer","mischer"]
+let t=(r.label||"").toLowerCase()
+if(r.manufacturer){const a=r.manufacturer.toLowerCase()
+t.startsWith(a)&&(t=t.slice(a.length).trim())}for(const a of e)if(t.startsWith(a)){t=t.slice(a.length).trim()
+break}if(t=t.replace(/-?endmontageset/g,"").trim(),t=t.replace(/-?fertigmontageset/g,"").trim(),r.manufacturer){const a=r.manufacturer.toLowerCase()
+t.startsWith(a)&&(t=t.slice(a.length).trim())}const n=t.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/)
+let i=n&&n[1]?n[1].trim():t.trim()
+return this.normalizeDuschenmischerSerie(i,r.manufacturer)},extractMontage:function(r){const e=(r.label||"").toLowerCase()
+return e.includes("unterputz")||e.includes(" up ")||e.includes("einbau")||e.includes("endmontageset")||e.includes("grundkörper")||e.includes("grundkoerper")?"Unterputz":e.includes("aufputz")||e.includes(" ap ")||e.includes("wandbatterie")||e.includes("wandmischer")||e.includes("ad 153 mm")||e.includes("aufputz-duschenmischer")||e.includes("thermostat-duschenmischer")?"Aufputz":m&&(e.includes("standmodell")||e.includes("freistehend"))?"Standmodell":"Aufputz"},getUniqueValues:function(r,e){const t=e||this.trays
+if(r==="hersteller"){const n=this.trays.map(i=>i.manufacturer||"Andere")
+return[...new Set(n)].filter(Boolean).sort()}return r==="montage"?[...new Set(t.map(n=>this.extractMontage(n)))].sort():r==="serie"?[...new Set(t.map(n=>this.extractSerie(n)))].sort():[]},renderSidebar:function(){const r=document.getElementById("configSidebar")
+if(!r)return
+const e=this.currentHersteller==="all"?this.trays:this.trays.filter(o=>o.manufacturer===this.currentHersteller),t=e.filter(o=>this.currentMontage==="all"?!0:this.extractMontage(o)===this.currentMontage),n=this.getUniqueValues("hersteller"),i=this.getUniqueValues("serie",t),a=this.getUniqueValues("montage",e)
+r.innerHTML=`
                 <div class="sidebar-section">
-                    <h2 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="ri-filter-3-line" style="color: var(--accent);"></i> Filter
+                    <h2 style="margin-bottom: 1.5rem
+ display: flex
+ align-items: center
+ gap: 0.5rem
+">
+                        <i class="ri-filter-3-line" style="color: var(--accent)
+"></i> Filter
                     </h2>
 
                     <div class="filter-group">
-                        <label id="head_hersteller_${suffix}" class="filter-label">Hersteller</label>
-                        <div class="pill-group" id="list_hersteller_${suffix}">
-                            <button class="pill-btn ${this.currentHersteller === 'all' ? 'active' : ''}" data-key="Hersteller" data-val="all">Alle</button>
-                            ${herstellers.map(h => `<button class="pill-btn ${this.currentHersteller === h ? 'active' : ''}" data-key="Hersteller" data-val="${h}">${h}</button>`).join('')}
+                        <label id="head_hersteller_${s}" class="filter-label">Hersteller</label>
+                        <div class="pill-group" id="list_hersteller_${s}">
+                            <button class="pill-btn ${this.currentHersteller==="all"?"active":""}" data-key="Hersteller" data-val="all">Alle</button>
+                            ${n.map(o=>`<button class="pill-btn ${this.currentHersteller===o?"active":""}" data-key="Hersteller" data-val="${o}">${o}</button>`).join("")}
                         </div>
                     </div>
 
                     <div class="filter-group">
-                        <label id="head_montage_${suffix}" class="filter-label">Montageart</label>
-                        <div class="pill-group" id="list_montage_${suffix}">
-                            <button class="pill-btn ${this.currentMontage === 'all' ? 'active' : ''}" data-key="Montage" data-val="all">Alle</button>
-                            ${montages.map(m => `<button class="pill-btn ${this.currentMontage === m ? 'active' : ''}" data-key="Montage" data-val="${m}">${m}</button>`).join('')}
+                        <label id="head_montage_${s}" class="filter-label">Montageart</label>
+                        <div class="pill-group" id="list_montage_${s}">
+                            <button class="pill-btn ${this.currentMontage==="all"?"active":""}" data-key="Montage" data-val="all">Alle</button>
+                            ${a.map(o=>`<button class="pill-btn ${this.currentMontage===o?"active":""}" data-key="Montage" data-val="${o}">${o}</button>`).join("")}
                         </div>
                     </div>
 
                     <div class="filter-group">
-                        <label id="head_serie_${suffix}" class="filter-label">Serie</label>
-                        <div class="pill-group" id="list_serie_${suffix}">
-                            <button class="pill-btn ${this.currentSerie === 'all' ? 'active' : ''}" data-key="Serie" data-val="all">Alle</button>
-                            ${series.map(s => `<button class="pill-btn ${this.currentSerie === s ? 'active' : ''}" data-key="Serie" data-val="${s}">${s}</button>`).join('')}
+                        <label id="head_serie_${s}" class="filter-label">Serie</label>
+                        <div class="pill-group" id="list_serie_${s}">
+                            <button class="pill-btn ${this.currentSerie==="all"?"active":""}" data-key="Serie" data-val="all">Alle</button>
+                            ${i.map(o=>`<button class="pill-btn ${this.currentSerie===o?"active":""}" data-key="Serie" data-val="${o}">${o}</button>`).join("")}
                         </div>
                     </div>
 
-                    <div class="filter-group" style="margin-top:1.5rem; padding-top:1.5rem; border-top: 1px solid var(--border);">
+                    <div class="filter-group" style="margin-top:1.5rem
+ padding-top:1.5rem
+ border-top: 1px solid var(--border)
+">
                         <label class="filter-label">Suche</label>
-                        <input type="text" id="input_search_${suffix}" class="filter-select" placeholder="Art.Nr. oder Name...">
+                        <input type="text" id="input_search_${s}" class="filter-select" placeholder="Art.Nr. oder Name...">
                     </div>
                 </div>
                 
                 <div class="sidebar-section">
-                    <h2>Suchergebnisse <span id="resultCount_${suffix}" class="badge">0</span></h2>
-                    <div class="search-results-container" id="searchResults_${suffix}"></div>
+                    <h2>Suchergebnisse <span id="resultCount_${s}" class="badge">0</span></h2>
+                    <div class="search-results-container" id="searchResults_${s}"></div>
                 </div>
 
-                <div class="sidebar-section" id="trayConfigurator_${suffix}" style="display:none; margin-top:2rem;">
+                <div class="sidebar-section" id="trayConfigurator_${s}" style="display:none
+ margin-top:2rem
+">
                     <h2>Konfiguration</h2>
                     <p class="section-desc">Bestimmen Sie das benötigte Zubehör.</p>
-                    <div id="trayConfiguratorInner_${suffix}"></div>
+                    <div id="trayConfiguratorInner_${s}"></div>
                 </div>
-            `;
-
-            // Bind pill buttons via addEventListener
-            configSidebar.querySelectorAll('.pill-btn[data-key]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    this.setFilter(btn.dataset.key, btn.dataset.val);
-                });
-            });
-
-            // Apply Smart Collapse
-            applyPillUI(`head_hersteller_${suffix}`, `list_hersteller_${suffix}`, this.currentHersteller, 'Hersteller', () => this.setFilter('Hersteller', 'all'));
-            applyPillUI(`head_montage_${suffix}`, `list_montage_${suffix}`, this.currentMontage, 'Montageart', () => this.setFilter('Montage', 'all'));
-            applyPillUI(`head_serie_${suffix}`, `list_serie_${suffix}`, this.currentSerie, 'Serie', () => this.setFilter('Serie', 'all'));
-
-            const searchInput = document.getElementById(`input_search_${suffix}`);
-            if (searchInput) {
-                searchInput.addEventListener('input', () => this.filterResults());
-            }
-            this.filterResults();
-        },
-
-        setFilter: function (key, val) {
-            this[`current${key}`] = val;
-            this.renderSidebar();
-        },
-
-        bindFilters: function () {
-            // Deprecated - Handled by inline onclicks in Pill UI
-        },
-
-        filterResults: function () {
-            const container = document.getElementById(`searchResults_${suffix}`);
-            const countSpan = document.getElementById(`resultCount_${suffix}`);
-            const search = (document.getElementById(`input_search_${suffix}`)?.value || '').toLowerCase();
-            if (!container) return;
-
-            let results = this.trays;
-
-            if (this.currentHersteller !== 'all') {
-                results = results.filter(t => t.manufacturer === this.currentHersteller);
-            }
-            if (this.currentSerie !== 'all') {
-                results = results.filter(t => this.extractSerie(t) === this.currentSerie);
-            }
-            if (this.currentMontage !== 'all') {
-                results = results.filter(t => this.extractMontage(t) === this.currentMontage);
-            }
-            if (search) {
-                results = results.filter(t => (t.label || '').toLowerCase().includes(search) || (t.artNr || '').toLowerCase().includes(search));
-            }
-
-            countSpan.textContent = results.length;
-
-            if (results.length === 0) {
-                container.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--text-secondary);">Keine Produkte gefunden. Bitte passen Sie die Filter an.</div>';
-                return;
-            }
-
-            container.innerHTML = results.map(t => {
-                const isSel = this.selectedTray && this.selectedTray.id === t.id;
-                const imgStr = t.imgUrl ? `<img src="${t.imgUrl}" style="max-width:100%; max-height:100%; object-fit:contain;">` : `<div style="font-size:10px; color:#bbb;">No Image</div>`;
-                
-                return `
-                    <div class="result-item-btn ${isSel ? 'active' : ''}" data-tid="${t.id}" style="display:flex; align-items:center; gap:0.6rem; padding:0.5rem; margin-bottom:5px; border-radius:8px; min-height:54px; overflow:hidden; border:1px solid var(--border);">
-                        <div style="width:38px; height:38px; background:#fff; border-radius:5px; flex-shrink:0; padding:2px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border);">
-                           ${imgStr}
+            `,r.querySelectorAll(".pill-btn[data-key]").forEach(o=>{o.addEventListener("click",()=>{this.setFilter(o.dataset.key,o.dataset.val)})}),X(`head_hersteller_${s}`,`list_hersteller_${s}`,this.currentHersteller,"Hersteller",()=>this.setFilter("Hersteller","all")),X(`head_montage_${s}`,`list_montage_${s}`,this.currentMontage,"Montageart",()=>this.setFilter("Montage","all")),X(`head_serie_${s}`,`list_serie_${s}`,this.currentSerie,"Serie",()=>this.setFilter("Serie","all"))
+const l=document.getElementById(`input_search_${s}`)
+l&&l.addEventListener("input",()=>this.filterResults()),this.filterResults()},setFilter:function(r,e){this[`current${r}`]=e,this.renderSidebar()},bindFilters:function(){},filterResults:function(){var i
+const r=document.getElementById(`searchResults_${s}`),e=document.getElementById(`resultCount_${s}`),t=(((i=document.getElementById(`input_search_${s}`))==null?void 0:i.value)||"").toLowerCase()
+if(!r)return
+let n=this.trays
+if(this.currentHersteller!=="all"&&(n=n.filter(a=>a.manufacturer===this.currentHersteller)),this.currentSerie!=="all"&&(n=n.filter(a=>this.extractSerie(a)===this.currentSerie)),this.currentMontage!=="all"&&(n=n.filter(a=>this.extractMontage(a)===this.currentMontage)),t&&(n=n.filter(a=>(a.label||"").toLowerCase().includes(t)||(a.artNr||"").toLowerCase().includes(t))),e.textContent=n.length,n.length===0){r.innerHTML='<div style="padding:2rem  text-align:center  color:var(--text-secondary) ">Keine Produkte gefunden. Bitte passen Sie die Filter an.</div>'
+return}r.innerHTML=n.map(a=>{const l=this.selectedTray&&this.selectedTray.id===a.id,o=a.imgUrl?`<img src="${a.imgUrl}" style="max-width:100%
+ max-height:100%
+ object-fit:contain
+">`:'<div style="font-size:10px  color:#bbb ">No Image</div>'
+return`
+                    <div class="result-item-btn ${l?"active":""}" data-tid="${a.id}" style="display:flex
+ align-items:center
+ gap:0.6rem
+ padding:0.5rem
+ margin-bottom:5px
+ border-radius:8px
+ min-height:54px
+ overflow:hidden
+ border:1px solid var(--border)
+">
+                        <div style="width:38px
+ height:38px
+ background:#fff
+ border-radius:5px
+ flex-shrink:0
+ padding:2px
+ display:flex
+ align-items:center
+ justify-content:center
+ border:1px solid var(--border)
+">
+                           ${o}
                         </div>
-                        <div class="result-info" style="flex:1; text-align:left; min-width:0; line-height:1.2;">
-                            <strong style="display:block; font-size:0.85rem; margin-bottom:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-primary);">${this.extractSerie(t)}</strong>
-                            <div class="result-meta" style="font-size:0.7rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                <span style="font-weight:600; color:var(--accent);">${t.artNr}</span> <span style="opacity:0.5; margin:0 2px;">|</span> ${this.extractMontage(t)}
+                        <div class="result-info" style="flex:1
+ text-align:left
+ min-width:0
+ line-height:1.2
+">
+                            <strong style="display:block
+ font-size:0.85rem
+ margin-bottom:1px
+ white-space:nowrap
+ overflow:hidden
+ text-overflow:ellipsis
+ color:var(--text-primary)
+">${this.extractSerie(a)}</strong>
+                            <div class="result-meta" style="font-size:0.7rem
+ color:var(--text-secondary)
+ white-space:nowrap
+ overflow:hidden
+ text-overflow:ellipsis
+">
+                                <span style="font-weight:600
+ color:var(--accent)
+">${a.artNr}</span> <span style="opacity:0.5
+ margin:0 2px
+">|</span> ${this.extractMontage(a)}
                             </div>
                         </div>
-                        <i class="ri-checkbox-circle-fill" style="color:var(--accent); font-size:1.1rem; flex-shrink:0; ${isSel?'':'display:none;'}"></i>
+                        <i class="ri-checkbox-circle-fill" style="color:var(--accent)
+ font-size:1.1rem
+ flex-shrink:0
+ ${l?"":"display:none "}"></i>
                     </div>
-                `;
-            }).join('');
-            
-            container.querySelectorAll('.result-item-btn').forEach(el => {
-                el.addEventListener('click', () => {
-                    this.selectItem(el.dataset.tid);
-                });
-            });
-        },
-
-        selectItem: function(id) {
-            this.selectedTray = this.trays.find(t => t.id === id);
-            this.mischerOptionsState = {}; 
-            
-            // Auto-select first accessory from each group
-            if (this.selectedTray && this.selectedTray.mountingMaterials) {
-                this.selectedTray.mountingMaterials.forEach((mat, mIdx) => {
-                    if (mat.options && mat.options.length > 0) {
-                        this.mischerOptionsState[mIdx] = 0; // Pre-select first option
-                    }
-                });
-            }
-
-            this.filterResults();
-            this.renderConfigurator();
-            this.updateBOM();
-        },
-
-        isMatVisible: function(mat, mIdx) {
-            if (!this.selectedTray || !this.selectedTray.mountingMaterials) return true;
-            
-            const matName = (mat.name || '').toLowerCase();
-            
-            // Logic for Duschengleitstange
-            if (matName.includes('duschengleitstange')) {
-                // Find Brausehalter
-                const bhIdx = this.selectedTray.mountingMaterials.findIndex(m => (m.name || '').toLowerCase().includes('brausehalter'));
-                if (bhIdx >= 0) {
-                    const selectedBhIdx = this.mischerOptionsState[bhIdx];
-                    if (selectedBhIdx !== undefined) {
-                        const opt = this.selectedTray.mountingMaterials[bhIdx].options[selectedBhIdx];
-                        if (opt && opt.label && opt.label.toLowerCase().startsWith('ohne')) {
-                            return true; // Show Duschengleitstange
-                        } else {
-                            return false; // Hide Duschengleitstange if Brausehalter is NOT "ohne"
-                        }
-                    }
-                }
-            }
-            return true;
-        },
-
-        renderConfigurator: function () {
-            const conf = document.getElementById(`trayConfigurator_${suffix}`);
-            const inner = document.getElementById(`trayConfiguratorInner_${suffix}`);
-            
-            if (!this.selectedTray) {
-                if(conf) conf.style.display = 'none';
-                return;
-            }
-            if(conf) conf.style.display = 'block';
-            if(!inner) return;
-            inner.innerHTML = '';
-            
-            const materials = this.selectedTray.mountingMaterials || [];
-            if (materials.length === 0) {
-                inner.innerHTML = '<p class="section-desc">Kein spezifisches Zubehör verfügbar.</p>';
-                return;
-            }
-
-            materials.forEach((mat, mIdx) => {
-                if (!this.isMatVisible(mat, mIdx)) return;
-                
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'filter-group';
-                groupDiv.style.marginBottom = '1.25rem';
-                
-                const selectedIdx = this.mischerOptionsState[mIdx];
-                const selectedOpt = (selectedIdx !== undefined) ? mat.options[selectedIdx] : null;
-                const thumbUrl = selectedOpt?.imgUrl || '';
-                
-                const hasMultiple = mat.options.length > 1;
-                
-                groupDiv.innerHTML = `
-                    <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">${mat.name || 'Zubehör'}</label>
-                    <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <div style="width:40px; height:40px; background:#fff; border-radius:4px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; padding:2px; flex-shrink:0;">
-                            ${thumbUrl ? `<img src="${thumbUrl}" style="max-width:100%; max-height:100%; object-fit:contain;">` : '<i class="ri-image-line" style="color:#ddd;"></i>'}
+                `}).join(""),r.querySelectorAll(".result-item-btn").forEach(a=>{a.addEventListener("click",()=>{this.selectItem(a.dataset.tid)})})},selectItem:function(r){this.selectedTray=this.trays.find(e=>e.id===r),this.mischerOptionsState={},this.selectedTray&&this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((e,t)=>{e.options&&e.options.length>0&&(this.mischerOptionsState[t]=0)}),this.filterResults(),this.renderConfigurator(),this.updateBOM()},isMatVisible:function(r,e){if(!this.selectedTray||!this.selectedTray.mountingMaterials)return!0
+if((r.name||"").toLowerCase().includes("duschengleitstange")){const n=this.selectedTray.mountingMaterials.findIndex(i=>(i.name||"").toLowerCase().includes("brausehalter"))
+if(n>=0){const i=this.mischerOptionsState[n]
+if(i!==void 0){const a=this.selectedTray.mountingMaterials[n].options[i]
+return!!(a&&a.label&&a.label.toLowerCase().startsWith("ohne"))}}}return!0},renderConfigurator:function(){const r=document.getElementById(`trayConfigurator_${s}`),e=document.getElementById(`trayConfiguratorInner_${s}`)
+if(!this.selectedTray){r&&(r.style.display="none")
+return}if(r&&(r.style.display="block"),!e)return
+e.innerHTML=""
+const t=this.selectedTray.mountingMaterials||[]
+if(t.length===0){e.innerHTML='<p class="section-desc">Kein spezifisches Zubehör verfügbar.</p>'
+return}t.forEach((n,i)=>{if(!this.isMatVisible(n,i))return
+const a=document.createElement("div")
+a.className="filter-group",a.style.marginBottom="1.25rem"
+const l=this.mischerOptionsState[i],o=l!==void 0?n.options[l]:null,y=(o==null?void 0:o.imgUrl)||"",M=n.options.length>1
+a.innerHTML=`
+                    <label style="display:block
+ margin-bottom:0.4rem
+ font-size:0.85rem
+ color:var(--text-secondary)
+ text-transform:uppercase
+ letter-spacing:0.5px
+">${n.name||"Zubehör"}</label>
+                    <div style="display:flex
+ align-items:center
+ gap:0.75rem
+">
+                        <div style="width:40px
+ height:40px
+ background:#fff
+ border-radius:4px
+ border:1px solid var(--border)
+ display:flex
+ align-items:center
+ justify-content:center
+ padding:2px
+ flex-shrink:0
+">
+                            ${y?`<img src="${y}" style="max-width:100%
+ max-height:100%
+ object-fit:contain
+">`:'<i class="ri-image-line" style="color:#ddd "></i>'}
                         </div>
-                        <div style="flex:1; position:relative;">
-                            <select class="filter-select mischer-acc-select" data-midx="${mIdx}" style="width:100%; padding-right:2rem; ${!hasMultiple ? 'pointer-events:none; background-image:none !important;' : ''}">
-                                ${mat.options.map((opt, oIdx) => `
-                                    <option value="${oIdx}" ${selectedIdx == oIdx ? 'selected' : ''}>${opt.label} (${opt.artNr})</option>
-                                `).join('')}
+                        <div style="flex:1
+ position:relative
+">
+                            <select class="filter-select mischer-acc-select" data-midx="${i}" style="width:100%
+ padding-right:2rem
+ ${M?"":"pointer-events:none  background-image:none !important "}">
+                                ${n.options.map((v,S)=>`
+                                    <option value="${S}" ${l==S?"selected":""}>${v.label} (${v.artNr})</option>
+                                `).join("")}
                             </select>
-                            ${hasMultiple ? `<i class="ri-arrow-down-s-line" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--text-secondary); font-size:1.2rem;"></i>` : ''}
+                            ${M?'<i class="ri-arrow-down-s-line" style="position:absolute  right:10px  top:50%  transform:translateY(-50%)  pointer-events:none  color:var(--text-secondary)  font-size:1.2rem "></i>':""}
                         </div>
                     </div>
-                `;
-                inner.appendChild(groupDiv);
-            });
-            
-            inner.querySelectorAll('.mischer-acc-select').forEach(sel => {
-                sel.addEventListener('change', (e) => {
-                    const mIdx = parseInt(sel.dataset.midx);
-                    const oIdx = parseInt(sel.value);
-                    this.mischerOptionsState[mIdx] = oIdx;
-                    this.renderConfigurator();
-                    this.updateBOM();
-                });
-            });
-        },
-
-        updateBOM: function () {
-            const bomTableBody = document.getElementById('bomTableBody');
-            const bomCount = document.getElementById('bomCount');
-            if(!bomTableBody) return;
-            bomTableBody.innerHTML = '';
-            
-            if (!this.selectedTray) {
-                if(bomCount) bomCount.textContent = '0 Artikel';
-                return;
-            }
-            
-            let total = 1;
-            bomTableBody.innerHTML += `
+                `,e.appendChild(a)}),e.querySelectorAll(".mischer-acc-select").forEach(n=>{n.addEventListener("change",i=>{const a=parseInt(n.dataset.midx),l=parseInt(n.value)
+this.mischerOptionsState[a]=l,this.renderConfigurator(),this.updateBOM()})})},updateBOM:function(){const r=document.getElementById("bomTableBody"),e=document.getElementById("bomCount")
+if(!r)return
+if(r.innerHTML="",!this.selectedTray){e&&(e.textContent="0 Artikel")
+return}let t=1
+r.innerHTML+=`
                 <tr class="bom-main-item">
-                    <td><div class="img-cell"><img src="${this.selectedTray.imgUrl || ''}"></div></td>
+                    <td><div class="img-cell"><img src="${this.selectedTray.imgUrl||""}"></div></td>
                     <td><span class="bom-code">${this.selectedTray.artNr}</span></td>
                     <td><div class="bom-desc">${this.selectedTray.label}</div></td>
                     <td><span class="bom-type">Hauptprodukt</span></td>
                     <td><strong>1</strong></td>
                 </tr>
-            `;
-
-            if (this.selectedTray.mountingMaterials) {
-                this.selectedTray.mountingMaterials.forEach((mat, mIdx) => {
-                    if (!this.isMatVisible(mat, mIdx)) return;
-
-                    const oIdx = this.mischerOptionsState[mIdx];
-                    if (oIdx !== undefined) {
-                        const opt = mat.options[oIdx];
-                        if (opt && !opt.label.toLowerCase().startsWith('ohne')) {
-                            const menge = opt.menge || 1;
-                            total += menge;
-                            bomTableBody.innerHTML += `
+            `,this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((n,i)=>{if(!this.isMatVisible(n,i))return
+const a=this.mischerOptionsState[i]
+if(a!==void 0){const l=n.options[a]
+if(l&&!l.label.toLowerCase().startsWith("ohne")){const o=l.menge||1
+t+=o,r.innerHTML+=`
                                 <tr>
-                                    <td><div class="img-cell"><img src="${opt.imgUrl || ''}"></div></td>
-                                    <td><span class="bom-code">${opt.artNr}</span></td>
-                                    <td><div class="bom-desc">${opt.label}</div></td>
-                                    <td><span class="bom-type">${mat.name || 'Zubehör'}</span></td>
-                                    <td><strong>${menge}</strong></td>
+                                    <td><div class="img-cell"><img src="${l.imgUrl||""}"></div></td>
+                                    <td><span class="bom-code">${l.artNr}</span></td>
+                                    <td><div class="bom-desc">${l.label}</div></td>
+                                    <td><span class="bom-type">${n.name||"Zubehör"}</span></td>
+                                    <td><strong>${o}</strong></td>
                                 </tr>
-                            `;
-                        }
-                    }
-                });
-            }
-            
-            if(bomCount) bomCount.textContent = `${total} Artikel gewählt`;
-        },
-
-        clearBOM: function() {
-            this.mischerOptionsState = {};
-            this.updateBOM();
-        },
-
-        copyToClipboard: function () {
-            if (!this.selectedTray) return;
-            let list = [`${this.selectedTray.artNr}\t1`];
-            if (this.selectedTray.mountingMaterials) {
-                this.selectedTray.mountingMaterials.forEach((mat, mIdx) => {
-                    if (!this.isMatVisible(mat, mIdx)) return;
-
-                    const oIdx = this.mischerOptionsState[mIdx];
-                    if (oIdx !== undefined) {
-                        const opt = mat.options[oIdx];
-                        if (opt && !opt.label.toLowerCase().startsWith('ohne')) {
-                            list.push(`${opt.artNr}\t${opt.menge || 1}`);
-                        }
-                    }
-                });
-            }
-            navigator.clipboard.writeText(list.join('\n')).then(() => alert('Stückliste kopiert!'));
-        }
-    };
+                            `}}}),e&&(e.textContent=`${t} Artikel gewählt`)},clearBOM:function(){this.mischerOptionsState={},this.updateBOM()},copyToClipboard:function(){if(!this.selectedTray)return
+let r=[`${this.selectedTray.artNr}	1`]
+this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((e,t)=>{if(!this.isMatVisible(e,t))return
+const n=this.mischerOptionsState[t]
+if(n!==void 0){const i=e.options[n]
+i&&!i.label.toLowerCase().startsWith("ohne")&&r.push(`${i.artNr}	${i.menge||1}`)}}),navigator.clipboard.writeText(r.join(`
+`)).then(()=>alert("Stückliste kopiert!"))}}}
+    return ut(title, desc, mainImgUrl, config);
 }
 
 export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
-    const isBath = config.isBath || false;
-    const suffix = title.replace(/\s/g,'');
-
-    return {
-        trays: [],
-        mainImgUrl: mainImgUrl,
-        selectedTray: null,
-        mischerOptionsState: {},
-
-	        currentHersteller: 'all',
-	        currentMontage: 'all',
-	        currentSerie: 'all',
-
-        init: function () {
-            this.selectedTray = null;
-            this.mischerOptionsState = {};
-            this.currentHersteller = 'all';
-            this.currentMontage = 'all';
-            this.currentSerie = 'all';
-            
-            this.renderSidebar();
-            this.bindFilters();
-            this.filterResults();
-            this.clearBOM();
-        },
-
-	        normalizeBademischerSerie: function (value, manufacturer = '') {
-	            let serie = String(value || '').toLowerCase().trim();
-	            const brand = String(manufacturer || '').toLowerCase();
-
-	            serie = serie
-	                .replace(/^[-\s/]+/, '')
-	                .replace(/^-?\s*endmontageset\b/, '')
-	                .replace(/^-?\s*fertigmontageset\b/, '')
-	                .replace(/^[-\s/]+/, '');
-
-	            if (brand && serie.startsWith(brand)) {
-	                serie = serie.slice(brand.length).trim();
-	            }
-	            if (brand) {
-	                serie = serie.replace(new RegExp(`\\b${brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'), '').trim();
-	            }
-
-	            serie = serie
-	                .replace(/^[-\s/]+/, '')
-	                .replace(/\babdeckplatte\b.*$/i, '')
-	                .replace(/\bdurchflussleistung\b.*$/i, '')
-	                .replace(/\bohne einbaukörper\b.*$/i, '')
-	                .replace(/\benergieeffizienzklasse\b.*$/i, '')
-	                .replace(/\bgeräuschgruppe\b.*$/i, '')
-	                .replace(/\barmhebel\b.*$/i, '')
-	                .replace(/\bselbstschliessend\b.*$/i, '')
-	                .replace(/\btemperaturgriff\b.*$/i, '')
-	                .replace(/^thermostat\s+/i, '')
-	                .replace(/\s+½[\"”]?\s+thermostat\b.*$/i, '')
-	                .replace(/\s+thermostat\b.*$/i, '')
-	                .replace(/\bmit sicherheitstaste\b.*$/i, '')
-	                .replace(/\b1-weg\b.*$/i, '')
-	                .replace(/\s+½[\"”]?$/i, '')
-	                .replace(/\bav\.0\b/g, 'ava 2.0')
-	                .replace(/\bvit\.0\b/g, 'vita 2.0')
-	                .replace(/\s*,\s*$/g, '')
-	                .replace(/\s+/g, ' ')
-	                .trim();
-
-	            if (!serie) return 'Andere';
-
-	            return serie.split(' ').map(w => {
-	                if (/^kwc$/i.test(w)) return 'KWC';
-	                if (/^\d/.test(w)) return w;
-	                return w.charAt(0).toUpperCase() + w.slice(1);
-	            }).join(' ');
-	        },
-
-	        extractSerie: function (t) {
-	            if (t.serie) {
-	                return this.normalizeBademischerSerie(t.serie, t.manufacturer);
-	            }
-
-            // Product-type prefixes to strip from labels
-            const typePrefixes = [
-                'aufputz-duschenmischer', 'unterputz-duschenmischer',
-                'duschenmischer', 'duschmischer',
-                'aufputz-bademischer', 'unterputz-bademischer',
-                'bademischer', 'waschtischmischer',
-                'thermostatmischer', 'thermostat-duschenmischer',
-                'einhebelmischer', 'einlochmischer', 'mischer'
-            ];
-
-            let cleaned = (t.label || '').toLowerCase();
-
-            // 1. Strip manufacturer name from the start
-            if (t.manufacturer) {
-                const mLower = t.manufacturer.toLowerCase();
-                if (cleaned.startsWith(mLower)) {
-                    cleaned = cleaned.slice(mLower.length).trim();
-                }
-            }
-
-            // 2. Strip product-type prefix
-            for (const prefix of typePrefixes) {
-                if (cleaned.startsWith(prefix)) {
-                    cleaned = cleaned.slice(prefix.length).trim();
-                    break;
-                }
-            }
-
-            // 3. Remove "endmontageset" specifically (often follows a hyphen)
-            cleaned = cleaned.replace(/-?endmontageset/g, '').trim();
-            cleaned = cleaned.replace(/-?fertigmontageset/g, '').trim();
-
-            // 4. Strip manufacturer name AGAIN (in case it was after the prefix)
-            if (t.manufacturer) {
-                const mLower = t.manufacturer.toLowerCase();
-                if (cleaned.startsWith(mLower)) {
-                    cleaned = cleaned.slice(mLower.length).trim();
-                }
-            }
-
-            // Take only the part before a size, comma, bracket or number
-            const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/);
-	            let serie = match && match[1] ? match[1].trim() : cleaned.trim();
-
-	            return this.normalizeBademischerSerie(serie, t.manufacturer);
-
-	            // Title-case
-	            serie = serie.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-
-            return serie || 'Andere';
-        },
-
-        extractMontage: function (t) {
-            const label = (t.label || '').toLowerCase();
-
-            // --- Bademischer specific (Standmodell priority) ---
-            if (isBath && (label.includes('standmodell') || label.includes('freistehend'))) return 'Standmodell';
-
-            // --- Unterputz detection ---
-            if (
-                label.includes('unterputz') ||
-                label.includes(' up ') ||
-                label.includes('einbau') ||
-                label.includes('endmontageset') ||
-                label.includes('grundkörper') ||
-                label.includes('grundkoerper')
-            ) return 'Unterputz';
-
-            // --- Aufputz detection ---
-            if (
-                label.includes('aufputz') ||
-                label.includes(' ap ') ||
-                label.includes('wandbatterie') ||
-                label.includes('wandmischer') ||
-                label.includes('ad 153 mm') ||
-                label.includes('aufputz-duschenmischer') ||
-                label.includes('thermostat-duschenmischer')
-            ) return 'Aufputz';
-
-            return 'Aufputz';
-        },
-
-        getUniqueValues: function (key, filteredTrays) {
-            const src = filteredTrays || this.trays;
-            if (key === 'hersteller') {
-                const list = this.trays.map(t => t.manufacturer || 'Andere');
-                return [...new Set(list)].filter(Boolean).sort();
-            }
-            if (key === 'montage') return [...new Set(src.map(t => this.extractMontage(t)))].sort();
-            if (key === 'serie') return [...new Set(src.map(t => this.extractSerie(t)))].sort();
-            return [];
-        },
-
-        renderSidebar: function () {
-            const configSidebar = document.getElementById('configSidebar');
-            if(!configSidebar) return;
-            
-            // Get filtered sets for dependent UI
-            const traysForMontage = this.currentHersteller === 'all' 
-                ? this.trays 
-                : this.trays.filter(t => t.manufacturer === this.currentHersteller);
-            
-            const traysForSerie = traysForMontage.filter(t => {
-                if (this.currentMontage === 'all') return true;
-                return this.extractMontage(t) === this.currentMontage;
-            });
-
-            const herstellers = this.getUniqueValues('hersteller');
-            const series = this.getUniqueValues('serie', traysForSerie);
-            const montages = this.getUniqueValues('montage', traysForMontage);
-
-            configSidebar.innerHTML = `
+    function gt(B,F,R,N={}){const m=N.isBath||!1,s=B.replace(/\s/g,"")
+return{trays:[],mainImgUrl:R,selectedTray:null,mischerOptionsState:{},currentHersteller:"all",currentMontage:"all",currentSerie:"all",init:function(){this.selectedTray=null,this.mischerOptionsState={},this.currentHersteller="all",this.currentMontage="all",this.currentSerie="all",this.renderSidebar(),this.bindFilters(),this.filterResults(),this.clearBOM()},normalizeBademischerSerie:function(r,e=""){let t=String(r||"").toLowerCase().trim()
+const n=String(e||"").toLowerCase()
+return t=t.replace(/^[-\s/]+/,"").replace(/^-?\s*endmontageset\b/,"").replace(/^-?\s*fertigmontageset\b/,"").replace(/^[-\s/]+/,""),n&&t.startsWith(n)&&(t=t.slice(n.length).trim()),n&&(t=t.replace(new RegExp(`\\b${n.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}\\b`,"gi"),"").trim()),t=t.replace(/^[-\s/]+/,"").replace(/\babdeckplatte\b.*$/i,"").replace(/\bdurchflussleistung\b.*$/i,"").replace(/\bohne einbaukörper\b.*$/i,"").replace(/\benergieeffizienzklasse\b.*$/i,"").replace(/\bgeräuschgruppe\b.*$/i,"").replace(/\barmhebel\b.*$/i,"").replace(/\bselbstschliessend\b.*$/i,"").replace(/\btemperaturgriff\b.*$/i,"").replace(/^thermostat\s+/i,"").replace(/\s+½[\"”]?\s+thermostat\b.*$/i,"").replace(/\s+thermostat\b.*$/i,"").replace(/\bmit sicherheitstaste\b.*$/i,"").replace(/\b1-weg\b.*$/i,"").replace(/\s+½[\"”]?$/i,"").replace(/\bav\.0\b/g,"ava 2.0").replace(/\bvit\.0\b/g,"vita 2.0").replace(/\s*,\s*$/g,"").replace(/\s+/g," ").trim(),t?t.split(" ").map(i=>/^kwc$/i.test(i)?"KWC":/^\d/.test(i)?i:i.charAt(0).toUpperCase()+i.slice(1)).join(" "):"Andere"},extractSerie:function(r){if(r.serie)return this.normalizeBademischerSerie(r.serie,r.manufacturer)
+const e=["aufputz-duschenmischer","unterputz-duschenmischer","duschenmischer","duschmischer","aufputz-bademischer","unterputz-bademischer","bademischer","waschtischmischer","thermostatmischer","thermostat-duschenmischer","einhebelmischer","einlochmischer","mischer"]
+let t=(r.label||"").toLowerCase()
+if(r.manufacturer){const a=r.manufacturer.toLowerCase()
+t.startsWith(a)&&(t=t.slice(a.length).trim())}for(const a of e)if(t.startsWith(a)){t=t.slice(a.length).trim()
+break}if(t=t.replace(/-?endmontageset/g,"").trim(),t=t.replace(/-?fertigmontageset/g,"").trim(),r.manufacturer){const a=r.manufacturer.toLowerCase()
+t.startsWith(a)&&(t=t.slice(a.length).trim())}const n=t.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/)
+let i=n&&n[1]?n[1].trim():t.trim()
+return this.normalizeBademischerSerie(i,r.manufacturer)},extractMontage:function(r){const e=(r.label||"").toLowerCase()
+return m&&(e.includes("standmodell")||e.includes("freistehend"))?"Standmodell":e.includes("unterputz")||e.includes(" up ")||e.includes("einbau")||e.includes("endmontageset")||e.includes("grundkörper")||e.includes("grundkoerper")?"Unterputz":(e.includes("aufputz")||e.includes(" ap ")||e.includes("wandbatterie")||e.includes("wandmischer")||e.includes("ad 153 mm")||e.includes("aufputz-duschenmischer")||e.includes("thermostat-duschenmischer"),"Aufputz")},getUniqueValues:function(r,e){const t=e||this.trays
+if(r==="hersteller"){const n=this.trays.map(i=>i.manufacturer||"Andere")
+return[...new Set(n)].filter(Boolean).sort()}return r==="montage"?[...new Set(t.map(n=>this.extractMontage(n)))].sort():r==="serie"?[...new Set(t.map(n=>this.extractSerie(n)))].sort():[]},renderSidebar:function(){const r=document.getElementById("configSidebar")
+if(!r)return
+const e=this.currentHersteller==="all"?this.trays:this.trays.filter(o=>o.manufacturer===this.currentHersteller),t=e.filter(o=>this.currentMontage==="all"?!0:this.extractMontage(o)===this.currentMontage),n=this.getUniqueValues("hersteller"),i=this.getUniqueValues("serie",t),a=this.getUniqueValues("montage",e)
+r.innerHTML=`
                 <div class="sidebar-section">
-                    <h2 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="ri-filter-3-line" style="color: var(--accent);"></i> Filter
+                    <h2 style="margin-bottom: 1.5rem
+ display: flex
+ align-items: center
+ gap: 0.5rem
+">
+                        <i class="ri-filter-3-line" style="color: var(--accent)
+"></i> Filter
                     </h2>
 
                     <div class="filter-group">
-                        <label id="head_hersteller_${suffix}" class="filter-label">Hersteller</label>
-                        <div class="pill-group" id="list_hersteller_${suffix}">
-                            <button class="pill-btn ${this.currentHersteller === 'all' ? 'active' : ''}" data-key="Hersteller" data-val="all">Alle</button>
-                            ${herstellers.map(h => `<button class="pill-btn ${this.currentHersteller === h ? 'active' : ''}" data-key="Hersteller" data-val="${h}">${h}</button>`).join('')}
+                        <label id="head_hersteller_${s}" class="filter-label">Hersteller</label>
+                        <div class="pill-group" id="list_hersteller_${s}">
+                            <button class="pill-btn ${this.currentHersteller==="all"?"active":""}" data-key="Hersteller" data-val="all">Alle</button>
+                            ${n.map(o=>`<button class="pill-btn ${this.currentHersteller===o?"active":""}" data-key="Hersteller" data-val="${o}">${o}</button>`).join("")}
                         </div>
                     </div>
 
                     <div class="filter-group">
-                        <label id="head_montage_${suffix}" class="filter-label">Montageart</label>
-                        <div class="pill-group" id="list_montage_${suffix}">
-                            <button class="pill-btn ${this.currentMontage === 'all' ? 'active' : ''}" data-key="Montage" data-val="all">Alle</button>
-                            ${montages.map(m => `<button class="pill-btn ${this.currentMontage === m ? 'active' : ''}" data-key="Montage" data-val="${m}">${m}</button>`).join('')}
+                        <label id="head_montage_${s}" class="filter-label">Montageart</label>
+                        <div class="pill-group" id="list_montage_${s}">
+                            <button class="pill-btn ${this.currentMontage==="all"?"active":""}" data-key="Montage" data-val="all">Alle</button>
+                            ${a.map(o=>`<button class="pill-btn ${this.currentMontage===o?"active":""}" data-key="Montage" data-val="${o}">${o}</button>`).join("")}
                         </div>
                     </div>
 
                     <div class="filter-group">
-                        <label id="head_serie_${suffix}" class="filter-label">Serie</label>
-                        <div class="pill-group" id="list_serie_${suffix}">
-                            <button class="pill-btn ${this.currentSerie === 'all' ? 'active' : ''}" data-key="Serie" data-val="all">Alle</button>
-                            ${series.map(s => `<button class="pill-btn ${this.currentSerie === s ? 'active' : ''}" data-key="Serie" data-val="${s}">${s}</button>`).join('')}
+                        <label id="head_serie_${s}" class="filter-label">Serie</label>
+                        <div class="pill-group" id="list_serie_${s}">
+                            <button class="pill-btn ${this.currentSerie==="all"?"active":""}" data-key="Serie" data-val="all">Alle</button>
+                            ${i.map(o=>`<button class="pill-btn ${this.currentSerie===o?"active":""}" data-key="Serie" data-val="${o}">${o}</button>`).join("")}
                         </div>
                     </div>
 
-                    <div class="filter-group" style="margin-top:1.5rem; padding-top:1.5rem; border-top: 1px solid var(--border);">
+                    <div class="filter-group" style="margin-top:1.5rem
+ padding-top:1.5rem
+ border-top: 1px solid var(--border)
+">
                         <label class="filter-label">Suche</label>
-                        <input type="text" id="input_search_${suffix}" class="filter-select" placeholder="Art.Nr. oder Name...">
+                        <input type="text" id="input_search_${s}" class="filter-select" placeholder="Art.Nr. oder Name...">
                     </div>
                 </div>
                 
                 <div class="sidebar-section">
-                    <h2>Suchergebnisse <span id="resultCount_${suffix}" class="badge">0</span></h2>
-                    <div class="search-results-container" id="searchResults_${suffix}"></div>
+                    <h2>Suchergebnisse <span id="resultCount_${s}" class="badge">0</span></h2>
+                    <div class="search-results-container" id="searchResults_${s}"></div>
                 </div>
 
-                <div class="sidebar-section" id="trayConfigurator_${suffix}" style="display:none; margin-top:2rem;">
+                <div class="sidebar-section" id="trayConfigurator_${s}" style="display:none
+ margin-top:2rem
+">
                     <h2>Konfiguration</h2>
                     <p class="section-desc">Bestimmen Sie das benötigte Zubehör.</p>
-                    <div id="trayConfiguratorInner_${suffix}"></div>
+                    <div id="trayConfiguratorInner_${s}"></div>
                 </div>
-            `;
-
-            // Bind pill buttons via addEventListener
-            configSidebar.querySelectorAll('.pill-btn[data-key]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    this.setFilter(btn.dataset.key, btn.dataset.val);
-                });
-            });
-
-            // Apply Smart Collapse
-            applyPillUI(`head_hersteller_${suffix}`, `list_hersteller_${suffix}`, this.currentHersteller, 'Hersteller', () => this.setFilter('Hersteller', 'all'));
-            applyPillUI(`head_montage_${suffix}`, `list_montage_${suffix}`, this.currentMontage, 'Montageart', () => this.setFilter('Montage', 'all'));
-            applyPillUI(`head_serie_${suffix}`, `list_serie_${suffix}`, this.currentSerie, 'Serie', () => this.setFilter('Serie', 'all'));
-
-            const searchInput = document.getElementById(`input_search_${suffix}`);
-            if (searchInput) {
-                searchInput.addEventListener('input', () => this.filterResults());
-            }
-            this.filterResults();
-        },
-
-        setFilter: function (key, val) {
-            this[`current${key}`] = val;
-            this.renderSidebar();
-        },
-
-        bindFilters: function () {
-            // Deprecated - Handled by inline onclicks in Pill UI
-        },
-
-        filterResults: function () {
-            const container = document.getElementById(`searchResults_${suffix}`);
-            const countSpan = document.getElementById(`resultCount_${suffix}`);
-            const search = (document.getElementById(`input_search_${suffix}`)?.value || '').toLowerCase();
-            if (!container) return;
-
-            let results = this.trays;
-
-            if (this.currentHersteller !== 'all') {
-                results = results.filter(t => t.manufacturer === this.currentHersteller);
-            }
-            if (this.currentSerie !== 'all') {
-                results = results.filter(t => this.extractSerie(t) === this.currentSerie);
-            }
-            if (this.currentMontage !== 'all') {
-                results = results.filter(t => this.extractMontage(t) === this.currentMontage);
-            }
-            if (search) {
-                results = results.filter(t => (t.label || '').toLowerCase().includes(search) || (t.artNr || '').toLowerCase().includes(search));
-            }
-
-            countSpan.textContent = results.length;
-
-            if (results.length === 0) {
-                container.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--text-secondary);">Keine Produkte gefunden. Bitte passen Sie die Filter an.</div>';
-                return;
-            }
-
-            container.innerHTML = results.map(t => {
-                const isSel = this.selectedTray && this.selectedTray.id === t.id;
-                const imgStr = t.imgUrl ? `<img src="${t.imgUrl}" style="max-width:100%; max-height:100%; object-fit:contain;">` : `<div style="font-size:10px; color:#bbb;">No Image</div>`;
-                
-                return `
-                    <div class="result-item-btn ${isSel ? 'active' : ''}" data-tid="${t.id}" style="display:flex; align-items:center; gap:0.6rem; padding:0.5rem; margin-bottom:5px; border-radius:8px; min-height:54px; overflow:hidden; border:1px solid var(--border);">
-                        <div style="width:38px; height:38px; background:#fff; border-radius:5px; flex-shrink:0; padding:2px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border);">
-                           ${imgStr}
+            `,r.querySelectorAll(".pill-btn[data-key]").forEach(o=>{o.addEventListener("click",()=>{this.setFilter(o.dataset.key,o.dataset.val)})}),X(`head_hersteller_${s}`,`list_hersteller_${s}`,this.currentHersteller,"Hersteller",()=>this.setFilter("Hersteller","all")),X(`head_montage_${s}`,`list_montage_${s}`,this.currentMontage,"Montageart",()=>this.setFilter("Montage","all")),X(`head_serie_${s}`,`list_serie_${s}`,this.currentSerie,"Serie",()=>this.setFilter("Serie","all"))
+const l=document.getElementById(`input_search_${s}`)
+l&&l.addEventListener("input",()=>this.filterResults()),this.filterResults()},setFilter:function(r,e){this[`current${r}`]=e,this.renderSidebar()},bindFilters:function(){},filterResults:function(){var i
+const r=document.getElementById(`searchResults_${s}`),e=document.getElementById(`resultCount_${s}`),t=(((i=document.getElementById(`input_search_${s}`))==null?void 0:i.value)||"").toLowerCase()
+if(!r)return
+let n=this.trays
+if(this.currentHersteller!=="all"&&(n=n.filter(a=>a.manufacturer===this.currentHersteller)),this.currentSerie!=="all"&&(n=n.filter(a=>this.extractSerie(a)===this.currentSerie)),this.currentMontage!=="all"&&(n=n.filter(a=>this.extractMontage(a)===this.currentMontage)),t&&(n=n.filter(a=>(a.label||"").toLowerCase().includes(t)||(a.artNr||"").toLowerCase().includes(t))),e.textContent=n.length,n.length===0){r.innerHTML='<div style="padding:2rem  text-align:center  color:var(--text-secondary) ">Keine Produkte gefunden. Bitte passen Sie die Filter an.</div>'
+return}r.innerHTML=n.map(a=>{const l=this.selectedTray&&this.selectedTray.id===a.id,o=a.imgUrl?`<img src="${a.imgUrl}" style="max-width:100%
+ max-height:100%
+ object-fit:contain
+">`:'<div style="font-size:10px  color:#bbb ">No Image</div>'
+return`
+                    <div class="result-item-btn ${l?"active":""}" data-tid="${a.id}" style="display:flex
+ align-items:center
+ gap:0.6rem
+ padding:0.5rem
+ margin-bottom:5px
+ border-radius:8px
+ min-height:54px
+ overflow:hidden
+ border:1px solid var(--border)
+">
+                        <div style="width:38px
+ height:38px
+ background:#fff
+ border-radius:5px
+ flex-shrink:0
+ padding:2px
+ display:flex
+ align-items:center
+ justify-content:center
+ border:1px solid var(--border)
+">
+                           ${o}
                         </div>
-                        <div class="result-info" style="flex:1; text-align:left; min-width:0; line-height:1.2;">
-                            <strong style="display:block; font-size:0.85rem; margin-bottom:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-primary);">${this.extractSerie(t)}</strong>
-                            <div class="result-meta" style="font-size:0.7rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                <span style="font-weight:600; color:var(--accent);">${t.artNr}</span> <span style="opacity:0.5; margin:0 2px;">|</span> ${this.extractMontage(t)}
+                        <div class="result-info" style="flex:1
+ text-align:left
+ min-width:0
+ line-height:1.2
+">
+                            <strong style="display:block
+ font-size:0.85rem
+ margin-bottom:1px
+ white-space:nowrap
+ overflow:hidden
+ text-overflow:ellipsis
+ color:var(--text-primary)
+">${this.extractSerie(a)}</strong>
+                            <div class="result-meta" style="font-size:0.7rem
+ color:var(--text-secondary)
+ white-space:nowrap
+ overflow:hidden
+ text-overflow:ellipsis
+">
+                                <span style="font-weight:600
+ color:var(--accent)
+">${a.artNr}</span> <span style="opacity:0.5
+ margin:0 2px
+">|</span> ${this.extractMontage(a)}
                             </div>
                         </div>
-                        <i class="ri-checkbox-circle-fill" style="color:var(--accent); font-size:1.1rem; flex-shrink:0; ${isSel?'':'display:none;'}"></i>
+                        <i class="ri-checkbox-circle-fill" style="color:var(--accent)
+ font-size:1.1rem
+ flex-shrink:0
+ ${l?"":"display:none "}"></i>
                     </div>
-                `;
-            }).join('');
-            
-            container.querySelectorAll('.result-item-btn').forEach(el => {
-                el.addEventListener('click', () => {
-                    this.selectItem(el.dataset.tid);
-                });
-            });
-        },
-
-        selectItem: function(id) {
-            this.selectedTray = this.trays.find(t => t.id === id);
-            this.mischerOptionsState = {}; 
-            
-            // Auto-select first accessory from each group
-            if (this.selectedTray && this.selectedTray.mountingMaterials) {
-                this.selectedTray.mountingMaterials.forEach((mat, mIdx) => {
-                    if (mat.options && mat.options.length > 0) {
-                        this.mischerOptionsState[mIdx] = 0; // Pre-select first option
-                    }
-                });
-            }
-
-            this.filterResults();
-            this.renderConfigurator();
-            this.updateBOM();
-        },
-
-        isMatVisible: function(mat, mIdx) {
-            if (!this.selectedTray || !this.selectedTray.mountingMaterials) return true;
-            
-            const matName = (mat.name || '').toLowerCase();
-            
-            if (matName.includes('brausehalter')) {
-                // Hide if Duschgleitstange is NOT "ohne"
-                const gsIdx = this.selectedTray.mountingMaterials.findIndex(m => (m.name || '').toLowerCase().includes('duschgleitstange') || (m.name || '').toLowerCase().includes('gleitstange'));
-                if (gsIdx >= 0 && this.mischerOptionsState[gsIdx] !== undefined) {
-                    const opt = this.selectedTray.mountingMaterials[gsIdx].options[this.mischerOptionsState[gsIdx]];
-                    if (opt && !opt.label.toLowerCase().startsWith('ohne')) return false;
-                }
-                
-                // Hide if Anschlussbogen "mit Brausehalter" or "mit integriertem Brausehalter" or "bitte_waehlen"
-                const abIdx = this.selectedTray.mountingMaterials.findIndex(m => (m.name || '').toLowerCase().includes('anschlussbogen'));
-                if (abIdx >= 0 && this.mischerOptionsState[abIdx] !== undefined) {
-                    const opt = this.selectedTray.mountingMaterials[abIdx].options[this.mischerOptionsState[abIdx]];
-                    if (opt && opt.label.toLowerCase().includes('mit integriertem brausehalter')) return false;
-                    if (opt && opt.label.toLowerCase().includes('mit brausehalter')) return false;
-                    if (opt && opt.artNr === 'bitte_waehlen') return false;
-                }
-            }
-            return true;
-        },
-
-        renderConfigurator: function () {
-            const conf = document.getElementById(`trayConfigurator_${suffix}`);
-            const inner = document.getElementById(`trayConfiguratorInner_${suffix}`);
-            
-            if (!this.selectedTray) {
-                if(conf) conf.style.display = 'none';
-                return;
-            }
-            if(conf) conf.style.display = 'block';
-            if(!inner) return;
-            inner.innerHTML = '';
-            
-            const materials = this.selectedTray.mountingMaterials || [];
-            if (materials.length === 0) {
-                inner.innerHTML = '<p class="section-desc">Kein spezifisches Zubehör verfügbar.</p>';
-                return;
-            }
-
-            materials.forEach((mat, mIdx) => {
-                if (!this.isMatVisible(mat, mIdx)) return;
-                
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'filter-group';
-                groupDiv.style.marginBottom = '1.25rem';
-                
-                const selectedIdx = this.mischerOptionsState[mIdx];
-                const selectedOpt = (selectedIdx !== undefined) ? mat.options[selectedIdx] : null;
-                const thumbUrl = selectedOpt?.imgUrl || '';
-                
-                const hasMultiple = mat.options.length > 1;
-                
-                groupDiv.innerHTML = `
-                    <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">${mat.name || 'Zubehör'}</label>
-                    <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <div style="width:40px; height:40px; background:#fff; border-radius:4px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; padding:2px; flex-shrink:0;">
-                            ${thumbUrl ? `<img src="${thumbUrl}" style="max-width:100%; max-height:100%; object-fit:contain;">` : '<i class="ri-image-line" style="color:#ddd;"></i>'}
+                `}).join(""),r.querySelectorAll(".result-item-btn").forEach(a=>{a.addEventListener("click",()=>{this.selectItem(a.dataset.tid)})})},selectItem:function(r){this.selectedTray=this.trays.find(e=>e.id===r),this.mischerOptionsState={},this.selectedTray&&this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((e,t)=>{e.options&&e.options.length>0&&(this.mischerOptionsState[t]=0)}),this.filterResults(),this.renderConfigurator(),this.updateBOM()},isMatVisible:function(r,e){if(!this.selectedTray||!this.selectedTray.mountingMaterials)return!0
+if((r.name||"").toLowerCase().includes("brausehalter")){const n=this.selectedTray.mountingMaterials.findIndex(a=>(a.name||"").toLowerCase().includes("duschgleitstange")||(a.name||"").toLowerCase().includes("gleitstange"))
+if(n>=0&&this.mischerOptionsState[n]!==void 0){const a=this.selectedTray.mountingMaterials[n].options[this.mischerOptionsState[n]]
+if(a&&!a.label.toLowerCase().startsWith("ohne"))return!1}const i=this.selectedTray.mountingMaterials.findIndex(a=>(a.name||"").toLowerCase().includes("anschlussbogen"))
+if(i>=0&&this.mischerOptionsState[i]!==void 0){const a=this.selectedTray.mountingMaterials[i].options[this.mischerOptionsState[i]]
+if(a&&a.label.toLowerCase().includes("mit integriertem brausehalter")||a&&a.label.toLowerCase().includes("mit brausehalter")||a&&a.artNr==="bitte_waehlen")return!1}}return!0},renderConfigurator:function(){const r=document.getElementById(`trayConfigurator_${s}`),e=document.getElementById(`trayConfiguratorInner_${s}`)
+if(!this.selectedTray){r&&(r.style.display="none")
+return}if(r&&(r.style.display="block"),!e)return
+e.innerHTML=""
+const t=this.selectedTray.mountingMaterials||[]
+if(t.length===0){e.innerHTML='<p class="section-desc">Kein spezifisches Zubehör verfügbar.</p>'
+return}t.forEach((n,i)=>{if(!this.isMatVisible(n,i))return
+const a=document.createElement("div")
+a.className="filter-group",a.style.marginBottom="1.25rem"
+const l=this.mischerOptionsState[i],o=l!==void 0?n.options[l]:null,y=(o==null?void 0:o.imgUrl)||"",M=n.options.length>1
+a.innerHTML=`
+                    <label style="display:block
+ margin-bottom:0.4rem
+ font-size:0.85rem
+ color:var(--text-secondary)
+ text-transform:uppercase
+ letter-spacing:0.5px
+">${n.name||"Zubehör"}</label>
+                    <div style="display:flex
+ align-items:center
+ gap:0.75rem
+">
+                        <div style="width:40px
+ height:40px
+ background:#fff
+ border-radius:4px
+ border:1px solid var(--border)
+ display:flex
+ align-items:center
+ justify-content:center
+ padding:2px
+ flex-shrink:0
+">
+                            ${y?`<img src="${y}" style="max-width:100%
+ max-height:100%
+ object-fit:contain
+">`:'<i class="ri-image-line" style="color:#ddd "></i>'}
                         </div>
-                        <div style="flex:1; position:relative;">
-                            <select class="filter-select mischer-acc-select" data-midx="${mIdx}" style="width:100%; padding-right:2rem; ${!hasMultiple ? 'pointer-events:none; background-image:none !important;' : ''}">
-                                ${mat.options.map((opt, oIdx) => `
-                                    <option value="${oIdx}" ${selectedIdx == oIdx ? 'selected' : ''}>${opt.label} (${opt.artNr})</option>
-                                `).join('')}
+                        <div style="flex:1
+ position:relative
+">
+                            <select class="filter-select mischer-acc-select" data-midx="${i}" style="width:100%
+ padding-right:2rem
+ ${M?"":"pointer-events:none  background-image:none !important "}">
+                                ${n.options.map((v,S)=>`
+                                    <option value="${S}" ${l==S?"selected":""}>${v.label} (${v.artNr})</option>
+                                `).join("")}
                             </select>
-                            ${hasMultiple ? `<i class="ri-arrow-down-s-line" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--text-secondary); font-size:1.2rem;"></i>` : ''}
+                            ${M?'<i class="ri-arrow-down-s-line" style="position:absolute  right:10px  top:50%  transform:translateY(-50%)  pointer-events:none  color:var(--text-secondary)  font-size:1.2rem "></i>':""}
                         </div>
                     </div>
-                `;
-                inner.appendChild(groupDiv);
-            });
-            
-            inner.querySelectorAll('.mischer-acc-select').forEach(sel => {
-                sel.addEventListener('change', (e) => {
-                    const mIdx = parseInt(sel.dataset.midx);
-                    const oIdx = parseInt(sel.value);
-                    this.mischerOptionsState[mIdx] = oIdx;
-                    
-                    const mat = this.selectedTray.mountingMaterials[mIdx];
-                    const matName = (mat.name || '').toLowerCase();
-                    const opt = mat.options[oIdx];
-                    
-                    // Interaction logic
-                    if (matName.includes('gleitstange') || matName.includes('duschgleitstange')) {
-                        const schIdx = this.selectedTray.mountingMaterials.findIndex(m => (m.name || '').toLowerCase().includes('brauseschlauch'));
-                        if (schIdx >= 0) {
-                            const schMat = this.selectedTray.mountingMaterials[schIdx];
-                            if (!opt.label.toLowerCase().startsWith('ohne')) {
-                                // Jumps to 1800mm
-                                const hose1800Idx = schMat.options.findIndex(o => o.label.includes('1800'));
-                                if (hose1800Idx >= 0) this.mischerOptionsState[schIdx] = hose1800Idx;
-                            } else {
-                                // Reverts to 1250mm
-                                const hose1250Idx = schMat.options.findIndex(o => o.label.includes('1250') || o.label.includes('1.25'));
-                                if (hose1250Idx >= 0) this.mischerOptionsState[schIdx] = hose1250Idx;
-                            }
-                        }
-                    }
-
-                    this.renderConfigurator();
-                    this.updateBOM();
-                });
-            });
-        },
-
-        updateBOM: function () {
-            const bomTableBody = document.getElementById('bomTableBody');
-            const bomCount = document.getElementById('bomCount');
-            if(!bomTableBody) return;
-            bomTableBody.innerHTML = '';
-            
-            if (!this.selectedTray) {
-                if(bomCount) bomCount.textContent = '0 Artikel';
-                return;
-            }
-            
-            let total = 1;
-            bomTableBody.innerHTML += `
+                `,e.appendChild(a)}),e.querySelectorAll(".mischer-acc-select").forEach(n=>{n.addEventListener("change",i=>{const a=parseInt(n.dataset.midx),l=parseInt(n.value)
+this.mischerOptionsState[a]=l
+const o=this.selectedTray.mountingMaterials[a],y=(o.name||"").toLowerCase(),M=o.options[l]
+if(y.includes("gleitstange")||y.includes("duschgleitstange")){const v=this.selectedTray.mountingMaterials.findIndex(S=>(S.name||"").toLowerCase().includes("brauseschlauch"))
+if(v>=0){const S=this.selectedTray.mountingMaterials[v]
+if(M.label.toLowerCase().startsWith("ohne")){const _=S.options.findIndex(u=>u.label.includes("1250")||u.label.includes("1.25"))
+_>=0&&(this.mischerOptionsState[v]=_)}else{const _=S.options.findIndex(u=>u.label.includes("1800"))
+_>=0&&(this.mischerOptionsState[v]=_)}}}this.renderConfigurator(),this.updateBOM()})})},updateBOM:function(){const r=document.getElementById("bomTableBody"),e=document.getElementById("bomCount")
+if(!r)return
+if(r.innerHTML="",!this.selectedTray){e&&(e.textContent="0 Artikel")
+return}let t=1
+r.innerHTML+=`
                 <tr class="bom-main-item">
-                    <td><div class="img-cell"><img src="${this.selectedTray.imgUrl || ''}"></div></td>
+                    <td><div class="img-cell"><img src="${this.selectedTray.imgUrl||""}"></div></td>
                     <td><span class="bom-code">${this.selectedTray.artNr}</span></td>
                     <td><div class="bom-desc">${this.selectedTray.label}</div></td>
                     <td><span class="bom-type">Hauptprodukt</span></td>
                     <td><strong>1</strong></td>
                 </tr>
-            `;
-
-            if (this.selectedTray.mountingMaterials) {
-                this.selectedTray.mountingMaterials.forEach((mat, mIdx) => {
-                    if (!this.isMatVisible(mat, mIdx)) return;
-
-                    const oIdx = this.mischerOptionsState[mIdx];
-                    if (oIdx !== undefined) {
-                        const opt = mat.options[oIdx];
-                        if (opt && !opt.label.toLowerCase().startsWith('ohne')) {
-                            const menge = opt.menge || 1;
-                            total += menge;
-                            bomTableBody.innerHTML += `
+            `,this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((n,i)=>{if(!this.isMatVisible(n,i))return
+const a=this.mischerOptionsState[i]
+if(a!==void 0){const l=n.options[a]
+if(l&&!l.label.toLowerCase().startsWith("ohne")){const o=l.menge||1
+t+=o,r.innerHTML+=`
                                 <tr>
-                                    <td><div class="img-cell"><img src="${opt.imgUrl || ''}"></div></td>
-                                    <td><span class="bom-code">${opt.artNr}</span></td>
-                                    <td><div class="bom-desc">${opt.label}</div></td>
-                                    <td><span class="bom-type">${mat.name || 'Zubehör'}</span></td>
-                                    <td><strong>${menge}</strong></td>
+                                    <td><div class="img-cell"><img src="${l.imgUrl||""}"></div></td>
+                                    <td><span class="bom-code">${l.artNr}</span></td>
+                                    <td><div class="bom-desc">${l.label}</div></td>
+                                    <td><span class="bom-type">${n.name||"Zubehör"}</span></td>
+                                    <td><strong>${o}</strong></td>
                                 </tr>
-                            `;
-                        }
-                    }
-                });
-            }
-            
-            if(bomCount) bomCount.textContent = `${total} Artikel gewählt`;
-        },
-
-        clearBOM: function() {
-            this.mischerOptionsState = {};
-            this.updateBOM();
-        },
-
-        copyToClipboard: function () {
-            if (!this.selectedTray) return;
-            let list = [`${this.selectedTray.artNr}\t1`];
-            if (this.selectedTray.mountingMaterials) {
-                this.selectedTray.mountingMaterials.forEach((mat, mIdx) => {
-                    if (!this.isMatVisible(mat, mIdx)) return;
-
-                    const oIdx = this.mischerOptionsState[mIdx];
-                    if (oIdx !== undefined) {
-                        const opt = mat.options[oIdx];
-                        if (opt && !opt.label.toLowerCase().startsWith('ohne')) {
-                            list.push(`${opt.artNr}\t${opt.menge || 1}`);
-                        }
-                    }
-                });
-            }
-            navigator.clipboard.writeText(list.join('\n')).then(() => alert('Stückliste kopiert!'));
-        }
-    };
+                            `}}}),e&&(e.textContent=`${t} Artikel gewählt`)},clearBOM:function(){this.mischerOptionsState={},this.updateBOM()},copyToClipboard:function(){if(!this.selectedTray)return
+let r=[`${this.selectedTray.artNr}	1`]
+this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((e,t)=>{if(!this.isMatVisible(e,t))return
+const n=this.mischerOptionsState[t]
+if(n!==void 0){const i=e.options[n]
+i&&!i.label.toLowerCase().startsWith("ohne")&&r.push(`${i.artNr}	${i.menge||1}`)}}),navigator.clipboard.writeText(r.join(`
+`)).then(()=>alert("Stückliste kopiert!"))}}}
+    return gt(title, desc, mainImgUrl, config);
 }
 
-/**
- * Standard Product List App (Simple)
- */
-/**
- * Standard Product List App (Simple)
- */
 export function createStandardApp(title, desc, mainImgUrl) {
     const suffix = title.replace(/\s/g, '');
     return {
@@ -5303,17 +4806,17 @@ export function createStandardApp(title, desc, mainImgUrl) {
         },
         filterResults: function () {
             const search = document.getElementById(`input_search_${suffix}`).value.toLowerCase();
-            const filtered = this.trays.filter(t => 
-                (t.label || '').toLowerCase().includes(search) || 
+            const filtered = this.trays.filter(t =>
+                (t.label || '').toLowerCase().includes(search) ||
                 (t.artNr || '').toLowerCase().includes(search)
             );
-            
+
             const countSpan = document.getElementById(`resultCount_${suffix}`);
             if (countSpan) countSpan.textContent = filtered.length;
-            
+
             const container = document.getElementById(`searchResults_${suffix}`);
             if (!container) return;
-            
+
             container.innerHTML = filtered.map(t => `
                 <div class="result-item-btn ${this.selectedTray?.id === t.id ? 'active' : ''}" onclick="window.currentActiveApp.selectItem('${t.id}')">
                     <div class="result-info">
@@ -5357,357 +4860,482 @@ export function createStandardApp(title, desc, mainImgUrl) {
  * Glass Enclosure App (Master App)
  */
 export function createGlassApp(title, desc, mainImgUrl) {
-    const suffix = title.replace(/\s/g, '');
-    return {
-        trays: [],
-        mainImgUrl: mainImgUrl,
-        selectedTray: null,
-        
-        currentType: 'all',
-        currentSituation: 'all',
-        currentColor: 'all',
-        currentBand: 'all',
-        currentManufacturer: 'all',
-        currentBreite: '',
-        currentLaenge: '',
-
-        init: function () {
-            this.selectedTray = null;
-            this.currentType = 'all';
-            this.currentSituation = 'all';
-            this.currentColor = 'all';
-            this.currentBand = 'all';
-            this.currentManufacturer = 'all';
-            this.currentBreite = '';
-            this.currentLaenge = '';
-            this.renderSidebar();
-            this.updateBOM();
-        },
-
-        extractType: function(t) {
-            const l = (t.label || '').toLowerCase();
-            // Filter out service items — they are not products
-            if (l.includes('massaufnahme') || l.includes('anfahrtspauschale') || l.includes('montagepauschale') || l.includes('demontage') || l.includes('nettobetrag')) return null;
-            // Freistehende Seitenwand = standalone main product (check before door keywords)
-            if (l.startsWith('freistehende seitenwand') || (l.includes('freistehend') && l.includes('seitenwand'))) return 'Seitenwand (freistehend)';
-            // Seitenwand (Zusatz) — label starts with 'Seitenwand' + references a door (check BEFORE generic door checks)
-            if (l.startsWith('seitenwand') && (l.includes('gleittür') || l.includes('pendeltür') || l.includes('kombination'))) return 'Seitenwand (Zusatz)';
-            // Door types
-            if (l.includes('pendeltür')) return 'Pendeltür';
-            if (l.includes('flügeltür') || l.includes('flügelig')) return 'Flügeltür';
-            if (l.includes('gleittür') || l.includes('schiebetür')) return 'Gleittür/Schiebetür';
-            if (l.includes('drehfalttür') || l.includes('falttür')) return 'Drehfalttür';
-            // Remaining seitenwand without door context = freistehend
-            if (l.includes('seitenwand')) return 'Seitenwand (freistehend)';
-            if (l.includes('nische')) return 'Nischentür';
-            return null; // Unknown — exclude from filter
-        },
-
-        extractSituation: function(t) {
-            const l = (t.label || '').toLowerCase();
-            // Check Walk-In / Freistehend FIRST — before any 'seitenwand' check
-            if (l.includes('walk-in') || l.includes('walkin') || l.includes('freistehend')) return 'Walk-In/Freistehende Seitenwand';
-            if (l.includes('nische')) return 'Nische';
-            if (l.includes('eckeinstieg') || l.includes('eck')) return 'Eckeinstieg';
-            // 'seitenwand' alone (without freistehend/eckeinstieg/nische) = Eckeinstieg context
-            if (l.includes('seitenwand')) return 'Eckeinstieg';
-            return 'Eckeinstieg';
-        },
-
-        extractBand: function(t) {
-            const l = (t.label || '').toLowerCase();
-            if (l.includes('band links')) return 'links';
-            if (l.includes('band rechts')) return 'rechts';
-            if (l.includes('eckeinstieg')) return 'Universal';
-            return 'Universal';
-        },
-
-        extractColor: function(t) {
-            const l = (t.label || '').toLowerCase();
-            if (l.includes('chrom') || l.includes('silber')) return 'Chrom';
-            if (l.includes('schwarz')) return 'Schwarz';
-            if (l.includes('weiss') || l.includes('weiß')) return 'Weiss';
-            if (l.includes('matt')) return 'Matt';
-            return 'Standard';
-        },
-
-        extractSizeScore: function(t) {
-            const label = (t.label || '').toLowerCase();
-            const cleanLabel = label.replace((t.artNr || '').toLowerCase(), '').trim();
-            const allDims = (cleanLabel.match(/\d+([\.,]\d+)?/g) || [])
-                .map(s => Number(s.replace(',', '.')))
-                .filter(n => n > 20)
-                .map(n => n > 250 ? n / 10 : n);
-            const sizeDims = allDims.filter(d => d < 195);
-            return sizeDims[0] || 9999;
-        },
-
-        checkCompatibility: function(t, b, l) {
-            const label = (t.label || '').toLowerCase();
-            const cleanLabel = label.replace((t.artNr || '').toLowerCase(), '').trim();
-            const allDims = (cleanLabel.match(/\d+([\.,]\d+)?/g) || [])
-                .map(s => Number(s.replace(',', '.')))
-                .filter(n => n > 20)
-                .map(n => n > 250 ? n / 10 : n);
-            const sizeDims = allDims.filter(d => d < 195);
-            
-            if (sizeDims.length === 0) return true; // Fallback
-
-            const targetDims = [];
-            if (b) targetDims.push(b > 250 ? b/10 : b);
-            if (l) targetDims.push(l > 250 ? l/10 : l);
-
-            return targetDims.every((td, i) => {
-                const gd = sizeDims[i] || sizeDims[0];
-                
-                // 1. Strict Range Check (e.g. 125.1 - 180)
-                if (sizeDims.length >= 2 && !label.includes(' x ')) {
-                    const min = Math.min(...sizeDims);
-                    const max = Math.max(...sizeDims);
-                    return td >= min && td <= max;
-                }
-
-                // 2. Multi-dimension Check (e.g. 90 x 90)
-                if (label.includes(' x ') && sizeDims.length >= 2) {
-                    return td <= (sizeDims[i] || sizeDims[0]);
-                }
-
-                // 3. Simple "Up to" or "From" check
-                const hasWidthBis = label.includes('breite bis') || (label.includes('bis') && !label.includes('höhe bis'));
-                if (hasWidthBis) return td <= gd;
-                
-                const hasWidthAb = label.includes('breite ab') || (label.includes('ab') && !label.includes('höhe ab'));
-                if (hasWidthAb) return td >= gd;
-
-                return Math.abs(td - gd) < 5; 
-            });
-        },
-
-        renderSidebar: function () {
-            const situations = [...new Set(this.trays.map(t => this.extractSituation(t)))].sort();
-            const types = [...new Set(this.trays.map(t => this.extractType(t)).filter(Boolean))].sort();
-            const colors = [...new Set(this.trays.map(t => this.extractColor(t)))].sort();
-            const bands = [...new Set(this.trays.map(t => this.extractBand(t)))].sort();
-            const manufacturers = [...new Set(this.trays.map(t => t.manufacturer).filter(m => m && m !== 'Andere'))].sort();
-
-            configSidebar.innerHTML = `
+    function pt(B,F,R){const N=B.replace(/\s/g,"")
+return{trays:[],mainImgUrl:R,selectedTray:null,currentType:"all",currentSituation:"all",currentColor:"all",currentBand:"all",currentManufacturer:"all",currentBreite:"",currentLaenge:"",init:function(){this.selectedTray=null,this.currentType="all",this.currentSituation="all",this.currentColor="all",this.currentBand="all",this.currentManufacturer="all",this.currentBreite="",this.currentLaenge="",this.renderSidebar(),this.updateBOM()},extractType:function(m){const s=(m.label||"").toLowerCase()
+return s.includes("massaufnahme")||s.includes("anfahrtspauschale")||s.includes("montagepauschale")||s.includes("demontage")||s.includes("nettobetrag")?null:s.startsWith("freistehende seitenwand")||s.includes("freistehend")&&s.includes("seitenwand")?"Seitenwand (freistehend)":s.startsWith("seitenwand")&&(s.includes("gleittür")||s.includes("pendeltür")||s.includes("kombination"))?"Seitenwand (Zusatz)":s.includes("pendeltür")?"Pendeltür":s.includes("flügeltür")||s.includes("flügelig")?"Flügeltür":s.includes("gleittür")||s.includes("schiebetür")?"Gleittür/Schiebetür":s.includes("drehfalttür")||s.includes("falttür")?"Drehfalttür":s.includes("seitenwand")?"Seitenwand (freistehend)":s.includes("nische")?"Nischentür":null},extractSituation:function(m){const s=(m.label||"").toLowerCase()
+return s.includes("walk-in")||s.includes("walkin")||s.includes("freistehend")?"Walk-In/Freistehende Seitenwand":s.includes("nische")?"Nische":(s.includes("eckeinstieg")||s.includes("eck")||s.includes("seitenwand"),"Eckeinstieg")},extractBand:function(m){const s=(m.label||"").toLowerCase()
+return s.includes("band links")?"links":s.includes("band rechts")?"rechts":(s.includes("eckeinstieg"),"Universal")},extractColor:function(m){const s=(m.label||"").toLowerCase()
+return s.includes("chrom")||s.includes("silber")?"Chrom":s.includes("schwarz")?"Schwarz":s.includes("weiss")||s.includes("weiß")?"Weiss":s.includes("matt")?"Matt":"Standard"},extractSizeScore:function(m){return((m.label||"").toLowerCase().replace((m.artNr||"").toLowerCase(),"").trim().match(/\d+([\.,]\d+)?/g)||[]).map(n=>Number(n.replace(",","."))).filter(n=>n>20).map(n=>n>250?n/10:n).filter(n=>n<195)[0]||9999},checkCompatibility:function(m,s,r){const e=(m.label||"").toLowerCase(),i=(e.replace((m.artNr||"").toLowerCase(),"").trim().match(/\d+([\.,]\d+)?/g)||[]).map(l=>Number(l.replace(",","."))).filter(l=>l>20).map(l=>l>250?l/10:l).filter(l=>l<195)
+if(i.length===0)return!0
+const a=[]
+return s&&a.push(s>250?s/10:s),r&&a.push(r>250?r/10:r),a.every((l,o)=>{const y=i[o]||i[0]
+if(i.length>=2&&!e.includes(" x ")){const S=Math.min(...i),_=Math.max(...i)
+return l>=S&&l<=_}return e.includes(" x ")&&i.length>=2?l<=(i[o]||i[0]):e.includes("breite bis")||e.includes("bis")&&!e.includes("höhe bis")?l<=y:e.includes("breite ab")||e.includes("ab")&&!e.includes("höhe ab")?l>=y:Math.abs(l-y)<5})},renderSidebar:function(){const m=[...new Set(this.trays.map(n=>this.extractSituation(n)))].sort(),s=[...new Set(this.trays.map(n=>this.extractType(n)).filter(Boolean))].sort(),r=[...new Set(this.trays.map(n=>this.extractColor(n)))].sort(),e=[...new Set(this.trays.map(n=>this.extractBand(n)))].sort(),t=[...new Set(this.trays.map(n=>n.manufacturer).filter(n=>n&&n!=="Andere"))].sort()
+Ae.innerHTML=`
                 <div class="sidebar-section">
-                    <h2>Filter: ${title}</h2>
+                    <h2>Filter: ${B}</h2>
 
                     <div class="filter-group">
                         <label>Hersteller</label>
                         <div class="pill-group">
-                            <button class="pill-btn ${this.currentManufacturer === 'all' ? 'active' : ''}" onclick="window.currentActiveApp.setFilter('Manufacturer', 'all')">Alle</button>
-                            ${manufacturers.map(m => `<button class="pill-btn ${this.currentManufacturer === m ? 'active' : ''}" onclick="window.currentActiveApp.setFilter('Manufacturer', '${m}')">${m}</button>`).join('')}
+                            <button class="pill-btn ${this.currentManufacturer==="all"?"active":""}" onclick="window.currentActiveApp.setFilter('Manufacturer', 'all')">Alle</button>
+                            ${t.map(n=>`<button class="pill-btn ${this.currentManufacturer===n?"active":""}" onclick="window.currentActiveApp.setFilter('Manufacturer', '${n}')">${n}</button>`).join("")}
                         </div>
                     </div>
 
-                    <div class="filter-group" style="margin-top:0.75rem;">
+                    <div class="filter-group" style="margin-top:0.75rem
+">
                         <label>Einbausituation</label>
                         <div class="pill-group">
-                            <button class="pill-btn ${this.currentSituation === 'all' ? 'active' : ''}" onclick="window.currentActiveApp.setFilter('Situation', 'all')">Alle</button>
-                            ${situations.map(s => `<button class="pill-btn ${this.currentSituation === s ? 'active' : ''}" onclick="window.currentActiveApp.setFilter('Situation', '${s}')">${s}</button>`).join('')}
+                            <button class="pill-btn ${this.currentSituation==="all"?"active":""}" onclick="window.currentActiveApp.setFilter('Situation', 'all')">Alle</button>
+                            ${m.map(n=>`<button class="pill-btn ${this.currentSituation===n?"active":""}" onclick="window.currentActiveApp.setFilter('Situation', '${n}')">${n}</button>`).join("")}
                         </div>
                     </div>
 
-                    <div class="filter-group" style="margin-top:0.75rem;">
+                    <div class="filter-group" style="margin-top:0.75rem
+">
                         <label>Türart / Typ</label>
                         <div class="pill-group">
-                            <button class="pill-btn ${this.currentType === 'all' ? 'active' : ''}" onclick="window.currentActiveApp.setFilter('Type', 'all')">Alle</button>
-                            ${types.map(t => `<button class="pill-btn ${this.currentType === t ? 'active' : ''}" onclick="window.currentActiveApp.setFilter('Type', '${t}')">${t}</button>`).join('')}
+                            <button class="pill-btn ${this.currentType==="all"?"active":""}" onclick="window.currentActiveApp.setFilter('Type', 'all')">Alle</button>
+                            ${s.map(n=>`<button class="pill-btn ${this.currentType===n?"active":""}" onclick="window.currentActiveApp.setFilter('Type', '${n}')">${n}</button>`).join("")}
                         </div>
                     </div>
 
-                    <div class="filter-group" style="margin-top:0.75rem;">
+                    <div class="filter-group" style="margin-top:0.75rem
+">
                         <label>Farbe</label>
                         <div class="pill-group">
-                            <button class="pill-btn ${this.currentColor === 'all' ? 'active' : ''}" onclick="window.currentActiveApp.setFilter('Color', 'all')">Alle</button>
-                            ${colors.map(c => `<button class="pill-btn ${this.currentColor === c ? 'active' : ''}" onclick="window.currentActiveApp.setFilter('Color', '${c}')">${c}</button>`).join('')}
+                            <button class="pill-btn ${this.currentColor==="all"?"active":""}" onclick="window.currentActiveApp.setFilter('Color', 'all')">Alle</button>
+                            ${r.map(n=>`<button class="pill-btn ${this.currentColor===n?"active":""}" onclick="window.currentActiveApp.setFilter('Color', '${n}')">${n}</button>`).join("")}
                         </div>
                     </div>
 
-                    <div class="filter-group" style="margin-top:0.75rem;">
+                    <div class="filter-group" style="margin-top:0.75rem
+">
                         <label>Band</label>
                         <div class="pill-group">
-                            <button class="pill-btn ${this.currentBand === 'all' ? 'active' : ''}" onclick="window.currentActiveApp.setFilter('Band', 'all')">Alle</button>
-                            ${bands.map(b => `<button class="pill-btn ${this.currentBand === b ? 'active' : ''}" onclick="window.currentActiveApp.setFilter('Band', '${b}')">${b}</button>`).join('')}
+                            <button class="pill-btn ${this.currentBand==="all"?"active":""}" onclick="window.currentActiveApp.setFilter('Band', 'all')">Alle</button>
+                            ${e.map(n=>`<button class="pill-btn ${this.currentBand===n?"active":""}" onclick="window.currentActiveApp.setFilter('Band', '${n}')">${n}</button>`).join("")}
                         </div>
                     </div>
 
-                    <div class="filter-group" style="margin-top:1rem;">
+                    <div class="filter-group" style="margin-top:1rem
+">
                         <label>Manuelle Grösse (mm)</label>
-                        <div style="display:flex; gap:0.5rem;">
-                            <input type="number" id="input_breite_${suffix}" class="filter-select" placeholder="Breite" value="${this.currentBreite}">
-                            <input type="number" id="input_laenge_${suffix}" class="filter-select" placeholder="Länge" value="${this.currentLaenge}">
+                        <div style="display:flex
+ gap:0.5rem
+">
+                            <input type="number" id="input_breite_${N}" class="filter-select" placeholder="Breite" value="${this.currentBreite}">
+                            <input type="number" id="input_laenge_${N}" class="filter-select" placeholder="Länge" value="${this.currentLaenge}">
                         </div>
                     </div>
 
-                    <div class="filter-group" style="margin-top:1rem;">
+                    <div class="filter-group" style="margin-top:1rem
+">
                         <label>Suche</label>
-                        <input type="text" id="input_search_${suffix}" class="filter-select" placeholder="Art.Nr. oder Name...">
+                        <input type="text" id="input_search_${N}" class="filter-select" placeholder="Art.Nr. oder Name...">
                     </div>
                 </div>
                 <div class="sidebar-section">
-                    <h2>Ergebnisse <span id="resultCount_${suffix}" class="badge">0</span></h2>
-                    <div id="searchResults_${suffix}" class="search-results-container"></div>
+                    <h2>Ergebnisse <span id="resultCount_${N}" class="badge">0</span></h2>
+                    <div id="searchResults_${N}" class="search-results-container"></div>
                 </div>
-            `;
-            document.getElementById(`input_search_${suffix}`).addEventListener('input', () => this.filterResults());
-            document.getElementById(`input_breite_${suffix}`).addEventListener('input', (e) => { this.currentBreite = e.target.value; this.filterResults(); });
-            document.getElementById(`input_laenge_${suffix}`).addEventListener('input', (e) => { this.currentLaenge = e.target.value; this.filterResults(); });
-            this.filterResults();
-        },
-
-        setFilter: function(key, val) {
-            this[`current${key}`] = val;
-            this.renderSidebar();
-        },
-
-        filterResults: function () {
-            const search = (document.getElementById(`input_search_${suffix}`)?.value || '').toLowerCase();
-            
-            const b = parseFloat(this.currentBreite);
-            const l = parseFloat(this.currentLaenge);
-
-            const filtered = this.trays.filter(t => {
-                // Exclude service articles and unknown types
-                const label = (t.label || '').toLowerCase();
-                if (label.includes('massaufnahme') || label.includes('anfahrt')) return false;
-                if (this.extractType(t) === null) return false;
-
-                if (this.currentManufacturer !== 'all' && (t.manufacturer || '') !== this.currentManufacturer) return false;
-                if (this.currentType !== 'all' && this.extractType(t) !== this.currentType) return false;
-                if (this.currentSituation !== 'all' && this.extractSituation(t) !== this.currentSituation) return false;
-                if (this.currentColor !== 'all' && this.extractColor(t) !== this.currentColor) return false;
-                if (this.currentBand !== 'all' && this.extractBand(t) !== this.currentBand) return false;
-                
-                // Manual Size Filtering
-                if (this.currentBreite || this.currentLaenge) {
-                    if (!this.checkCompatibility(t, b, l)) return false;
-                }
-
-                if (search && !(t.label.toLowerCase().includes(search) || t.artNr.toLowerCase().includes(search))) return false;
-                return true;
-            });
-
-            // Post-Filter: Tightest Fit logic
-            let finalResults = filtered;
-            if (this.currentBreite || this.currentLaenge) {
-                const groups = {};
-                filtered.forEach(t => {
-                    const key = `${this.extractType(t)}|${this.extractSituation(t)}|${this.extractColor(t)}|${this.extractBand(t)}`;
-                    if (!groups[key]) groups[key] = [];
-                    groups[key].push(t);
-                });
-                finalResults = [];
-                Object.values(groups).forEach(group => {
-                    const minScore = Math.min(...group.map(t => this.extractSizeScore(t)));
-                    group.filter(t => this.extractSizeScore(t) === minScore).forEach(t => finalResults.push(t));
-                });
-            }
-            
-            const countSpan = document.getElementById(`resultCount_${suffix}`);
-            if (countSpan) countSpan.textContent = finalResults.length;
-            
-            const container = document.getElementById(`searchResults_${suffix}`);
-            if (!container) return;
-            
-            container.innerHTML = finalResults.map(t => `
-                <div class="result-item-btn ${this.selectedTray?.id === t.id ? 'active' : ''}" onclick="window.currentActiveApp.selectItem('${t.id}')">
+            `,document.getElementById(`input_search_${N}`).addEventListener("input",()=>this.filterResults()),document.getElementById(`input_breite_${N}`).addEventListener("input",n=>{this.currentBreite=n.target.value,this.filterResults()}),document.getElementById(`input_laenge_${N}`).addEventListener("input",n=>{this.currentLaenge=n.target.value,this.filterResults()}),this.filterResults()},setFilter:function(m,s){this[`current${m}`]=s,this.renderSidebar()},filterResults:function(){var a
+const m=(((a=document.getElementById(`input_search_${N}`))==null?void 0:a.value)||"").toLowerCase(),s=parseFloat(this.currentBreite),r=parseFloat(this.currentLaenge),e=this.trays.filter(l=>{const o=(l.label||"").toLowerCase()
+return!(o.includes("massaufnahme")||o.includes("anfahrt")||this.extractType(l)===null||this.currentManufacturer!=="all"&&(l.manufacturer||"")!==this.currentManufacturer||this.currentType!=="all"&&this.extractType(l)!==this.currentType||this.currentSituation!=="all"&&this.extractSituation(l)!==this.currentSituation||this.currentColor!=="all"&&this.extractColor(l)!==this.currentColor||this.currentBand!=="all"&&this.extractBand(l)!==this.currentBand||(this.currentBreite||this.currentLaenge)&&!this.checkCompatibility(l,s,r)||m&&!(l.label.toLowerCase().includes(m)||l.artNr.toLowerCase().includes(m)))})
+let t=e
+if(this.currentBreite||this.currentLaenge){const l={}
+e.forEach(o=>{const y=`${this.extractType(o)}|${this.extractSituation(o)}|${this.extractColor(o)}|${this.extractBand(o)}`
+l[y]||(l[y]=[]),l[y].push(o)}),t=[],Object.values(l).forEach(o=>{const y=Math.min(...o.map(M=>this.extractSizeScore(M)))
+o.filter(M=>this.extractSizeScore(M)===y).forEach(M=>t.push(M))})}const n=document.getElementById(`resultCount_${N}`)
+n&&(n.textContent=t.length)
+const i=document.getElementById(`searchResults_${N}`)
+i&&(i.innerHTML=t.map(l=>{var o
+return`
+                <div class="result-item-btn ${((o=this.selectedTray)==null?void 0:o.id)===l.id?"active":""}" onclick="window.currentActiveApp.selectItem('${l.id}')">
                     <div class="result-info">
-                        <strong>${t.label}</strong>
-                        <div class="result-meta"><span>${t.manufacturer || ''}</span> | <span>${t.size || ''}</span></div>
+                        <strong>${l.label}</strong>
+                        <div class="result-meta"><span>${l.manufacturer||""}</span> | <span>${l.size||""}</span></div>
                     </div>
-                    <span class="finish-artnr">${t.artNr}</span>
+                    <span class="finish-artnr">${l.artNr}</span>
                 </div>
-            `).join('');
-        },
-
-        selectItem: function (id) {
-            this.selectedTray = this.trays.find(t => t.id === id);
-            this.filterResults();
-            this.updateBOM();
-        },
-
-        updateBOM: function () {
-            if (!this.selectedTray) {
-                bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem;">Bitte wählen Sie ein Produkt.</td></tr>';
-                bomCountCounter.textContent = "0 Artikel";
-                return;
-            }
-
-            let total = 1;
-            let rows = `
+            `}).join(""))},selectItem:function(m){this.selectedTray=this.trays.find(s=>s.id===m),this.filterResults(),this.updateBOM()},updateBOM:function(){if(!this.selectedTray){re.innerHTML='<tr><td colspan="5" style="text-align:center  padding:2rem ">Bitte wählen Sie ein Produkt.</td></tr>',me.textContent="0 Artikel"
+return}let m=1,s=`
                 <tr class="bom-main-item">
-                    <td><div class="img-cell"><img src="${this.selectedTray.imgUrl || this.mainImgUrl}"></div></td>
+                    <td><div class="img-cell"><img src="${this.selectedTray.imgUrl||this.mainImgUrl}"></div></td>
                     <td><span class="bom-code">${this.selectedTray.artNr}</span></td>
                     <td><div class="bom-desc">${this.selectedTray.label}</div></td>
                     <td><span class="bom-type">Glas</span></td>
                     <td><strong>1</strong></td>
                 </tr>
-            `;
-
-            // Auto-populate services with size-aware filtering for Montagepauschale
-            const sizeScore = this.extractSizeScore(this.selectedTray);
-            const rawServices = this.selectedTray.services || [];
-            
-            // Filter to only one Montagepauschale (bis 125 vs ab 125)
-            const filteredServices = rawServices.filter(s => {
-                const sl = s.label.toLowerCase();
-                if (sl.includes('montagepauschale')) {
-                    if (sl.includes('bis 125') && sizeScore > 125) return false;
-                    if (sl.includes('ab 125') && sizeScore <= 125) return false;
-                }
-                return true;
-            });
-
-            filteredServices.forEach(svc => {
-                total += (svc.qty || 1);
-                rows += `
+            `
+const r=this.extractSizeScore(this.selectedTray);
+(this.selectedTray.services||[]).filter(n=>{const i=n.label.toLowerCase()
+return!(i.includes("montagepauschale")&&(i.includes("bis 125")&&r>125||i.includes("ab 125")&&r<=125))}).forEach(n=>{m+=n.qty||1,s+=`
                         <tr class="service-row">
-                            <td><div class="img-cell"><i class="ri-customer-service-2-line" style="font-size:1.5rem; color:var(--accent);"></i></div></td>
-                            <td><span class="bom-code">${svc.artNr}</span></td>
-                            <td><div class="bom-desc">${svc.label}</div></td>
+                            <td><div class="img-cell"><i class="ri-customer-service-2-line" style="font-size:1.5rem
+ color:var(--accent)
+"></i></div></td>
+                            <td><span class="bom-code">${n.artNr}</span></td>
+                            <td><div class="bom-desc">${n.label}</div></td>
                             <td><span class="bom-type">Dienstleistung</span></td>
-                            <td><strong>${svc.qty || 1}</strong></td>
+                            <td><strong>${n.qty||1}</strong></td>
                         </tr>
-                    `;
-            });
+                    `}),re.innerHTML=s,me.textContent=`${m} Artikel`},copyToClipboard:function(){if(!this.selectedTray)return
+let m=[`${this.selectedTray.artNr}	1`]
+if(this.selectedTray.services){const s=this.extractSizeScore(this.selectedTray);
+(this.selectedTray.services||[]).filter(t=>{const n=t.label.toLowerCase()
+return!(n.includes("montagepauschale")&&(n.includes("bis 125")&&s>125||n.includes("ab 125")&&s<=125))}).forEach(t=>{t.artNr&&t.artNr!=="none"&&!t.label.toLowerCase().startsWith("ohne")&&m.push(`${t.artNr}	${t.qty||1}`)})}navigator.clipboard.writeText(m.join(`
+`)).then(()=>alert("Kopiert!"))}}}function He(B,F,R,N={}){const m=N.isMixer||B.toLowerCase().includes("mischer")||B.toLowerCase().includes("armatur")
+N.montageLabel1,N.montageLabel2,N.montageLabel3
+const s=N.hideSizeForm||m,r=B.replace(/\s/g,"")
+return{trays:[],mainImgUrl:R,selectedTray:null,extractSerie:function(e){if(e.serie)return e.serie
+let t=e.label||""
+e.manufacturer&&t.toLowerCase().startsWith(e.manufacturer.toLowerCase())&&(t=t.substring(e.manufacturer.length).trim())
+const n=t.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-| \d+)/)
+let i=n&&n[1]?n[1].trim():t.trim()
+const a=["Doppelwaschtisch","Möbelwaschtisch","Aufsatzwaschtisch","Waschtisch","Handwaschbecken","Einbaubecken","Wandbecken","Waschtischanlage","Aufsatzbecken","Waschbecken","Duschenwanne","Duschwanne","Badewanne","Duschfläche","Wanne"]
+for(const l of a)if(i.toLowerCase().startsWith(l.toLowerCase())){i=i.substring(l.length).trim(),(i.startsWith("-")||i.startsWith("/"))&&(i=i.substring(1).trim()),e.manufacturer&&i.toLowerCase().startsWith(e.manufacturer.toLowerCase())&&(i=i.substring(e.manufacturer.length).trim())
+break}return e.manufacturer&&i.toLowerCase().startsWith(e.manufacturer.toLowerCase())&&(i=i.substring(e.manufacturer.length).trim()),i||"Andere"},getUniqueValues:function(e){return e==="serie"?[...new Set(this.trays.map(t=>this.extractSerie(t)))].sort():[...new Set(this.trays.map(t=>t[e]))].sort()},classifyAccessory:function(e){if(!e)return"common"
+if(e.overrideMontageart&&e.overrideMontageart!=="auto")return e.overrideMontageart.toLowerCase()
+const t=(e.label||e.name||"").toLowerCase(),n=(e.artNr||"").replace(/\s/g,"")
+if(n==="1445782.000.000"||n==="1441782.000.000")return"wannenträger"
+if(n==="1431191.000.000"||n==="1431190.000.000"||n==="1435435.000.000")return"montagerahmen"
+if(t.includes("schallschutzset")||t.includes("schallschutz"))return m?"unterputz":"montagerahmen"
+const i=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc")
+if(m){const a=t.toLowerCase()
+if(a.includes("standmodell")||a.includes("freien stand"))return"standmodell"
+if(a.includes("einbaukörper")||a.includes("grundkörper")||a.includes("ibox")||a.includes("up-gehäuse"))return"common"
+if(a.includes("endmontage")||a.includes("einbau")||a.includes("anschlussbogen")||a.includes("unterputz")||a.includes(" up "))return"unterputz"
+if(a.includes("aufputz")||a.includes(" ap ")||a.includes("ausserhalb")||a.includes("mischer")||a.includes("batterie"))return"aufputz"}else if(i){const a=t.toLowerCase()
+return a.includes("sitz")||a.includes("deckel")||a.includes("betätigungsplatte")||a.includes("drückerplatte")||a.includes("manschette")||a.includes("garnitur")?"common":a.includes("einbauspülkasten")||a.includes("einbauspulkasten")||a.includes("duofix")||a.includes("unterputz")||a.includes(" up ")?"unterputz":a.includes("aufputz")||a.includes(" ap ")?"aufputz":"common"}else{if(t.includes("träger")||t.includes("wannenträger")||t.includes("montageschaum"))return"wannenträger"
+if(t.includes("rahmen")||t.includes("füsse")||t.includes("fussset")||t.includes("schallschutzset")||t.includes("schallschutz"))return"montagerahmen"
+if(t.includes("stelzfüss")||t.includes("stelzfuss"))return"stelzfüsse"}return"common"},init:function(){this.isToiletApp=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc"),this.selectedTray=null,this.currentMontageart="alle",this.currentManufacturer="all",this.currentSerie="all",this.currentForm="all",this.currentSize="all",this.renderSidebar(),this.bindFilters(),this.filterResults(),this.clearBOM()},renderSidebar:function(){const e=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc")
+console.log(`[Configurator] Rendering Sidebar for ${B}. isToiletApp: ${e}`),this.getUniqueValues("manufacturer"),this.getUniqueValues("form"),this.getUniqueValues("size")
+const t=e?"Montage":"Form",n=e?"System":"Montageart"
+Ae.innerHTML=`
+                    <div class="sidebar-section">
+                        <h2>Filter: ${B}</h2>
+                        
+                        <div class="filter-group">
+                            <div class="finder-sub-header" id="head_rel_mfr_${r}">Hersteller</div>
+                            <div class="pill-group" id="list_rel_mfr_${r}"></div>
+                        </div>
 
-            bomTableBody.innerHTML = rows;
-            bomCountCounter.textContent = `${total} Artikel`;
-        },
+                        <div class="filter-group">
+                            <div class="finder-sub-header" id="head_rel_serie_${r}">Serie</div>
+                            <div class="pill-group" id="list_rel_serie_${r}"></div>
+                        </div>
+                        
+                        ${s?"":`
+                        <div class="filter-group">
+                            <div class="finder-sub-header" id="head_rel_form_${r}">${t}</div>
+                            <div class="pill-group" id="list_rel_form_${r}"></div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <div class="finder-sub-header" id="head_rel_size_${r}">Grösse</div>
+                            <div class="pill-group" id="list_rel_size_${r}"></div>
+                        </div>
+                        `}
+                        
+                        <div class="filter-group">
+                            <div class="finder-sub-header" id="head_rel_montage_${r}">${n}</div>
+                            <div class="pill-group" id="list_rel_montage_${r}"></div>
+                        </div>
 
-        copyToClipboard: function () {
-            if (!this.selectedTray) return;
-            let lines = [`${this.selectedTray.artNr}\t1`];
-            if (this.selectedTray.services) {
-                const sizeScore = this.extractSizeScore(this.selectedTray);
-                const rawServices = this.selectedTray.services || [];
-                const filteredServices = rawServices.filter(s => {
-                    const sl = s.label.toLowerCase();
-                    if (sl.includes('montagepauschale')) {
-                        if (sl.includes('bis 125') && sizeScore > 125) return false;
-                        if (sl.includes('ab 125') && sizeScore <= 125) return false;
-                    }
-                    return true;
-                });
-                filteredServices.forEach(svc => {
-                    if (svc.artNr && svc.artNr !== 'none' && !svc.label.toLowerCase().startsWith('ohne')) {
-                        lines.push(`${svc.artNr}\t${svc.qty || 1}`);
-                    }
-                });
-            }
-            navigator.clipboard.writeText(lines.join('\n')).then(() => alert('Kopiert!'));
-        }
-    };
+                        ${s||e?"":`
+                        <div style="display:flex
+ gap:1rem
+ margin-top: 1rem
+">
+                            <div class="filter-group" style="flex:1
+">
+                                <label>Länge (cm)</label>
+                                <input type="number" id="filterLength_${r}" class="filter-select" placeholder="z.B. 120" style="background:var(--bg-surface)
+ color:var(--text-primary)
+ border:1px solid var(--border)
+" />
+                            </div>
+                            <div class="filter-group" style="flex:1
+">
+                                <label>Breite (cm)</label>
+                                <input type="number" id="filterWidth_${r}" class="filter-select" placeholder="z.B. 80" style="background:var(--bg-surface)
+ color:var(--text-primary)
+ border:1px solid var(--border)
+" />
+                            </div>
+                        </div>
+                        `}
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h2>Suchergebnisse <span id="resultCount_${r}" class="badge">0</span></h2>
+                        <div class="search-results-container" id="searchResults_${r}"></div>
+                    </div>
+
+                    <div class="sidebar-section" id="trayConfigurator_${r}" style="display:none
+ margin-top:2rem
+">
+                        <h2>Konfiguration</h2>
+                        <p class="section-desc">Wählen Sie das passende Zubehör.</p>
+                        <div id="trayConfiguratorInner_${B.replace(/\s/g,"")}"></div>
+                    </div>
+                `,this.updatePillFilters()},updatePillFilters:function(){const e=B.replace(/\s/g,""),t=document.getElementById(`list_rel_mfr_${e}`),n=document.getElementById(`list_rel_serie_${e}`),i=document.getElementById(`list_rel_form_${e}`),a=document.getElementById(`list_rel_size_${e}`),l=document.getElementById(`list_rel_montage_${e}`)
+if(!t)return
+const o=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc"),y=m||o,M=o?"Montage":"Form",v=o?"System":"Montageart",S=y?"Aufputz":N.montageLabel1||"Wannenträger",_=y?"Unterputz":N.montageLabel2||"Montagerahmen",u=N.montageLabel3||"",x=this.getUniqueValues("manufacturer")
+t.innerHTML=`<button class="pill-btn ${this.currentManufacturer==="all"?"active":""}" data-val="all">Alle</button>`+x.map(g=>`
+                    <button class="pill-btn ${this.currentManufacturer===g?"active":""}" data-val="${g}">${g}</button>
+                `).join(""),X(`head_rel_mfr_${e}`,`list_rel_mfr_${e}`,this.currentManufacturer,"Hersteller",()=>{this.currentManufacturer="all",this.currentSerie="all",this.currentForm="all",this.currentSize="all",this.updatePillFilters(),this.filterResults()}),t.querySelectorAll(".pill-btn").forEach(g=>g.addEventListener("click",()=>{this.currentManufacturer=g.dataset.val,this.updatePillFilters(),this.filterResults()}))
+let A=this.trays
+this.currentManufacturer!=="all"&&(A=A.filter(g=>g.manufacturer===this.currentManufacturer))
+const H=[...new Set(A.map(g=>this.extractSerie(g)))].sort()
+if(n.innerHTML=`<button class="pill-btn ${this.currentSerie==="all"?"active":""}" data-val="all">Alle</button>`+H.map(g=>`
+                    <button class="pill-btn ${this.currentSerie===g?"active":""}" data-val="${g}">${g}</button>
+                `).join(""),X(`head_rel_serie_${e}`,`list_rel_serie_${e}`,this.currentSerie,"Serie",()=>{this.currentSerie="all",this.currentSize="all",this.updatePillFilters(),this.filterResults()}),n.querySelectorAll(".pill-btn").forEach(g=>g.addEventListener("click",()=>{this.currentSerie=g.dataset.val,this.updatePillFilters(),this.filterResults()})),i){let g=A
+this.currentSerie!=="all"&&(g=g.filter(d=>this.extractSerie(d)===this.currentSerie))
+const c=[...new Set(g.map(d=>d.form))].filter(Boolean).sort()
+i.innerHTML=`<button class="pill-btn ${this.currentForm==="all"?"active":""}" data-val="all">Alle</button>`+c.map(d=>`
+                        <button class="pill-btn ${this.currentForm===d?"active":""}" data-val="${d}">${d}</button>
+                    `).join(""),X(`head_rel_form_${e}`,`list_rel_form_${e}`,this.currentForm,M,()=>{this.currentForm="all",this.currentSize="all",this.updatePillFilters(),this.filterResults()}),i.querySelectorAll(".pill-btn").forEach(d=>d.addEventListener("click",()=>{this.currentForm=d.dataset.val,this.updatePillFilters(),this.filterResults()}))}if(a){let g=A
+this.currentSerie!=="all"&&(g=g.filter(d=>this.extractSerie(d)===this.currentSerie)),this.currentForm!=="all"&&(g=g.filter(d=>d.form===this.currentForm))
+const c=[...new Set(g.map(d=>d.size))].sort()
+a.innerHTML=`<button class="pill-btn ${this.currentSize==="all"?"active":""}" data-val="all">Alle</button>`+c.map(d=>`
+                        <button class="pill-btn ${this.currentSize===d?"active":""}" data-val="${d}">${d}</button>
+                    `).join(""),X(`head_rel_size_${e}`,`list_rel_size_${e}`,this.currentSize,"Grösse",()=>{this.currentSize="all",this.updatePillFilters(),this.filterResults()}),a.querySelectorAll(".pill-btn").forEach(d=>d.addEventListener("click",()=>{this.currentSize=d.dataset.val,this.updatePillFilters(),this.filterResults()}))}const p=S.toLowerCase(),k=_.toLowerCase(),f=u?u.toLowerCase():""
+l.innerHTML=`
+                    <button class="pill-btn ${this.currentMontageart==="alle"?"active":""}" data-val="alle">Alle</button>
+                    <button class="pill-btn ${this.currentMontageart===p?"active":""}" data-val="${p}">${S}</button>
+                    <button class="pill-btn ${this.currentMontageart===k?"active":""}" data-val="${k}">${_}</button>
+                    ${u?`<button class="pill-btn ${this.currentMontageart===f?"active":""}" data-val="${f}">${u}</button>`:""}
+                `,X(`head_rel_montage_${e}`,`list_rel_montage_${e}`,this.currentMontageart,v,()=>{this.currentMontageart="alle",this.updatePillFilters(),this.filterResults()}),l.querySelectorAll(".pill-btn").forEach(g=>g.addEventListener("click",()=>{this.currentMontageart=g.dataset.val,this.updatePillFilters(),this.filterResults()})),s||this.updateManualInputs()},bindFilters:function(){if(!s){const e=document.getElementById(`filterLength_${r}`),t=document.getElementById(`filterWidth_${r}`),n=()=>{this.updateSizeDropdownFromManual(),this.filterResults()}
+e&&e.addEventListener("input",n),t&&t.addEventListener("input",n)}},updateManualInputs:function(){const e=this.currentSize,t=document.getElementById(`filterLength_${r}`),n=document.getElementById(`filterWidth_${r}`)
+if(!(!t||!n))if(e==="all")t.value="",n.value=""
+else{const i=e.split(/[xX]/).map(a=>a.trim())
+i.length===2&&(t.value=i[0],n.value=i[1])}},updateSizeDropdownFromManual:function(){const e=document.getElementById(`filterLength_${r}`),t=document.getElementById(`filterWidth_${r}`)
+if(!e||!t)return
+const n=e.value,i=t.value
+if(n&&i){const a=`${n} x ${i}`,l=`${i} x ${n}`,o=this.trays.find(y=>y.size===a||y.size===l)
+o?this.currentSize=o.size:this.currentSize="all"}else this.currentSize="all"
+this.updatePillFilters()},filterResults:function(){var v,S
+const e=this.currentManufacturer||"all",t=this.currentSerie||"all",n=this.currentForm||"all",i=this.currentSize||"all",a=((v=document.getElementById(`filterLength_${r}`))==null?void 0:v.value)||"",l=((S=document.getElementById(`filterWidth_${r}`))==null?void 0:S.value)||"",o=this.isToiletApp||B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc"),y=this.trays.filter(_=>{if(e!=="all"&&e!=="alle"&&_.manufacturer!==e||t!=="all"&&t!=="alle"&&this.extractSerie(_)!==t)return!1
+if(!s){const u=n.toLowerCase(),x=(_.form||"").toLowerCase()
+if(u!=="all"&&u!=="alle"&&!x.includes(u)&&!u.includes(x))return!1
+if(i!=="all"&&i!=="alle"){if(_.size!==i)return!1}else if(!o&&(a||l)&&_.size&&_.size.includes("x")){const A=_.size.toLowerCase().split("x").map(H=>H.trim())
+if(A.length===2){let[H,p]=A.map(c=>parseFloat(c)),k=parseFloat(a),f=parseFloat(l)
+const g=c=>c<400?c*10:c
+if(a&&l){if(!(g(H)==g(k)&&g(p)==g(f)||g(H)==g(f)&&g(p)==g(k)))return!1}else if(a){if(g(H)!=g(k)&&g(p)!=g(k))return!1}else if(l&&g(H)!=g(f)&&g(p)!=g(f))return!1}}}if(this.currentMontageart!=="alle"&&this.currentMontageart!=="all"){const u=this.classifyAccessory(_)
+if(u!=="common"&&u!==this.currentMontageart)return!1}return!0})
+console.log(`[Configurator] ${B} Filter Results: ${y.length} of ${this.trays.length} visible. (M:${e}, S:${t}, F:${n})`),document.getElementById(`resultCount_${r}`).textContent=y.length
+const M=document.getElementById(`searchResults_${r}`)
+if(M.innerHTML="",y.length===0){M.innerHTML='<div class="no-results">Keine Produkte gefunden. Bitte Filter anpassen.</div>'
+return}y.forEach(_=>{const u=document.createElement("button")
+u.className=`result-item-btn ${this.selectedTray&&this.selectedTray.id===_.id?"active":""}`,u.innerHTML=`
+                        <div class="result-info">
+                            <strong>${_.label}</strong>
+                            <div class="result-meta">
+                                <span>${_.manufacturer}</span> ${s?"":`| <span>${_.size}</span>`}
+                            </div>
+                        </div>
+                        <span class="finish-artnr">${_.artNr}</span>
+                    `,u.addEventListener("click",()=>this.selectTray(_.id)),M.appendChild(u)}),this.selectedTray&&(this.renderConfigurator(),this.updateBOM())},selectTray:function(e){if(this.selectedTray=this.trays.find(t=>t.id===e),this.currentMontageart==="alle"){const t=new Set
+this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach(n=>{const i=n.options&&n.options[0]
+if(i){const a=this.classifyAccessory(i)
+a!=="common"&&t.add(a)}}),t.has("wannenträger")?this.currentMontageart="wannenträger":t.size>0&&(this.currentMontageart=Array.from(t)[0]),this.updatePillFilters()}this.selectedTray.selections={},this.selectedTray.variants&&this.selectedTray.variants.length>0&&(this.selectedTray.selections.__variant__=this.selectedTray.artNr),this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((t,n)=>{t.options||(t={id:t.id||"mat_"+Math.random().toString(36).substr(2,5),name:t.label?t.label.split(" ")[0]:"Zubehör",options:[{artNr:t.artNr||"",label:t.label||"",type:t.type||"Zubehör"}]},this.selectedTray.mountingMaterials[n]=t),t.options.length>0&&(this.selectedTray.selections[t.id]=t.options[0].artNr)}),this.filterResults(),this.renderConfigurator(),this.updateBOM()},renderConfigurator:function(){const e=document.getElementById(`trayConfigurator_${r}`),t=document.getElementById(`trayConfiguratorInner_${r}`)
+t.innerHTML=""
+let n=!1
+if(this.selectedTray&&this.selectedTray.variants&&this.selectedTray.variants.length>0){n=!0
+const a=document.createElement("div")
+a.className="filter-group",a.style.marginBottom="1.5rem"
+const l=document.createElement("label")
+l.textContent="Ausführung / Variante / Farbe"
+const o=document.createElement("div")
+o.className="finish-buttons-grid",o.style.marginTop="0.5rem"
+const y=(v,S)=>{const _=document.createElement("button"),u=this.selectedTray.selections.__variant__===v
+_.className=`finish-row-btn ${u?"active":""}`,_.style.width="100%",_.style.display="flex",_.style.alignItems="center"
+const x=Be(v),A=ke(S,v)
+return _.innerHTML=`
+                            <div class="finish-swatch" style="position: relative
+ overflow: hidden
+ background-color: ${A}
+ box-shadow: inset 0 1px 3px rgba(0,0,0,0.15)
+ width: 28px
+ height: 28px
+ border-radius: 50%
+ margin-right: 12px
+ border: 1px solid rgba(0,0,0,0.2)
+">
+                                ${x?`<img src="${x}" style="position: absolute
+ width: 100%
+ height: 100%
+ object-fit: cover
+ background: #fff
+ top: 0
+ left: 0
+" onerror="this.style.display='none'
+">`:""}
+                            </div>
+                            <div style="flex:1
+ text-align:left
+">
+                                <span style="display:block
+ font-weight: 500
+">${S}</span>
+                                <span class="finish-artnr" style="margin-left: 0
+">${v}</span>
+                            </div>
+                        `,_.addEventListener("click",H=>{this.selectedTray.selections.__variant__=v
+const p=S.toLowerCase(),f=["schwarz","black","matt","chrom","weiss","white","gold","bronze","nickel","edelstahl","inox","pvd","messing","brushed","poliert","gebürstet","copper","kupfer"].filter(d=>p.includes(d)),g=v&&String(v).match(/\.(\d{3})(?:\.|$)/),c=g?g[1]:null
+this.selectedTray.mountingMaterials.forEach(d=>{if(d.options&&d.options.length>1){let z=null,L=0
+d.options.forEach(C=>{let K=0
+if(c){const E=C.artNr&&String(C.artNr).match(/\.(\d{3})(?:\.|$)/)
+E&&E[1]===c&&(K+=100)}const D=C.label.toLowerCase()
+f.forEach(E=>{D.includes(E)&&K++}),K>L&&(L=K,z=C)})
+const G=f.some(C=>!["chrom","weiss","white"].includes(C))||c&&!["000","100"].includes(c)
+!z&&!G&&(z=d.options[0]),z&&(L>0||!G)&&(this.selectedTray.selections[d.id]=z.artNr)}}),this.updateBOM(),this.renderConfigurator()}),_},M=`Standard ${this.selectedTray.label.split(",").pop().trim()}`
+o.appendChild(y(this.selectedTray.artNr,M)),this.selectedTray.variants.forEach(v=>{o.appendChild(y(v.artNr,v.label))}),a.appendChild(l),a.appendChild(o),t.appendChild(a)}if(this.selectedTray&&this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.length>0&&(n=!0),!n){e.style.display="none"
+return}if(e.style.display="block",this.currentMontageart==="wannenträger"&&!this.selectedTray.mountingMaterials.some(l=>{var y
+const o=(y=l.options)==null?void 0:y[0]
+return o&&this.classifyAccessory(o)==="wannenträger"})){const l=document.createElement("div")
+l.className="compatibility-warning",l.innerHTML=`
+                            <div style="background: rgba(255, 152, 0, 0.1)
+ border: 1px solid rgba(255, 152, 0, 0.3)
+ color: #e65100
+ padding: 1rem
+ border-radius: 8px
+ font-size: 0.9rem
+ margin-bottom: 1.5rem
+ display: flex
+ align-items: start
+ gap: 0.75rem
+">
+                                <span style="font-size: 1.2rem
+">⚠️</span>
+                                <div>
+                                    <strong style="display: block
+ margin-bottom: 0.25rem
+">Kein Wannenträger verfügbar</strong>
+                                    Diese Duschwanne ist nicht carrier-kompatibel oder es wurde kein passender Träger im Pool gefunden. Bitte nutzen Sie das <strong>Montagerahmen-System</strong>.
+                                </div>
+                            </div>
+                        `,t.appendChild(l)}[...this.selectedTray.mountingMaterials].sort((a,l)=>{const o=y=>{const M=(y.name||"").toLowerCase()
+return M.includes("sitz")||M.includes("deckel")?2:M.includes("platte")||M.includes("betätigung")?3:M.includes("schall")||M.includes("isolation")?4:M.includes("manschette")||M.includes("garnitur")?5:99}
+return o(a)-o(l)}).forEach(a=>{if(!a.options||a.options.length===0)return
+const l=this.classifyAccessory(a.options[0])!=="common"?this.classifyAccessory(a.options[0]):this.classifyAccessory(a)
+if(this.currentMontageart!=="alle"&&l!=="common"&&l!==this.currentMontageart)return
+const o=document.createElement("div")
+o.className="filter-group"
+const y=document.createElement("label")
+y.textContent=a.name||"Zubehör"
+const M=window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]
+if(a.options.length===1){const v=a.options[0],S=M.find(u=>u.artNr===v.artNr),_=S?S.label:v.label
+o.innerHTML=`<label>${a.name}</label>
+                            <div style="background:var(--bg-surface)
+ padding:0.75rem
+ border-radius:6px
+ font-size:0.85rem
+ color:var(--text-primary)
+ border:1px solid var(--border)
+">
+                                <strong style="display:block
+ margin-bottom:0.25rem
+">${_}</strong>
+                                <span style="color:var(--text-secondary)
+ font-family:monospace
+">${v.artNr}</span>
+                            </div>`}else{const v=document.createElement("select")
+v.className="filter-select",a.options.forEach(S=>{const _=M.find(A=>A.artNr===S.artNr),u=_?_.label:S.label,x=document.createElement("option")
+x.value=S.artNr,x.textContent=S.dropdownLabel?S.dropdownLabel:`${u} (${S.artNr})`,this.selectedTray.selections[a.id]===S.artNr&&(x.selected=!0),v.appendChild(x)}),v.addEventListener("change",S=>{this.selectedTray.selections[a.id]=S.target.value,this.updateBOM()}),o.appendChild(y),o.appendChild(v)}t.appendChild(o)})},clearBOM:function(){me.textContent="0 Artikel ausgewählt",re.innerHTML='<tr><td colspan="5" style="text-align: center  color: #9da3ad  padding: 2rem ">Bitte wählen Sie ein Produkt aus den Suchergebnissen.</td></tr>'},updateBOM:function(){if(!this.selectedTray)return
+const e=this.selectedTray.mountingMaterials||[]
+re.innerHTML=""
+const t=[],n=B.toLowerCase(),i=n.includes("wandklosett"),a=n.includes("standklosett"),l=n.includes("wanne")||n.includes("duschfläche")
+let o=this.selectedTray.artNr,y=this.selectedTray.label,M=this.selectedTray.menge||1
+if(this.selectedTray.selections.__variant__&&this.selectedTray.selections.__variant__!==this.selectedTray.artNr){const p=(this.selectedTray.variants||[]).find(k=>k.artNr===this.selectedTray.selections.__variant__)
+p&&(o=p.artNr,y=p.label,M=p.menge||1)}const v=o==="2111 845.100.000"||o==="3231 113.100.000",S=v?2:1
+if(t.push({artNr:o,label:y,typ:B,menge:M,img:this.selectedTray.imgUrl||this.mainImgUrl,note:"Hauptartikel",priority:S}),a){const p=y.toLowerCase(),k=p.includes("einbauspülkasten")||p.includes("einbauspulkasten"),f=k?1:2
+t[t.length-1].priority=f
+const g=window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]
+e.forEach(c=>{const d=this.selectedTray.selections[c.id],z=(c.options||[]).find(b=>b.artNr===d)||c.options&&c.options[0]
+if(!z)return
+const L=this.classifyAccessory(z)!=="common"?this.classifyAccessory(z):this.classifyAccessory(c)
+if(this.currentMontageart!=="alle"&&L!=="common"&&L!==this.currentMontageart)return
+const G=g.find(b=>b.artNr===z.artNr),C=G?G.label:z.label,K=G&&G.imgUrl?G.imgUrl:z.imgUrl
+C.toLowerCase()
+const D=c.name.toLowerCase()
+let E=99
+const h=c.name||"Zubehör"
+k?D==="wc-sitz"||D==="klosettsitz"?E=2:D==="betätigungsplatte"?E=3:D==="schallschutz"?E=4:D==="befestigungsschrauben"?E=5:D==="ablaufmanschette"?E=6:D==="duofix element"||z.artNr==="3612 348.000.000"?E=7:D==="rückwandbefestigungssatz"||z.artNr==="3612 500.000.000"?E=8:(D==="ablaufbogen"||z.artNr==="3612 374.000.000")&&(E=9):D==="spülkasten"?E=1:D==="wc-sitz"||D==="klosettsitz"?E=3:D==="schallschutz"?E=4:D==="befestigungsschrauben"?E=5:D==="ablaufanschluss"&&(E=6),t.push({artNr:z.artNr,label:C,typ:z.type||c.name||"Zubehör",menge:z.menge||1,img:K,note:h,priority:E})})}else l?e.forEach(p=>{const k=this.selectedTray.selections[p.id],f=(p.options||[]).find(h=>h.artNr===k)||p.options&&p.options[0]
+if(!f)return
+const g=this.classifyAccessory(f)!=="common"?this.classifyAccessory(f):this.classifyAccessory(p)
+if(this.currentMontageart!=="alle"&&g!=="common"&&g!==this.currentMontageart)return
+const d=(window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]).find(h=>h.artNr===f.artNr),z=d?d.label:f.label,L=d&&d.imgUrl?d.imgUrl:f.imgUrl,G=(z+" "+(f.type||p.name||"")).toLowerCase()
+let C=99
+const K=p.name||"Zubehör"
+G.includes("deckel")?C=2:G.includes("ablauf")||G.includes("siphon")||G.includes("garnitur")||G.includes("sifon")?C=3:G.includes("dichtband")||G.includes("wannenband")||G.includes("zargen")||G.includes("dichtset")?C=4:G.includes("träger")||G.includes("rahmen")||G.includes("wannenträger")||G.includes("montagerahmen")?C=5:G.includes("schaum")||G.includes("fuss")||G.includes("füsse")||G.includes("mittenabstütz")||G.includes("wannenanker")||G.includes("stütz")?C=6:G.includes("schall")||G.includes("isolation")?C=7:C=8
+let D=f.menge||1
+const E=(this.selectedTray.label||"").toLowerCase()
+if(E.includes("calima")&&G.includes("stelz")){const h=E.match(/(\d{3,4})\s*x\s*(\d{3,4})/)
+if(h){const b=Math.max(parseInt(h[1]),parseInt(h[2])),U=Math.min(parseInt(h[1]),parseInt(h[2]))
+let W=16
+U<=700?b<=1e3?W=12:b<=1300?W=15:b<=1600?W=18:W=21:b<=1e3?W=16:b<=1300?W=20:b<=1600?W=24:W=28,D=Math.ceil(W/4)}}t.push({artNr:f.artNr,label:z,typ:f.type||p.name||"Zubehör",menge:D,img:L,note:K,priority:C})}):e.forEach(p=>{const k=this.selectedTray.selections[p.id],f=(p.options||[]).find(h=>h.artNr===k)||p.options&&p.options[0]
+if(!f)return
+const g=this.classifyAccessory(f)!=="common"?this.classifyAccessory(f):this.classifyAccessory(p)
+if(this.currentMontageart!=="alle"&&g!=="common"&&g!==this.currentMontageart)return
+const d=(window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]).find(h=>h.artNr===f.artNr),z=d?d.label:f.label,L=d&&d.imgUrl?d.imgUrl:f.imgUrl,G=z.toLowerCase(),C=(f.type||p.name||"").toLowerCase(),K=G+" "+C
+let D=99,E=p.name||"Zubehör"
+K.includes("sitz")||K.includes("deckel")?D=v?3:2:K.includes("platte")||K.includes("betätigung")?D=3:K.includes("schall")||K.includes("isolation")?D=v?5:4:K.includes("reservoir")||K.includes("spülkasten")||K.includes("ap128")||K.includes("ap116")?D=1:(K.includes("manschette")||K.includes("garnitur")||K.includes("ablaufanschluss")||f.artNr.includes("3241 116")||f.artNr.includes("3241 101")||f.artNr.includes("3241 102"))&&(D=5),t.push({artNr:f.artNr,label:z,typ:f.type||p.name||"Zubehör",menge:f.menge||1,img:L,note:E,priority:D})})
+if(i){const p=y.toLowerCase(),k=window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[],f=g=>{const c=k.find(d=>d.artNr===g)
+return c?{artNr:c.artNr,label:c.label,img:c.imgUrl}:null}
+if(v){const g=f("8211 114.000.000")||{artNr:"8211 114.000.000",label:"Befestigungsschrauben"}
+t.push({...g,typ:"Technik",menge:2,priority:4,note:"Aufputz-Technik"})}else{const g=p.includes("manschette")||p.includes("garnitur"),c=t.some(G=>G.priority===5)
+if(!g&&!c){const G=f("3241 101.000.000")||{artNr:"3241 101.000.000",label:"Manschettengarnitur"}
+t.push({...G,typ:"Technik",menge:1,priority:5,note:"Standard-Technik"})}const d=f("3612 348.000.000")||{artNr:"3612 348.000.000",label:"Wandklosettelement Geberit Duofix"}
+t.push({...d,typ:"Technik",menge:1,priority:6,note:"Standard-Technik"})
+const z=f("3612 500.000.000")||{artNr:"3612 500.000.000",label:"Rückwandbefestigungssatz Geberit Duofix"}
+t.push({...z,typ:"Technik",menge:1,priority:7,note:"Standard-Technik"})
+const L=f("3612 374.000.000")||{artNr:"3612 374.000.000",label:"Ablaufbogen Geberit- Silent"}
+t.push({...L,typ:"Technik",menge:1,priority:8,note:"Standard-Technik"})}}const _=y.toLowerCase(),u=_.includes("pack")||/m\.\s*(klosett|wc-)?sitz/.test(_)||/inkl\.\s*(klosett|wc-)?sitz/.test(_)||/\bset\b/.test(_)&&!_.includes("schallschutz"),x=_.includes("inkl. schall")||_.includes("m. schall")||_.includes("schallschutz-set")||_.includes("schallschutzset")||_.includes("inkl. isolation")
+let A=t.sort((p,k)=>p.priority-k.priority)
+u&&(A=A.filter(p=>p.priority!==2)),x&&(A=A.filter(p=>p.priority!==4))
+let H=0
+A.forEach(p=>{const k=document.createElement("tr")
+k.innerHTML=`
+                        <td><div class="img-cell" ${p.img?"":'style="background: transparent  border: 1px dashed var(--border) "'}>
+                            ${p.img?`<img src="${p.img}" alt="${p.label}">`:'<i class="ri-settings-3-line" style="font-size:1.2rem opacity:0.3 "></i>'}
+                        </div></td>
+                        <td><span class="bom-code">${p.artNr}</span></td>
+                        <td>
+                            <div class="bom-desc">${p.label}</div>
+                            <div style="font-size: 0.8rem
+ color: #9e9e9e
+ margin-top: 0.25rem
+">${p.note}</div>
+                        </td>
+                        <td><span class="bom-type">${p.typ}</span></td>
+                        <td><strong>${p.menge}</strong></td>
+                    `,re.appendChild(k),H+=p.menge}),me.textContent=`${H} Artikel benötigt`},copyToClipboard:function(){if(!this.selectedTray){alert("Bitte wählen Sie zuerst ein Produkt aus.")
+return}const e=B.toLowerCase(),t=e.includes("wandklosett"),n=e.includes("standklosett")
+let i=[]
+if(t||n){const l=document.getElementById("bomTableBody")
+if(l)l.querySelectorAll("tr").forEach(y=>{const M=y.querySelector(".bom-code"),v=y.querySelector("strong")
+if(M&&v){const S=M.textContent.replace(/\t/g,"").trim(),_=v.textContent.replace(/\t/g,"").trim()
+i.push(`${S}	${_}`)}})
+else{alert("Tabelle konnte nicht gefunden werden.")
+return}}else{let l=this.selectedTray.selections&&this.selectedTray.selections.__variant__?this.selectedTray.selections.__variant__:this.selectedTray.artNr,o=1
+if(this.selectedTray.selections&&this.selectedTray.selections.__variant__&&this.selectedTray.selections.__variant__!==this.selectedTray.artNr){const M=(this.selectedTray.variants||[]).find(v=>v.artNr===this.selectedTray.selections.__variant__)
+M&&(o=M.menge||1)}else o=this.selectedTray.menge||1
+i=[`${(l||"").toString().replace(/\t/g,"").trim()}	${o}`],(this.selectedTray.mountingMaterials||[]).forEach(M=>{if(!M.options||M.options.length===0)return
+const v=this.classifyAccessory(M.options[0])!=="common"?this.classifyAccessory(M.options[0]):this.classifyAccessory(M)
+if(this.currentMontageart!=="alle"&&v!=="common"&&v!==this.currentMontageart)return
+const S=this.selectedTray.selections[M.id],_=(M.options||[]).find(u=>u.artNr===S)||M.options&&M.options[0]
+if(_&&_.artNr&&_.artNr!=="none"&&!_.label.toLowerCase().startsWith("ohne")){let u=(_.artNr||"").toString().replace(/\t/g,"").trim()
+i.push(`${u}	${_.menge||1}`)}})}const a=i.join(`
+`)
+navigator.clipboard.writeText(a).then(()=>{alert(`Artikel und Menge kopiert für SAP:
+
+`+a.replace(/\t/g,"    "))}).catch(l=>alert("Kopieren fehlgeschlagen."))}}}
+    return pt(title, desc, mainImgUrl);
 }
-
-/**
- * System Configurator (Multi-Tier Linear Selection)
- */
-
-
 
 export function createWCApp(title, desc, mainImgUrl, config = {}) {
     const isMixer = config.isMixer || title.toLowerCase().includes('mischer') || title.toLowerCase().includes('armatur');
@@ -5715,155 +5343,155 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
     const montageLabel2 = config.montageLabel2 || (isMixer ? "Unterputz" : "Montagerahmen");
     const montageLabel3 = config.montageLabel3 || "";
     const hideSizeForm = config.hideSizeForm || isMixer;
-    const suffix = title.replace(/\s/g,'');
+    const suffix = title.replace(/\s/g, '');
 
     return {
-            trays: [],
-            mainImgUrl: mainImgUrl,
-            selectedTray: null,
-            extractSerie: function (t) {
-                if (t.serie) return t.serie;
-                let cleaned = t.label || '';
-                if (t.manufacturer && cleaned.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                    cleaned = cleaned.substring(t.manufacturer.length).trim();
-                }
-                const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-| \d+)/);
-                let serie = match && match[1] ? match[1].trim() : cleaned.trim();
-                
-                // Strip redundant basin/wanne type prefixes from series names
-                const prefixes = [
-                    'Doppelwaschtisch', 'Möbelwaschtisch', 'Aufsatzwaschtisch', 
-                    'Waschtisch', 'Handwaschbecken', 'Einbaubecken', 'Wandbecken',
-                    'Waschtischanlage', 'Aufsatzbecken', 'Waschbecken',
-                    'Duschenwanne', 'Duschwanne', 'Badewanne', 'Duschfläche', 'Wanne'
-                ];
-                for (const prefix of prefixes) {
-                    if (serie.toLowerCase().startsWith(prefix.toLowerCase())) {
-                        serie = serie.substring(prefix.length).trim();
-                        if (serie.startsWith('-') || serie.startsWith('/')) serie = serie.substring(1).trim();
-                        // Strip manufacturer name again if it appears after the prefix (e.g. "Duschwanne Kaldewei...")
-                        if (t.manufacturer && serie.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                            serie = serie.substring(t.manufacturer.length).trim();
-                        }
-                        break;
-                    }
-                }
-                
-                // Final safety: if manufacturer is still at front, strip it
-                if (t.manufacturer && serie.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                    serie = serie.substring(t.manufacturer.length).trim();
-                }
+        trays: [],
+        mainImgUrl: mainImgUrl,
+        selectedTray: null,
+        extractSerie: function (t) {
+            if (t.serie) return t.serie;
+            let cleaned = t.label || '';
+            if (t.manufacturer && cleaned.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
+                cleaned = cleaned.substring(t.manufacturer.length).trim();
+            }
+            const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-| \d+)/);
+            let serie = match && match[1] ? match[1].trim() : cleaned.trim();
 
-                return serie || 'Andere';
-            },
-            getUniqueValues: function (key) {
-                if (key === 'serie') {
-                    return [...new Set(this.trays.map(t => this.extractSerie(t)))].sort();
+            // Strip redundant basin/wanne type prefixes from series names
+            const prefixes = [
+                'Doppelwaschtisch', 'Möbelwaschtisch', 'Aufsatzwaschtisch',
+                'Waschtisch', 'Handwaschbecken', 'Einbaubecken', 'Wandbecken',
+                'Waschtischanlage', 'Aufsatzbecken', 'Waschbecken',
+                'Duschenwanne', 'Duschwanne', 'Badewanne', 'Duschfläche', 'Wanne'
+            ];
+            for (const prefix of prefixes) {
+                if (serie.toLowerCase().startsWith(prefix.toLowerCase())) {
+                    serie = serie.substring(prefix.length).trim();
+                    if (serie.startsWith('-') || serie.startsWith('/')) serie = serie.substring(1).trim();
+                    // Strip manufacturer name again if it appears after the prefix (e.g. "Duschwanne Kaldewei...")
+                    if (t.manufacturer && serie.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
+                        serie = serie.substring(t.manufacturer.length).trim();
+                    }
+                    break;
                 }
-                return [...new Set(this.trays.map(t => t[key]))].sort();
-            },
-            classifyAccessory: function (obj) {
-                if (!obj) return 'common';
-                
-                // 1. Check for manual admin override first
-                if (obj.overrideMontageart && obj.overrideMontageart !== 'auto') {
-                    return obj.overrideMontageart.toLowerCase();
+            }
+
+            // Final safety: if manufacturer is still at front, strip it
+            if (t.manufacturer && serie.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
+                serie = serie.substring(t.manufacturer.length).trim();
+            }
+
+            return serie || 'Andere';
+        },
+        getUniqueValues: function (key) {
+            if (key === 'serie') {
+                return [...new Set(this.trays.map(t => this.extractSerie(t)))].sort();
+            }
+            return [...new Set(this.trays.map(t => t[key]))].sort();
+        },
+        classifyAccessory: function (obj) {
+            if (!obj) return 'common';
+
+            // 1. Check for manual admin override first
+            if (obj.overrideMontageart && obj.overrideMontageart !== 'auto') {
+                return obj.overrideMontageart.toLowerCase();
+            }
+
+            // 2. Clean input data
+            const label = (obj.label || obj.name || '').toLowerCase();
+            const artNr = (obj.artNr || '').replace(/\s/g, '');
+
+            // 3. HARD EXCEPTIONS (Firm IDs)
+            if (artNr === '1445782.000.000' || artNr === '1441782.000.000') {
+                return 'wannenträger';
+            }
+            if (artNr === '1431191.000.000' || artNr === '1431190.000.000' || artNr === '1435435.000.000') {
+                return 'montagerahmen';
+            }
+
+            // 4. KEYWORD LOGIC
+            // Special Rule: If it mentions "schallschutz", it's ALWAYS Montagerahmen (unless it matched the IDs above)
+            if (label.includes('schallschutzset') || label.includes('schallschutz')) {
+                return isMixer ? 'unterputz' : 'montagerahmen';
+            }
+
+            const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
+
+            if (isMixer) {
+                const lblLower = label.toLowerCase();
+                if (lblLower.includes('standmodell') || lblLower.includes('freien stand')) {
+                    return 'standmodell';
                 }
-
-                // 2. Clean input data
-                const label = (obj.label || obj.name || '').toLowerCase();
-                const artNr = (obj.artNr || '').replace(/\s/g, '');
-
-                // 3. HARD EXCEPTIONS (Firm IDs)
-                if (artNr === '1445782.000.000' || artNr === '1441782.000.000') {
-                    return 'wannenträger';
-                }
-                if (artNr === '1431191.000.000' || artNr === '1431190.000.000' || artNr === '1435435.000.000') {
-                    return 'montagerahmen';
-                }
-
-                // 4. KEYWORD LOGIC
-                // Special Rule: If it mentions "schallschutz", it's ALWAYS Montagerahmen (unless it matched the IDs above)
-                if (label.includes('schallschutzset') || label.includes('schallschutz')) {
-                    return isMixer ? 'unterputz' : 'montagerahmen';
-                }
-
-                const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
-
-                if (isMixer) {
-                    const lblLower = label.toLowerCase();
-                    if (lblLower.includes('standmodell') || lblLower.includes('freien stand')) {
-                        return 'standmodell';
-                    }
-                    if (lblLower.includes('einbaukörper') || lblLower.includes('grundkörper') || lblLower.includes('ibox') || lblLower.includes('up-gehäuse')) {
-                        return 'common'; 
-                    }
-                    if (lblLower.includes('endmontage') || lblLower.includes('einbau') || lblLower.includes('anschlussbogen') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
-                        return 'unterputz';
-                    }
-                    if (lblLower.includes('aufputz') || lblLower.includes(' ap ') || lblLower.includes('ausserhalb') || lblLower.includes('mischer') || lblLower.includes('batterie')) {
-                        return 'aufputz';
-                    }
-                } else if (isToilet) {
-                    const lblLower = label.toLowerCase();
-                    
-                    // Toilet seats, flush plates, and connection sets are ALWAYS common (independent of montageart)
-                    if (lblLower.includes('sitz') || lblLower.includes('deckel') || lblLower.includes('betätigungsplatte') || lblLower.includes('drückerplatte') || lblLower.includes('manschette') || lblLower.includes('garnitur')) {
-                        return 'common';
-                    }
-
-                    // Classify the reservoir/element
-                    if (lblLower.includes('einbauspülkasten') || lblLower.includes('einbauspulkasten') || lblLower.includes('duofix') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
-                        return 'unterputz';
-                    }
-                    if (lblLower.includes('aufputz') || lblLower.includes(' ap ')) {
-                        return 'aufputz';
-                    }
-                    
+                if (lblLower.includes('einbaukörper') || lblLower.includes('grundkörper') || lblLower.includes('ibox') || lblLower.includes('up-gehäuse')) {
                     return 'common';
-                } else {
-                    // Carrier Logic First (Higher Priority than Schallschutz)
-                    if (label.includes('träger') || label.includes('wannenträger') || label.includes('montageschaum')) {
-                        return 'wannenträger';
-                    }
-                    // Frame Logic
-                    if (label.includes('rahmen') || label.includes('füsse') || label.includes('fussset')) {
-                        return 'montagerahmen';
-                    }
-                    // Schallschutz as Fallback for Frames
-                    if (label.includes('schallschutzset') || label.includes('schallschutz')) {
-                        return 'montagerahmen';
-                    }
-                    if (label.includes('stelzfüss') || label.includes('stelzfuss')) {
-                        return 'stelzfüsse';
-                    }
+                }
+                if (lblLower.includes('endmontage') || lblLower.includes('einbau') || lblLower.includes('anschlussbogen') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
+                    return 'unterputz';
+                }
+                if (lblLower.includes('aufputz') || lblLower.includes(' ap ') || lblLower.includes('ausserhalb') || lblLower.includes('mischer') || lblLower.includes('batterie')) {
+                    return 'aufputz';
+                }
+            } else if (isToilet) {
+                const lblLower = label.toLowerCase();
+
+                // Toilet seats, flush plates, and connection sets are ALWAYS common (independent of montageart)
+                if (lblLower.includes('sitz') || lblLower.includes('deckel') || lblLower.includes('betätigungsplatte') || lblLower.includes('drückerplatte') || lblLower.includes('manschette') || lblLower.includes('garnitur')) {
+                    return 'common';
+                }
+
+                // Classify the reservoir/element
+                if (lblLower.includes('einbauspülkasten') || lblLower.includes('einbauspulkasten') || lblLower.includes('duofix') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
+                    return 'unterputz';
+                }
+                if (lblLower.includes('aufputz') || lblLower.includes(' ap ')) {
+                    return 'aufputz';
                 }
 
                 return 'common';
-            },
-            init: function () {
-                this.isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
-                this.selectedTray = null;
-                this.currentMontageart = 'alle';
-                this.currentManufacturer = 'all';
-                this.currentSerie = 'all';
-                this.currentForm = 'all';
-                this.currentSize = 'all';
-                this.renderSidebar();
-                this.bindFilters();
-                this.filterResults(); // initial run
-                this.clearBOM();
-            },
-            renderSidebar: function () {
-                const isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
-                console.log(`[Configurator] Rendering Sidebar for ${title}. isToiletApp: ${isToiletApp}`);
-                const manufacturers = this.getUniqueValues('manufacturer');
-                const forms = this.getUniqueValues('form');
-                const sizes = this.getUniqueValues('size');
-                const formLabel = isToiletApp ? "Montage" : "Form";
-                const systemLabel = isToiletApp ? "System" : "Montageart";
+            } else {
+                // Carrier Logic First (Higher Priority than Schallschutz)
+                if (label.includes('träger') || label.includes('wannenträger') || label.includes('montageschaum')) {
+                    return 'wannenträger';
+                }
+                // Frame Logic
+                if (label.includes('rahmen') || label.includes('füsse') || label.includes('fussset')) {
+                    return 'montagerahmen';
+                }
+                // Schallschutz as Fallback for Frames
+                if (label.includes('schallschutzset') || label.includes('schallschutz')) {
+                    return 'montagerahmen';
+                }
+                if (label.includes('stelzfüss') || label.includes('stelzfuss')) {
+                    return 'stelzfüsse';
+                }
+            }
 
-                configSidebar.innerHTML = `
+            return 'common';
+        },
+        init: function () {
+            this.isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
+            this.selectedTray = null;
+            this.currentMontageart = 'alle';
+            this.currentManufacturer = 'all';
+            this.currentSerie = 'all';
+            this.currentForm = 'all';
+            this.currentSize = 'all';
+            this.renderSidebar();
+            this.bindFilters();
+            this.filterResults(); // initial run
+            this.clearBOM();
+        },
+        renderSidebar: function () {
+            const isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
+            console.log(`[Configurator] Rendering Sidebar for ${title}. isToiletApp: ${isToiletApp}`);
+            const manufacturers = this.getUniqueValues('manufacturer');
+            const forms = this.getUniqueValues('form');
+            const sizes = this.getUniqueValues('size');
+            const formLabel = isToiletApp ? "Montage" : "Form";
+            const systemLabel = isToiletApp ? "System" : "Montageart";
+
+            configSidebar.innerHTML = `
                     <div class="sidebar-section">
                         <h2>Filter: ${title}</h2>
                         
@@ -5916,281 +5544,281 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     <div class="sidebar-section" id="trayConfigurator_${suffix}" style="display:none; margin-top:2rem;">
                         <h2>Konfiguration</h2>
                         <p class="section-desc">Wählen Sie das passende Zubehör.</p>
-                        <div id="trayConfiguratorInner_${title.replace(/\s/g,'')}"></div>
+                        <div id="trayConfiguratorInner_${title.replace(/\s/g, '')}"></div>
                     </div>
                 `;
-                this.updatePillFilters();
-            },
-            updatePillFilters: function() {
-                const suffix = title.replace(/\s/g,'');
-                const mList = document.getElementById(`list_rel_mfr_${suffix}`);
-                const serList = document.getElementById(`list_rel_serie_${suffix}`);
-                const fList = document.getElementById(`list_rel_form_${suffix}`);
-                const sList = document.getElementById(`list_rel_size_${suffix}`);
-                const monList = document.getElementById(`list_rel_montage_${suffix}`);
+            this.updatePillFilters();
+        },
+        updatePillFilters: function () {
+            const suffix = title.replace(/\s/g, '');
+            const mList = document.getElementById(`list_rel_mfr_${suffix}`);
+            const serList = document.getElementById(`list_rel_serie_${suffix}`);
+            const fList = document.getElementById(`list_rel_form_${suffix}`);
+            const sList = document.getElementById(`list_rel_size_${suffix}`);
+            const monList = document.getElementById(`list_rel_montage_${suffix}`);
 
-                if (!mList) return;
+            if (!mList) return;
 
-                const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
-                const isUpAp = isMixer || isToilet;
-                const formLabel = isToilet ? "Montage" : "Form";
-                const systemLabel = isToilet ? "System" : "Montageart";
-                const label1 = isUpAp ? "Aufputz" : (config.montageLabel1 || "Wannenträger");
-                const label2 = isUpAp ? "Unterputz" : (config.montageLabel2 || "Montagerahmen");
-                const label3 = config.montageLabel3 || "";
+            const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
+            const isUpAp = isMixer || isToilet;
+            const formLabel = isToilet ? "Montage" : "Form";
+            const systemLabel = isToilet ? "System" : "Montageart";
+            const label1 = isUpAp ? "Aufputz" : (config.montageLabel1 || "Wannenträger");
+            const label2 = isUpAp ? "Unterputz" : (config.montageLabel2 || "Montagerahmen");
+            const label3 = config.montageLabel3 || "";
 
-                // 1. Manufacturer
-                const manufacturers = this.getUniqueValues('manufacturer');
-                mList.innerHTML = `<button class="pill-btn ${this.currentManufacturer === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + manufacturers.map(m => `
+            // 1. Manufacturer
+            const manufacturers = this.getUniqueValues('manufacturer');
+            mList.innerHTML = `<button class="pill-btn ${this.currentManufacturer === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + manufacturers.map(m => `
                     <button class="pill-btn ${this.currentManufacturer === m ? 'active' : ''}" data-val="${m}">${m}</button>
                 `).join('');
-                applyPillUI(`head_rel_mfr_${suffix}`, `list_rel_mfr_${suffix}`, this.currentManufacturer, 'Hersteller', () => {
-                    this.currentManufacturer = 'all';
-                    this.currentSerie = 'all';
+            applyPillUI(`head_rel_mfr_${suffix}`, `list_rel_mfr_${suffix}`, this.currentManufacturer, 'Hersteller', () => {
+                this.currentManufacturer = 'all';
+                this.currentSerie = 'all';
+                this.currentForm = 'all';
+                this.currentSize = 'all';
+                this.updatePillFilters();
+                this.filterResults();
+            });
+
+            mList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
+                this.currentManufacturer = btn.dataset.val;
+                this.updatePillFilters();
+                this.filterResults();
+            }));
+
+            // 2. Serie
+            let validTraysForSerie = this.trays;
+            if (this.currentManufacturer !== 'all') {
+                validTraysForSerie = validTraysForSerie.filter(t => t.manufacturer === this.currentManufacturer);
+            }
+            const series = [...new Set(validTraysForSerie.map(t => this.extractSerie(t)))].sort();
+            serList.innerHTML = `<button class="pill-btn ${this.currentSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + series.map(s => `
+                    <button class="pill-btn ${this.currentSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>
+                `).join('');
+            applyPillUI(`head_rel_serie_${suffix}`, `list_rel_serie_${suffix}`, this.currentSerie, 'Serie', () => {
+                this.currentSerie = 'all';
+                this.currentSize = 'all';
+                this.updatePillFilters();
+                this.filterResults();
+            });
+            serList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
+                this.currentSerie = btn.dataset.val;
+                this.updatePillFilters();
+                this.filterResults();
+            }));
+
+            // 3. Form (Montage)
+            if (fList) {
+                let validTraysForForm = validTraysForSerie;
+                if (this.currentSerie !== 'all') {
+                    validTraysForForm = validTraysForForm.filter(t => this.extractSerie(t) === this.currentSerie);
+                }
+                const forms = [...new Set(validTraysForForm.map(t => t.form))].filter(Boolean).sort();
+
+                fList.innerHTML = `<button class="pill-btn ${this.currentForm === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + forms.map(f => `
+                        <button class="pill-btn ${this.currentForm === f ? 'active' : ''}" data-val="${f}">${f}</button>
+                    `).join('');
+                applyPillUI(`head_rel_form_${suffix}`, `list_rel_form_${suffix}`, this.currentForm, formLabel, () => {
                     this.currentForm = 'all';
                     this.currentSize = 'all';
                     this.updatePillFilters();
                     this.filterResults();
                 });
-
-                mList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                    this.currentManufacturer = btn.dataset.val;
+                fList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
+                    this.currentForm = btn.dataset.val;
                     this.updatePillFilters();
                     this.filterResults();
                 }));
+            }
 
-                // 2. Serie
-                let validTraysForSerie = this.trays;
-                if (this.currentManufacturer !== 'all') {
-                    validTraysForSerie = validTraysForSerie.filter(t => t.manufacturer === this.currentManufacturer);
+            // 4. Size
+            if (sList) {
+                let validTraysForSize = validTraysForSerie;
+                if (this.currentSerie !== 'all') {
+                    validTraysForSize = validTraysForSize.filter(t => this.extractSerie(t) === this.currentSerie);
                 }
-                const series = [...new Set(validTraysForSerie.map(t => this.extractSerie(t)))].sort();
-                serList.innerHTML = `<button class="pill-btn ${this.currentSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + series.map(s => `
-                    <button class="pill-btn ${this.currentSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>
-                `).join('');
-                applyPillUI(`head_rel_serie_${suffix}`, `list_rel_serie_${suffix}`, this.currentSerie, 'Serie', () => {
-                    this.currentSerie = 'all';
+                if (this.currentForm !== 'all') {
+                    validTraysForSize = validTraysForSize.filter(t => t.form === this.currentForm);
+                }
+                const sizes = [...new Set(validTraysForSize.map(t => t.size))].sort();
+                sList.innerHTML = `<button class="pill-btn ${this.currentSize === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + sizes.map(s => `
+                        <button class="pill-btn ${this.currentSize === s ? 'active' : ''}" data-val="${s}">${s}</button>
+                    `).join('');
+                applyPillUI(`head_rel_size_${suffix}`, `list_rel_size_${suffix}`, this.currentSize, 'Grösse', () => {
                     this.currentSize = 'all';
                     this.updatePillFilters();
                     this.filterResults();
                 });
-                serList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                    this.currentSerie = btn.dataset.val;
+                sList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
+                    this.currentSize = btn.dataset.val;
                     this.updatePillFilters();
                     this.filterResults();
                 }));
+            }
 
-                // 3. Form (Montage)
-                if (fList) {
-                    let validTraysForForm = validTraysForSerie;
-                    if (this.currentSerie !== 'all') {
-                        validTraysForForm = validTraysForForm.filter(t => this.extractSerie(t) === this.currentSerie);
-                    }
-                    const forms = [...new Set(validTraysForForm.map(t => t.form))].filter(Boolean).sort();
+            const val1 = label1.toLowerCase();
+            const val2 = label2.toLowerCase();
+            const val3 = label3 ? label3.toLowerCase() : '';
 
-                    fList.innerHTML = `<button class="pill-btn ${this.currentForm === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + forms.map(f => `
-                        <button class="pill-btn ${this.currentForm === f ? 'active' : ''}" data-val="${f}">${f}</button>
-                    `).join('');
-                    applyPillUI(`head_rel_form_${suffix}`, `list_rel_form_${suffix}`, this.currentForm, formLabel, () => {
-                        this.currentForm = 'all';
-                        this.currentSize = 'all';
-                        this.updatePillFilters();
-                        this.filterResults();
-                    });
-                    fList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                        this.currentForm = btn.dataset.val;
-                        this.updatePillFilters();
-                        this.filterResults();
-                    }));
-                }
-
-                // 4. Size
-                if (sList) {
-                    let validTraysForSize = validTraysForSerie;
-                    if (this.currentSerie !== 'all') {
-                        validTraysForSize = validTraysForSize.filter(t => this.extractSerie(t) === this.currentSerie);
-                    }
-                    if (this.currentForm !== 'all') {
-                        validTraysForSize = validTraysForSize.filter(t => t.form === this.currentForm);
-                    }
-                    const sizes = [...new Set(validTraysForSize.map(t => t.size))].sort();
-                    sList.innerHTML = `<button class="pill-btn ${this.currentSize === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + sizes.map(s => `
-                        <button class="pill-btn ${this.currentSize === s ? 'active' : ''}" data-val="${s}">${s}</button>
-                    `).join('');
-                    applyPillUI(`head_rel_size_${suffix}`, `list_rel_size_${suffix}`, this.currentSize, 'Grösse', () => {
-                        this.currentSize = 'all';
-                        this.updatePillFilters();
-                        this.filterResults();
-                    });
-                    sList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                        this.currentSize = btn.dataset.val;
-                        this.updatePillFilters();
-                        this.filterResults();
-                    }));
-                }
-
-                const val1 = label1.toLowerCase();
-                const val2 = label2.toLowerCase();
-                const val3 = label3 ? label3.toLowerCase() : '';
-
-                monList.innerHTML = `
+            monList.innerHTML = `
                     <button class="pill-btn ${this.currentMontageart === 'alle' ? 'active' : ''}" data-val="alle">Alle</button>
                     <button class="pill-btn ${this.currentMontageart === val1 ? 'active' : ''}" data-val="${val1}">${label1}</button>
                     <button class="pill-btn ${this.currentMontageart === val2 ? 'active' : ''}" data-val="${val2}">${label2}</button>
                     ${label3 ? `<button class="pill-btn ${this.currentMontageart === val3 ? 'active' : ''}" data-val="${val3}">${label3}</button>` : ''}
                 `;
-                applyPillUI(`head_rel_montage_${suffix}`, `list_rel_montage_${suffix}`, this.currentMontageart, systemLabel, () => {
-                    this.currentMontageart = 'alle';
-                    this.updatePillFilters();
-                    this.filterResults();
-                });
-                monList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                    this.currentMontageart = btn.dataset.val;
-                    this.updatePillFilters();
-                    this.filterResults();
-                }));
-                if (!hideSizeForm) this.updateManualInputs();
-            },
-            bindFilters: function () {
-                // Re-bind click events for manual length/width inputs if hideSizeForm is false
-                if (!hideSizeForm) {
-                    const lInput = document.getElementById(`filterLength_${suffix}`);
-                    const wInput = document.getElementById(`filterWidth_${suffix}`);
-                    const onManualInput = () => {
-                        this.updateSizeDropdownFromManual();
-                        this.filterResults();
-                    };
-                    if (lInput) lInput.addEventListener('input', onManualInput);
-                    if (wInput) wInput.addEventListener('input', onManualInput);
-                }
-            },
-
-            updateManualInputs: function () {
-                const val = this.currentSize;
+            applyPillUI(`head_rel_montage_${suffix}`, `list_rel_montage_${suffix}`, this.currentMontageart, systemLabel, () => {
+                this.currentMontageart = 'alle';
+                this.updatePillFilters();
+                this.filterResults();
+            });
+            monList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
+                this.currentMontageart = btn.dataset.val;
+                this.updatePillFilters();
+                this.filterResults();
+            }));
+            if (!hideSizeForm) this.updateManualInputs();
+        },
+        bindFilters: function () {
+            // Re-bind click events for manual length/width inputs if hideSizeForm is false
+            if (!hideSizeForm) {
                 const lInput = document.getElementById(`filterLength_${suffix}`);
                 const wInput = document.getElementById(`filterWidth_${suffix}`);
-                
-                if (!lInput || !wInput) return; // Skip if inputs are hidden (e.g. for toilets)
-                
-                if (val === 'all') {
-                    lInput.value = '';
-                    wInput.value = '';
-                } else {
-                    const parts = val.split(/[xX]/).map(p => p.trim());
-                    if (parts.length === 2) {
-                        lInput.value = parts[0];
-                        wInput.value = parts[1];
-                    }
-                }
-            },
-            updateSizeDropdownFromManual: function () {
-                const lEl = document.getElementById(`filterLength_${suffix}`);
-                const wEl = document.getElementById(`filterWidth_${suffix}`);
-                if (!lEl || !wEl) return;
+                const onManualInput = () => {
+                    this.updateSizeDropdownFromManual();
+                    this.filterResults();
+                };
+                if (lInput) lInput.addEventListener('input', onManualInput);
+                if (wInput) wInput.addEventListener('input', onManualInput);
+            }
+        },
 
-                const lInput = lEl.value;
-                const wInput = wEl.value;
-                
-                if (lInput && wInput) {
-                    const sizeStr = `${lInput} x ${wInput}`;
-                    const sizeStrRev = `${wInput} x ${lInput}`;
-                    
-                    const found = this.trays.find(t => t.size === sizeStr || t.size === sizeStrRev);
-                    if (found) {
-                        this.currentSize = found.size;
-                    } else {
-                        this.currentSize = 'all';
-                    }
+        updateManualInputs: function () {
+            const val = this.currentSize;
+            const lInput = document.getElementById(`filterLength_${suffix}`);
+            const wInput = document.getElementById(`filterWidth_${suffix}`);
+
+            if (!lInput || !wInput) return; // Skip if inputs are hidden (e.g. for toilets)
+
+            if (val === 'all') {
+                lInput.value = '';
+                wInput.value = '';
+            } else {
+                const parts = val.split(/[xX]/).map(p => p.trim());
+                if (parts.length === 2) {
+                    lInput.value = parts[0];
+                    wInput.value = parts[1];
+                }
+            }
+        },
+        updateSizeDropdownFromManual: function () {
+            const lEl = document.getElementById(`filterLength_${suffix}`);
+            const wEl = document.getElementById(`filterWidth_${suffix}`);
+            if (!lEl || !wEl) return;
+
+            const lInput = lEl.value;
+            const wInput = wEl.value;
+
+            if (lInput && wInput) {
+                const sizeStr = `${lInput} x ${wInput}`;
+                const sizeStrRev = `${wInput} x ${lInput}`;
+
+                const found = this.trays.find(t => t.size === sizeStr || t.size === sizeStrRev);
+                if (found) {
+                    this.currentSize = found.size;
                 } else {
                     this.currentSize = 'all';
                 }
-                this.updatePillFilters();
-            },
-            filterResults: function () {
-                const mFilter = this.currentManufacturer || 'all';
-                const serieFilter = this.currentSerie || 'all';
-                const fFilter = this.currentForm || 'all';
-                const sFilter = this.currentSize || 'all';
-                const lFilter = document.getElementById(`filterLength_${suffix}`)?.value || '';
-                const wFilter = document.getElementById(`filterWidth_${suffix}`)?.value || '';
+            } else {
+                this.currentSize = 'all';
+            }
+            this.updatePillFilters();
+        },
+        filterResults: function () {
+            const mFilter = this.currentManufacturer || 'all';
+            const serieFilter = this.currentSerie || 'all';
+            const fFilter = this.currentForm || 'all';
+            const sFilter = this.currentSize || 'all';
+            const lFilter = document.getElementById(`filterLength_${suffix}`)?.value || '';
+            const wFilter = document.getElementById(`filterWidth_${suffix}`)?.value || '';
 
-                const isToilet = this.isToiletApp || (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
+            const isToilet = this.isToiletApp || (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
 
-                const filtered = this.trays.filter(t => {
-                    if (mFilter !== 'all' && mFilter !== 'alle' && t.manufacturer !== mFilter) return false;
-                    
-                    if (serieFilter !== 'all' && serieFilter !== 'alle') {
-                        const s = this.extractSerie(t);
-                        if (s !== serieFilter) return false;
-                    }
-                    
-                    if (!hideSizeForm) {
-                        const fFilterClean = fFilter.toLowerCase();
-                        const tFormClean = (t.form || '').toLowerCase();
-                        if (fFilterClean !== 'all' && fFilterClean !== 'alle' && !tFormClean.includes(fFilterClean) && !fFilterClean.includes(tFormClean)) return false;
-                        
-                        if (sFilter !== 'all' && sFilter !== 'alle') {
-                            if (t.size !== sFilter) return false;
-                        } else if (!isToilet && (lFilter || wFilter)) {
-                            // Only run numeric parsing if it's NOT a toilet and looks like "120 x 80"
-                            if (t.size && t.size.includes('x')) {
-                                const parts = t.size.toLowerCase().split('x').map(p => p.trim());
-                                if (parts.length === 2) {
-                                    let [l, w] = parts.map(p => parseFloat(p));
-                                    let lf = parseFloat(lFilter);
-                                    let wf = parseFloat(wFilter);
-                                    const norm = (v) => (v < 400 ? v * 10 : v);
-                                    if (lFilter && wFilter) {
-                                        if (!((norm(l) == norm(lf) && norm(w) == norm(wf)) || (norm(l) == norm(wf) && norm(w) == norm(lf)))) return false;
-                                    } else if (lFilter) {
-                                        if (norm(l) != norm(lf) && norm(w) != norm(lf)) return false;
-                                    } else if (wFilter) {
-                                        if (norm(l) != norm(wf) && norm(w) != norm(wf)) return false;
-                                    }
+            const filtered = this.trays.filter(t => {
+                if (mFilter !== 'all' && mFilter !== 'alle' && t.manufacturer !== mFilter) return false;
+
+                if (serieFilter !== 'all' && serieFilter !== 'alle') {
+                    const s = this.extractSerie(t);
+                    if (s !== serieFilter) return false;
+                }
+
+                if (!hideSizeForm) {
+                    const fFilterClean = fFilter.toLowerCase();
+                    const tFormClean = (t.form || '').toLowerCase();
+                    if (fFilterClean !== 'all' && fFilterClean !== 'alle' && !tFormClean.includes(fFilterClean) && !fFilterClean.includes(tFormClean)) return false;
+
+                    if (sFilter !== 'all' && sFilter !== 'alle') {
+                        if (t.size !== sFilter) return false;
+                    } else if (!isToilet && (lFilter || wFilter)) {
+                        // Only run numeric parsing if it's NOT a toilet and looks like "120 x 80"
+                        if (t.size && t.size.includes('x')) {
+                            const parts = t.size.toLowerCase().split('x').map(p => p.trim());
+                            if (parts.length === 2) {
+                                let [l, w] = parts.map(p => parseFloat(p));
+                                let lf = parseFloat(lFilter);
+                                let wf = parseFloat(wFilter);
+                                const norm = (v) => (v < 400 ? v * 10 : v);
+                                if (lFilter && wFilter) {
+                                    if (!((norm(l) == norm(lf) && norm(w) == norm(wf)) || (norm(l) == norm(wf) && norm(w) == norm(lf)))) return false;
+                                } else if (lFilter) {
+                                    if (norm(l) != norm(lf) && norm(w) != norm(lf)) return false;
+                                } else if (wFilter) {
+                                    if (norm(l) != norm(wf) && norm(w) != norm(wf)) return false;
                                 }
                             }
                         }
                     }
-                    
-                    // Filter Main Products by Montageart if chosen
-                    if (this.currentMontageart !== 'alle' && this.currentMontageart !== 'all') {
-                        const m = this.classifyAccessory(t);
-                        if (m !== 'common' && m !== this.currentMontageart) return false;
-                        
-                        // For trays/products that are 'common' themselves, check their accessories
-                        if (m === 'common') {
-                            let hasMatchingAccessory = false;
-                            if (t.mountingMaterials) {
-                                t.mountingMaterials.forEach(mat => {
-                                    if (mat.options && mat.options[0]) {
-                                        if (this.classifyAccessory(mat.options[0]) === this.currentMontageart) {
-                                            hasMatchingAccessory = true;
-                                        }
-                                    }
-                                });
-                            }
-                            if (!hasMatchingAccessory && t.mountingMaterials && t.mountingMaterials.length > 0) return false;
-                        }
-                    }
-                    
-                    return true;
-                });
-
-                console.log(`[Configurator] ${title} Filter Results: ${filtered.length} of ${this.trays.length} visible. (M:${mFilter}, S:${serieFilter}, F:${fFilter})`);
-
-                document.getElementById(`resultCount_${suffix}`).textContent = filtered.length;
-                const resultsContainer = document.getElementById(`searchResults_${suffix}`);
-                resultsContainer.innerHTML = '';
-
-                if (filtered.length === 0) {
-                    resultsContainer.innerHTML = '<div class="no-results">Keine Produkte gefunden. Bitte Filter anpassen.</div>';
-                    return;
                 }
 
-                filtered.forEach(t => {
-                    const btn = document.createElement('button');
-                    btn.className = `result-item-btn ${this.selectedTray && this.selectedTray.id === t.id ? 'active' : ''}`;
-                    btn.innerHTML = `
+                // Filter Main Products by Montageart if chosen
+                if (this.currentMontageart !== 'alle' && this.currentMontageart !== 'all') {
+                    const m = this.classifyAccessory(t);
+                    if (m !== 'common' && m !== this.currentMontageart) return false;
+
+                    // For trays/products that are 'common' themselves, check their accessories
+                    if (m === 'common') {
+                        let hasMatchingAccessory = false;
+                        if (t.mountingMaterials) {
+                            t.mountingMaterials.forEach(mat => {
+                                if (mat.options && mat.options[0]) {
+                                    if (this.classifyAccessory(mat.options[0]) === this.currentMontageart) {
+                                        hasMatchingAccessory = true;
+                                    }
+                                }
+                            });
+                        }
+                        if (!hasMatchingAccessory && t.mountingMaterials && t.mountingMaterials.length > 0) return false;
+                    }
+                }
+
+                return true;
+            });
+
+            console.log(`[Configurator] ${title} Filter Results: ${filtered.length} of ${this.trays.length} visible. (M:${mFilter}, S:${serieFilter}, F:${fFilter})`);
+
+            document.getElementById(`resultCount_${suffix}`).textContent = filtered.length;
+            const resultsContainer = document.getElementById(`searchResults_${suffix}`);
+            resultsContainer.innerHTML = '';
+
+            if (filtered.length === 0) {
+                resultsContainer.innerHTML = '<div class="no-results">Keine Produkte gefunden. Bitte Filter anpassen.</div>';
+                return;
+            }
+
+            filtered.forEach(t => {
+                const btn = document.createElement('button');
+                btn.className = `result-item-btn ${this.selectedTray && this.selectedTray.id === t.id ? 'active' : ''}`;
+                btn.innerHTML = `
                         <div class="result-info">
                             <strong>${t.label}</strong>
                             <div class="result-meta">
@@ -6199,97 +5827,121 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         </div>
                         <span class="finish-artnr">${t.artNr}</span>
                     `;
-                    btn.addEventListener('click', () => this.selectTray(t.id));
-                    resultsContainer.appendChild(btn);
-                });
+                btn.addEventListener('click', () => this.selectTray(t.id));
+                resultsContainer.appendChild(btn);
+            });
 
-                // Ensure the active configuration refreshes when filters change
-                if (this.selectedTray) {
-                    this.renderConfigurator();
-                    this.updateBOM();
-                }
-            },
-            selectTray: function (id) {
-                this.selectedTray = this.trays.find(t => t.id === id);
-                
-                if (this.currentMontageart === 'alle') {
-                    const supportedMethods = new Set();
-                    if (this.selectedTray.mountingMaterials) {
-                        this.selectedTray.mountingMaterials.forEach(mat => {
-                            const ft = mat.options && mat.options[0];
-                            if (ft) {
-                                const cls = this.classifyAccessory(ft);
-                                if (cls !== 'common') supportedMethods.add(cls);
-                            }
-                        });
-                    }
-                    if (supportedMethods.has('wannenträger')) {
-                        this.currentMontageart = 'wannenträger';
-                    } else if (supportedMethods.size > 0) {
-                        this.currentMontageart = Array.from(supportedMethods)[0];
-                    }
-                    this.updatePillFilters();
-                }
+            // Ensure the active configuration refreshes when filters change
+            if (this.selectedTray) {
+                this.renderConfigurator();
+                this.updateBOM();
+            } else {
+                this.renderGridInMainPanel(filtered);
+            }
+        },
+        renderGridInMainPanel: function (filtered) {
+            bomCountCounter.textContent = filtered.length + ' Produkte gefunden';
+            if (filtered.length === 0) {
+                bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#9da3ad; padding:2rem;">Keine Produkte gefunden. Bitte passen Sie die Filter an.</td></tr>';
+                return;
+            }
+            let cards = '';
+            filtered.forEach(function (t) {
+                const imgHTML = t.imgUrl
+                    ? '<img src="' + t.imgUrl + '" style="width:100%; height:160px; object-fit:contain; background:white; border-radius:6px; margin-bottom:1rem;" onerror="this.style.display=\'none\'">'
+                    : '<div style="height:160px; background:var(--bg-surface); display:flex; align-items:center; justify-content:center; margin-bottom:1rem; border-radius:6px;"><i class="ri-image-line" style="font-size:2.5rem; opacity:0.2;"></i></div>';
+                const mfr = t.manufacturer ? '<div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.25rem;">' + t.manufacturer + '</div>' : '';
+                const sz = t.size ? '<div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.25rem;">' + t.size + '</div>' : '';
+                cards += '<div onclick="window.currentActiveApp.selectTray(\'' + t.id + '\')" style="display:flex; flex-direction:column; cursor:pointer; padding:1rem; border:1px solid var(--border); border-radius:8px; background:var(--bg-surface); transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform=\'translateY(-2px)\'; this.style.boxShadow=\'0 6px 20px rgba(0,0,0,0.2)\'" onmouseout="this.style.transform=\'\'; this.style.boxShadow=\'\'">'
+                    + imgHTML
+                    + '<strong style="margin-bottom:0.4rem; font-size:0.9rem; color:var(--text-primary); line-height:1.3;">' + t.label + '</strong>'
+                    + mfr + sz
+                    + '<div style="margin-top:auto; padding-top:0.6rem; border-top:1px solid var(--border); font-size:0.8rem; color:var(--text-secondary);">Art-Nr: <strong style="font-family:monospace;">' + t.artNr + '</strong></div>'
+                    + '</div>';
+            });
+            bomTableBody.innerHTML = '<tr><td colspan="5" style="padding:0; border:none;"><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:1.25rem; padding:1.25rem;">' + cards + '</div></td></tr>';
+        },
+        selectTray: function (id) {
+            this.selectedTray = this.trays.find(t => t.id === id);
 
-                // Ensure data structure and setup selections
-                this.selectedTray.selections = {};
-                
-                // Initialize default variant
-                if (this.selectedTray.variants && this.selectedTray.variants.length > 0) {
-                    this.selectedTray.selections['__variant__'] = this.selectedTray.artNr;
-                }
+            if (this.currentMontageart === 'alle') {
+                const supportedMethods = new Set();
                 if (this.selectedTray.mountingMaterials) {
-                    this.selectedTray.mountingMaterials.forEach((mat, mIdx) => {
-                        if (!mat.options) {
-                            mat = {
-                                id: mat.id || 'mat_'+Math.random().toString(36).substr(2,5),
-                                name: mat.label ? mat.label.split(' ')[0] : 'Zubehör',
-                                options: [{ artNr: mat.artNr || '', label: mat.label || '', type: mat.type || 'Zubehör' }]
-                            };
-                            this.selectedTray.mountingMaterials[mIdx] = mat;
-                        }
-                        if (mat.options.length > 0) {
-                            this.selectedTray.selections[mat.id] = mat.options[0].artNr;
+                    this.selectedTray.mountingMaterials.forEach(mat => {
+                        const ft = mat.options && mat.options[0];
+                        if (ft) {
+                            const cls = this.classifyAccessory(ft);
+                            if (cls !== 'common') supportedMethods.add(cls);
                         }
                     });
                 }
+                if (supportedMethods.has('wannenträger')) {
+                    this.currentMontageart = 'wannenträger';
+                } else if (supportedMethods.size > 0) {
+                    this.currentMontageart = Array.from(supportedMethods)[0];
+                }
+                this.updatePillFilters();
+            }
 
-                this.filterResults(); // re-render to highlight active
-                this.renderConfigurator();
-                this.updateBOM();
-            },
-            renderConfigurator: function () {
-                const configBlock = document.getElementById(`trayConfigurator_${suffix}`);
-                const inner = document.getElementById(`trayConfiguratorInner_${suffix}`);
-                inner.innerHTML = '';
+            // Ensure data structure and setup selections
+            this.selectedTray.selections = {};
 
-                let hasConfig = false;
+            // Initialize default variant
+            if (this.selectedTray.variants && this.selectedTray.variants.length > 0) {
+                this.selectedTray.selections['__variant__'] = this.selectedTray.artNr;
+            }
+            if (this.selectedTray.mountingMaterials) {
+                this.selectedTray.mountingMaterials.forEach((mat, mIdx) => {
+                    if (!mat.options) {
+                        mat = {
+                            id: mat.id || 'mat_' + Math.random().toString(36).substr(2, 5),
+                            name: mat.label ? mat.label.split(' ')[0] : 'Zubehör',
+                            options: [{ artNr: mat.artNr || '', label: mat.label || '', type: mat.type || 'Zubehör' }]
+                        };
+                        this.selectedTray.mountingMaterials[mIdx] = mat;
+                    }
+                    if (mat.options.length > 0) {
+                        this.selectedTray.selections[mat.id] = mat.options[0].artNr;
+                    }
+                });
+            }
 
-                // 1. Render Variant Dropdown (if exists)
-                if (this.selectedTray && this.selectedTray.variants && this.selectedTray.variants.length > 0) {
-                    hasConfig = true;
-                    const variantDiv = document.createElement('div');
-                    variantDiv.className = 'filter-group';
-                    variantDiv.style.marginBottom = '1.5rem';
-                    const vLabel = document.createElement('label');
-                    vLabel.textContent = "Ausführung / Variante / Farbe";
-                    
-                    const swatchGrid = document.createElement('div');
-                    swatchGrid.className = 'finish-buttons-grid';
-                    swatchGrid.style.marginTop = '0.5rem';
-                    
-                    const renderVariantSwatch = (artNr, label) => {
-                        const btn = document.createElement('button');
-                        const isActive = this.selectedTray.selections['__variant__'] === artNr;
-                        btn.className = `finish-row-btn ${isActive ? 'active' : ''}`;
-                        btn.style.width = '100%';
-                        btn.style.display = 'flex';
-                        btn.style.alignItems = 'center';
-                        
-                        const imgUrl = getSanitasImgUrl(artNr);
-                        const fallbackColor = getVariantColor(label, artNr);
+            this.filterResults(); // re-render to highlight active
+            this.renderConfigurator();
+            this.updateBOM();
+        },
+        renderConfigurator: function () {
+            const configBlock = document.getElementById(`trayConfigurator_${suffix}`);
+            const inner = document.getElementById(`trayConfiguratorInner_${suffix}`);
+            inner.innerHTML = '';
 
-                        btn.innerHTML = `
+            let hasConfig = false;
+
+            // 1. Render Variant Dropdown (if exists)
+            if (this.selectedTray && this.selectedTray.variants && this.selectedTray.variants.length > 0) {
+                hasConfig = true;
+                const variantDiv = document.createElement('div');
+                variantDiv.className = 'filter-group';
+                variantDiv.style.marginBottom = '1.5rem';
+                const vLabel = document.createElement('label');
+                vLabel.textContent = "Ausführung / Variante / Farbe";
+
+                const swatchGrid = document.createElement('div');
+                swatchGrid.className = 'finish-buttons-grid';
+                swatchGrid.style.marginTop = '0.5rem';
+
+                const renderVariantSwatch = (artNr, label) => {
+                    const btn = document.createElement('button');
+                    const isActive = this.selectedTray.selections['__variant__'] === artNr;
+                    btn.className = `finish-row-btn ${isActive ? 'active' : ''}`;
+                    btn.style.width = '100%';
+                    btn.style.display = 'flex';
+                    btn.style.alignItems = 'center';
+
+                    const imgUrl = getSanitasImgUrl(artNr);
+                    const fallbackColor = getVariantColor(label, artNr);
+
+                    btn.innerHTML = `
                             <div class="finish-swatch" style="position: relative; overflow: hidden; background-color: ${fallbackColor}; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); width: 28px; height: 28px; border-radius: 50%; margin-right: 12px; border: 1px solid rgba(0,0,0,0.2);">
                                 ${imgUrl ? `<img src="${imgUrl}" style="position: absolute; width: 100%; height: 100%; object-fit: cover; background: #fff; top: 0; left: 0;" onerror="this.style.display='none';">` : ''}
                             </div>
@@ -6298,100 +5950,100 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                                 <span class="finish-artnr" style="margin-left: 0;">${artNr}</span>
                             </div>
                         `;
-                        
-                        btn.addEventListener('click', (e) => {
-                            this.selectedTray.selections['__variant__'] = artNr;
-                            
-                            // Auto-Match Accessories by Color
-                            const selectedVariantLabel = label.toLowerCase();
-                            const colors = ['schwarz', 'black', 'matt', 'chrom', 'weiss', 'white', 'gold', 'bronze', 'nickel', 'edelstahl', 'inox', 'pvd', 'messing', 'brushed', 'poliert', 'gebürstet', 'copper', 'kupfer'];
-                            const activeColors = colors.filter(c => selectedVariantLabel.includes(c));
-                            
-                            // 1. Get specific color code from variant artNr (e.g. .340)
-                            const variantMatch = artNr && String(artNr).match(/\.(\d{3})(?:\.|$)/);
-                            const variantColorCode = variantMatch ? variantMatch[1] : null;
-                            
-                            this.selectedTray.mountingMaterials.forEach(mat => {
-                                if (mat.options && mat.options.length > 1) {
-                                    let bestMatchOpt = null;
-                                    let bestMatchScore = 0;
-                                    
-                                    mat.options.forEach(opt => {
-                                        let score = 0;
-                                        // Priority 1: Exact color code suffix match (Score 100)
-                                        if (variantColorCode) {
-                                            const optMatch = opt.artNr && String(opt.artNr).match(/\.(\d{3})(?:\.|$)/);
-                                            if (optMatch && optMatch[1] === variantColorCode) {
-                                                score += 100;
-                                            }
+
+                    btn.addEventListener('click', (e) => {
+                        this.selectedTray.selections['__variant__'] = artNr;
+
+                        // Auto-Match Accessories by Color
+                        const selectedVariantLabel = label.toLowerCase();
+                        const colors = ['schwarz', 'black', 'matt', 'chrom', 'weiss', 'white', 'gold', 'bronze', 'nickel', 'edelstahl', 'inox', 'pvd', 'messing', 'brushed', 'poliert', 'gebürstet', 'copper', 'kupfer'];
+                        const activeColors = colors.filter(c => selectedVariantLabel.includes(c));
+
+                        // 1. Get specific color code from variant artNr (e.g. .340)
+                        const variantMatch = artNr && String(artNr).match(/\.(\d{3})(?:\.|$)/);
+                        const variantColorCode = variantMatch ? variantMatch[1] : null;
+
+                        this.selectedTray.mountingMaterials.forEach(mat => {
+                            if (mat.options && mat.options.length > 1) {
+                                let bestMatchOpt = null;
+                                let bestMatchScore = 0;
+
+                                mat.options.forEach(opt => {
+                                    let score = 0;
+                                    // Priority 1: Exact color code suffix match (Score 100)
+                                    if (variantColorCode) {
+                                        const optMatch = opt.artNr && String(opt.artNr).match(/\.(\d{3})(?:\.|$)/);
+                                        if (optMatch && optMatch[1] === variantColorCode) {
+                                            score += 100;
                                         }
-                                        // Priority 2: Label matches variant colors (Score 1 per word)
-                                        const optLbl = opt.label.toLowerCase();
-                                        activeColors.forEach(c => {
-                                            if (optLbl.includes(c)) score++;
-                                        });
-                                        
-                                        if (score > bestMatchScore) {
-                                            bestMatchScore = score;
-                                            bestMatchOpt = opt;
-                                        }
+                                    }
+                                    // Priority 2: Label matches variant colors (Score 1 per word)
+                                    const optLbl = opt.label.toLowerCase();
+                                    activeColors.forEach(c => {
+                                        if (optLbl.includes(c)) score++;
                                     });
-                                    
-                                    // Fallback: If no match and variant is standard, fall back to option 0
-                                    const hasExotic = activeColors.some(c => !['chrom', 'weiss', 'white'].includes(c)) || (variantColorCode && !['000', '100'].includes(variantColorCode));
-                                    if (!bestMatchOpt && !hasExotic) {
-                                        bestMatchOpt = mat.options[0];
+
+                                    if (score > bestMatchScore) {
+                                        bestMatchScore = score;
+                                        bestMatchOpt = opt;
                                     }
-                                    
-                                    if (bestMatchOpt && (bestMatchScore > 0 || !hasExotic)) {
-                                        this.selectedTray.selections[mat.id] = bestMatchOpt.artNr;
-                                    }
+                                });
+
+                                // Fallback: If no match and variant is standard, fall back to option 0
+                                const hasExotic = activeColors.some(c => !['chrom', 'weiss', 'white'].includes(c)) || (variantColorCode && !['000', '100'].includes(variantColorCode));
+                                if (!bestMatchOpt && !hasExotic) {
+                                    bestMatchOpt = mat.options[0];
                                 }
-                            });
 
-                            this.updateBOM();
-                            this.renderConfigurator();
+                                if (bestMatchOpt && (bestMatchScore > 0 || !hasExotic)) {
+                                    this.selectedTray.selections[mat.id] = bestMatchOpt.artNr;
+                                }
+                            }
                         });
-                        return btn;
-                    };
 
-                    // Add base item (Standard)
-                    const standardLabel = `Standard ${this.selectedTray.label.split(',').pop().trim()}`;
-                    swatchGrid.appendChild(renderVariantSwatch(this.selectedTray.artNr, standardLabel));
-
-                    // Add all specific variants
-                    this.selectedTray.variants.forEach(v => {
-                        swatchGrid.appendChild(renderVariantSwatch(v.artNr, v.label));
+                        this.updateBOM();
+                        this.renderConfigurator();
                     });
+                    return btn;
+                };
 
-                    variantDiv.appendChild(vLabel);
-                    variantDiv.appendChild(swatchGrid);
-                    inner.appendChild(variantDiv);
-                }
+                // Add base item (Standard)
+                const standardLabel = `Standard ${this.selectedTray.label.split(',').pop().trim()}`;
+                swatchGrid.appendChild(renderVariantSwatch(this.selectedTray.artNr, standardLabel));
 
-                // 2. Render Accessories
-                if (this.selectedTray && this.selectedTray.mountingMaterials && this.selectedTray.mountingMaterials.length > 0) {
-                    hasConfig = true;
-                }
+                // Add all specific variants
+                this.selectedTray.variants.forEach(v => {
+                    swatchGrid.appendChild(renderVariantSwatch(v.artNr, v.label));
+                });
 
-                if (!hasConfig) {
-                    configBlock.style.display = 'none';
-                    return;
-                }
+                variantDiv.appendChild(vLabel);
+                variantDiv.appendChild(swatchGrid);
+                inner.appendChild(variantDiv);
+            }
 
-                configBlock.style.display = 'block';
+            // 2. Render Accessories
+            if (this.selectedTray && this.selectedTray.mountingMaterials && this.selectedTray.mountingMaterials.length > 0) {
+                hasConfig = true;
+            }
 
-                // --- Technical Compatibility Warning ---
-                if (this.currentMontageart === 'wannenträger') {
-                    const hasCarrier = this.selectedTray.mountingMaterials.some(m => {
-                        const firstOpt = m.options?.[0];
-                        return firstOpt && this.classifyAccessory(firstOpt) === 'wannenträger';
-                    });
-                    
-                    if (!hasCarrier) {
-                        const warnDiv = document.createElement('div');
-                        warnDiv.className = 'compatibility-warning';
-                        warnDiv.innerHTML = `
+            if (!hasConfig) {
+                configBlock.style.display = 'none';
+                return;
+            }
+
+            configBlock.style.display = 'block';
+
+            // --- Technical Compatibility Warning ---
+            if (this.currentMontageart === 'wannenträger') {
+                const hasCarrier = this.selectedTray.mountingMaterials.some(m => {
+                    const firstOpt = m.options?.[0];
+                    return firstOpt && this.classifyAccessory(firstOpt) === 'wannenträger';
+                });
+
+                if (!hasCarrier) {
+                    const warnDiv = document.createElement('div');
+                    warnDiv.className = 'compatibility-warning';
+                    warnDiv.innerHTML = `
                             <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); color: #e65100; padding: 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1.5rem; display: flex; align-items: start; gap: 0.75rem;">
                                 <span style="font-size: 1.2rem;">⚠️</span>
                                 <div>
@@ -6400,358 +6052,358 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                                 </div>
                             </div>
                         `;
-                        inner.appendChild(warnDiv);
-                    }
+                    inner.appendChild(warnDiv);
+                }
+            }
+
+            // Create a sorted copy of mountingMaterials for UI rendering
+            const sortedMaterials = [...this.selectedTray.mountingMaterials].sort((a, b) => {
+                const getPri = (mat) => {
+                    const lbl = (mat.name || '').toLowerCase();
+                    if (lbl.includes('sitz') || lbl.includes('deckel')) return 2;
+                    if (lbl.includes('platte') || lbl.includes('betätigung')) return 3;
+                    if (lbl.includes('schall') || lbl.includes('isolation')) return 4;
+                    if (lbl.includes('manschette') || lbl.includes('garnitur')) return 5;
+                    return 99;
+                };
+                return getPri(a) - getPri(b);
+            });
+
+            sortedMaterials.forEach(mat => {
+                if (!mat.options || mat.options.length === 0) return;
+
+                const matClass = this.classifyAccessory(mat.options[0]) !== 'common' ? this.classifyAccessory(mat.options[0]) : this.classifyAccessory(mat);
+
+                if (this.currentMontageart !== 'alle') {
+                    if (matClass !== 'common' && matClass !== this.currentMontageart) return;
                 }
 
-                // Create a sorted copy of mountingMaterials for UI rendering
-                const sortedMaterials = [...this.selectedTray.mountingMaterials].sort((a, b) => {
-                    const getPri = (mat) => {
-                        const lbl = (mat.name || '').toLowerCase();
-                        if (lbl.includes('sitz') || lbl.includes('deckel')) return 2;
-                        if (lbl.includes('platte') || lbl.includes('betätigung')) return 3;
-                        if (lbl.includes('schall') || lbl.includes('isolation')) return 4;
-                        if (lbl.includes('manschette') || lbl.includes('garnitur')) return 5;
-                        return 99;
-                    };
-                    return getPri(a) - getPri(b);
-                });
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'filter-group';
+                const label = document.createElement('label');
+                label.textContent = mat.name || "Zubehör";
 
-                sortedMaterials.forEach(mat => {
-                    if (!mat.options || mat.options.length === 0) return;
+                const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
 
-                    const matClass = this.classifyAccessory(mat.options[0]) !== 'common' ? this.classifyAccessory(mat.options[0]) : this.classifyAccessory(mat);
-                    
-                    if (this.currentMontageart !== 'alle') {
-                        if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                    }
+                if (mat.options.length === 1) {
+                    const opt = mat.options[0];
+                    const foundZub = zubPool.find(z => z.artNr === opt.artNr);
+                    const finalLabel = foundZub ? foundZub.label : opt.label;
 
-                    const groupDiv = document.createElement('div');
-                    groupDiv.className = 'filter-group';
-                    const label = document.createElement('label');
-                    label.textContent = mat.name || "Zubehör";
-                    
-                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-
-                    if (mat.options.length === 1) {
-                        const opt = mat.options[0];
-                        const foundZub = zubPool.find(z => z.artNr === opt.artNr);
-                        const finalLabel = foundZub ? foundZub.label : opt.label;
-                        
-                        groupDiv.innerHTML = `<label>${mat.name}</label>
+                    groupDiv.innerHTML = `<label>${mat.name}</label>
                             <div style="background:var(--bg-surface); padding:0.75rem; border-radius:6px; font-size:0.85rem; color:var(--text-primary); border:1px solid var(--border);">
                                 <strong style="display:block; margin-bottom:0.25rem;">${finalLabel}</strong>
                                 <span style="color:var(--text-secondary); font-family:monospace;">${opt.artNr}</span>
                             </div>`;
-                    } else {
-                        const select = document.createElement('select');
-                        select.className = 'filter-select';
-                        mat.options.forEach(opt => {
-                            const foundZub = zubPool.find(z => z.artNr === opt.artNr);
-                            const finalLabel = foundZub ? foundZub.label : opt.label;
-
-                            const option = document.createElement('option');
-                            option.value = opt.artNr;
-                            option.textContent = opt.dropdownLabel ? opt.dropdownLabel : `${finalLabel} (${opt.artNr})`;
-                            if (this.selectedTray.selections[mat.id] === opt.artNr) option.selected = true;
-                            select.appendChild(option);
-                        });
-                        select.addEventListener('change', (e) => {
-                            this.selectedTray.selections[mat.id] = e.target.value;
-                            this.updateBOM();
-                        });
-                        groupDiv.appendChild(label);
-                        groupDiv.appendChild(select);
-                    }
-                    inner.appendChild(groupDiv);
-                });
-            },
-            clearBOM: function () {
-                bomCountCounter.textContent = "0 Artikel ausgewählt";
-                bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9da3ad; padding: 2rem;">Bitte wählen Sie ein Produkt aus den Suchergebnissen.</td></tr>';
-            },
-            updateBOM: function () {
-                if (!this.selectedTray) return;
-
-                const materials = this.selectedTray.mountingMaterials || [];
-                bomTableBody.innerHTML = '';
-                const finalBOM = [];
-
-                const titleLower = title.toLowerCase();
-                const isWandKlosett = titleLower.includes('wandklosett');
-                const isStandKlosett = titleLower.includes('standklosett');
-                const isWanne = titleLower.includes('wanne') || titleLower.includes('duschfläche');
-
-                // 1. Ceramic (Main Item)
-                let activeTrayArtNr = this.selectedTray.artNr;
-                let activeTrayLabel = this.selectedTray.label;
-                let activeTrayMenge = this.selectedTray.menge || 1;
-                if (this.selectedTray.selections['__variant__'] && this.selectedTray.selections['__variant__'] !== this.selectedTray.artNr) {
-                    const variant = (this.selectedTray.variants || []).find(v => v.artNr === this.selectedTray.selections['__variant__']);
-                    if (variant) {
-                        activeTrayArtNr = variant.artNr;
-                        activeTrayLabel = variant.label;
-                        activeTrayMenge = variant.menge || 1;
-                    }
-                }
-
-                const isAufputz = activeTrayArtNr === '2111 845.100.000' || activeTrayArtNr === '3231 113.100.000';
-                const ceramicPriority = isAufputz ? 2 : 1;
-                
-                finalBOM.push({ artNr: activeTrayArtNr, label: activeTrayLabel, typ: title, menge: activeTrayMenge, img: this.selectedTray.imgUrl || this.mainImgUrl, note: 'Hauptartikel', priority: ceramicPriority });
-
-                // ─── STANDKLOSETT: Dedicated BOM Priority Engine ─────────────────────
-                if (isStandKlosett) {
-                    const standLbl = activeTrayLabel.toLowerCase();
-                    const isStandUnterputz = standLbl.includes('einbauspülkasten') || standLbl.includes('einbauspulkasten');
-
-                    // Ceramic priority: Aufputz → 2 (Spülkasten is #1), Unterputz → 1
-                    const standCeramicPriority = isStandUnterputz ? 1 : 2;
-                    // Override the ceramic priority that was already pushed
-                    finalBOM[finalBOM.length - 1].priority = standCeramicPriority;
-
-                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-
-                    materials.forEach(mat => {
-                        const selectedArtNr = this.selectedTray.selections[mat.id];
-                        const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                        if (!selectedOption) return;
-
-                        // Check against active Montageart filter
-                        const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
-                        if (this.currentMontageart !== 'alle') {
-                            if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                        }
-
-                        const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
-                        const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
-                        const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
-
-                        const lbl = enrichedLabel.toLowerCase();
-                        const matName = mat.name.toLowerCase();
-
-                        let priority = 99;
-                        const note = mat.name || 'Zubehör';
-
-                        if (isStandUnterputz) {
-                            // UNTERPUTZ: 1=Klosett 2=Sitz 3=Platte 4=Schall 5=Screws 6=Ablaufmanschette 7=Duofix 8=Rückwand 9=Ablaufbogen
-                            if (matName === 'wc-sitz' || matName === 'klosettsitz') priority = 2;
-                            else if (matName === 'betätigungsplatte') priority = 3;
-                            else if (matName === 'schallschutz') priority = 4;
-                            else if (matName === 'befestigungsschrauben') priority = 5;
-                            else if (matName === 'ablaufmanschette') priority = 6;
-                            else if (matName === 'duofix element' || selectedOption.artNr === '3612 348.000.000') priority = 7;
-                            else if (matName === 'rückwandbefestigungssatz' || selectedOption.artNr === '3612 500.000.000') priority = 8;
-                            else if (matName === 'ablaufbogen' || selectedOption.artNr === '3612 374.000.000') priority = 9;
-                        } else {
-                            // AUFPUTZ: 1=Spülkasten 2=Klosett 3=Sitz 4=Schall 5=Screws 6=Ablaufanschluss
-                            if (matName === 'spülkasten') priority = 1;
-                            else if (matName === 'wc-sitz' || matName === 'klosettsitz') priority = 3;
-                            else if (matName === 'schallschutz') priority = 4;
-                            else if (matName === 'befestigungsschrauben') priority = 5;
-                            else if (matName === 'ablaufanschluss') priority = 6;
-                        }
-
-                        finalBOM.push({
-                            artNr: selectedOption.artNr,
-                            label: enrichedLabel,
-                            typ: selectedOption.type || mat.name || 'Zubehör',
-                            menge: selectedOption.menge || 1,
-                            img: enrichedImg,
-                            note: note,
-                            priority: priority
-                        });
-                    });
-
-                } else if (isWanne) {
-                    // ─── DUSCHENWANNE / BADEWANNE: Dedicated Priority Engine ──────────
-                    materials.forEach(mat => {
-                        const selectedArtNr = this.selectedTray.selections[mat.id];
-                        const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                        if (!selectedOption) return;
-
-                        // Check against active Montageart filter
-                        const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
-                        if (this.currentMontageart !== 'alle') {
-                            if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                        }
-
-                        const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-                        const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
-                        const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
-                        const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
-
-                        const combinedLbl = (enrichedLabel + ' ' + (selectedOption.type || mat.name || '')).toLowerCase();
-
-                        let priority = 99; // Fallback
-                        const note = mat.name || 'Zubehör';
-
-                        // 1. Wanne / Duschfläche (Handled earlier, priority: 1)
-                        // 2. Ablaufdeckel
-                        // 3. Ablaufgarnitur / Sifon
-                        // 4. Zargen-Wannendichtband
-                        // 5. Wannenträger OR Montagerahmen
-                        // 6. Montageschaum OR Fussset OR Mittenabstützsystem
-                        // 7. Schallschutzset
-
-                        if (combinedLbl.includes('deckel')) priority = 2;
-                        else if (combinedLbl.includes('ablauf') || combinedLbl.includes('siphon') || combinedLbl.includes('garnitur') || combinedLbl.includes('sifon')) priority = 3;
-                        else if (combinedLbl.includes('dichtband') || combinedLbl.includes('wannenband') || combinedLbl.includes('zargen') || combinedLbl.includes('dichtset')) priority = 4;
-                        else if (combinedLbl.includes('träger') || combinedLbl.includes('rahmen') || combinedLbl.includes('wannenträger') || combinedLbl.includes('montagerahmen')) priority = 5;
-                        else if (combinedLbl.includes('schaum') || combinedLbl.includes('fuss') || combinedLbl.includes('füsse') || combinedLbl.includes('mittenabstütz') || combinedLbl.includes('wannenanker') || combinedLbl.includes('stütz')) priority = 6;
-                        else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = 7;
-                        else priority = 8; // Any generic unclassified accessories
-
-                        let calculatedMenge = selectedOption.menge || 1;
-
-                        // RULE: Do not overwrite Calima logic without asking the user for keyword 'Jariel'
-                        // Dynamic quantity calculation for Kaldewei Calima Stelzfüsse (Pack of 4)
-                        const trayLbl = (this.selectedTray.label || '').toLowerCase();
-                        if (trayLbl.includes('calima') && combinedLbl.includes('stelz')) {
-                            const dims = trayLbl.match(/(\d{3,4})\s*x\s*(\d{3,4})/);
-                            if (dims) {
-                                const l = Math.max(parseInt(dims[1]), parseInt(dims[2]));
-                                const w = Math.min(parseInt(dims[1]), parseInt(dims[2]));
-                                
-                                let req = 16;
-                                if (w <= 700) {
-                                    if (l <= 1000) req = 12;
-                                    else if (l <= 1300) req = 15;
-                                    else if (l <= 1600) req = 18;
-                                    else req = 21;
-                                } else {
-                                    if (l <= 1000) req = 16;
-                                    else if (l <= 1300) req = 20;
-                                    else if (l <= 1600) req = 24;
-                                    else req = 28;
-                                }
-                                // Feet are sold in packs of 4. Round up to the nearest pack.
-                                calculatedMenge = Math.ceil(req / 4);
-                            }
-                        }
-
-                        finalBOM.push({
-                            artNr: selectedOption.artNr,
-                            label: enrichedLabel,
-                            typ: selectedOption.type || mat.name || 'Zubehör',
-                            menge: calculatedMenge,
-                            img: enrichedImg,
-                            note: note,
-                            priority: priority
-                        });
-                    });
-
                 } else {
-                    // ─── WANDKLOSETT / OTHER: Original Priority Engine ────────────────
-                    materials.forEach(mat => {
-                        const selectedArtNr = this.selectedTray.selections[mat.id];
-                        const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                        if (!selectedOption) return;
+                    const select = document.createElement('select');
+                    select.className = 'filter-select';
+                    mat.options.forEach(opt => {
+                        const foundZub = zubPool.find(z => z.artNr === opt.artNr);
+                        const finalLabel = foundZub ? foundZub.label : opt.label;
 
-                        // Check against active Montageart filter
-                        const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
-                        if (this.currentMontageart !== 'alle') {
-                            if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                        }
-
-                        // Dynamically enrich from zubehoer_pool (for imported seats/plates)
-                        const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-                        const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
-                        
-                        const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
-                        const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
-
-                        const lbl = enrichedLabel.toLowerCase();
-                        const typeLbl = (selectedOption.type || mat.name || '').toLowerCase();
-                        const combinedLbl = lbl + ' ' + typeLbl;
-                        
-                        let priority = 99; // Default for unknown
-                        let note = mat.name || 'Zubehör';
-
-                        if (combinedLbl.includes('sitz') || combinedLbl.includes('deckel')) priority = isAufputz ? 3 : 2;
-                        else if (combinedLbl.includes('platte') || combinedLbl.includes('betätigung')) priority = 3;
-                        else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = isAufputz ? 5 : 4;
-                        else if (combinedLbl.includes('reservoir') || combinedLbl.includes('spülkasten') || combinedLbl.includes('ap128') || combinedLbl.includes('ap116')) priority = 1;
-                        else if (combinedLbl.includes('manschette') || combinedLbl.includes('garnitur') || combinedLbl.includes('ablaufanschluss') || selectedOption.artNr.includes('3241 116') || selectedOption.artNr.includes('3241 101') || selectedOption.artNr.includes('3241 102')) priority = 5;
-
-                        finalBOM.push({ 
-                            artNr: selectedOption.artNr, 
-                            label: enrichedLabel, 
-                            typ: selectedOption.type || mat.name || 'Zubehör', 
-                            menge: selectedOption.menge || 1, 
-                            img: enrichedImg,
-                            note: note,
-                            priority: priority
-                        });
+                        const option = document.createElement('option');
+                        option.value = opt.artNr;
+                        option.textContent = opt.dropdownLabel ? opt.dropdownLabel : `${finalLabel} (${opt.artNr})`;
+                        if (this.selectedTray.selections[mat.id] === opt.artNr) option.selected = true;
+                        select.appendChild(option);
                     });
+                    select.addEventListener('change', (e) => {
+                        this.selectedTray.selections[mat.id] = e.target.value;
+                        this.updateBOM();
+                    });
+                    groupDiv.appendChild(label);
+                    groupDiv.appendChild(select);
                 }
+                inner.appendChild(groupDiv);
+            });
+        },
+        clearBOM: function () {
+            bomCountCounter.textContent = "0 Artikel ausgewählt";
+            bomTableBody.innerHTML = '';
+        },
+        updateBOM: function () {
+            if (!this.selectedTray) return;
 
-                // 5-8. Technical Injection for Wandklosett (with Dynamic Lookup)
-                if (isWandKlosett) {
-                    const mainLbl = activeTrayLabel.toLowerCase();
-                    
-                    // Access the global pool if available
-                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-                    
-                    const getZub = (art) => {
-                        const found = zubPool.find(z => z.artNr === art);
-                        return found ? { artNr: found.artNr, label: found.label, img: found.imgUrl } : null;
-                    };
+            const materials = this.selectedTray.mountingMaterials || [];
+            bomTableBody.innerHTML = '';
+            const finalBOM = [];
 
-                    if (isAufputz) {
-                        const screws = getZub('8211 114.000.000') || { artNr: '8211 114.000.000', label: 'Befestigungsschrauben' };
-                        finalBOM.push({ ...screws, typ: 'Technik', menge: 2, priority: 4, note: 'Aufputz-Technik' });
-                    } else {
-                        const hasManschette = mainLbl.includes('manschette') || mainLbl.includes('garnitur');
-                        const hasScrapedSleeve = finalBOM.some(item => item.priority === 5);
+            const titleLower = title.toLowerCase();
+            const isWandKlosett = titleLower.includes('wandklosett');
+            const isStandKlosett = titleLower.includes('standklosett');
+            const isWanne = titleLower.includes('wanne') || titleLower.includes('duschfläche');
 
-                        if (!hasManschette && !hasScrapedSleeve) {
-                            const item = getZub('3241 101.000.000') || { artNr: '3241 101.000.000', label: 'Manschettengarnitur' };
-                            finalBOM.push({ ...item, typ: 'Technik', menge: 1, priority: 5, note: 'Standard-Technik' });
-                        }
-                        
-                        const step6 = getZub('3612 348.000.000') || { artNr: '3612 348.000.000', label: 'Wandklosettelement Geberit Duofix' };
-                        finalBOM.push({ ...step6, typ: 'Technik', menge: 1, priority: 6, note: 'Standard-Technik' });
+            // 1. Ceramic (Main Item)
+            let activeTrayArtNr = this.selectedTray.artNr;
+            let activeTrayLabel = this.selectedTray.label;
+            let activeTrayMenge = this.selectedTray.menge || 1;
+            if (this.selectedTray.selections['__variant__'] && this.selectedTray.selections['__variant__'] !== this.selectedTray.artNr) {
+                const variant = (this.selectedTray.variants || []).find(v => v.artNr === this.selectedTray.selections['__variant__']);
+                if (variant) {
+                    activeTrayArtNr = variant.artNr;
+                    activeTrayLabel = variant.label;
+                    activeTrayMenge = variant.menge || 1;
+                }
+            }
 
-                        const step7 = getZub('3612 500.000.000') || { artNr: '3612 500.000.000', label: 'Rückwandbefestigungssatz Geberit Duofix' };
-                        finalBOM.push({ ...step7, typ: 'Technik', menge: 1, priority: 7, note: 'Standard-Technik' });
+            const isAufputz = activeTrayArtNr === '2111 845.100.000' || activeTrayArtNr === '3231 113.100.000';
+            const ceramicPriority = isAufputz ? 2 : 1;
 
-                        const step8 = getZub('3612 374.000.000') || { artNr: '3612 374.000.000', label: 'Ablaufbogen Geberit- Silent' };
-                        finalBOM.push({ ...step8, typ: 'Technik', menge: 1, priority: 8, note: 'Standard-Technik' });
+            finalBOM.push({ artNr: activeTrayArtNr, label: activeTrayLabel, typ: title, menge: activeTrayMenge, img: this.selectedTray.imgUrl || this.mainImgUrl, note: 'Hauptartikel', priority: ceramicPriority });
+
+            // ─── STANDKLOSETT: Dedicated BOM Priority Engine ─────────────────────
+            if (isStandKlosett) {
+                const standLbl = activeTrayLabel.toLowerCase();
+                const isStandUnterputz = standLbl.includes('einbauspülkasten') || standLbl.includes('einbauspulkasten');
+
+                // Ceramic priority: Aufputz → 2 (Spülkasten is #1), Unterputz → 1
+                const standCeramicPriority = isStandUnterputz ? 1 : 2;
+                // Override the ceramic priority that was already pushed
+                finalBOM[finalBOM.length - 1].priority = standCeramicPriority;
+
+                const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
+
+                materials.forEach(mat => {
+                    const selectedArtNr = this.selectedTray.selections[mat.id];
+                    const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
+                    if (!selectedOption) return;
+
+                    // Check against active Montageart filter
+                    const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
+                    if (this.currentMontageart !== 'alle') {
+                        if (matClass !== 'common' && matClass !== this.currentMontageart) return;
                     }
-                }
 
-                // Final Sort and Independent Deduplication Checks
-                const mainLblLower = activeTrayLabel.toLowerCase();
-                
-                // Seat Deduplication: Catch 'inkl. sitz', 'inkl. klosettsitz', 'inkl. wc-sitz', 'm. sitz'
-                const ceramicIncludesSeat = mainLblLower.includes('pack') || 
-                                            /m\.\s*(klosett|wc-)?sitz/.test(mainLblLower) || 
-                                            /inkl\.\s*(klosett|wc-)?sitz/.test(mainLblLower) ||
-                                            (/\bset\b/.test(mainLblLower) && !mainLblLower.includes('schallschutz'));
-                
-                // Isolation Deduplication: Only if explicitly included or stated as 'Schallschutz-Set'
-                const ceramicIncludesSchallschutz = mainLblLower.includes('inkl. schall') || 
-                                                    mainLblLower.includes('m. schall') ||
-                                                    mainLblLower.includes('schallschutz-set') ||
-                                                    mainLblLower.includes('schallschutzset') ||
-                                                    mainLblLower.includes('inkl. isolation');
+                    const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
+                    const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
+                    const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
 
-                let sortedBOM = finalBOM.sort((a, b) => a.priority - b.priority);
-                
-                // Remove redundant line items if they are already physically bundled with the main ceramic
-                if (ceramicIncludesSeat) {
-                    sortedBOM = sortedBOM.filter(item => item.priority !== 2);
-                }
-                if (ceramicIncludesSchallschutz) {
-                    sortedBOM = sortedBOM.filter(item => item.priority !== 4);
-                }
+                    const lbl = enrichedLabel.toLowerCase();
+                    const matName = mat.name.toLowerCase();
 
-                // Render
-                let totalCount = 0;
-                sortedBOM.forEach(item => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
+                    let priority = 99;
+                    const note = mat.name || 'Zubehör';
+
+                    if (isStandUnterputz) {
+                        // UNTERPUTZ: 1=Klosett 2=Sitz 3=Platte 4=Schall 5=Screws 6=Ablaufmanschette 7=Duofix 8=Rückwand 9=Ablaufbogen
+                        if (matName === 'wc-sitz' || matName === 'klosettsitz') priority = 2;
+                        else if (matName === 'betätigungsplatte') priority = 3;
+                        else if (matName === 'schallschutz') priority = 4;
+                        else if (matName === 'befestigungsschrauben') priority = 6;
+                        else if (matName === 'ablaufmanschette') priority = 7;
+                        else if (matName === 'duofix element' || selectedOption.artNr === '3612 348.000.000') priority = 8;
+                        else if (matName === 'rückwandbefestigungssatz' || selectedOption.artNr === '3612 500.000.000') priority = 8;
+                        else if (matName === 'ablaufbogen' || selectedOption.artNr === '3612 374.000.000') priority = 9;
+                    } else {
+                        // AUFPUTZ: 1=Spülkasten 2=Klosett 3=Sitz 4=Schall 5=Screws 6=Ablaufanschluss
+                        if (matName === 'spülkasten') priority = 1;
+                        else if (matName === 'wc-sitz' || matName === 'klosettsitz') priority = 3;
+                        else if (matName === 'schallschutz') priority = 4;
+                        else if (matName === 'befestigungsschrauben') priority = 6;
+                        else if (matName === 'ablaufanschluss') priority = 7;
+                    }
+
+                    finalBOM.push({
+                        artNr: selectedOption.artNr,
+                        label: enrichedLabel,
+                        typ: selectedOption.type || mat.name || 'Zubehör',
+                        menge: selectedOption.menge || 1,
+                        img: enrichedImg,
+                        note: note,
+                        priority: priority
+                    });
+                });
+
+            } else if (isWanne) {
+                // ─── DUSCHENWANNE / BADEWANNE: Dedicated Priority Engine ──────────
+                materials.forEach(mat => {
+                    const selectedArtNr = this.selectedTray.selections[mat.id];
+                    const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
+                    if (!selectedOption) return;
+
+                    // Check against active Montageart filter
+                    const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
+                    if (this.currentMontageart !== 'alle') {
+                        if (matClass !== 'common' && matClass !== this.currentMontageart) return;
+                    }
+
+                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
+                    const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
+                    const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
+                    const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
+
+                    const combinedLbl = (enrichedLabel + ' ' + (selectedOption.type || mat.name || '')).toLowerCase();
+
+                    let priority = 99; // Fallback
+                    const note = mat.name || 'Zubehör';
+
+                    // 1. Wanne / Duschfläche (Handled earlier, priority: 1)
+                    // 2. Ablaufdeckel
+                    // 3. Ablaufgarnitur / Sifon
+                    // 4. Zargen-Wannendichtband
+                    // 5. Wannenträger OR Montagerahmen
+                    // 6. Montageschaum OR Fussset OR Mittenabstützsystem
+                    // 7. Schallschutzset
+
+                    if (combinedLbl.includes('deckel')) priority = 2;
+                    else if (combinedLbl.includes('ablauf') || combinedLbl.includes('siphon') || combinedLbl.includes('garnitur') || combinedLbl.includes('sifon')) priority = 3;
+                    else if (combinedLbl.includes('dichtband') || combinedLbl.includes('wannenband') || combinedLbl.includes('zargen')) priority = 4;
+                    else if (combinedLbl.includes('träger') || combinedLbl.includes('rahmen') || combinedLbl.includes('wannenträger') || combinedLbl.includes('montagerahmen')) priority = 6;
+                    else if (combinedLbl.includes('schaum') || combinedLbl.includes('fuss') || combinedLbl.includes('füsse') || combinedLbl.includes('mittenabstütz') || combinedLbl.includes('wannenanker') || combinedLbl.includes('stütz')) priority = 7;
+                    else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = 8;
+                    else priority = 8; // Any generic unclassified accessories
+
+                    let calculatedMenge = selectedOption.menge || 1;
+
+                    // RULE: Do not overwrite Calima logic without asking the user for keyword 'Jariel'
+                    // Dynamic quantity calculation for Kaldewei Calima Stelzfüsse (Pack of 4)
+                    const trayLbl = (this.selectedTray.label || '').toLowerCase();
+                    if (trayLbl.includes('calima') && combinedLbl.includes('stelz')) {
+                        const dims = trayLbl.match(/(\d{3,4})\s*x\s*(\d{3,4})/);
+                        if (dims) {
+                            const l = Math.max(parseInt(dims[1]), parseInt(dims[2]));
+                            const w = Math.min(parseInt(dims[1]), parseInt(dims[2]));
+
+                            let req = 16;
+                            if (w <= 700) {
+                                if (l <= 1000) req = 12;
+                                else if (l <= 1300) req = 15;
+                                else if (l <= 1600) req = 18;
+                                else req = 21;
+                            } else {
+                                if (l <= 1000) req = 16;
+                                else if (l <= 1300) req = 20;
+                                else if (l <= 1600) req = 24;
+                                else req = 28;
+                            }
+                            // Feet are sold in packs of 4. Round up to the nearest pack.
+                            calculatedMenge = Math.ceil(req / 4);
+                        }
+                    }
+
+                    finalBOM.push({
+                        artNr: selectedOption.artNr,
+                        label: enrichedLabel,
+                        typ: selectedOption.type || mat.name || 'Zubehör',
+                        menge: calculatedMenge,
+                        img: enrichedImg,
+                        note: note,
+                        priority: priority
+                    });
+                });
+
+            } else {
+                // ─── WANDKLOSETT / OTHER: Original Priority Engine ────────────────
+                materials.forEach(mat => {
+                    const selectedArtNr = this.selectedTray.selections[mat.id];
+                    const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
+                    if (!selectedOption) return;
+
+                    // Check against active Montageart filter
+                    const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
+                    if (this.currentMontageart !== 'alle') {
+                        if (matClass !== 'common' && matClass !== this.currentMontageart) return;
+                    }
+
+                    // Dynamically enrich from zubehoer_pool (for imported seats/plates)
+                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
+                    const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
+
+                    const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
+                    const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
+
+                    const lbl = enrichedLabel.toLowerCase();
+                    const typeLbl = (selectedOption.type || mat.name || '').toLowerCase();
+                    const combinedLbl = lbl + ' ' + typeLbl;
+
+                    let priority = 99; // Default for unknown
+                    let note = mat.name || 'Zubehör';
+
+                    if (combinedLbl.includes('sitz') || combinedLbl.includes('deckel')) priority = isAufputz ? 3 : 2;
+                    else if (combinedLbl.includes('platte') || combinedLbl.includes('betätigung')) priority = 3;
+                    else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = isAufputz ? 5 : 4;
+                    else if (combinedLbl.includes('reservoir') || combinedLbl.includes('spülkasten') || combinedLbl.includes('ap128') || combinedLbl.includes('ap116')) priority = 1;
+                    else if (combinedLbl.includes('manschette') || combinedLbl.includes('garnitur') || combinedLbl.includes('ablaufanschluss') || selectedOption.artNr.includes('3241 116') || selectedOption.artNr.includes('3241 101') || selectedOption.artNr.includes('3241 102')) priority = 6;
+
+                    finalBOM.push({
+                        artNr: selectedOption.artNr,
+                        label: enrichedLabel,
+                        typ: selectedOption.type || mat.name || 'Zubehör',
+                        menge: selectedOption.menge || 1,
+                        img: enrichedImg,
+                        note: note,
+                        priority: priority
+                    });
+                });
+            }
+
+            // 5-8. Technical Injection for Wandklosett (with Dynamic Lookup)
+            if (isWandKlosett) {
+                const mainLbl = activeTrayLabel.toLowerCase();
+
+                // Access the global pool if available
+                const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
+
+                const getZub = (art) => {
+                    const found = zubPool.find(z => z.artNr === art);
+                    return found ? { artNr: found.artNr, label: found.label, img: found.imgUrl } : null;
+                };
+
+                if (isAufputz) {
+                    const screws = getZub('8211 114.000.000') || { artNr: '8211 114.000.000', label: 'Befestigungsschrauben' };
+                    finalBOM.push({ ...screws, typ: 'Technik', menge: 2, priority: 4, note: 'Aufputz-Technik' });
+                } else {
+                    const hasManschette = mainLbl.includes('manschette') || mainLbl.includes('garnitur');
+                    const hasScrapedSleeve = finalBOM.some(item => item.priority === 5);
+
+                    if (!hasManschette && !hasScrapedSleeve) {
+                        const item = getZub('3241 101.000.000') || { artNr: '3241 101.000.000', label: 'Manschettengarnitur' };
+                        finalBOM.push({ ...item, typ: 'Technik', menge: 1, priority: 5, note: 'Standard-Technik' });
+                    }
+
+                    const step6 = getZub('3612 348.000.000') || { artNr: '3612 348.000.000', label: 'Wandklosettelement Geberit Duofix' };
+                    finalBOM.push({ ...step6, typ: 'Technik', menge: 1, priority: 6, note: 'Standard-Technik' });
+
+                    const step7 = getZub('3612 500.000.000') || { artNr: '3612 500.000.000', label: 'Rückwandbefestigungssatz Geberit Duofix' };
+                    finalBOM.push({ ...step7, typ: 'Technik', menge: 1, priority: 7, note: 'Standard-Technik' });
+
+                    const step8 = getZub('3612 374.000.000') || { artNr: '3612 374.000.000', label: 'Ablaufbogen Geberit- Silent' };
+                    finalBOM.push({ ...step8, typ: 'Technik', menge: 1, priority: 8, note: 'Standard-Technik' });
+                }
+            }
+
+            // Final Sort and Independent Deduplication Checks
+            const mainLblLower = activeTrayLabel.toLowerCase();
+
+            // Seat Deduplication: Catch 'inkl. sitz', 'inkl. klosettsitz', 'inkl. wc-sitz', 'm. sitz'
+            const ceramicIncludesSeat = mainLblLower.includes('pack') ||
+                /m\.\s*(klosett|wc-)?sitz/.test(mainLblLower) ||
+                /inkl\.\s*(klosett|wc-)?sitz/.test(mainLblLower) ||
+                (/\bset\b/.test(mainLblLower) && !mainLblLower.includes('schallschutz'));
+
+            // Isolation Deduplication: Only if explicitly included or stated as 'Schallschutz-Set'
+            const ceramicIncludesSchallschutz = mainLblLower.includes('inkl. schall') ||
+                mainLblLower.includes('m. schall') ||
+                mainLblLower.includes('schallschutz-set') ||
+                mainLblLower.includes('schallschutzset') ||
+                mainLblLower.includes('inkl. isolation');
+
+            let sortedBOM = finalBOM.sort((a, b) => a.priority - b.priority);
+
+            // Remove redundant line items if they are already physically bundled with the main ceramic
+            if (ceramicIncludesSeat) {
+                sortedBOM = sortedBOM.filter(item => item.priority !== 2);
+            }
+            if (ceramicIncludesSchallschutz) {
+                sortedBOM = sortedBOM.filter(item => item.priority !== 4);
+            }
+
+            // Render
+            let totalCount = 0;
+            sortedBOM.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
                         <td><div class="img-cell" ${!item.img ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>
                             ${item.img ? `<img src="${item.img}" alt="${item.label}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>'}
                         </div></td>
@@ -6763,2314 +6415,774 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         <td><span class="bom-type">${item.typ}</span></td>
                         <td><strong>${item.menge}</strong></td>
                     `;
-                    bomTableBody.appendChild(row);
-                    totalCount += item.menge;
-                });
+                bomTableBody.appendChild(row);
+                totalCount += item.menge;
+            });
 
-                bomCountCounter.textContent = `${totalCount} Artikel benötigt`;
-            },
-            copyToClipboard: function () {
-                if (!this.selectedTray) {
-                    alert('Bitte wählen Sie zuerst ein Produkt aus.');
-                    return;
-                }
+            bomCountCounter.textContent = `${totalCount} Artikel benötigt`;
+        },
+        copyToClipboard: function () {
+            if (!this.selectedTray) {
+                alert('Bitte wählen Sie zuerst ein Produkt aus.');
+                return;
+            }
 
-                const titleLower = title.toLowerCase();
-                const isWandKlosett = titleLower.includes('wandklosett');
-                const isStandKlosett = titleLower.includes('standklosett');
+            const titleLower = title.toLowerCase();
+            const isWandKlosett = titleLower.includes('wandklosett');
+            const isStandKlosett = titleLower.includes('standklosett');
 
-                let textLines = [];
+            let textLines = [];
 
-                if (isWandKlosett || isStandKlosett) {
-                    const bomTableBody = document.getElementById('bomTableBody');
-                    if (bomTableBody) {
-                        const rows = bomTableBody.querySelectorAll('tr');
-                        rows.forEach(row => {
-                            const codeSpan = row.querySelector('.bom-code');
-                            const qtyStrong = row.querySelector('strong');
-                            if (codeSpan && qtyStrong) {
-                                const code = codeSpan.textContent.replace(/\t/g, '').trim();
-                                const menge = qtyStrong.textContent.replace(/\t/g, '').trim();
-                                textLines.push(`${code}\t${menge}`);
-                            }
-                        });
-                    } else {
-                        alert("Tabelle konnte nicht gefunden werden.");
-                        return;
-                    }
-                } else {
-                    let activeTrayArtNr = this.selectedTray.selections && this.selectedTray.selections['__variant__'] ? this.selectedTray.selections['__variant__'] : this.selectedTray.artNr;
-                    let activeTrayMenge = 1;
-                    if (this.selectedTray.selections && this.selectedTray.selections['__variant__'] && this.selectedTray.selections['__variant__'] !== this.selectedTray.artNr) {
-                        const variant = (this.selectedTray.variants || []).find(v => v.artNr === this.selectedTray.selections['__variant__']);
-                        if (variant) activeTrayMenge = variant.menge || 1;
-                    } else {
-                        activeTrayMenge = this.selectedTray.menge || 1;
-                    }
-
-                    let cleanMainArtNr = (activeTrayArtNr || '').toString().replace(/\t/g, '').trim();
-                    textLines = [`${cleanMainArtNr}\t${activeTrayMenge}`];
-                    (this.selectedTray.mountingMaterials || []).forEach(mat => {
-                        if (!mat.options || mat.options.length === 0) return;
-                        const matClass = this.classifyAccessory(mat.options[0]) !== 'common' ? this.classifyAccessory(mat.options[0]) : this.classifyAccessory(mat);
-                        if (this.currentMontageart !== 'alle') {
-                            if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                        }
-
-                        const selectedArtNr = this.selectedTray.selections[mat.id];
-                        const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                        if (selectedOption && selectedOption.artNr && selectedOption.artNr !== 'none' && !selectedOption.label.toLowerCase().startsWith('ohne')) {
-                            let cleanAccArtNr = (selectedOption.artNr || '').toString().replace(/\t/g, '').trim();
-                            textLines.push(`${cleanAccArtNr}\t${selectedOption.menge || 1}`);
+            if (isWandKlosett || isStandKlosett) {
+                const bomTableBody = document.getElementById('bomTableBody');
+                if (bomTableBody) {
+                    const rows = bomTableBody.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        const codeSpan = row.querySelector('.bom-code');
+                        const qtyStrong = row.querySelector('strong');
+                        if (codeSpan && qtyStrong) {
+                            const code = codeSpan.textContent.replace(/\t/g, '').trim();
+                            const menge = qtyStrong.textContent.replace(/\t/g, '').trim();
+                            textLines.push(`${code}\t${menge}`);
                         }
                     });
+                } else {
+                    alert("Tabelle konnte nicht gefunden werden.");
+                    return;
+                }
+            } else {
+                let activeTrayArtNr = this.selectedTray.selections && this.selectedTray.selections['__variant__'] ? this.selectedTray.selections['__variant__'] : this.selectedTray.artNr;
+                let activeTrayMenge = 1;
+                if (this.selectedTray.selections && this.selectedTray.selections['__variant__'] && this.selectedTray.selections['__variant__'] !== this.selectedTray.artNr) {
+                    const variant = (this.selectedTray.variants || []).find(v => v.artNr === this.selectedTray.selections['__variant__']);
+                    if (variant) activeTrayMenge = variant.menge || 1;
+                } else {
+                    activeTrayMenge = this.selectedTray.menge || 1;
                 }
 
-                const text = textLines.join('\n');
-                navigator.clipboard.writeText(text).then(() => {
-                    alert("Artikel und Menge kopiert für SAP:\n\n" + text.replace(/\t/g, "    "));
-                }).catch(e => alert("Kopieren fehlgeschlagen."));
+                let cleanMainArtNr = (activeTrayArtNr || '').toString().replace(/\t/g, '').trim();
+                textLines = [`${cleanMainArtNr}\t${activeTrayMenge}`];
+                (this.selectedTray.mountingMaterials || []).forEach(mat => {
+                    if (!mat.options || mat.options.length === 0) return;
+                    const matClass = this.classifyAccessory(mat.options[0]) !== 'common' ? this.classifyAccessory(mat.options[0]) : this.classifyAccessory(mat);
+                    if (this.currentMontageart !== 'alle') {
+                        if (matClass !== 'common' && matClass !== this.currentMontageart) return;
+                    }
+
+                    const selectedArtNr = this.selectedTray.selections[mat.id];
+                    const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
+                    if (selectedOption && selectedOption.artNr && selectedOption.artNr !== 'none' && !selectedOption.label.toLowerCase().startsWith('ohne')) {
+                        let cleanAccArtNr = (selectedOption.artNr || '').toString().replace(/\t/g, '').trim();
+                        textLines.push(`${cleanAccArtNr}\t${selectedOption.menge || 1}`);
+                    }
+                });
             }
-        };
+
+            const text = textLines.join('\n');
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Artikel und Menge kopiert für SAP:\n\n" + text.replace(/\t/g, "    "));
+            }).catch(e => alert("Kopieren fehlgeschlagen."));
+        }
+    };
 }
 
 
 
 
 export function createDuschenwanneApp(title, desc, mainImgUrl, config = {}) {
-    const isMixer = config.isMixer || title.toLowerCase().includes('mischer') || title.toLowerCase().includes('armatur');
-    const montageLabel1 = config.montageLabel1 || (isMixer ? "Aufputz" : "Wannenträger");
-    const montageLabel2 = config.montageLabel2 || (isMixer ? "Unterputz" : "Montagerahmen");
-    const montageLabel3 = config.montageLabel3 || "";
-    const hideSizeForm = config.hideSizeForm || isMixer;
-    const suffix = title.replace(/\s/g,'');
-
-    return {
-            trays: [],
-            mainImgUrl: mainImgUrl,
-            selectedTray: null,
-            extractSerie: function (t) {
-                if (t.serie) return t.serie;
-                let cleaned = t.label || '';
-                if (t.manufacturer && cleaned.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                    cleaned = cleaned.substring(t.manufacturer.length).trim();
-                }
-                const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-| \d+)/);
-                let serie = match && match[1] ? match[1].trim() : cleaned.trim();
-                
-                // Strip redundant basin/wanne type prefixes from series names
-                const prefixes = [
-                    'Doppelwaschtisch', 'Möbelwaschtisch', 'Aufsatzwaschtisch', 
-                    'Waschtisch', 'Handwaschbecken', 'Einbaubecken', 'Wandbecken',
-                    'Waschtischanlage', 'Aufsatzbecken', 'Waschbecken',
-                    'Duschenwanne', 'Duschwanne', 'Badewanne', 'Duschfläche', 'Wanne'
-                ];
-                for (const prefix of prefixes) {
-                    if (serie.toLowerCase().startsWith(prefix.toLowerCase())) {
-                        serie = serie.substring(prefix.length).trim();
-                        if (serie.startsWith('-') || serie.startsWith('/')) serie = serie.substring(1).trim();
-                        // Strip manufacturer name again if it appears after the prefix (e.g. "Duschwanne Kaldewei...")
-                        if (t.manufacturer && serie.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                            serie = serie.substring(t.manufacturer.length).trim();
-                        }
-                        break;
-                    }
-                }
-                
-                // Final safety: if manufacturer is still at front, strip it
-                if (t.manufacturer && serie.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                    serie = serie.substring(t.manufacturer.length).trim();
-                }
-
-                return serie || 'Andere';
-            },
-            getUniqueValues: function (key) {
-                if (key === 'serie') {
-                    return [...new Set(this.trays.map(t => this.extractSerie(t)))].sort();
-                }
-                return [...new Set(this.trays.map(t => t[key]))].sort();
-            },
-            classifyAccessory: function (obj) {
-                if (!obj) return 'common';
-                
-                // 1. Check for manual admin override first
-                if (obj.overrideMontageart && obj.overrideMontageart !== 'auto') {
-                    return obj.overrideMontageart.toLowerCase();
-                }
-
-                // 2. Clean input data
-                const label = (obj.label || obj.name || '').toLowerCase();
-                const artNr = (obj.artNr || '').replace(/\s/g, '');
-
-                // 3. HARD EXCEPTIONS (Firm IDs)
-                if (artNr === '1445782.000.000' || artNr === '1441782.000.000') {
-                    return 'wannenträger';
-                }
-                if (artNr === '1431191.000.000' || artNr === '1431190.000.000' || artNr === '1435435.000.000') {
-                    return 'montagerahmen';
-                }
-
-                // 4. KEYWORD LOGIC
-                // Special Rule: If it mentions "schallschutz", it's ALWAYS Montagerahmen (unless it matched the IDs above)
-                if (label.includes('schallschutzset') || label.includes('schallschutz')) {
-                    return isMixer ? 'unterputz' : 'montagerahmen';
-                }
-
-                const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
-
-                if (isMixer) {
-                    const lblLower = label.toLowerCase();
-                    if (lblLower.includes('standmodell') || lblLower.includes('freien stand')) {
-                        return 'standmodell';
-                    }
-                    if (lblLower.includes('einbaukörper') || lblLower.includes('grundkörper') || lblLower.includes('ibox') || lblLower.includes('up-gehäuse')) {
-                        return 'common'; 
-                    }
-                    if (lblLower.includes('endmontage') || lblLower.includes('einbau') || lblLower.includes('anschlussbogen') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
-                        return 'unterputz';
-                    }
-                    if (lblLower.includes('aufputz') || lblLower.includes(' ap ') || lblLower.includes('ausserhalb') || lblLower.includes('mischer') || lblLower.includes('batterie')) {
-                        return 'aufputz';
-                    }
-                } else if (isToilet) {
-                    const lblLower = label.toLowerCase();
-                    // STRICT RULE for Standklosett:
-                    // Unterputz ONLY if description explicitly states 'Einbauspülkasten'
-                    // Everything else is Aufputz
-                    if (lblLower.includes('einbauspülkasten') || lblLower.includes('einbauspulkasten')) {
-                        return 'unterputz';
-                    }
-                    return 'aufputz';
-                } else {
-                    // Carrier Logic First (Higher Priority than Schallschutz)
-                    if (label.includes('träger') || label.includes('wannenträger') || label.includes('montageschaum')) {
-                        return 'wannenträger';
-                    }
-                    // Frame Logic
-                    if (label.includes('rahmen') || label.includes('füsse') || label.includes('fussset')) {
-                        return 'montagerahmen';
-                    }
-                    // Schallschutz as Fallback for Frames
-                    if (label.includes('schallschutzset') || label.includes('schallschutz')) {
-                        return 'montagerahmen';
-                    }
-                    if (label.includes('stelzfüss') || label.includes('stelzfuss')) {
-                        return 'stelzfüsse';
-                    }
-                }
-
-                return 'common';
-            },
-            init: function () {
-                this.isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
-                this.selectedTray = null;
-                this.currentMontageart = 'alle';
-                this.currentManufacturer = 'all';
-                this.currentSerie = 'all';
-                this.currentForm = 'all';
-                this.currentSize = 'all';
-                this.renderSidebar();
-                this.bindFilters();
-                this.filterResults(); // initial run
-                this.clearBOM();
-            },
-            renderSidebar: function () {
-                const isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
-                console.log(`[Configurator] Rendering Sidebar for ${title}. isToiletApp: ${isToiletApp}`);
-                const manufacturers = this.getUniqueValues('manufacturer');
-                const forms = this.getUniqueValues('form');
-                const sizes = this.getUniqueValues('size');
-                const formLabel = isToiletApp ? "Montage" : "Form";
-                const systemLabel = isToiletApp ? "System" : "Montageart";
-
-                configSidebar.innerHTML = `
+    function dt(B,F,R,N={}){const m=N.isMixer||B.toLowerCase().includes("mischer")||B.toLowerCase().includes("armatur")
+N.montageLabel1,N.montageLabel2,N.montageLabel3
+const s=N.hideSizeForm||m,r=B.replace(/\s/g,"")
+return{trays:[],mainImgUrl:R,selectedTray:null,extractSerie:function(e){if(e.serie)return e.serie
+let t=e.label||""
+e.manufacturer&&t.toLowerCase().startsWith(e.manufacturer.toLowerCase())&&(t=t.substring(e.manufacturer.length).trim())
+const n=t.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-| \d+)/)
+let i=n&&n[1]?n[1].trim():t.trim()
+const a=["Doppelwaschtisch","Möbelwaschtisch","Aufsatzwaschtisch","Waschtisch","Handwaschbecken","Einbaubecken","Wandbecken","Waschtischanlage","Aufsatzbecken","Waschbecken","Duschenwanne","Duschwanne","Badewanne","Duschfläche","Wanne"]
+for(const l of a)if(i.toLowerCase().startsWith(l.toLowerCase())){i=i.substring(l.length).trim(),(i.startsWith("-")||i.startsWith("/"))&&(i=i.substring(1).trim()),e.manufacturer&&i.toLowerCase().startsWith(e.manufacturer.toLowerCase())&&(i=i.substring(e.manufacturer.length).trim())
+break}return e.manufacturer&&i.toLowerCase().startsWith(e.manufacturer.toLowerCase())&&(i=i.substring(e.manufacturer.length).trim()),i||"Andere"},getUniqueValues:function(e){return e==="serie"?[...new Set(this.trays.map(t=>this.extractSerie(t)))].sort():[...new Set(this.trays.map(t=>t[e]))].sort()},classifyAccessory:function(e){if(!e)return"common"
+if(e.overrideMontageart&&e.overrideMontageart!=="auto")return e.overrideMontageart.toLowerCase()
+const t=(e.label||e.name||"").toLowerCase(),n=(e.artNr||"").replace(/\s/g,"")
+if(n==="1445782.000.000"||n==="1441782.000.000")return"wannenträger"
+if(n==="1431191.000.000"||n==="1431190.000.000"||n==="1435435.000.000")return"montagerahmen"
+if(t.includes("schallschutzset")||t.includes("schallschutz"))return m?"unterputz":"montagerahmen"
+const i=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc")
+if(m){const a=t.toLowerCase()
+if(a.includes("standmodell")||a.includes("freien stand"))return"standmodell"
+if(a.includes("einbaukörper")||a.includes("grundkörper")||a.includes("ibox")||a.includes("up-gehäuse"))return"common"
+if(a.includes("endmontage")||a.includes("einbau")||a.includes("anschlussbogen")||a.includes("unterputz")||a.includes(" up "))return"unterputz"
+if(a.includes("aufputz")||a.includes(" ap ")||a.includes("ausserhalb")||a.includes("mischer")||a.includes("batterie"))return"aufputz"}else if(i){const a=t.toLowerCase()
+return a.includes("einbauspülkasten")||a.includes("einbauspulkasten")?"unterputz":"aufputz"}else{if(t.includes("träger")||t.includes("wannenträger")||t.includes("montageschaum"))return"wannenträger"
+if(t.includes("rahmen")||t.includes("füsse")||t.includes("fussset")||t.includes("schallschutzset")||t.includes("schallschutz"))return"montagerahmen"
+if(t.includes("stelzfüss")||t.includes("stelzfuss"))return"stelzfüsse"}return"common"},init:function(){this.isToiletApp=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc"),this.selectedTray=null,this.currentMontageart="alle",this.currentManufacturer="all",this.currentSerie="all",this.currentForm="all",this.currentSize="all",this.renderSidebar(),this.bindFilters(),this.filterResults(),this.clearBOM()},renderSidebar:function(){const e=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc")
+console.log(`[Configurator] Rendering Sidebar for ${B}. isToiletApp: ${e}`),this.getUniqueValues("manufacturer"),this.getUniqueValues("form"),this.getUniqueValues("size")
+const t=e?"Montage":"Form",n=e?"System":"Montageart"
+Ae.innerHTML=`
                     <div class="sidebar-section">
-                        <h2>Filter: ${title}</h2>
+                        <h2>Filter: ${B}</h2>
                         
                         <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_mfr_${suffix}">Hersteller</div>
-                            <div class="pill-group" id="list_rel_mfr_${suffix}"></div>
+                            <div class="finder-sub-header" id="head_rel_mfr_${r}">Hersteller</div>
+                            <div class="pill-group" id="list_rel_mfr_${r}"></div>
                         </div>
 
                         <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_serie_${suffix}">Serie</div>
-                            <div class="pill-group" id="list_rel_serie_${suffix}"></div>
+                            <div class="finder-sub-header" id="head_rel_serie_${r}">Serie</div>
+                            <div class="pill-group" id="list_rel_serie_${r}"></div>
                         </div>
                         
-                        ${hideSizeForm ? '' : `
+                        ${s?"":`
                         <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_form_${suffix}">${formLabel}</div>
-                            <div class="pill-group" id="list_rel_form_${suffix}"></div>
+                            <div class="finder-sub-header" id="head_rel_form_${r}">${t}</div>
+                            <div class="pill-group" id="list_rel_form_${r}"></div>
                         </div>
                         
                         <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_size_${suffix}">Grösse</div>
-                            <div class="pill-group" id="list_rel_size_${suffix}"></div>
+                            <div class="finder-sub-header" id="head_rel_size_${r}">Grösse</div>
+                            <div class="pill-group" id="list_rel_size_${r}"></div>
                         </div>
                         `}
                         
                         <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_montage_${suffix}">${systemLabel}</div>
-                            <div class="pill-group" id="list_rel_montage_${suffix}"></div>
+                            <div class="finder-sub-header" id="head_rel_montage_${r}">${n}</div>
+                            <div class="pill-group" id="list_rel_montage_${r}"></div>
                         </div>
 
-                        ${(hideSizeForm || isToiletApp) ? '' : `
-                        <div style="display:flex; gap:1rem; margin-top: 1rem;">
-                            <div class="filter-group" style="flex:1;">
+                        ${s||e?"":`
+                        <div style="display:flex
+ gap:1rem
+ margin-top: 1rem
+">
+                            <div class="filter-group" style="flex:1
+">
                                 <label>Länge (cm)</label>
-                                <input type="number" id="filterLength_${suffix}" class="filter-select" placeholder="z.B. 120" style="background:var(--bg-surface); color:var(--text-primary); border:1px solid var(--border);" />
+                                <input type="number" id="filterLength_${r}" class="filter-select" placeholder="z.B. 120" style="background:var(--bg-surface)
+ color:var(--text-primary)
+ border:1px solid var(--border)
+" />
                             </div>
-                            <div class="filter-group" style="flex:1;">
+                            <div class="filter-group" style="flex:1
+">
                                 <label>Breite (cm)</label>
-                                <input type="number" id="filterWidth_${suffix}" class="filter-select" placeholder="z.B. 80" style="background:var(--bg-surface); color:var(--text-primary); border:1px solid var(--border);" />
+                                <input type="number" id="filterWidth_${r}" class="filter-select" placeholder="z.B. 80" style="background:var(--bg-surface)
+ color:var(--text-primary)
+ border:1px solid var(--border)
+" />
                             </div>
                         </div>
                         `}
                     </div>
                     
                     <div class="sidebar-section">
-                        <h2>Suchergebnisse <span id="resultCount_${suffix}" class="badge">0</span></h2>
-                        <div class="search-results-container" id="searchResults_${suffix}"></div>
+                        <h2>Suchergebnisse <span id="resultCount_${r}" class="badge">0</span></h2>
+                        <div class="search-results-container" id="searchResults_${r}"></div>
                     </div>
 
-                    <div class="sidebar-section" id="trayConfigurator_${suffix}" style="display:none; margin-top:2rem;">
+                    <div class="sidebar-section" id="trayConfigurator_${r}" style="display:none
+ margin-top:2rem
+">
                         <h2>Konfiguration</h2>
                         <p class="section-desc">Wählen Sie das passende Zubehör.</p>
-                        <div id="trayConfiguratorInner_${title.replace(/\s/g,'')}"></div>
+                        <div id="trayConfiguratorInner_${B.replace(/\s/g,"")}"></div>
                     </div>
-                `;
-                this.updatePillFilters();
-            },
-            updatePillFilters: function() {
-                const suffix = title.replace(/\s/g,'');
-                const mList = document.getElementById(`list_rel_mfr_${suffix}`);
-                const serList = document.getElementById(`list_rel_serie_${suffix}`);
-                const fList = document.getElementById(`list_rel_form_${suffix}`);
-                const sList = document.getElementById(`list_rel_size_${suffix}`);
-                const monList = document.getElementById(`list_rel_montage_${suffix}`);
-
-                if (!mList) return;
-
-                const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
-                const isUpAp = isMixer || isToilet;
-                const formLabel = isToilet ? "Montage" : "Form";
-                const systemLabel = isToilet ? "System" : "Montageart";
-                const label1 = isUpAp ? "Aufputz" : (config.montageLabel1 || "Wannenträger");
-                const label2 = isUpAp ? "Unterputz" : (config.montageLabel2 || "Montagerahmen");
-                const label3 = config.montageLabel3 || "";
-
-                // 1. Manufacturer
-                const manufacturers = this.getUniqueValues('manufacturer');
-                mList.innerHTML = `<button class="pill-btn ${this.currentManufacturer === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + manufacturers.map(m => `
-                    <button class="pill-btn ${this.currentManufacturer === m ? 'active' : ''}" data-val="${m}">${m}</button>
-                `).join('');
-                applyPillUI(`head_rel_mfr_${suffix}`, `list_rel_mfr_${suffix}`, this.currentManufacturer, 'Hersteller', () => {
-                    this.currentManufacturer = 'all';
-                    this.currentSerie = 'all';
-                    this.currentForm = 'all';
-                    this.currentSize = 'all';
-                    this.updatePillFilters();
-                    this.filterResults();
-                });
-
-                mList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                    this.currentManufacturer = btn.dataset.val;
-                    this.updatePillFilters();
-                    this.filterResults();
-                }));
-
-                // 2. Serie
-                let validTraysForSerie = this.trays;
-                if (this.currentManufacturer !== 'all') {
-                    validTraysForSerie = validTraysForSerie.filter(t => t.manufacturer === this.currentManufacturer);
-                }
-                const series = [...new Set(validTraysForSerie.map(t => this.extractSerie(t)))].sort();
-                serList.innerHTML = `<button class="pill-btn ${this.currentSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + series.map(s => `
-                    <button class="pill-btn ${this.currentSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>
-                `).join('');
-                applyPillUI(`head_rel_serie_${suffix}`, `list_rel_serie_${suffix}`, this.currentSerie, 'Serie', () => {
-                    this.currentSerie = 'all';
-                    this.currentSize = 'all';
-                    this.updatePillFilters();
-                    this.filterResults();
-                });
-                serList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                    this.currentSerie = btn.dataset.val;
-                    this.updatePillFilters();
-                    this.filterResults();
-                }));
-
-                // 3. Form (Montage)
-                if (fList) {
-                    let validTraysForForm = validTraysForSerie;
-                    if (this.currentSerie !== 'all') {
-                        validTraysForForm = validTraysForForm.filter(t => this.extractSerie(t) === this.currentSerie);
-                    }
-                    const forms = [...new Set(validTraysForForm.map(t => t.form))].filter(Boolean).sort();
-
-                    fList.innerHTML = `<button class="pill-btn ${this.currentForm === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + forms.map(f => `
-                        <button class="pill-btn ${this.currentForm === f ? 'active' : ''}" data-val="${f}">${f}</button>
-                    `).join('');
-                    applyPillUI(`head_rel_form_${suffix}`, `list_rel_form_${suffix}`, this.currentForm, formLabel, () => {
-                        this.currentForm = 'all';
-                        this.currentSize = 'all';
-                        this.updatePillFilters();
-                        this.filterResults();
-                    });
-                    fList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                        this.currentForm = btn.dataset.val;
-                        this.updatePillFilters();
-                        this.filterResults();
-                    }));
-                }
-
-                // 4. Size
-                if (sList) {
-                    let validTraysForSize = validTraysForSerie;
-                    if (this.currentSerie !== 'all') {
-                        validTraysForSize = validTraysForSize.filter(t => this.extractSerie(t) === this.currentSerie);
-                    }
-                    if (this.currentForm !== 'all') {
-                        validTraysForSize = validTraysForSize.filter(t => t.form === this.currentForm);
-                    }
-                    const sizes = [...new Set(validTraysForSize.map(t => t.size))].sort();
-                    sList.innerHTML = `<button class="pill-btn ${this.currentSize === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + sizes.map(s => `
-                        <button class="pill-btn ${this.currentSize === s ? 'active' : ''}" data-val="${s}">${s}</button>
-                    `).join('');
-                    applyPillUI(`head_rel_size_${suffix}`, `list_rel_size_${suffix}`, this.currentSize, 'Grösse', () => {
-                        this.currentSize = 'all';
-                        this.updatePillFilters();
-                        this.filterResults();
-                    });
-                    sList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                        this.currentSize = btn.dataset.val;
-                        this.updatePillFilters();
-                        this.filterResults();
-                    }));
-                }
-
-                const val1 = label1.toLowerCase();
-                const val2 = label2.toLowerCase();
-                const val3 = label3 ? label3.toLowerCase() : '';
-
-                monList.innerHTML = `
-                    <button class="pill-btn ${this.currentMontageart === 'alle' ? 'active' : ''}" data-val="alle">Alle</button>
-                    <button class="pill-btn ${this.currentMontageart === val1 ? 'active' : ''}" data-val="${val1}">${label1}</button>
-                    <button class="pill-btn ${this.currentMontageart === val2 ? 'active' : ''}" data-val="${val2}">${label2}</button>
-                    ${label3 ? `<button class="pill-btn ${this.currentMontageart === val3 ? 'active' : ''}" data-val="${val3}">${label3}</button>` : ''}
-                `;
-                applyPillUI(`head_rel_montage_${suffix}`, `list_rel_montage_${suffix}`, this.currentMontageart, systemLabel, () => {
-                    this.currentMontageart = 'alle';
-                    this.updatePillFilters();
-                    this.filterResults();
-                });
-                monList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                    this.currentMontageart = btn.dataset.val;
-                    this.updatePillFilters();
-                    this.filterResults();
-                }));
-                if (!hideSizeForm) this.updateManualInputs();
-            },
-            bindFilters: function () {
-                // Re-bind click events for manual length/width inputs if hideSizeForm is false
-                if (!hideSizeForm) {
-                    const lInput = document.getElementById(`filterLength_${suffix}`);
-                    const wInput = document.getElementById(`filterWidth_${suffix}`);
-                    const onManualInput = () => {
-                        this.updateSizeDropdownFromManual();
-                        this.filterResults();
-                    };
-                    if (lInput) lInput.addEventListener('input', onManualInput);
-                    if (wInput) wInput.addEventListener('input', onManualInput);
-                }
-            },
-
-            updateManualInputs: function () {
-                const val = this.currentSize;
-                const lInput = document.getElementById(`filterLength_${suffix}`);
-                const wInput = document.getElementById(`filterWidth_${suffix}`);
-                
-                if (!lInput || !wInput) return; // Skip if inputs are hidden (e.g. for toilets)
-                
-                if (val === 'all') {
-                    lInput.value = '';
-                    wInput.value = '';
-                } else {
-                    const parts = val.split(/[xX]/).map(p => p.trim());
-                    if (parts.length === 2) {
-                        lInput.value = parts[0];
-                        wInput.value = parts[1];
-                    }
-                }
-            },
-            updateSizeDropdownFromManual: function () {
-                const lEl = document.getElementById(`filterLength_${suffix}`);
-                const wEl = document.getElementById(`filterWidth_${suffix}`);
-                if (!lEl || !wEl) return;
-
-                const lInput = lEl.value;
-                const wInput = wEl.value;
-                
-                if (lInput && wInput) {
-                    const sizeStr = `${lInput} x ${wInput}`;
-                    const sizeStrRev = `${wInput} x ${lInput}`;
-                    
-                    const found = this.trays.find(t => t.size === sizeStr || t.size === sizeStrRev);
-                    if (found) {
-                        this.currentSize = found.size;
-                    } else {
-                        this.currentSize = 'all';
-                    }
-                } else {
-                    this.currentSize = 'all';
-                }
-                this.updatePillFilters();
-            },
-            filterResults: function () {
-                const mFilter = this.currentManufacturer || 'all';
-                const serieFilter = this.currentSerie || 'all';
-                const fFilter = this.currentForm || 'all';
-                const sFilter = this.currentSize || 'all';
-                const lFilter = document.getElementById(`filterLength_${suffix}`)?.value || '';
-                const wFilter = document.getElementById(`filterWidth_${suffix}`)?.value || '';
-
-                const isToilet = this.isToiletApp || (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
-
-                const filtered = this.trays.filter(t => {
-                    if (mFilter !== 'all' && mFilter !== 'alle' && t.manufacturer !== mFilter) return false;
-                    
-                    if (serieFilter !== 'all' && serieFilter !== 'alle') {
-                        const s = this.extractSerie(t);
-                        if (s !== serieFilter) return false;
-                    }
-                    
-                    if (!hideSizeForm) {
-                        const fFilterClean = fFilter.toLowerCase();
-                        const tFormClean = (t.form || '').toLowerCase();
-                        if (fFilterClean !== 'all' && fFilterClean !== 'alle' && !tFormClean.includes(fFilterClean) && !fFilterClean.includes(tFormClean)) return false;
-                        
-                        if (sFilter !== 'all' && sFilter !== 'alle') {
-                            if (t.size !== sFilter) return false;
-                        } else if (!isToilet && (lFilter || wFilter)) {
-                            // Only run numeric parsing if it's NOT a toilet and looks like "120 x 80"
-                            if (t.size && t.size.includes('x')) {
-                                const parts = t.size.toLowerCase().split('x').map(p => p.trim());
-                                if (parts.length === 2) {
-                                    let [l, w] = parts.map(p => parseFloat(p));
-                                    let lf = parseFloat(lFilter);
-                                    let wf = parseFloat(wFilter);
-                                    const norm = (v) => (v < 400 ? v * 10 : v);
-                                    if (lFilter && wFilter) {
-                                        if (!((norm(l) == norm(lf) && norm(w) == norm(wf)) || (norm(l) == norm(wf) && norm(w) == norm(lf)))) return false;
-                                    } else if (lFilter) {
-                                        if (norm(l) != norm(lf) && norm(w) != norm(lf)) return false;
-                                    } else if (wFilter) {
-                                        if (norm(l) != norm(wf) && norm(w) != norm(wf)) return false;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Filter Main Products by Montageart if chosen
-                    if (this.currentMontageart !== 'alle' && this.currentMontageart !== 'all') {
-                        const m = this.classifyAccessory(t);
-                        if (m !== 'common' && m !== this.currentMontageart) return false;
-                        
-                        // For trays/products that are 'common' themselves, check their accessories
-                        if (m === 'common') {
-                            let hasMatchingAccessory = false;
-                            if (t.mountingMaterials) {
-                                t.mountingMaterials.forEach(mat => {
-                                    if (mat.options && mat.options[0]) {
-                                        if (this.classifyAccessory(mat.options[0]) === this.currentMontageart) {
-                                            hasMatchingAccessory = true;
-                                        }
-                                    }
-                                });
-                            }
-                            if (!hasMatchingAccessory && t.mountingMaterials && t.mountingMaterials.length > 0) return false;
-                        }
-                    }
-                    
-                    return true;
-                });
-
-                console.log(`[Configurator] ${title} Filter Results: ${filtered.length} of ${this.trays.length} visible. (M:${mFilter}, S:${serieFilter}, F:${fFilter})`);
-
-                document.getElementById(`resultCount_${suffix}`).textContent = filtered.length;
-                const resultsContainer = document.getElementById(`searchResults_${suffix}`);
-                resultsContainer.innerHTML = '';
-
-                if (filtered.length === 0) {
-                    resultsContainer.innerHTML = '<div class="no-results">Keine Produkte gefunden. Bitte Filter anpassen.</div>';
-                    return;
-                }
-
-                filtered.forEach(t => {
-                    const btn = document.createElement('button');
-                    btn.className = `result-item-btn ${this.selectedTray && this.selectedTray.id === t.id ? 'active' : ''}`;
-                    btn.innerHTML = `
+                `,this.updatePillFilters()},updatePillFilters:function(){const e=B.replace(/\s/g,""),t=document.getElementById(`list_rel_mfr_${e}`),n=document.getElementById(`list_rel_serie_${e}`),i=document.getElementById(`list_rel_form_${e}`),a=document.getElementById(`list_rel_size_${e}`),l=document.getElementById(`list_rel_montage_${e}`)
+if(!t)return
+const o=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc"),y=m||o,M=o?"Montage":"Form",v=o?"System":"Montageart",S=y?"Aufputz":N.montageLabel1||"Wannenträger",_=y?"Unterputz":N.montageLabel2||"Montagerahmen",u=N.montageLabel3||"",x=this.getUniqueValues("manufacturer")
+t.innerHTML=`<button class="pill-btn ${this.currentManufacturer==="all"?"active":""}" data-val="all">Alle</button>`+x.map(g=>`
+                    <button class="pill-btn ${this.currentManufacturer===g?"active":""}" data-val="${g}">${g}</button>
+                `).join(""),X(`head_rel_mfr_${e}`,`list_rel_mfr_${e}`,this.currentManufacturer,"Hersteller",()=>{this.currentManufacturer="all",this.currentSerie="all",this.currentForm="all",this.currentSize="all",this.updatePillFilters(),this.filterResults()}),t.querySelectorAll(".pill-btn").forEach(g=>g.addEventListener("click",()=>{this.currentManufacturer=g.dataset.val,this.updatePillFilters(),this.filterResults()}))
+let A=this.trays
+this.currentManufacturer!=="all"&&(A=A.filter(g=>g.manufacturer===this.currentManufacturer))
+const H=[...new Set(A.map(g=>this.extractSerie(g)))].sort()
+if(n.innerHTML=`<button class="pill-btn ${this.currentSerie==="all"?"active":""}" data-val="all">Alle</button>`+H.map(g=>`
+                    <button class="pill-btn ${this.currentSerie===g?"active":""}" data-val="${g}">${g}</button>
+                `).join(""),X(`head_rel_serie_${e}`,`list_rel_serie_${e}`,this.currentSerie,"Serie",()=>{this.currentSerie="all",this.currentSize="all",this.updatePillFilters(),this.filterResults()}),n.querySelectorAll(".pill-btn").forEach(g=>g.addEventListener("click",()=>{this.currentSerie=g.dataset.val,this.updatePillFilters(),this.filterResults()})),i){let g=A
+this.currentSerie!=="all"&&(g=g.filter(d=>this.extractSerie(d)===this.currentSerie))
+const c=[...new Set(g.map(d=>d.form))].filter(Boolean).sort()
+i.innerHTML=`<button class="pill-btn ${this.currentForm==="all"?"active":""}" data-val="all">Alle</button>`+c.map(d=>`
+                        <button class="pill-btn ${this.currentForm===d?"active":""}" data-val="${d}">${d}</button>
+                    `).join(""),X(`head_rel_form_${e}`,`list_rel_form_${e}`,this.currentForm,M,()=>{this.currentForm="all",this.currentSize="all",this.updatePillFilters(),this.filterResults()}),i.querySelectorAll(".pill-btn").forEach(d=>d.addEventListener("click",()=>{this.currentForm=d.dataset.val,this.updatePillFilters(),this.filterResults()}))}if(a){let g=A
+this.currentSerie!=="all"&&(g=g.filter(d=>this.extractSerie(d)===this.currentSerie)),this.currentForm!=="all"&&(g=g.filter(d=>d.form===this.currentForm))
+const c=[...new Set(g.map(d=>d.size))].sort()
+a.innerHTML=`<button class="pill-btn ${this.currentSize==="all"?"active":""}" data-val="all">Alle</button>`+c.map(d=>`
+                        <button class="pill-btn ${this.currentSize===d?"active":""}" data-val="${d}">${d}</button>
+                    `).join(""),X(`head_rel_size_${e}`,`list_rel_size_${e}`,this.currentSize,"Grösse",()=>{this.currentSize="all",this.updatePillFilters(),this.filterResults()}),a.querySelectorAll(".pill-btn").forEach(d=>d.addEventListener("click",()=>{this.currentSize=d.dataset.val,this.updatePillFilters(),this.filterResults()}))}const p=S.toLowerCase(),k=_.toLowerCase(),f=u?u.toLowerCase():""
+l.innerHTML=`
+                    <button class="pill-btn ${this.currentMontageart==="alle"?"active":""}" data-val="alle">Alle</button>
+                    <button class="pill-btn ${this.currentMontageart===p?"active":""}" data-val="${p}">${S}</button>
+                    <button class="pill-btn ${this.currentMontageart===k?"active":""}" data-val="${k}">${_}</button>
+                    ${u?`<button class="pill-btn ${this.currentMontageart===f?"active":""}" data-val="${f}">${u}</button>`:""}
+                `,X(`head_rel_montage_${e}`,`list_rel_montage_${e}`,this.currentMontageart,v,()=>{this.currentMontageart="alle",this.updatePillFilters(),this.filterResults()}),l.querySelectorAll(".pill-btn").forEach(g=>g.addEventListener("click",()=>{this.currentMontageart=g.dataset.val,this.updatePillFilters(),this.filterResults()})),s||this.updateManualInputs()},bindFilters:function(){if(!s){const e=document.getElementById(`filterLength_${r}`),t=document.getElementById(`filterWidth_${r}`),n=()=>{this.updateSizeDropdownFromManual(),this.filterResults()}
+e&&e.addEventListener("input",n),t&&t.addEventListener("input",n)}},updateManualInputs:function(){const e=this.currentSize,t=document.getElementById(`filterLength_${r}`),n=document.getElementById(`filterWidth_${r}`)
+if(!(!t||!n))if(e==="all")t.value="",n.value=""
+else{const i=e.split(/[xX]/).map(a=>a.trim())
+i.length===2&&(t.value=i[0],n.value=i[1])}},updateSizeDropdownFromManual:function(){const e=document.getElementById(`filterLength_${r}`),t=document.getElementById(`filterWidth_${r}`)
+if(!e||!t)return
+const n=e.value,i=t.value
+if(n&&i){const a=`${n} x ${i}`,l=`${i} x ${n}`,o=this.trays.find(y=>y.size===a||y.size===l)
+o?this.currentSize=o.size:this.currentSize="all"}else this.currentSize="all"
+this.updatePillFilters()},filterResults:function(){var v,S
+const e=this.currentManufacturer||"all",t=this.currentSerie||"all",n=this.currentForm||"all",i=this.currentSize||"all",a=((v=document.getElementById(`filterLength_${r}`))==null?void 0:v.value)||"",l=((S=document.getElementById(`filterWidth_${r}`))==null?void 0:S.value)||"",o=this.isToiletApp||B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc"),y=this.trays.filter(_=>{if(e!=="all"&&e!=="alle"&&_.manufacturer!==e||t!=="all"&&t!=="alle"&&this.extractSerie(_)!==t)return!1
+if(!s){const u=n.toLowerCase(),x=(_.form||"").toLowerCase()
+if(u!=="all"&&u!=="alle"&&!x.includes(u)&&!u.includes(x))return!1
+if(i!=="all"&&i!=="alle"){if(_.size!==i)return!1}else if(!o&&(a||l)&&_.size&&_.size.includes("x")){const A=_.size.toLowerCase().split("x").map(H=>H.trim())
+if(A.length===2){let[H,p]=A.map(c=>parseFloat(c)),k=parseFloat(a),f=parseFloat(l)
+const g=c=>c<400?c*10:c
+if(a&&l){if(!(g(H)==g(k)&&g(p)==g(f)||g(H)==g(f)&&g(p)==g(k)))return!1}else if(a){if(g(H)!=g(k)&&g(p)!=g(k))return!1}else if(l&&g(H)!=g(f)&&g(p)!=g(f))return!1}}}if(this.currentMontageart!=="alle"&&this.currentMontageart!=="all"){const u=this.classifyAccessory(_)
+if(u!=="common"&&u!==this.currentMontageart)return!1}return!0})
+console.log(`[Configurator] ${B} Filter Results: ${y.length} of ${this.trays.length} visible. (M:${e}, S:${t}, F:${n})`),document.getElementById(`resultCount_${r}`).textContent=y.length
+const M=document.getElementById(`searchResults_${r}`)
+if(M.innerHTML="",y.length===0){M.innerHTML='<div class="no-results">Keine Produkte gefunden. Bitte Filter anpassen.</div>'
+return}y.forEach(_=>{const u=document.createElement("button")
+u.className=`result-item-btn ${this.selectedTray&&this.selectedTray.id===_.id?"active":""}`,u.innerHTML=`
                         <div class="result-info">
-                            <strong>${t.label}</strong>
+                            <strong>${_.label}</strong>
                             <div class="result-meta">
-                                <span>${t.manufacturer}</span> ${hideSizeForm ? '' : `| <span>${t.size}</span>`}
+                                <span>${_.manufacturer}</span> ${s?"":`| <span>${_.size}</span>`}
                             </div>
                         </div>
-                        <span class="finish-artnr">${t.artNr}</span>
-                    `;
-                    btn.addEventListener('click', () => this.selectTray(t.id));
-                    resultsContainer.appendChild(btn);
-                });
-
-                // Ensure the active configuration refreshes when filters change
-                if (this.selectedTray) {
-                    this.renderConfigurator();
-                    this.updateBOM();
-                }
-            },
-            selectTray: function (id) {
-                this.selectedTray = this.trays.find(t => t.id === id);
-                
-                if (this.currentMontageart === 'alle') {
-                    const supportedMethods = new Set();
-                    if (this.selectedTray.mountingMaterials) {
-                        this.selectedTray.mountingMaterials.forEach(mat => {
-                            const ft = mat.options && mat.options[0];
-                            if (ft) {
-                                const cls = this.classifyAccessory(ft);
-                                if (cls !== 'common') supportedMethods.add(cls);
-                            }
-                        });
-                    }
-                    if (supportedMethods.has('wannenträger')) {
-                        this.currentMontageart = 'wannenträger';
-                    } else if (supportedMethods.size > 0) {
-                        this.currentMontageart = Array.from(supportedMethods)[0];
-                    }
-                    this.updatePillFilters();
-                }
-
-                // Ensure data structure and setup selections
-                this.selectedTray.selections = {};
-                
-                // Initialize default variant
-                if (this.selectedTray.variants && this.selectedTray.variants.length > 0) {
-                    this.selectedTray.selections['__variant__'] = this.selectedTray.artNr;
-                }
-                if (this.selectedTray.mountingMaterials) {
-                    this.selectedTray.mountingMaterials.forEach((mat, mIdx) => {
-                        if (!mat.options) {
-                            mat = {
-                                id: mat.id || 'mat_'+Math.random().toString(36).substr(2,5),
-                                name: mat.label ? mat.label.split(' ')[0] : 'Zubehör',
-                                options: [{ artNr: mat.artNr || '', label: mat.label || '', type: mat.type || 'Zubehör' }]
-                            };
-                            this.selectedTray.mountingMaterials[mIdx] = mat;
-                        }
-                        if (mat.options.length > 0) {
-                            this.selectedTray.selections[mat.id] = mat.options[0].artNr;
-                        }
-                    });
-                }
-
-                this.filterResults(); // re-render to highlight active
-                this.renderConfigurator();
-                this.updateBOM();
-            },
-            renderConfigurator: function () {
-                const configBlock = document.getElementById(`trayConfigurator_${suffix}`);
-                const inner = document.getElementById(`trayConfiguratorInner_${suffix}`);
-                inner.innerHTML = '';
-
-                let hasConfig = false;
-
-                // 1. Render Variant Dropdown (if exists)
-                if (this.selectedTray && this.selectedTray.variants && this.selectedTray.variants.length > 0) {
-                    hasConfig = true;
-                    const variantDiv = document.createElement('div');
-                    variantDiv.className = 'filter-group';
-                    variantDiv.style.marginBottom = '1.5rem';
-                    const vLabel = document.createElement('label');
-                    vLabel.textContent = "Ausführung / Variante / Farbe";
-                    
-                    const swatchGrid = document.createElement('div');
-                    swatchGrid.className = 'finish-buttons-grid';
-                    swatchGrid.style.marginTop = '0.5rem';
-                    
-                    const renderVariantSwatch = (artNr, label) => {
-                        const btn = document.createElement('button');
-                        const isActive = this.selectedTray.selections['__variant__'] === artNr;
-                        btn.className = `finish-row-btn ${isActive ? 'active' : ''}`;
-                        btn.style.width = '100%';
-                        btn.style.display = 'flex';
-                        btn.style.alignItems = 'center';
-                        
-                        const imgUrl = getSanitasImgUrl(artNr);
-                        const fallbackColor = getVariantColor(label, artNr);
-
-                        btn.innerHTML = `
-                            <div class="finish-swatch" style="position: relative; overflow: hidden; background-color: ${fallbackColor}; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); width: 28px; height: 28px; border-radius: 50%; margin-right: 12px; border: 1px solid rgba(0,0,0,0.2);">
-                                ${imgUrl ? `<img src="${imgUrl}" style="position: absolute; width: 100%; height: 100%; object-fit: cover; background: #fff; top: 0; left: 0;" onerror="this.style.display='none';">` : ''}
+                        <span class="finish-artnr">${_.artNr}</span>
+                    `,u.addEventListener("click",()=>this.selectTray(_.id)),M.appendChild(u)}),this.selectedTray&&(this.renderConfigurator(),this.updateBOM())},selectTray:function(e){if(this.selectedTray=this.trays.find(t=>t.id===e),this.currentMontageart==="alle"){const t=new Set
+this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach(n=>{const i=n.options&&n.options[0]
+if(i){const a=this.classifyAccessory(i)
+a!=="common"&&t.add(a)}}),t.has("wannenträger")?this.currentMontageart="wannenträger":t.size>0&&(this.currentMontageart=Array.from(t)[0]),this.updatePillFilters()}this.selectedTray.selections={},this.selectedTray.variants&&this.selectedTray.variants.length>0&&(this.selectedTray.selections.__variant__=this.selectedTray.artNr),this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((t,n)=>{t.options||(t={id:t.id||"mat_"+Math.random().toString(36).substr(2,5),name:t.label?t.label.split(" ")[0]:"Zubehör",options:[{artNr:t.artNr||"",label:t.label||"",type:t.type||"Zubehör"}]},this.selectedTray.mountingMaterials[n]=t),t.options.length>0&&(this.selectedTray.selections[t.id]=t.options[0].artNr)}),this.filterResults(),this.renderConfigurator(),this.updateBOM()},renderConfigurator:function(){const e=document.getElementById(`trayConfigurator_${r}`),t=document.getElementById(`trayConfiguratorInner_${r}`)
+t.innerHTML=""
+let n=!1
+if(this.selectedTray&&this.selectedTray.variants&&this.selectedTray.variants.length>0){n=!0
+const a=document.createElement("div")
+a.className="filter-group",a.style.marginBottom="1.5rem"
+const l=document.createElement("label")
+l.textContent="Ausführung / Variante / Farbe"
+const o=document.createElement("div")
+o.className="finish-buttons-grid",o.style.marginTop="0.5rem"
+const y=(v,S)=>{const _=document.createElement("button"),u=this.selectedTray.selections.__variant__===v
+_.className=`finish-row-btn ${u?"active":""}`,_.style.width="100%",_.style.display="flex",_.style.alignItems="center"
+const x=Be(v),A=ke(S,v)
+return _.innerHTML=`
+                            <div class="finish-swatch" style="position: relative
+ overflow: hidden
+ background-color: ${A}
+ box-shadow: inset 0 1px 3px rgba(0,0,0,0.15)
+ width: 28px
+ height: 28px
+ border-radius: 50%
+ margin-right: 12px
+ border: 1px solid rgba(0,0,0,0.2)
+">
+                                ${x?`<img src="${x}" style="position: absolute
+ width: 100%
+ height: 100%
+ object-fit: cover
+ background: #fff
+ top: 0
+ left: 0
+" onerror="this.style.display='none'
+">`:""}
                             </div>
-                            <div style="flex:1; text-align:left;">
-                                <span style="display:block; font-weight: 500;">${label}</span>
-                                <span class="finish-artnr" style="margin-left: 0;">${artNr}</span>
+                            <div style="flex:1
+ text-align:left
+">
+                                <span style="display:block
+ font-weight: 500
+">${S}</span>
+                                <span class="finish-artnr" style="margin-left: 0
+">${v}</span>
                             </div>
-                        `;
-                        
-                        btn.addEventListener('click', (e) => {
-                            this.selectedTray.selections['__variant__'] = artNr;
-                            
-                            // Auto-Match Accessories by Color
-                            const selectedVariantLabel = label.toLowerCase();
-                            const colors = ['schwarz', 'black', 'matt', 'chrom', 'weiss', 'white', 'gold', 'bronze', 'nickel', 'edelstahl', 'inox', 'pvd', 'messing', 'brushed', 'poliert', 'gebürstet', 'copper', 'kupfer'];
-                            const activeColors = colors.filter(c => selectedVariantLabel.includes(c));
-                            
-                            // 1. Get specific color code from variant artNr (e.g. .340)
-                            const variantMatch = artNr && String(artNr).match(/\.(\d{3})(?:\.|$)/);
-                            const variantColorCode = variantMatch ? variantMatch[1] : null;
-                            
-                            this.selectedTray.mountingMaterials.forEach(mat => {
-                                if (mat.options && mat.options.length > 1) {
-                                    let bestMatchOpt = null;
-                                    let bestMatchScore = 0;
-                                    
-                                    mat.options.forEach(opt => {
-                                        let score = 0;
-                                        // Priority 1: Exact color code suffix match (Score 100)
-                                        if (variantColorCode) {
-                                            const optMatch = opt.artNr && String(opt.artNr).match(/\.(\d{3})(?:\.|$)/);
-                                            if (optMatch && optMatch[1] === variantColorCode) {
-                                                score += 100;
-                                            }
-                                        }
-                                        // Priority 2: Label matches variant colors (Score 1 per word)
-                                        const optLbl = opt.label.toLowerCase();
-                                        activeColors.forEach(c => {
-                                            if (optLbl.includes(c)) score++;
-                                        });
-                                        
-                                        if (score > bestMatchScore) {
-                                            bestMatchScore = score;
-                                            bestMatchOpt = opt;
-                                        }
-                                    });
-                                    
-                                    // Fallback: If no match and variant is standard, fall back to option 0
-                                    const hasExotic = activeColors.some(c => !['chrom', 'weiss', 'white'].includes(c)) || (variantColorCode && !['000', '100'].includes(variantColorCode));
-                                    if (!bestMatchOpt && !hasExotic) {
-                                        bestMatchOpt = mat.options[0];
-                                    }
-                                    
-                                    if (bestMatchOpt && (bestMatchScore > 0 || !hasExotic)) {
-                                        this.selectedTray.selections[mat.id] = bestMatchOpt.artNr;
-                                    }
-                                }
-                            });
-
-                            this.updateBOM();
-                            this.renderConfigurator();
-                        });
-                        return btn;
-                    };
-
-                    // Add base item (Standard)
-                    const standardLabel = `Standard ${this.selectedTray.label.split(',').pop().trim()}`;
-                    swatchGrid.appendChild(renderVariantSwatch(this.selectedTray.artNr, standardLabel));
-
-                    // Add all specific variants
-                    this.selectedTray.variants.forEach(v => {
-                        swatchGrid.appendChild(renderVariantSwatch(v.artNr, v.label));
-                    });
-
-                    variantDiv.appendChild(vLabel);
-                    variantDiv.appendChild(swatchGrid);
-                    inner.appendChild(variantDiv);
-                }
-
-                // 2. Render Accessories
-                if (this.selectedTray && this.selectedTray.mountingMaterials && this.selectedTray.mountingMaterials.length > 0) {
-                    hasConfig = true;
-                }
-
-                if (!hasConfig) {
-                    configBlock.style.display = 'none';
-                    return;
-                }
-
-                configBlock.style.display = 'block';
-
-                // --- Technical Compatibility Warning ---
-                if (this.currentMontageart === 'wannenträger') {
-                    const hasCarrier = this.selectedTray.mountingMaterials.some(m => {
-                        const firstOpt = m.options?.[0];
-                        return firstOpt && this.classifyAccessory(firstOpt) === 'wannenträger';
-                    });
-                    
-                    if (!hasCarrier) {
-                        const warnDiv = document.createElement('div');
-                        warnDiv.className = 'compatibility-warning';
-                        warnDiv.innerHTML = `
-                            <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); color: #e65100; padding: 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1.5rem; display: flex; align-items: start; gap: 0.75rem;">
-                                <span style="font-size: 1.2rem;">⚠️</span>
+                        `,_.addEventListener("click",H=>{this.selectedTray.selections.__variant__=v
+const p=S.toLowerCase(),f=["schwarz","black","matt","chrom","weiss","white","gold","bronze","nickel","edelstahl","inox","pvd","messing","brushed","poliert","gebürstet","copper","kupfer"].filter(d=>p.includes(d)),g=v&&String(v).match(/\.(\d{3})(?:\.|$)/),c=g?g[1]:null
+this.selectedTray.mountingMaterials.forEach(d=>{if(d.options&&d.options.length>1){let z=null,L=0
+d.options.forEach(C=>{let K=0
+if(c){const E=C.artNr&&String(C.artNr).match(/\.(\d{3})(?:\.|$)/)
+E&&E[1]===c&&(K+=100)}const D=C.label.toLowerCase()
+f.forEach(E=>{D.includes(E)&&K++}),K>L&&(L=K,z=C)})
+const G=f.some(C=>!["chrom","weiss","white"].includes(C))||c&&!["000","100"].includes(c)
+!z&&!G&&(z=d.options[0]),z&&(L>0||!G)&&(this.selectedTray.selections[d.id]=z.artNr)}}),this.updateBOM(),this.renderConfigurator()}),_},M=`Standard ${this.selectedTray.label.split(",").pop().trim()}`
+o.appendChild(y(this.selectedTray.artNr,M)),this.selectedTray.variants.forEach(v=>{o.appendChild(y(v.artNr,v.label))}),a.appendChild(l),a.appendChild(o),t.appendChild(a)}if(this.selectedTray&&this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.length>0&&(n=!0),!n){e.style.display="none"
+return}if(e.style.display="block",this.currentMontageart==="wannenträger"&&!this.selectedTray.mountingMaterials.some(l=>{var y
+const o=(y=l.options)==null?void 0:y[0]
+return o&&this.classifyAccessory(o)==="wannenträger"})){const l=document.createElement("div")
+l.className="compatibility-warning",l.innerHTML=`
+                            <div style="background: rgba(255, 152, 0, 0.1)
+ border: 1px solid rgba(255, 152, 0, 0.3)
+ color: #e65100
+ padding: 1rem
+ border-radius: 8px
+ font-size: 0.9rem
+ margin-bottom: 1.5rem
+ display: flex
+ align-items: start
+ gap: 0.75rem
+">
+                                <span style="font-size: 1.2rem
+">⚠️</span>
                                 <div>
-                                    <strong style="display: block; margin-bottom: 0.25rem;">Kein Wannenträger verfügbar</strong>
+                                    <strong style="display: block
+ margin-bottom: 0.25rem
+">Kein Wannenträger verfügbar</strong>
                                     Diese Duschwanne ist nicht carrier-kompatibel oder es wurde kein passender Träger im Pool gefunden. Bitte nutzen Sie das <strong>Montagerahmen-System</strong>.
                                 </div>
                             </div>
-                        `;
-                        inner.appendChild(warnDiv);
-                    }
-                }
-
-                // Create a sorted copy of mountingMaterials for UI rendering
-                const sortedMaterials = [...this.selectedTray.mountingMaterials].sort((a, b) => {
-                    const getPri = (mat) => {
-                        const lbl = (mat.name || '').toLowerCase();
-                        if (lbl.includes('sitz') || lbl.includes('deckel')) return 2;
-                        if (lbl.includes('platte') || lbl.includes('betätigung')) return 3;
-                        if (lbl.includes('schall') || lbl.includes('isolation')) return 4;
-                        if (lbl.includes('manschette') || lbl.includes('garnitur')) return 5;
-                        return 99;
-                    };
-                    return getPri(a) - getPri(b);
-                });
-
-                sortedMaterials.forEach(mat => {
-                    if (!mat.options || mat.options.length === 0) return;
-
-                    const matClass = this.classifyAccessory(mat.options[0]) !== 'common' ? this.classifyAccessory(mat.options[0]) : this.classifyAccessory(mat);
-                    
-                    if (this.currentMontageart !== 'alle') {
-                        if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                    }
-
-                    const groupDiv = document.createElement('div');
-                    groupDiv.className = 'filter-group';
-                    const label = document.createElement('label');
-                    label.textContent = mat.name || "Zubehör";
-                    
-                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-
-                    if (mat.options.length === 1) {
-                        const opt = mat.options[0];
-                        const foundZub = zubPool.find(z => z.artNr === opt.artNr);
-                        const finalLabel = foundZub ? foundZub.label : opt.label;
-                        
-                        groupDiv.innerHTML = `<label>${mat.name}</label>
-                            <div style="background:var(--bg-surface); padding:0.75rem; border-radius:6px; font-size:0.85rem; color:var(--text-primary); border:1px solid var(--border);">
-                                <strong style="display:block; margin-bottom:0.25rem;">${finalLabel}</strong>
-                                <span style="color:var(--text-secondary); font-family:monospace;">${opt.artNr}</span>
-                            </div>`;
-                    } else {
-                        const select = document.createElement('select');
-                        select.className = 'filter-select';
-                        mat.options.forEach(opt => {
-                            const foundZub = zubPool.find(z => z.artNr === opt.artNr);
-                            const finalLabel = foundZub ? foundZub.label : opt.label;
-
-                            const option = document.createElement('option');
-                            option.value = opt.artNr;
-                            option.textContent = opt.dropdownLabel ? opt.dropdownLabel : `${finalLabel} (${opt.artNr})`;
-                            if (this.selectedTray.selections[mat.id] === opt.artNr) option.selected = true;
-                            select.appendChild(option);
-                        });
-                        select.addEventListener('change', (e) => {
-                            this.selectedTray.selections[mat.id] = e.target.value;
-                            this.updateBOM();
-                        });
-                        groupDiv.appendChild(label);
-                        groupDiv.appendChild(select);
-                    }
-                    inner.appendChild(groupDiv);
-                });
-            },
-            clearBOM: function () {
-                bomCountCounter.textContent = "0 Artikel ausgewählt";
-                bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9da3ad; padding: 2rem;">Bitte wählen Sie ein Produkt aus den Suchergebnissen.</td></tr>';
-            },
-            updateBOM: function () {
-                if (!this.selectedTray) return;
-
-                const materials = this.selectedTray.mountingMaterials || [];
-                bomTableBody.innerHTML = '';
-                const finalBOM = [];
-
-                const titleLower = title.toLowerCase();
-                const isWandKlosett = titleLower.includes('wandklosett');
-                const isStandKlosett = titleLower.includes('standklosett');
-                const isWanne = titleLower.includes('wanne') || titleLower.includes('duschfläche');
-
-                // 1. Ceramic (Main Item)
-                let activeTrayArtNr = this.selectedTray.artNr;
-                let activeTrayLabel = this.selectedTray.label;
-                let activeTrayMenge = this.selectedTray.menge || 1;
-                if (this.selectedTray.selections['__variant__'] && this.selectedTray.selections['__variant__'] !== this.selectedTray.artNr) {
-                    const variant = (this.selectedTray.variants || []).find(v => v.artNr === this.selectedTray.selections['__variant__']);
-                    if (variant) {
-                        activeTrayArtNr = variant.artNr;
-                        activeTrayLabel = variant.label;
-                        activeTrayMenge = variant.menge || 1;
-                    }
-                }
-
-                const isAufputz = activeTrayArtNr === '2111 845.100.000' || activeTrayArtNr === '3231 113.100.000';
-                const ceramicPriority = isAufputz ? 2 : 1;
-                
-                finalBOM.push({ artNr: activeTrayArtNr, label: activeTrayLabel, typ: title, menge: activeTrayMenge, img: this.selectedTray.imgUrl || this.mainImgUrl, note: 'Hauptartikel', priority: ceramicPriority });
-
-                // ─── STANDKLOSETT: Dedicated BOM Priority Engine ─────────────────────
-                if (isStandKlosett) {
-                    const standLbl = activeTrayLabel.toLowerCase();
-                    const isStandUnterputz = standLbl.includes('einbauspülkasten') || standLbl.includes('einbauspulkasten');
-
-                    // Ceramic priority: Aufputz → 2 (Spülkasten is #1), Unterputz → 1
-                    const standCeramicPriority = isStandUnterputz ? 1 : 2;
-                    // Override the ceramic priority that was already pushed
-                    finalBOM[finalBOM.length - 1].priority = standCeramicPriority;
-
-                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-
-                    materials.forEach(mat => {
-                        const selectedArtNr = this.selectedTray.selections[mat.id];
-                        const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                        if (!selectedOption) return;
-
-                        // Check against active Montageart filter
-                        const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
-                        if (this.currentMontageart !== 'alle') {
-                            if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                        }
-
-                        const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
-                        const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
-                        const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
-
-                        const lbl = enrichedLabel.toLowerCase();
-                        const matName = mat.name.toLowerCase();
-
-                        let priority = 99;
-                        const note = mat.name || 'Zubehör';
-
-                        if (isStandUnterputz) {
-                            // UNTERPUTZ: 1=Klosett 2=Sitz 3=Platte 4=Schall 5=Screws 6=Ablaufmanschette 7=Duofix 8=Rückwand 9=Ablaufbogen
-                            if (matName === 'wc-sitz' || matName === 'klosettsitz') priority = 2;
-                            else if (matName === 'betätigungsplatte') priority = 3;
-                            else if (matName === 'schallschutz') priority = 4;
-                            else if (matName === 'befestigungsschrauben') priority = 5;
-                            else if (matName === 'ablaufmanschette') priority = 6;
-                            else if (matName === 'duofix element' || selectedOption.artNr === '3612 348.000.000') priority = 7;
-                            else if (matName === 'rückwandbefestigungssatz' || selectedOption.artNr === '3612 500.000.000') priority = 8;
-                            else if (matName === 'ablaufbogen' || selectedOption.artNr === '3612 374.000.000') priority = 9;
-                        } else {
-                            // AUFPUTZ: 1=Spülkasten 2=Klosett 3=Sitz 4=Schall 5=Screws 6=Ablaufanschluss
-                            if (matName === 'spülkasten') priority = 1;
-                            else if (matName === 'wc-sitz' || matName === 'klosettsitz') priority = 3;
-                            else if (matName === 'schallschutz') priority = 4;
-                            else if (matName === 'befestigungsschrauben') priority = 5;
-                            else if (matName === 'ablaufanschluss') priority = 6;
-                        }
-
-                        finalBOM.push({
-                            artNr: selectedOption.artNr,
-                            label: enrichedLabel,
-                            typ: selectedOption.type || mat.name || 'Zubehör',
-                            menge: selectedOption.menge || 1,
-                            img: enrichedImg,
-                            note: note,
-                            priority: priority
-                        });
-                    });
-
-                } else if (isWanne) {
-                    // ─── DUSCHENWANNE / BADEWANNE: Dedicated Priority Engine ──────────
-                    materials.forEach(mat => {
-                        const selectedArtNr = this.selectedTray.selections[mat.id];
-                        const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                        if (!selectedOption) return;
-
-                        // Check against active Montageart filter
-                        const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
-                        if (this.currentMontageart !== 'alle') {
-                            if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                        }
-
-                        const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-                        const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
-                        const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
-                        const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
-
-                        const combinedLbl = (enrichedLabel + ' ' + (selectedOption.type || mat.name || '')).toLowerCase();
-
-                        let priority = 99; // Fallback
-                        const note = mat.name || 'Zubehör';
-
-                        // 1. Wanne / Duschfläche (Handled earlier, priority: 1)
-                        // 2. Ablaufdeckel
-                        // 3. Ablaufgarnitur / Sifon
-                        // 4. Zargen-Wannendichtband
-                        // 5. Wannenträger OR Montagerahmen
-                        // 6. Montageschaum OR Fussset OR Mittenabstützsystem
-                        // 7. Schallschutzset
-
-                        if (combinedLbl.includes('deckel')) priority = 2;
-                        else if (combinedLbl.includes('ablauf') || combinedLbl.includes('siphon') || combinedLbl.includes('garnitur') || combinedLbl.includes('sifon')) priority = 3;
-                        else if (combinedLbl.includes('dichtband') || combinedLbl.includes('wannenband') || combinedLbl.includes('zargen') || combinedLbl.includes('dichtset')) priority = 4;
-                        else if (combinedLbl.includes('träger') || combinedLbl.includes('rahmen') || combinedLbl.includes('wannenträger') || combinedLbl.includes('montagerahmen')) priority = 5;
-                        else if (combinedLbl.includes('schaum') || combinedLbl.includes('fuss') || combinedLbl.includes('füsse') || combinedLbl.includes('mittenabstütz') || combinedLbl.includes('wannenanker') || combinedLbl.includes('stütz')) priority = 6;
-                        else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = 7;
-                        else priority = 8; // Any generic unclassified accessories
-
-                        let calculatedMenge = selectedOption.menge || 1;
-
-                        // RULE: Do not overwrite Calima logic without asking the user for keyword 'Jariel'
-                        // Dynamic quantity calculation for Kaldewei Calima Stelzfüsse (Pack of 4)
-                        const trayLbl = (this.selectedTray.label || '').toLowerCase();
-                        if (trayLbl.includes('calima') && combinedLbl.includes('stelz')) {
-                            const dims = trayLbl.match(/(\d{3,4})\s*x\s*(\d{3,4})/);
-                            if (dims) {
-                                const l = Math.max(parseInt(dims[1]), parseInt(dims[2]));
-                                const w = Math.min(parseInt(dims[1]), parseInt(dims[2]));
-                                
-                                let req = 16;
-                                if (w <= 700) {
-                                    if (l <= 1000) req = 12;
-                                    else if (l <= 1300) req = 15;
-                                    else if (l <= 1600) req = 18;
-                                    else req = 21;
-                                } else {
-                                    if (l <= 1000) req = 16;
-                                    else if (l <= 1300) req = 20;
-                                    else if (l <= 1600) req = 24;
-                                    else req = 28;
-                                }
-                                // Feet are sold in packs of 4. Round up to the nearest pack.
-                                calculatedMenge = Math.ceil(req / 4);
-                            }
-                        }
-
-                        finalBOM.push({
-                            artNr: selectedOption.artNr,
-                            label: enrichedLabel,
-                            typ: selectedOption.type || mat.name || 'Zubehör',
-                            menge: calculatedMenge,
-                            img: enrichedImg,
-                            note: note,
-                            priority: priority
-                        });
-                    });
-
-                } else {
-                    // ─── WANDKLOSETT / OTHER: Original Priority Engine ────────────────
-                    materials.forEach(mat => {
-                        const selectedArtNr = this.selectedTray.selections[mat.id];
-                        const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                        if (!selectedOption) return;
-
-                        // Check against active Montageart filter
-                        const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
-                        if (this.currentMontageart !== 'alle') {
-                            if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                        }
-
-                        // Dynamically enrich from zubehoer_pool (for imported seats/plates)
-                        const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-                        const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
-                        
-                        const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
-                        const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
-
-                        const lbl = enrichedLabel.toLowerCase();
-                        const typeLbl = (selectedOption.type || mat.name || '').toLowerCase();
-                        const combinedLbl = lbl + ' ' + typeLbl;
-                        
-                        let priority = 99; // Default for unknown
-                        let note = mat.name || 'Zubehör';
-
-                        if (combinedLbl.includes('sitz') || combinedLbl.includes('deckel')) priority = isAufputz ? 3 : 2;
-                        else if (combinedLbl.includes('platte') || combinedLbl.includes('betätigung')) priority = 3;
-                        else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = isAufputz ? 5 : 4;
-                        else if (combinedLbl.includes('reservoir') || combinedLbl.includes('spülkasten') || combinedLbl.includes('ap128') || combinedLbl.includes('ap116')) priority = 1;
-                        else if (combinedLbl.includes('manschette') || combinedLbl.includes('garnitur') || combinedLbl.includes('ablaufanschluss') || selectedOption.artNr.includes('3241 116') || selectedOption.artNr.includes('3241 101') || selectedOption.artNr.includes('3241 102')) priority = 5;
-
-                        finalBOM.push({ 
-                            artNr: selectedOption.artNr, 
-                            label: enrichedLabel, 
-                            typ: selectedOption.type || mat.name || 'Zubehör', 
-                            menge: selectedOption.menge || 1, 
-                            img: enrichedImg,
-                            note: note,
-                            priority: priority
-                        });
-                    });
-                }
-
-                // 5-8. Technical Injection for Wandklosett (with Dynamic Lookup)
-                if (isWandKlosett) {
-                    const mainLbl = activeTrayLabel.toLowerCase();
-                    
-                    // Access the global pool if available
-                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-                    
-                    const getZub = (art) => {
-                        const found = zubPool.find(z => z.artNr === art);
-                        return found ? { artNr: found.artNr, label: found.label, img: found.imgUrl } : null;
-                    };
-
-                    if (isAufputz) {
-                        const screws = getZub('8211 114.000.000') || { artNr: '8211 114.000.000', label: 'Befestigungsschrauben' };
-                        finalBOM.push({ ...screws, typ: 'Technik', menge: 2, priority: 4, note: 'Aufputz-Technik' });
-                    } else {
-                        const hasManschette = mainLbl.includes('manschette') || mainLbl.includes('garnitur');
-                        const hasScrapedSleeve = finalBOM.some(item => item.priority === 5);
-
-                        if (!hasManschette && !hasScrapedSleeve) {
-                            const item = getZub('3241 101.000.000') || { artNr: '3241 101.000.000', label: 'Manschettengarnitur' };
-                            finalBOM.push({ ...item, typ: 'Technik', menge: 1, priority: 5, note: 'Standard-Technik' });
-                        }
-                        
-                        const step6 = getZub('3612 348.000.000') || { artNr: '3612 348.000.000', label: 'Wandklosettelement Geberit Duofix' };
-                        finalBOM.push({ ...step6, typ: 'Technik', menge: 1, priority: 6, note: 'Standard-Technik' });
-
-                        const step7 = getZub('3612 500.000.000') || { artNr: '3612 500.000.000', label: 'Rückwandbefestigungssatz Geberit Duofix' };
-                        finalBOM.push({ ...step7, typ: 'Technik', menge: 1, priority: 7, note: 'Standard-Technik' });
-
-                        const step8 = getZub('3612 374.000.000') || { artNr: '3612 374.000.000', label: 'Ablaufbogen Geberit- Silent' };
-                        finalBOM.push({ ...step8, typ: 'Technik', menge: 1, priority: 8, note: 'Standard-Technik' });
-                    }
-                }
-
-                // Final Sort and Independent Deduplication Checks
-                const mainLblLower = activeTrayLabel.toLowerCase();
-                
-                // Seat Deduplication: Catch 'inkl. sitz', 'inkl. klosettsitz', 'inkl. wc-sitz', 'm. sitz'
-                const ceramicIncludesSeat = mainLblLower.includes('pack') || 
-                                            /m\.\s*(klosett|wc-)?sitz/.test(mainLblLower) || 
-                                            /inkl\.\s*(klosett|wc-)?sitz/.test(mainLblLower) ||
-                                            (/\bset\b/.test(mainLblLower) && !mainLblLower.includes('schallschutz'));
-                
-                // Isolation Deduplication: Only if explicitly included or stated as 'Schallschutz-Set'
-                const ceramicIncludesSchallschutz = mainLblLower.includes('inkl. schall') || 
-                                                    mainLblLower.includes('m. schall') ||
-                                                    mainLblLower.includes('schallschutz-set') ||
-                                                    mainLblLower.includes('schallschutzset') ||
-                                                    mainLblLower.includes('inkl. isolation');
-
-                let sortedBOM = finalBOM.sort((a, b) => a.priority - b.priority);
-                
-                // Remove redundant line items if they are already physically bundled with the main ceramic
-                if (ceramicIncludesSeat) {
-                    sortedBOM = sortedBOM.filter(item => item.priority !== 2);
-                }
-                if (ceramicIncludesSchallschutz) {
-                    sortedBOM = sortedBOM.filter(item => item.priority !== 4);
-                }
-
-                // Render
-                let totalCount = 0;
-                sortedBOM.forEach(item => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><div class="img-cell" ${!item.img ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>
-                            ${item.img ? `<img src="${item.img}" alt="${item.label}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>'}
+                        `,t.appendChild(l)}[...this.selectedTray.mountingMaterials].sort((a,l)=>{const o=y=>{const M=(y.name||"").toLowerCase()
+return M.includes("sitz")||M.includes("deckel")?2:M.includes("platte")||M.includes("betätigung")?3:M.includes("schall")||M.includes("isolation")?4:M.includes("manschette")||M.includes("garnitur")?5:99}
+return o(a)-o(l)}).forEach(a=>{if(!a.options||a.options.length===0)return
+const l=this.classifyAccessory(a.options[0])!=="common"?this.classifyAccessory(a.options[0]):this.classifyAccessory(a)
+if(this.currentMontageart!=="alle"&&l!=="common"&&l!==this.currentMontageart)return
+const o=document.createElement("div")
+o.className="filter-group"
+const y=document.createElement("label")
+y.textContent=a.name||"Zubehör"
+const M=window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]
+if(a.options.length===1){const v=a.options[0],S=M.find(u=>u.artNr===v.artNr),_=S?S.label:v.label
+o.innerHTML=`<label>${a.name}</label>
+                            <div style="background:var(--bg-surface)
+ padding:0.75rem
+ border-radius:6px
+ font-size:0.85rem
+ color:var(--text-primary)
+ border:1px solid var(--border)
+">
+                                <strong style="display:block
+ margin-bottom:0.25rem
+">${_}</strong>
+                                <span style="color:var(--text-secondary)
+ font-family:monospace
+">${v.artNr}</span>
+                            </div>`}else{const v=document.createElement("select")
+v.className="filter-select",a.options.forEach(S=>{const _=M.find(A=>A.artNr===S.artNr),u=_?_.label:S.label,x=document.createElement("option")
+x.value=S.artNr,x.textContent=S.dropdownLabel?S.dropdownLabel:`${u} (${S.artNr})`,this.selectedTray.selections[a.id]===S.artNr&&(x.selected=!0),v.appendChild(x)}),v.addEventListener("change",S=>{this.selectedTray.selections[a.id]=S.target.value,this.updateBOM()}),o.appendChild(y),o.appendChild(v)}t.appendChild(o)})},clearBOM:function(){me.textContent="0 Artikel ausgewählt",re.innerHTML='<tr><td colspan="5" style="text-align: center  color: #9da3ad  padding: 2rem ">Bitte wählen Sie ein Produkt aus den Suchergebnissen.</td></tr>'},updateBOM:function(){if(!this.selectedTray)return
+const e=this.selectedTray.mountingMaterials||[]
+re.innerHTML=""
+const t=[],n=B.toLowerCase(),i=n.includes("wandklosett"),a=n.includes("standklosett"),l=n.includes("wanne")||n.includes("duschfläche")
+let o=this.selectedTray.artNr,y=this.selectedTray.label,M=this.selectedTray.menge||1
+if(this.selectedTray.selections.__variant__&&this.selectedTray.selections.__variant__!==this.selectedTray.artNr){const p=(this.selectedTray.variants||[]).find(k=>k.artNr===this.selectedTray.selections.__variant__)
+p&&(o=p.artNr,y=p.label,M=p.menge||1)}const v=o==="2111 845.100.000"||o==="3231 113.100.000",S=v?2:1
+if(t.push({artNr:o,label:y,typ:B,menge:M,img:this.selectedTray.imgUrl||this.mainImgUrl,note:"Hauptartikel",priority:S}),a){const p=y.toLowerCase(),k=p.includes("einbauspülkasten")||p.includes("einbauspulkasten"),f=k?1:2
+t[t.length-1].priority=f
+const g=window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]
+e.forEach(c=>{const d=this.selectedTray.selections[c.id],z=(c.options||[]).find(b=>b.artNr===d)||c.options&&c.options[0]
+if(!z)return
+const L=this.classifyAccessory(z)!=="common"?this.classifyAccessory(z):this.classifyAccessory(c)
+if(this.currentMontageart!=="alle"&&L!=="common"&&L!==this.currentMontageart)return
+const G=g.find(b=>b.artNr===z.artNr),C=G?G.label:z.label,K=G&&G.imgUrl?G.imgUrl:z.imgUrl
+C.toLowerCase()
+const D=c.name.toLowerCase()
+let E=99
+const h=c.name||"Zubehör"
+k?D==="wc-sitz"||D==="klosettsitz"?E=2:D==="betätigungsplatte"?E=3:D==="schallschutz"?E=4:D==="befestigungsschrauben"?E=5:D==="ablaufmanschette"?E=6:D==="duofix element"||z.artNr==="3612 348.000.000"?E=7:D==="rückwandbefestigungssatz"||z.artNr==="3612 500.000.000"?E=8:(D==="ablaufbogen"||z.artNr==="3612 374.000.000")&&(E=9):D==="spülkasten"?E=1:D==="wc-sitz"||D==="klosettsitz"?E=3:D==="schallschutz"?E=4:D==="befestigungsschrauben"?E=5:D==="ablaufanschluss"&&(E=6),t.push({artNr:z.artNr,label:C,typ:z.type||c.name||"Zubehör",menge:z.menge||1,img:K,note:h,priority:E})})}else l?e.forEach(p=>{const k=this.selectedTray.selections[p.id],f=(p.options||[]).find(h=>h.artNr===k)||p.options&&p.options[0]
+if(!f)return
+const g=this.classifyAccessory(f)!=="common"?this.classifyAccessory(f):this.classifyAccessory(p)
+if(this.currentMontageart!=="alle"&&g!=="common"&&g!==this.currentMontageart)return
+const d=(window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]).find(h=>h.artNr===f.artNr),z=d?d.label:f.label,L=d&&d.imgUrl?d.imgUrl:f.imgUrl,G=(z+" "+(f.type||p.name||"")).toLowerCase()
+let C=99
+const K=p.name||"Zubehör"
+G.includes("deckel")?C=2:G.includes("ablauf")||G.includes("siphon")||G.includes("garnitur")||G.includes("sifon")?C=3:G.includes("dichtband")||G.includes("wannenband")||G.includes("zargen")||G.includes("dichtset")?C=4:G.includes("träger")||G.includes("rahmen")||G.includes("wannenträger")||G.includes("montagerahmen")?C=5:G.includes("schaum")||G.includes("fuss")||G.includes("füsse")||G.includes("mittenabstütz")||G.includes("wannenanker")||G.includes("stütz")?C=6:G.includes("schall")||G.includes("isolation")?C=7:C=8
+let D=f.menge||1
+const E=(this.selectedTray.label||"").toLowerCase()
+if(E.includes("calima")&&G.includes("stelz")){const h=E.match(/(\d{3,4})\s*x\s*(\d{3,4})/)
+if(h){const b=Math.max(parseInt(h[1]),parseInt(h[2])),U=Math.min(parseInt(h[1]),parseInt(h[2]))
+let W=16
+U<=700?b<=1e3?W=12:b<=1300?W=15:b<=1600?W=18:W=21:b<=1e3?W=16:b<=1300?W=20:b<=1600?W=24:W=28,D=Math.ceil(W/4)}}t.push({artNr:f.artNr,label:z,typ:f.type||p.name||"Zubehör",menge:D,img:L,note:K,priority:C})}):e.forEach(p=>{const k=this.selectedTray.selections[p.id],f=(p.options||[]).find(h=>h.artNr===k)||p.options&&p.options[0]
+if(!f)return
+const g=this.classifyAccessory(f)!=="common"?this.classifyAccessory(f):this.classifyAccessory(p)
+if(this.currentMontageart!=="alle"&&g!=="common"&&g!==this.currentMontageart)return
+const d=(window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]).find(h=>h.artNr===f.artNr),z=d?d.label:f.label,L=d&&d.imgUrl?d.imgUrl:f.imgUrl,G=z.toLowerCase(),C=(f.type||p.name||"").toLowerCase(),K=G+" "+C
+let D=99,E=p.name||"Zubehör"
+K.includes("sitz")||K.includes("deckel")?D=v?3:2:K.includes("platte")||K.includes("betätigung")?D=3:K.includes("schall")||K.includes("isolation")?D=v?5:4:K.includes("reservoir")||K.includes("spülkasten")||K.includes("ap128")||K.includes("ap116")?D=1:(K.includes("manschette")||K.includes("garnitur")||K.includes("ablaufanschluss")||f.artNr.includes("3241 116")||f.artNr.includes("3241 101")||f.artNr.includes("3241 102"))&&(D=5),t.push({artNr:f.artNr,label:z,typ:f.type||p.name||"Zubehör",menge:f.menge||1,img:L,note:E,priority:D})})
+if(i){const p=y.toLowerCase(),k=window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[],f=g=>{const c=k.find(d=>d.artNr===g)
+return c?{artNr:c.artNr,label:c.label,img:c.imgUrl}:null}
+if(v){const g=f("8211 114.000.000")||{artNr:"8211 114.000.000",label:"Befestigungsschrauben"}
+t.push({...g,typ:"Technik",menge:2,priority:4,note:"Aufputz-Technik"})}else{const g=p.includes("manschette")||p.includes("garnitur"),c=t.some(G=>G.priority===5)
+if(!g&&!c){const G=f("3241 101.000.000")||{artNr:"3241 101.000.000",label:"Manschettengarnitur"}
+t.push({...G,typ:"Technik",menge:1,priority:5,note:"Standard-Technik"})}const d=f("3612 348.000.000")||{artNr:"3612 348.000.000",label:"Wandklosettelement Geberit Duofix"}
+t.push({...d,typ:"Technik",menge:1,priority:6,note:"Standard-Technik"})
+const z=f("3612 500.000.000")||{artNr:"3612 500.000.000",label:"Rückwandbefestigungssatz Geberit Duofix"}
+t.push({...z,typ:"Technik",menge:1,priority:7,note:"Standard-Technik"})
+const L=f("3612 374.000.000")||{artNr:"3612 374.000.000",label:"Ablaufbogen Geberit- Silent"}
+t.push({...L,typ:"Technik",menge:1,priority:8,note:"Standard-Technik"})}}const _=y.toLowerCase(),u=_.includes("pack")||/m\.\s*(klosett|wc-)?sitz/.test(_)||/inkl\.\s*(klosett|wc-)?sitz/.test(_)||/\bset\b/.test(_)&&!_.includes("schallschutz"),x=_.includes("inkl. schall")||_.includes("m. schall")||_.includes("schallschutz-set")||_.includes("schallschutzset")||_.includes("inkl. isolation")
+let A=t.sort((p,k)=>p.priority-k.priority)
+u&&(A=A.filter(p=>p.priority!==2)),x&&(A=A.filter(p=>p.priority!==4))
+let H=0
+A.forEach(p=>{const k=document.createElement("tr")
+k.innerHTML=`
+                        <td><div class="img-cell" ${p.img?"":'style="background: transparent  border: 1px dashed var(--border) "'}>
+                            ${p.img?`<img src="${p.img}" alt="${p.label}">`:'<i class="ri-settings-3-line" style="font-size:1.2rem opacity:0.3 "></i>'}
                         </div></td>
-                        <td><span class="bom-code">${item.artNr}</span></td>
+                        <td><span class="bom-code">${p.artNr}</span></td>
                         <td>
-                            <div class="bom-desc">${item.label}</div>
-                            <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">${item.note}</div>
+                            <div class="bom-desc">${p.label}</div>
+                            <div style="font-size: 0.8rem
+ color: #9e9e9e
+ margin-top: 0.25rem
+">${p.note}</div>
                         </td>
-                        <td><span class="bom-type">${item.typ}</span></td>
-                        <td><strong>${item.menge}</strong></td>
-                    `;
-                    bomTableBody.appendChild(row);
-                    totalCount += item.menge;
-                });
+                        <td><span class="bom-type">${p.typ}</span></td>
+                        <td><strong>${p.menge}</strong></td>
+                    `,re.appendChild(k),H+=p.menge}),me.textContent=`${H} Artikel benötigt`},copyToClipboard:function(){if(!this.selectedTray){alert("Bitte wählen Sie zuerst ein Produkt aus.")
+return}let e=[]
+const t=document.getElementById("bomTableBody")
+if(t)t.querySelectorAll("tr").forEach(a=>{const l=a.querySelector(".bom-code"),o=a.querySelector("strong")
+if(l&&o){const y=l.textContent.replace(/\t/g,"").trim(),M=o.textContent.replace(/\t/g,"").trim()
+e.push(`${y}	${M}`)}})
+else{alert("Tabelle konnte nicht gefunden werden.")
+return}const n=e.join(`
+`)
+navigator.clipboard.writeText(n).then(()=>{alert(`Artikel und Menge kopiert für SAP:
 
-                bomCountCounter.textContent = `${totalCount} Artikel benötigt`;
-            },
-            copyToClipboard: function () {
-                if (!this.selectedTray) {
-                    alert('Bitte wählen Sie zuerst ein Produkt aus.');
-                    return;
-                }
-
-                let textLines = [];
-                const bomTableBody = document.getElementById('bomTableBody');
-                
-                if (bomTableBody) {
-                    const rows = bomTableBody.querySelectorAll('tr');
-                    rows.forEach(row => {
-                        const codeSpan = row.querySelector('.bom-code');
-                        const qtyStrong = row.querySelector('strong');
-                        if (codeSpan && qtyStrong) {
-                            const code = codeSpan.textContent.replace(/\t/g, '').trim();
-                            const menge = qtyStrong.textContent.replace(/\t/g, '').trim();
-                            textLines.push(`${code}\t${menge}`);
-                        }
-                    });
-                } else {
-                    alert("Tabelle konnte nicht gefunden werden.");
-                    return;
-                }
-
-                const text = textLines.join('\n');
-                navigator.clipboard.writeText(text).then(() => {
-                    alert("Artikel und Menge kopiert für SAP:\n\n" + text.replace(/\t/g, "    "));
-                }).catch(e => alert("Kopieren fehlgeschlagen."));
-            }
-        };
+`+n.replace(/\t/g,"    "))}).catch(i=>alert("Kopieren fehlgeschlagen."))}}}
+    return dt(title, desc, mainImgUrl, config);
 }
 
 export function createBadewanneApp(title, desc, mainImgUrl, config = {}) {
-    const isMixer = config.isMixer || title.toLowerCase().includes('mischer') || title.toLowerCase().includes('armatur');
-    const montageLabel1 = config.montageLabel1 || (isMixer ? "Aufputz" : "Wannenträger");
-    const montageLabel2 = config.montageLabel2 || (isMixer ? "Unterputz" : "Montagerahmen");
-    const montageLabel3 = config.montageLabel3 || "";
-    const hideSizeForm = config.hideSizeForm || isMixer;
-    const suffix = title.replace(/\s/g,'');
-
-    return {
-            trays: [],
-            mainImgUrl: mainImgUrl,
-            selectedTray: null,
-            extractSerie: function (t) {
-                if (t.serie) return t.serie;
-                let cleaned = t.label || '';
-                if (t.manufacturer && cleaned.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                    cleaned = cleaned.substring(t.manufacturer.length).trim();
-                }
-                const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-| \d+)/);
-                let serie = match && match[1] ? match[1].trim() : cleaned.trim();
-                
-                // Strip redundant basin/wanne type prefixes from series names
-                const prefixes = [
-                    'Doppelwaschtisch', 'Möbelwaschtisch', 'Aufsatzwaschtisch', 
-                    'Waschtisch', 'Handwaschbecken', 'Einbaubecken', 'Wandbecken',
-                    'Waschtischanlage', 'Aufsatzbecken', 'Waschbecken',
-                    'Duschenwanne', 'Duschwanne', 'Badewanne', 'Duschfläche', 'Wanne'
-                ];
-                for (const prefix of prefixes) {
-                    if (serie.toLowerCase().startsWith(prefix.toLowerCase())) {
-                        serie = serie.substring(prefix.length).trim();
-                        if (serie.startsWith('-') || serie.startsWith('/')) serie = serie.substring(1).trim();
-                        // Strip manufacturer name again if it appears after the prefix (e.g. "Duschwanne Kaldewei...")
-                        if (t.manufacturer && serie.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                            serie = serie.substring(t.manufacturer.length).trim();
-                        }
-                        break;
-                    }
-                }
-                
-                // Final safety: if manufacturer is still at front, strip it
-                if (t.manufacturer && serie.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                    serie = serie.substring(t.manufacturer.length).trim();
-                }
-
-                return serie || 'Andere';
-            },
-            getUniqueValues: function (key) {
-                if (key === 'serie') {
-                    return [...new Set(this.trays.map(t => this.extractSerie(t)))].sort();
-                }
-                return [...new Set(this.trays.map(t => t[key]))].sort();
-            },
-            classifyAccessory: function (obj) {
-                if (!obj) return 'common';
-                
-                // 1. Check for manual admin override first
-                if (obj.overrideMontageart && obj.overrideMontageart !== 'auto') {
-                    return obj.overrideMontageart.toLowerCase();
-                }
-
-                // 2. Clean input data
-                const label = (obj.label || obj.name || '').toLowerCase();
-                const artNr = (obj.artNr || '').replace(/\s/g, '');
-
-                // 3. HARD EXCEPTIONS (Firm IDs)
-                if (artNr === '1445782.000.000' || artNr === '1441782.000.000') {
-                    return 'wannenträger';
-                }
-                if (artNr === '1431191.000.000' || artNr === '1431190.000.000' || artNr === '1435435.000.000') {
-                    return 'montagerahmen';
-                }
-
-                // 4. KEYWORD LOGIC
-                // Special Rule: If it mentions "schallschutz", it's ALWAYS Montagerahmen (unless it matched the IDs above)
-                if (label.includes('schallschutzset') || label.includes('schallschutz')) {
-                    return isMixer ? 'unterputz' : 'montagerahmen';
-                }
-
-                const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
-
-                if (isMixer) {
-                    const lblLower = label.toLowerCase();
-                    if (lblLower.includes('standmodell') || lblLower.includes('freien stand')) {
-                        return 'standmodell';
-                    }
-                    if (lblLower.includes('einbaukörper') || lblLower.includes('grundkörper') || lblLower.includes('ibox') || lblLower.includes('up-gehäuse')) {
-                        return 'common'; 
-                    }
-                    if (lblLower.includes('endmontage') || lblLower.includes('einbau') || lblLower.includes('anschlussbogen') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
-                        return 'unterputz';
-                    }
-                    if (lblLower.includes('aufputz') || lblLower.includes(' ap ') || lblLower.includes('ausserhalb') || lblLower.includes('mischer') || lblLower.includes('batterie')) {
-                        return 'aufputz';
-                    }
-                } else if (isToilet) {
-                    const lblLower = label.toLowerCase();
-                    // STRICT RULE for Standklosett:
-                    // Unterputz ONLY if description explicitly states 'Einbauspülkasten'
-                    // Everything else is Aufputz
-                    if (lblLower.includes('einbauspülkasten') || lblLower.includes('einbauspulkasten')) {
-                        return 'unterputz';
-                    }
-                    return 'aufputz';
-                } else {
-                    // Carrier Logic First (Higher Priority than Schallschutz)
-                    if (label.includes('träger') || label.includes('wannenträger') || label.includes('montageschaum')) {
-                        return 'wannenträger';
-                    }
-                    // Frame Logic
-                    if (label.includes('rahmen') || label.includes('füsse') || label.includes('fussset')) {
-                        return 'montagerahmen';
-                    }
-                    // Schallschutz as Fallback for Frames
-                    if (label.includes('schallschutzset') || label.includes('schallschutz')) {
-                        return 'montagerahmen';
-                    }
-                    if (label.includes('stelzfüss') || label.includes('stelzfuss')) {
-                        return 'stelzfüsse';
-                    }
-                }
-
-                return 'common';
-            },
-            init: function () {
-                this.isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
-                this.selectedTray = null;
-                this.currentMontageart = 'alle';
-                this.currentManufacturer = 'all';
-                this.currentSerie = 'all';
-                this.currentForm = 'all';
-                this.currentSize = 'all';
-                this.renderSidebar();
-                this.bindFilters();
-                this.filterResults(); // initial run
-                this.clearBOM();
-            },
-            renderSidebar: function () {
-                const isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
-                console.log(`[Configurator] Rendering Sidebar for ${title}. isToiletApp: ${isToiletApp}`);
-                const manufacturers = this.getUniqueValues('manufacturer');
-                const forms = this.getUniqueValues('form');
-                const sizes = this.getUniqueValues('size');
-                const formLabel = isToiletApp ? "Montage" : "Form";
-                const systemLabel = isToiletApp ? "System" : "Montageart";
-
-                configSidebar.innerHTML = `
+    function bt(B,F,R,N={}){const m=N.isMixer||B.toLowerCase().includes("mischer")||B.toLowerCase().includes("armatur")
+N.montageLabel1,N.montageLabel2,N.montageLabel3
+const s=N.hideSizeForm||m,r=B.replace(/\s/g,"")
+return{trays:[],mainImgUrl:R,selectedTray:null,extractSerie:function(e){if(e.serie)return e.serie
+let t=e.label||""
+e.manufacturer&&t.toLowerCase().startsWith(e.manufacturer.toLowerCase())&&(t=t.substring(e.manufacturer.length).trim())
+const n=t.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-| \d+)/)
+let i=n&&n[1]?n[1].trim():t.trim()
+const a=["Doppelwaschtisch","Möbelwaschtisch","Aufsatzwaschtisch","Waschtisch","Handwaschbecken","Einbaubecken","Wandbecken","Waschtischanlage","Aufsatzbecken","Waschbecken","Duschenwanne","Duschwanne","Badewanne","Duschfläche","Wanne"]
+for(const l of a)if(i.toLowerCase().startsWith(l.toLowerCase())){i=i.substring(l.length).trim(),(i.startsWith("-")||i.startsWith("/"))&&(i=i.substring(1).trim()),e.manufacturer&&i.toLowerCase().startsWith(e.manufacturer.toLowerCase())&&(i=i.substring(e.manufacturer.length).trim())
+break}return e.manufacturer&&i.toLowerCase().startsWith(e.manufacturer.toLowerCase())&&(i=i.substring(e.manufacturer.length).trim()),i||"Andere"},getUniqueValues:function(e){return e==="serie"?[...new Set(this.trays.map(t=>this.extractSerie(t)))].sort():[...new Set(this.trays.map(t=>t[e]))].sort()},classifyAccessory:function(e){if(!e)return"common"
+if(e.overrideMontageart&&e.overrideMontageart!=="auto")return e.overrideMontageart.toLowerCase()
+const t=(e.label||e.name||"").toLowerCase(),n=(e.artNr||"").replace(/\s/g,"")
+if(n==="1445782.000.000"||n==="1441782.000.000")return"wannenträger"
+if(n==="1431191.000.000"||n==="1431190.000.000"||n==="1435435.000.000")return"montagerahmen"
+if(t.includes("schallschutzset")||t.includes("schallschutz"))return m?"unterputz":"montagerahmen"
+const i=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc")
+if(m){const a=t.toLowerCase()
+if(a.includes("standmodell")||a.includes("freien stand"))return"standmodell"
+if(a.includes("einbaukörper")||a.includes("grundkörper")||a.includes("ibox")||a.includes("up-gehäuse"))return"common"
+if(a.includes("endmontage")||a.includes("einbau")||a.includes("anschlussbogen")||a.includes("unterputz")||a.includes(" up "))return"unterputz"
+if(a.includes("aufputz")||a.includes(" ap ")||a.includes("ausserhalb")||a.includes("mischer")||a.includes("batterie"))return"aufputz"}else if(i){const a=t.toLowerCase()
+return a.includes("einbauspülkasten")||a.includes("einbauspulkasten")?"unterputz":"aufputz"}else{if(t.includes("träger")||t.includes("wannenträger")||t.includes("montageschaum"))return"wannenträger"
+if(t.includes("rahmen")||t.includes("füsse")||t.includes("fussset")||t.includes("schallschutzset")||t.includes("schallschutz"))return"montagerahmen"
+if(t.includes("stelzfüss")||t.includes("stelzfuss"))return"stelzfüsse"}return"common"},init:function(){this.isToiletApp=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc"),this.selectedTray=null,this.currentMontageart="alle",this.currentManufacturer="all",this.currentSerie="all",this.currentForm="all",this.currentSize="all",this.renderSidebar(),this.bindFilters(),this.filterResults(),this.clearBOM()},renderSidebar:function(){const e=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc")
+console.log(`[Configurator] Rendering Sidebar for ${B}. isToiletApp: ${e}`),this.getUniqueValues("manufacturer"),this.getUniqueValues("form"),this.getUniqueValues("size")
+const t=e?"Montage":"Form",n=e?"System":"Montageart"
+Ae.innerHTML=`
                     <div class="sidebar-section">
-                        <h2>Filter: ${title}</h2>
+                        <h2>Filter: ${B}</h2>
                         
                         <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_mfr_${suffix}">Hersteller</div>
-                            <div class="pill-group" id="list_rel_mfr_${suffix}"></div>
+                            <div class="finder-sub-header" id="head_rel_mfr_${r}">Hersteller</div>
+                            <div class="pill-group" id="list_rel_mfr_${r}"></div>
                         </div>
 
                         <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_serie_${suffix}">Serie</div>
-                            <div class="pill-group" id="list_rel_serie_${suffix}"></div>
+                            <div class="finder-sub-header" id="head_rel_serie_${r}">Serie</div>
+                            <div class="pill-group" id="list_rel_serie_${r}"></div>
                         </div>
                         
-                        ${hideSizeForm ? '' : `
+                        ${s?"":`
                         <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_form_${suffix}">${formLabel}</div>
-                            <div class="pill-group" id="list_rel_form_${suffix}"></div>
+                            <div class="finder-sub-header" id="head_rel_form_${r}">${t}</div>
+                            <div class="pill-group" id="list_rel_form_${r}"></div>
                         </div>
                         
                         <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_size_${suffix}">Grösse</div>
-                            <div class="pill-group" id="list_rel_size_${suffix}"></div>
+                            <div class="finder-sub-header" id="head_rel_size_${r}">Grösse</div>
+                            <div class="pill-group" id="list_rel_size_${r}"></div>
                         </div>
                         `}
                         
                         <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_montage_${suffix}">${systemLabel}</div>
-                            <div class="pill-group" id="list_rel_montage_${suffix}"></div>
+                            <div class="finder-sub-header" id="head_rel_montage_${r}">${n}</div>
+                            <div class="pill-group" id="list_rel_montage_${r}"></div>
                         </div>
 
-                        ${(hideSizeForm || isToiletApp) ? '' : `
-                        <div style="display:flex; gap:1rem; margin-top: 1rem;">
-                            <div class="filter-group" style="flex:1;">
+                        ${s||e?"":`
+                        <div style="display:flex
+ gap:1rem
+ margin-top: 1rem
+">
+                            <div class="filter-group" style="flex:1
+">
                                 <label>Länge (cm)</label>
-                                <input type="number" id="filterLength_${suffix}" class="filter-select" placeholder="z.B. 120" style="background:var(--bg-surface); color:var(--text-primary); border:1px solid var(--border);" />
+                                <input type="number" id="filterLength_${r}" class="filter-select" placeholder="z.B. 120" style="background:var(--bg-surface)
+ color:var(--text-primary)
+ border:1px solid var(--border)
+" />
                             </div>
-                            <div class="filter-group" style="flex:1;">
+                            <div class="filter-group" style="flex:1
+">
                                 <label>Breite (cm)</label>
-                                <input type="number" id="filterWidth_${suffix}" class="filter-select" placeholder="z.B. 80" style="background:var(--bg-surface); color:var(--text-primary); border:1px solid var(--border);" />
+                                <input type="number" id="filterWidth_${r}" class="filter-select" placeholder="z.B. 80" style="background:var(--bg-surface)
+ color:var(--text-primary)
+ border:1px solid var(--border)
+" />
                             </div>
                         </div>
                         `}
                     </div>
                     
                     <div class="sidebar-section">
-                        <h2>Suchergebnisse <span id="resultCount_${suffix}" class="badge">0</span></h2>
-                        <div class="search-results-container" id="searchResults_${suffix}"></div>
+                        <h2>Suchergebnisse <span id="resultCount_${r}" class="badge">0</span></h2>
+                        <div class="search-results-container" id="searchResults_${r}"></div>
                     </div>
 
-                    <div class="sidebar-section" id="trayConfigurator_${suffix}" style="display:none; margin-top:2rem;">
+                    <div class="sidebar-section" id="trayConfigurator_${r}" style="display:none
+ margin-top:2rem
+">
                         <h2>Konfiguration</h2>
                         <p class="section-desc">Wählen Sie das passende Zubehör.</p>
-                        <div id="trayConfiguratorInner_${title.replace(/\s/g,'')}"></div>
+                        <div id="trayConfiguratorInner_${B.replace(/\s/g,"")}"></div>
                     </div>
-                `;
-                this.updatePillFilters();
-            },
-            updatePillFilters: function() {
-                const suffix = title.replace(/\s/g,'');
-                const mList = document.getElementById(`list_rel_mfr_${suffix}`);
-                const serList = document.getElementById(`list_rel_serie_${suffix}`);
-                const fList = document.getElementById(`list_rel_form_${suffix}`);
-                const sList = document.getElementById(`list_rel_size_${suffix}`);
-                const monList = document.getElementById(`list_rel_montage_${suffix}`);
-
-                if (!mList) return;
-
-                const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
-                const isUpAp = isMixer || isToilet;
-                const formLabel = isToilet ? "Montage" : "Form";
-                const systemLabel = isToilet ? "System" : "Montageart";
-                const label1 = isUpAp ? "Aufputz" : (config.montageLabel1 || "Wannenträger");
-                const label2 = isUpAp ? "Unterputz" : (config.montageLabel2 || "Montagerahmen");
-                const label3 = config.montageLabel3 || "";
-
-                // 1. Manufacturer
-                const manufacturers = this.getUniqueValues('manufacturer');
-                mList.innerHTML = `<button class="pill-btn ${this.currentManufacturer === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + manufacturers.map(m => `
-                    <button class="pill-btn ${this.currentManufacturer === m ? 'active' : ''}" data-val="${m}">${m}</button>
-                `).join('');
-                applyPillUI(`head_rel_mfr_${suffix}`, `list_rel_mfr_${suffix}`, this.currentManufacturer, 'Hersteller', () => {
-                    this.currentManufacturer = 'all';
-                    this.currentSerie = 'all';
-                    this.currentForm = 'all';
-                    this.currentSize = 'all';
-                    this.updatePillFilters();
-                    this.filterResults();
-                });
-
-                mList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                    this.currentManufacturer = btn.dataset.val;
-                    this.updatePillFilters();
-                    this.filterResults();
-                }));
-
-                // 2. Serie
-                let validTraysForSerie = this.trays;
-                if (this.currentManufacturer !== 'all') {
-                    validTraysForSerie = validTraysForSerie.filter(t => t.manufacturer === this.currentManufacturer);
-                }
-                const series = [...new Set(validTraysForSerie.map(t => this.extractSerie(t)))].sort();
-                serList.innerHTML = `<button class="pill-btn ${this.currentSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + series.map(s => `
-                    <button class="pill-btn ${this.currentSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>
-                `).join('');
-                applyPillUI(`head_rel_serie_${suffix}`, `list_rel_serie_${suffix}`, this.currentSerie, 'Serie', () => {
-                    this.currentSerie = 'all';
-                    this.currentSize = 'all';
-                    this.updatePillFilters();
-                    this.filterResults();
-                });
-                serList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                    this.currentSerie = btn.dataset.val;
-                    this.updatePillFilters();
-                    this.filterResults();
-                }));
-
-                // 3. Form (Montage)
-                if (fList) {
-                    let validTraysForForm = validTraysForSerie;
-                    if (this.currentSerie !== 'all') {
-                        validTraysForForm = validTraysForForm.filter(t => this.extractSerie(t) === this.currentSerie);
-                    }
-                    const forms = [...new Set(validTraysForForm.map(t => t.form))].filter(Boolean).sort();
-
-                    fList.innerHTML = `<button class="pill-btn ${this.currentForm === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + forms.map(f => `
-                        <button class="pill-btn ${this.currentForm === f ? 'active' : ''}" data-val="${f}">${f}</button>
-                    `).join('');
-                    applyPillUI(`head_rel_form_${suffix}`, `list_rel_form_${suffix}`, this.currentForm, formLabel, () => {
-                        this.currentForm = 'all';
-                        this.currentSize = 'all';
-                        this.updatePillFilters();
-                        this.filterResults();
-                    });
-                    fList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                        this.currentForm = btn.dataset.val;
-                        this.updatePillFilters();
-                        this.filterResults();
-                    }));
-                }
-
-                // 4. Size
-                if (sList) {
-                    let validTraysForSize = validTraysForSerie;
-                    if (this.currentSerie !== 'all') {
-                        validTraysForSize = validTraysForSize.filter(t => this.extractSerie(t) === this.currentSerie);
-                    }
-                    if (this.currentForm !== 'all') {
-                        validTraysForSize = validTraysForSize.filter(t => t.form === this.currentForm);
-                    }
-                    const sizes = [...new Set(validTraysForSize.map(t => t.size))].sort();
-                    sList.innerHTML = `<button class="pill-btn ${this.currentSize === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + sizes.map(s => `
-                        <button class="pill-btn ${this.currentSize === s ? 'active' : ''}" data-val="${s}">${s}</button>
-                    `).join('');
-                    applyPillUI(`head_rel_size_${suffix}`, `list_rel_size_${suffix}`, this.currentSize, 'Grösse', () => {
-                        this.currentSize = 'all';
-                        this.updatePillFilters();
-                        this.filterResults();
-                    });
-                    sList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                        this.currentSize = btn.dataset.val;
-                        this.updatePillFilters();
-                        this.filterResults();
-                    }));
-                }
-
-                const val1 = label1.toLowerCase();
-                const val2 = label2.toLowerCase();
-                const val3 = label3 ? label3.toLowerCase() : '';
-
-                monList.innerHTML = `
-                    <button class="pill-btn ${this.currentMontageart === 'alle' ? 'active' : ''}" data-val="alle">Alle</button>
-                    <button class="pill-btn ${this.currentMontageart === val1 ? 'active' : ''}" data-val="${val1}">${label1}</button>
-                    <button class="pill-btn ${this.currentMontageart === val2 ? 'active' : ''}" data-val="${val2}">${label2}</button>
-                    ${label3 ? `<button class="pill-btn ${this.currentMontageart === val3 ? 'active' : ''}" data-val="${val3}">${label3}</button>` : ''}
-                `;
-                applyPillUI(`head_rel_montage_${suffix}`, `list_rel_montage_${suffix}`, this.currentMontageart, systemLabel, () => {
-                    this.currentMontageart = 'alle';
-                    this.updatePillFilters();
-                    this.filterResults();
-                });
-                monList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                    this.currentMontageart = btn.dataset.val;
-                    this.updatePillFilters();
-                    this.filterResults();
-                }));
-                if (!hideSizeForm) this.updateManualInputs();
-            },
-            bindFilters: function () {
-                // Re-bind click events for manual length/width inputs if hideSizeForm is false
-                if (!hideSizeForm) {
-                    const lInput = document.getElementById(`filterLength_${suffix}`);
-                    const wInput = document.getElementById(`filterWidth_${suffix}`);
-                    const onManualInput = () => {
-                        this.updateSizeDropdownFromManual();
-                        this.filterResults();
-                    };
-                    if (lInput) lInput.addEventListener('input', onManualInput);
-                    if (wInput) wInput.addEventListener('input', onManualInput);
-                }
-            },
-
-            updateManualInputs: function () {
-                const val = this.currentSize;
-                const lInput = document.getElementById(`filterLength_${suffix}`);
-                const wInput = document.getElementById(`filterWidth_${suffix}`);
-                
-                if (!lInput || !wInput) return; // Skip if inputs are hidden (e.g. for toilets)
-                
-                if (val === 'all') {
-                    lInput.value = '';
-                    wInput.value = '';
-                } else {
-                    const parts = val.split(/[xX]/).map(p => p.trim());
-                    if (parts.length === 2) {
-                        lInput.value = parts[0];
-                        wInput.value = parts[1];
-                    }
-                }
-            },
-            updateSizeDropdownFromManual: function () {
-                const lEl = document.getElementById(`filterLength_${suffix}`);
-                const wEl = document.getElementById(`filterWidth_${suffix}`);
-                if (!lEl || !wEl) return;
-
-                const lInput = lEl.value;
-                const wInput = wEl.value;
-                
-                if (lInput && wInput) {
-                    const sizeStr = `${lInput} x ${wInput}`;
-                    const sizeStrRev = `${wInput} x ${lInput}`;
-                    
-                    const found = this.trays.find(t => t.size === sizeStr || t.size === sizeStrRev);
-                    if (found) {
-                        this.currentSize = found.size;
-                    } else {
-                        this.currentSize = 'all';
-                    }
-                } else {
-                    this.currentSize = 'all';
-                }
-                this.updatePillFilters();
-            },
-            filterResults: function () {
-                const mFilter = this.currentManufacturer || 'all';
-                const serieFilter = this.currentSerie || 'all';
-                const fFilter = this.currentForm || 'all';
-                const sFilter = this.currentSize || 'all';
-                const lFilter = document.getElementById(`filterLength_${suffix}`)?.value || '';
-                const wFilter = document.getElementById(`filterWidth_${suffix}`)?.value || '';
-
-                const isToilet = this.isToiletApp || (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
-
-                const filtered = this.trays.filter(t => {
-                    if (mFilter !== 'all' && mFilter !== 'alle' && t.manufacturer !== mFilter) return false;
-                    
-                    if (serieFilter !== 'all' && serieFilter !== 'alle') {
-                        const s = this.extractSerie(t);
-                        if (s !== serieFilter) return false;
-                    }
-                    
-                    if (!hideSizeForm) {
-                        const fFilterClean = fFilter.toLowerCase();
-                        const tFormClean = (t.form || '').toLowerCase();
-                        if (fFilterClean !== 'all' && fFilterClean !== 'alle' && !tFormClean.includes(fFilterClean) && !fFilterClean.includes(tFormClean)) return false;
-                        
-                        if (sFilter !== 'all' && sFilter !== 'alle') {
-                            if (t.size !== sFilter) return false;
-                        } else if (!isToilet && (lFilter || wFilter)) {
-                            // Only run numeric parsing if it's NOT a toilet and looks like "120 x 80"
-                            if (t.size && t.size.includes('x')) {
-                                const parts = t.size.toLowerCase().split('x').map(p => p.trim());
-                                if (parts.length === 2) {
-                                    let [l, w] = parts.map(p => parseFloat(p));
-                                    let lf = parseFloat(lFilter);
-                                    let wf = parseFloat(wFilter);
-                                    const norm = (v) => (v < 400 ? v * 10 : v);
-                                    if (lFilter && wFilter) {
-                                        if (!((norm(l) == norm(lf) && norm(w) == norm(wf)) || (norm(l) == norm(wf) && norm(w) == norm(lf)))) return false;
-                                    } else if (lFilter) {
-                                        if (norm(l) != norm(lf) && norm(w) != norm(lf)) return false;
-                                    } else if (wFilter) {
-                                        if (norm(l) != norm(wf) && norm(w) != norm(wf)) return false;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Filter Main Products by Montageart if chosen
-                    if (this.currentMontageart !== 'alle' && this.currentMontageart !== 'all') {
-                        const m = this.classifyAccessory(t);
-                        if (m !== 'common' && m !== this.currentMontageart) return false;
-                        
-                        // For trays/products that are 'common' themselves, check their accessories
-                        if (m === 'common') {
-                            let hasMatchingAccessory = false;
-                            if (t.mountingMaterials) {
-                                t.mountingMaterials.forEach(mat => {
-                                    if (mat.options && mat.options[0]) {
-                                        if (this.classifyAccessory(mat.options[0]) === this.currentMontageart) {
-                                            hasMatchingAccessory = true;
-                                        }
-                                    }
-                                });
-                            }
-                            if (!hasMatchingAccessory && t.mountingMaterials && t.mountingMaterials.length > 0) return false;
-                        }
-                    }
-                    
-                    return true;
-                });
-
-                console.log(`[Configurator] ${title} Filter Results: ${filtered.length} of ${this.trays.length} visible. (M:${mFilter}, S:${serieFilter}, F:${fFilter})`);
-
-                document.getElementById(`resultCount_${suffix}`).textContent = filtered.length;
-                const resultsContainer = document.getElementById(`searchResults_${suffix}`);
-                resultsContainer.innerHTML = '';
-
-                if (filtered.length === 0) {
-                    resultsContainer.innerHTML = '<div class="no-results">Keine Produkte gefunden. Bitte Filter anpassen.</div>';
-                    return;
-                }
-
-                filtered.forEach(t => {
-                    const btn = document.createElement('button');
-                    btn.className = `result-item-btn ${this.selectedTray && this.selectedTray.id === t.id ? 'active' : ''}`;
-                    btn.innerHTML = `
+                `,this.updatePillFilters()},updatePillFilters:function(){const e=B.replace(/\s/g,""),t=document.getElementById(`list_rel_mfr_${e}`),n=document.getElementById(`list_rel_serie_${e}`),i=document.getElementById(`list_rel_form_${e}`),a=document.getElementById(`list_rel_size_${e}`),l=document.getElementById(`list_rel_montage_${e}`)
+if(!t)return
+const o=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc"),y=m||o,M=o?"Montage":"Form",v=o?"System":"Montageart",S=y?"Aufputz":N.montageLabel1||"Wannenträger",_=y?"Unterputz":N.montageLabel2||"Montagerahmen",u=N.montageLabel3||"",x=this.getUniqueValues("manufacturer")
+t.innerHTML=`<button class="pill-btn ${this.currentManufacturer==="all"?"active":""}" data-val="all">Alle</button>`+x.map(g=>`
+                    <button class="pill-btn ${this.currentManufacturer===g?"active":""}" data-val="${g}">${g}</button>
+                `).join(""),X(`head_rel_mfr_${e}`,`list_rel_mfr_${e}`,this.currentManufacturer,"Hersteller",()=>{this.currentManufacturer="all",this.currentSerie="all",this.currentForm="all",this.currentSize="all",this.updatePillFilters(),this.filterResults()}),t.querySelectorAll(".pill-btn").forEach(g=>g.addEventListener("click",()=>{this.currentManufacturer=g.dataset.val,this.updatePillFilters(),this.filterResults()}))
+let A=this.trays
+this.currentManufacturer!=="all"&&(A=A.filter(g=>g.manufacturer===this.currentManufacturer))
+const H=[...new Set(A.map(g=>this.extractSerie(g)))].sort()
+if(n.innerHTML=`<button class="pill-btn ${this.currentSerie==="all"?"active":""}" data-val="all">Alle</button>`+H.map(g=>`
+                    <button class="pill-btn ${this.currentSerie===g?"active":""}" data-val="${g}">${g}</button>
+                `).join(""),X(`head_rel_serie_${e}`,`list_rel_serie_${e}`,this.currentSerie,"Serie",()=>{this.currentSerie="all",this.currentSize="all",this.updatePillFilters(),this.filterResults()}),n.querySelectorAll(".pill-btn").forEach(g=>g.addEventListener("click",()=>{this.currentSerie=g.dataset.val,this.updatePillFilters(),this.filterResults()})),i){let g=A
+this.currentSerie!=="all"&&(g=g.filter(d=>this.extractSerie(d)===this.currentSerie))
+const c=[...new Set(g.map(d=>d.form))].filter(Boolean).sort()
+i.innerHTML=`<button class="pill-btn ${this.currentForm==="all"?"active":""}" data-val="all">Alle</button>`+c.map(d=>`
+                        <button class="pill-btn ${this.currentForm===d?"active":""}" data-val="${d}">${d}</button>
+                    `).join(""),X(`head_rel_form_${e}`,`list_rel_form_${e}`,this.currentForm,M,()=>{this.currentForm="all",this.currentSize="all",this.updatePillFilters(),this.filterResults()}),i.querySelectorAll(".pill-btn").forEach(d=>d.addEventListener("click",()=>{this.currentForm=d.dataset.val,this.updatePillFilters(),this.filterResults()}))}if(a){let g=A
+this.currentSerie!=="all"&&(g=g.filter(d=>this.extractSerie(d)===this.currentSerie)),this.currentForm!=="all"&&(g=g.filter(d=>d.form===this.currentForm))
+const c=[...new Set(g.map(d=>d.size))].sort()
+a.innerHTML=`<button class="pill-btn ${this.currentSize==="all"?"active":""}" data-val="all">Alle</button>`+c.map(d=>`
+                        <button class="pill-btn ${this.currentSize===d?"active":""}" data-val="${d}">${d}</button>
+                    `).join(""),X(`head_rel_size_${e}`,`list_rel_size_${e}`,this.currentSize,"Grösse",()=>{this.currentSize="all",this.updatePillFilters(),this.filterResults()}),a.querySelectorAll(".pill-btn").forEach(d=>d.addEventListener("click",()=>{this.currentSize=d.dataset.val,this.updatePillFilters(),this.filterResults()}))}const p=S.toLowerCase(),k=_.toLowerCase(),f=u?u.toLowerCase():""
+l.innerHTML=`
+                    <button class="pill-btn ${this.currentMontageart==="alle"?"active":""}" data-val="alle">Alle</button>
+                    <button class="pill-btn ${this.currentMontageart===p?"active":""}" data-val="${p}">${S}</button>
+                    <button class="pill-btn ${this.currentMontageart===k?"active":""}" data-val="${k}">${_}</button>
+                    ${u?`<button class="pill-btn ${this.currentMontageart===f?"active":""}" data-val="${f}">${u}</button>`:""}
+                `,X(`head_rel_montage_${e}`,`list_rel_montage_${e}`,this.currentMontageart,v,()=>{this.currentMontageart="alle",this.updatePillFilters(),this.filterResults()}),l.querySelectorAll(".pill-btn").forEach(g=>g.addEventListener("click",()=>{this.currentMontageart=g.dataset.val,this.updatePillFilters(),this.filterResults()})),s||this.updateManualInputs()},bindFilters:function(){if(!s){const e=document.getElementById(`filterLength_${r}`),t=document.getElementById(`filterWidth_${r}`),n=()=>{this.updateSizeDropdownFromManual(),this.filterResults()}
+e&&e.addEventListener("input",n),t&&t.addEventListener("input",n)}},updateManualInputs:function(){const e=this.currentSize,t=document.getElementById(`filterLength_${r}`),n=document.getElementById(`filterWidth_${r}`)
+if(!(!t||!n))if(e==="all")t.value="",n.value=""
+else{const i=e.split(/[xX]/).map(a=>a.trim())
+i.length===2&&(t.value=i[0],n.value=i[1])}},updateSizeDropdownFromManual:function(){const e=document.getElementById(`filterLength_${r}`),t=document.getElementById(`filterWidth_${r}`)
+if(!e||!t)return
+const n=e.value,i=t.value
+if(n&&i){const a=`${n} x ${i}`,l=`${i} x ${n}`,o=this.trays.find(y=>y.size===a||y.size===l)
+o?this.currentSize=o.size:this.currentSize="all"}else this.currentSize="all"
+this.updatePillFilters()},filterResults:function(){var v,S
+const e=this.currentManufacturer||"all",t=this.currentSerie||"all",n=this.currentForm||"all",i=this.currentSize||"all",a=((v=document.getElementById(`filterLength_${r}`))==null?void 0:v.value)||"",l=((S=document.getElementById(`filterWidth_${r}`))==null?void 0:S.value)||"",o=this.isToiletApp||B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc"),y=this.trays.filter(_=>{if(e!=="all"&&e!=="alle"&&_.manufacturer!==e||t!=="all"&&t!=="alle"&&this.extractSerie(_)!==t)return!1
+if(!s){const u=n.toLowerCase(),x=(_.form||"").toLowerCase()
+if(u!=="all"&&u!=="alle"&&!x.includes(u)&&!u.includes(x))return!1
+if(i!=="all"&&i!=="alle"){if(_.size!==i)return!1}else if(!o&&(a||l)&&_.size&&_.size.includes("x")){const A=_.size.toLowerCase().split("x").map(H=>H.trim())
+if(A.length===2){let[H,p]=A.map(c=>parseFloat(c)),k=parseFloat(a),f=parseFloat(l)
+const g=c=>c<400?c*10:c
+if(a&&l){if(!(g(H)==g(k)&&g(p)==g(f)||g(H)==g(f)&&g(p)==g(k)))return!1}else if(a){if(g(H)!=g(k)&&g(p)!=g(k))return!1}else if(l&&g(H)!=g(f)&&g(p)!=g(f))return!1}}}if(this.currentMontageart!=="alle"&&this.currentMontageart!=="all"){const u=this.classifyAccessory(_)
+if(u!=="common"&&u!==this.currentMontageart)return!1}return!0})
+console.log(`[Configurator] ${B} Filter Results: ${y.length} of ${this.trays.length} visible. (M:${e}, S:${t}, F:${n})`),document.getElementById(`resultCount_${r}`).textContent=y.length
+const M=document.getElementById(`searchResults_${r}`)
+if(M.innerHTML="",y.length===0){M.innerHTML='<div class="no-results">Keine Produkte gefunden. Bitte Filter anpassen.</div>'
+return}y.forEach(_=>{const u=document.createElement("button")
+u.className=`result-item-btn ${this.selectedTray&&this.selectedTray.id===_.id?"active":""}`,u.innerHTML=`
                         <div class="result-info">
-                            <strong>${t.label}</strong>
+                            <strong>${_.label}</strong>
                             <div class="result-meta">
-                                <span>${t.manufacturer}</span> ${hideSizeForm ? '' : `| <span>${t.size}</span>`}
+                                <span>${_.manufacturer}</span> ${s?"":`| <span>${_.size}</span>`}
                             </div>
                         </div>
-                        <span class="finish-artnr">${t.artNr}</span>
-                    `;
-                    btn.addEventListener('click', () => this.selectTray(t.id));
-                    resultsContainer.appendChild(btn);
-                });
-
-                // Ensure the active configuration refreshes when filters change
-                if (this.selectedTray) {
-                    this.renderConfigurator();
-                    this.updateBOM();
-                }
-            },
-            selectTray: function (id) {
-                this.selectedTray = this.trays.find(t => t.id === id);
-                
-                if (this.currentMontageart === 'alle') {
-                    const supportedMethods = new Set();
-                    if (this.selectedTray.mountingMaterials) {
-                        this.selectedTray.mountingMaterials.forEach(mat => {
-                            const ft = mat.options && mat.options[0];
-                            if (ft) {
-                                const cls = this.classifyAccessory(ft);
-                                if (cls !== 'common') supportedMethods.add(cls);
-                            }
-                        });
-                    }
-                    if (supportedMethods.has('wannenträger')) {
-                        this.currentMontageart = 'wannenträger';
-                    } else if (supportedMethods.size > 0) {
-                        this.currentMontageart = Array.from(supportedMethods)[0];
-                    }
-                    this.updatePillFilters();
-                }
-
-                // Ensure data structure and setup selections
-                this.selectedTray.selections = {};
-                
-                // Initialize default variant
-                if (this.selectedTray.variants && this.selectedTray.variants.length > 0) {
-                    this.selectedTray.selections['__variant__'] = this.selectedTray.artNr;
-                }
-                if (this.selectedTray.mountingMaterials) {
-                    this.selectedTray.mountingMaterials.forEach((mat, mIdx) => {
-                        if (!mat.options) {
-                            mat = {
-                                id: mat.id || 'mat_'+Math.random().toString(36).substr(2,5),
-                                name: mat.label ? mat.label.split(' ')[0] : 'Zubehör',
-                                options: [{ artNr: mat.artNr || '', label: mat.label || '', type: mat.type || 'Zubehör' }]
-                            };
-                            this.selectedTray.mountingMaterials[mIdx] = mat;
-                        }
-                        if (mat.options.length > 0) {
-                            this.selectedTray.selections[mat.id] = mat.options[0].artNr;
-                        }
-                    });
-                }
-
-                this.filterResults(); // re-render to highlight active
-                this.renderConfigurator();
-                this.updateBOM();
-            },
-            renderConfigurator: function () {
-                const configBlock = document.getElementById(`trayConfigurator_${suffix}`);
-                const inner = document.getElementById(`trayConfiguratorInner_${suffix}`);
-                inner.innerHTML = '';
-
-                let hasConfig = false;
-
-                // 1. Render Variant Dropdown (if exists)
-                if (this.selectedTray && this.selectedTray.variants && this.selectedTray.variants.length > 0) {
-                    hasConfig = true;
-                    const variantDiv = document.createElement('div');
-                    variantDiv.className = 'filter-group';
-                    variantDiv.style.marginBottom = '1.5rem';
-                    const vLabel = document.createElement('label');
-                    vLabel.textContent = "Ausführung / Variante / Farbe";
-                    
-                    const swatchGrid = document.createElement('div');
-                    swatchGrid.className = 'finish-buttons-grid';
-                    swatchGrid.style.marginTop = '0.5rem';
-                    
-                    const renderVariantSwatch = (artNr, label) => {
-                        const btn = document.createElement('button');
-                        const isActive = this.selectedTray.selections['__variant__'] === artNr;
-                        btn.className = `finish-row-btn ${isActive ? 'active' : ''}`;
-                        btn.style.width = '100%';
-                        btn.style.display = 'flex';
-                        btn.style.alignItems = 'center';
-                        
-                        const imgUrl = getSanitasImgUrl(artNr);
-                        const fallbackColor = getVariantColor(label, artNr);
-
-                        btn.innerHTML = `
-                            <div class="finish-swatch" style="position: relative; overflow: hidden; background-color: ${fallbackColor}; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); width: 28px; height: 28px; border-radius: 50%; margin-right: 12px; border: 1px solid rgba(0,0,0,0.2);">
-                                ${imgUrl ? `<img src="${imgUrl}" style="position: absolute; width: 100%; height: 100%; object-fit: cover; background: #fff; top: 0; left: 0;" onerror="this.style.display='none';">` : ''}
+                        <span class="finish-artnr">${_.artNr}</span>
+                    `,u.addEventListener("click",()=>this.selectTray(_.id)),M.appendChild(u)}),this.selectedTray&&(this.renderConfigurator(),this.updateBOM())},selectTray:function(e){if(this.selectedTray=this.trays.find(t=>t.id===e),this.currentMontageart==="alle"){const t=new Set
+this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach(n=>{const i=n.options&&n.options[0]
+if(i){const a=this.classifyAccessory(i)
+a!=="common"&&t.add(a)}}),t.has("wannenträger")?this.currentMontageart="wannenträger":t.size>0&&(this.currentMontageart=Array.from(t)[0]),this.updatePillFilters()}this.selectedTray.selections={},this.selectedTray.variants&&this.selectedTray.variants.length>0&&(this.selectedTray.selections.__variant__=this.selectedTray.artNr),this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((t,n)=>{t.options||(t={id:t.id||"mat_"+Math.random().toString(36).substr(2,5),name:t.label?t.label.split(" ")[0]:"Zubehör",options:[{artNr:t.artNr||"",label:t.label||"",type:t.type||"Zubehör"}]},this.selectedTray.mountingMaterials[n]=t),t.options.length>0&&(this.selectedTray.selections[t.id]=t.options[0].artNr)}),this.filterResults(),this.renderConfigurator(),this.updateBOM()},renderConfigurator:function(){const e=document.getElementById(`trayConfigurator_${r}`),t=document.getElementById(`trayConfiguratorInner_${r}`)
+t.innerHTML=""
+let n=!1
+if(this.selectedTray&&this.selectedTray.variants&&this.selectedTray.variants.length>0){n=!0
+const a=document.createElement("div")
+a.className="filter-group",a.style.marginBottom="1.5rem"
+const l=document.createElement("label")
+l.textContent="Ausführung / Variante / Farbe"
+const o=document.createElement("div")
+o.className="finish-buttons-grid",o.style.marginTop="0.5rem"
+const y=(v,S)=>{const _=document.createElement("button"),u=this.selectedTray.selections.__variant__===v
+_.className=`finish-row-btn ${u?"active":""}`,_.style.width="100%",_.style.display="flex",_.style.alignItems="center"
+const x=Be(v),A=ke(S,v)
+return _.innerHTML=`
+                            <div class="finish-swatch" style="position: relative
+ overflow: hidden
+ background-color: ${A}
+ box-shadow: inset 0 1px 3px rgba(0,0,0,0.15)
+ width: 28px
+ height: 28px
+ border-radius: 50%
+ margin-right: 12px
+ border: 1px solid rgba(0,0,0,0.2)
+">
+                                ${x?`<img src="${x}" style="position: absolute
+ width: 100%
+ height: 100%
+ object-fit: cover
+ background: #fff
+ top: 0
+ left: 0
+" onerror="this.style.display='none'
+">`:""}
                             </div>
-                            <div style="flex:1; text-align:left;">
-                                <span style="display:block; font-weight: 500;">${label}</span>
-                                <span class="finish-artnr" style="margin-left: 0;">${artNr}</span>
+                            <div style="flex:1
+ text-align:left
+">
+                                <span style="display:block
+ font-weight: 500
+">${S}</span>
+                                <span class="finish-artnr" style="margin-left: 0
+">${v}</span>
                             </div>
-                        `;
-                        
-                        btn.addEventListener('click', (e) => {
-                            this.selectedTray.selections['__variant__'] = artNr;
-                            
-                            // Auto-Match Accessories by Color
-                            const selectedVariantLabel = label.toLowerCase();
-                            const colors = ['schwarz', 'black', 'matt', 'chrom', 'weiss', 'white', 'gold', 'bronze', 'nickel', 'edelstahl', 'inox', 'pvd', 'messing', 'brushed', 'poliert', 'gebürstet', 'copper', 'kupfer'];
-                            const activeColors = colors.filter(c => selectedVariantLabel.includes(c));
-                            
-                            // 1. Get specific color code from variant artNr (e.g. .340)
-                            const variantMatch = artNr && String(artNr).match(/\.(\d{3})(?:\.|$)/);
-                            const variantColorCode = variantMatch ? variantMatch[1] : null;
-                            
-                            this.selectedTray.mountingMaterials.forEach(mat => {
-                                if (mat.options && mat.options.length > 1) {
-                                    let bestMatchOpt = null;
-                                    let bestMatchScore = 0;
-                                    
-                                    mat.options.forEach(opt => {
-                                        let score = 0;
-                                        // Priority 1: Exact color code suffix match (Score 100)
-                                        if (variantColorCode) {
-                                            const optMatch = opt.artNr && String(opt.artNr).match(/\.(\d{3})(?:\.|$)/);
-                                            if (optMatch && optMatch[1] === variantColorCode) {
-                                                score += 100;
-                                            }
-                                        }
-                                        // Priority 2: Label matches variant colors (Score 1 per word)
-                                        const optLbl = opt.label.toLowerCase();
-                                        activeColors.forEach(c => {
-                                            if (optLbl.includes(c)) score++;
-                                        });
-                                        
-                                        if (score > bestMatchScore) {
-                                            bestMatchScore = score;
-                                            bestMatchOpt = opt;
-                                        }
-                                    });
-                                    
-                                    // Fallback: If no match and variant is standard, fall back to option 0
-                                    const hasExotic = activeColors.some(c => !['chrom', 'weiss', 'white'].includes(c)) || (variantColorCode && !['000', '100'].includes(variantColorCode));
-                                    if (!bestMatchOpt && !hasExotic) {
-                                        bestMatchOpt = mat.options[0];
-                                    }
-                                    
-                                    if (bestMatchOpt && (bestMatchScore > 0 || !hasExotic)) {
-                                        this.selectedTray.selections[mat.id] = bestMatchOpt.artNr;
-                                    }
-                                }
-                            });
-
-                            this.updateBOM();
-                            this.renderConfigurator();
-                        });
-                        return btn;
-                    };
-
-                    // Add base item (Standard)
-                    const standardLabel = `Standard ${this.selectedTray.label.split(',').pop().trim()}`;
-                    swatchGrid.appendChild(renderVariantSwatch(this.selectedTray.artNr, standardLabel));
-
-                    // Add all specific variants
-                    this.selectedTray.variants.forEach(v => {
-                        swatchGrid.appendChild(renderVariantSwatch(v.artNr, v.label));
-                    });
-
-                    variantDiv.appendChild(vLabel);
-                    variantDiv.appendChild(swatchGrid);
-                    inner.appendChild(variantDiv);
-                }
-
-                // 2. Render Accessories
-                if (this.selectedTray && this.selectedTray.mountingMaterials && this.selectedTray.mountingMaterials.length > 0) {
-                    hasConfig = true;
-                }
-
-                if (!hasConfig) {
-                    configBlock.style.display = 'none';
-                    return;
-                }
-
-                configBlock.style.display = 'block';
-
-                // --- Technical Compatibility Warning ---
-                if (this.currentMontageart === 'wannenträger') {
-                    const hasCarrier = this.selectedTray.mountingMaterials.some(m => {
-                        const firstOpt = m.options?.[0];
-                        return firstOpt && this.classifyAccessory(firstOpt) === 'wannenträger';
-                    });
-                    
-                    if (!hasCarrier) {
-                        const warnDiv = document.createElement('div');
-                        warnDiv.className = 'compatibility-warning';
-                        warnDiv.innerHTML = `
-                            <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); color: #e65100; padding: 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1.5rem; display: flex; align-items: start; gap: 0.75rem;">
-                                <span style="font-size: 1.2rem;">⚠️</span>
+                        `,_.addEventListener("click",H=>{this.selectedTray.selections.__variant__=v
+const p=S.toLowerCase(),f=["schwarz","black","matt","chrom","weiss","white","gold","bronze","nickel","edelstahl","inox","pvd","messing","brushed","poliert","gebürstet","copper","kupfer"].filter(d=>p.includes(d)),g=v&&String(v).match(/\.(\d{3})(?:\.|$)/),c=g?g[1]:null
+this.selectedTray.mountingMaterials.forEach(d=>{if(d.options&&d.options.length>1){let z=null,L=0
+d.options.forEach(C=>{let K=0
+if(c){const E=C.artNr&&String(C.artNr).match(/\.(\d{3})(?:\.|$)/)
+E&&E[1]===c&&(K+=100)}const D=C.label.toLowerCase()
+f.forEach(E=>{D.includes(E)&&K++}),K>L&&(L=K,z=C)})
+const G=f.some(C=>!["chrom","weiss","white"].includes(C))||c&&!["000","100"].includes(c)
+!z&&!G&&(z=d.options[0]),z&&(L>0||!G)&&(this.selectedTray.selections[d.id]=z.artNr)}}),this.updateBOM(),this.renderConfigurator()}),_},M=`Standard ${this.selectedTray.label.split(",").pop().trim()}`
+o.appendChild(y(this.selectedTray.artNr,M)),this.selectedTray.variants.forEach(v=>{o.appendChild(y(v.artNr,v.label))}),a.appendChild(l),a.appendChild(o),t.appendChild(a)}if(this.selectedTray&&this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.length>0&&(n=!0),!n){e.style.display="none"
+return}if(e.style.display="block",this.currentMontageart==="wannenträger"&&!this.selectedTray.mountingMaterials.some(l=>{var y
+const o=(y=l.options)==null?void 0:y[0]
+return o&&this.classifyAccessory(o)==="wannenträger"})){const l=document.createElement("div")
+l.className="compatibility-warning",l.innerHTML=`
+                            <div style="background: rgba(255, 152, 0, 0.1)
+ border: 1px solid rgba(255, 152, 0, 0.3)
+ color: #e65100
+ padding: 1rem
+ border-radius: 8px
+ font-size: 0.9rem
+ margin-bottom: 1.5rem
+ display: flex
+ align-items: start
+ gap: 0.75rem
+">
+                                <span style="font-size: 1.2rem
+">⚠️</span>
                                 <div>
-                                    <strong style="display: block; margin-bottom: 0.25rem;">Kein Wannenträger verfügbar</strong>
+                                    <strong style="display: block
+ margin-bottom: 0.25rem
+">Kein Wannenträger verfügbar</strong>
                                     Für dieses Modell ist kein passender Wannenträger im System hinterlegt. Bitte nutzen Sie die Montageart <strong>Mit Wannenfüssen</strong>.
                                 </div>
                             </div>
-                        `;
-                        inner.appendChild(warnDiv);
-                    }
-                }
-
-                // Create a sorted copy of mountingMaterials for UI rendering
-                const sortedMaterials = [...this.selectedTray.mountingMaterials].sort((a, b) => {
-                    const getPri = (mat) => {
-                        const lbl = (mat.name || '').toLowerCase();
-                        // Core/Standard logic
-                        if (lbl.includes('sitz') || lbl.includes('deckel') || lbl.includes('überlauf')) return 2;
-                        if (lbl.includes('platte') || lbl.includes('betätigung') || lbl.includes('garnitur') || lbl.includes('siphon')) return 3;
-                        if (lbl.includes('zargen') || lbl.includes('dicht')) return 4;
-                        if (lbl.includes('manschette') || lbl.includes('träger') || lbl.includes('füsse') || lbl.includes('anker')) return 5;
-                        if (lbl.includes('schaum') || lbl.includes('kleber')) return 6;
-                        if (lbl.includes('schall') || lbl.includes('isolation')) return 7;
-                        return 99;
-                    };
-                    return getPri(a) - getPri(b);
-                });
-
-                sortedMaterials.forEach(mat => {
-                    if (!mat.options || mat.options.length === 0) return;
-
-                    const matClass = this.classifyAccessory(mat.options[0]) !== 'common' ? this.classifyAccessory(mat.options[0]) : this.classifyAccessory(mat);
-                    
-                    if (this.currentMontageart !== 'alle') {
-                        if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                    }
-
-                    // Check dependency for Infinity Board Add-on
-                    if (mat.name.includes("Infinity Board (Add-on)")) {
-                        const feetMat = this.selectedTray.mountingMaterials.find(m => m.name.includes("Füsse / Anker"));
-                        if (feetMat) {
-                            const selectedFeet = this.selectedTray.selections[feetMat.id];
-                            if (selectedFeet !== '1111 905.000.000') {
-                                return; // Hide the add-on dropdown if the Infinity Foot isn't active
-                            }
-                        }
-                    }
-
-                    const groupDiv = document.createElement('div');
-                    groupDiv.className = 'filter-group';
-                    const label = document.createElement('label');
-                    label.textContent = mat.name || "Zubehör";
-                    
-                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-
-                    if (mat.options.length === 1) {
-                        const opt = mat.options[0];
-                        const foundZub = zubPool.find(z => z.artNr === opt.artNr);
-                        const finalLabel = foundZub ? foundZub.label : opt.label;
-                        
-                        groupDiv.innerHTML = `<label>${mat.name}</label>
-                            <div style="background:var(--bg-surface); padding:0.75rem; border-radius:6px; font-size:0.85rem; color:var(--text-primary); border:1px solid var(--border);">
-                                <strong style="display:block; margin-bottom:0.25rem;">${finalLabel}</strong>
-                                <span style="color:var(--text-secondary); font-family:monospace;">${opt.artNr}</span>
-                            </div>`;
-                    } else {
-                        const select = document.createElement('select');
-                        select.className = 'filter-select';
-                        mat.options.forEach(opt => {
-                            const foundZub = zubPool.find(z => z.artNr === opt.artNr);
-                            const finalLabel = foundZub ? foundZub.label : opt.label;
-
-                            const option = document.createElement('option');
-                            option.value = opt.artNr;
-                            option.textContent = opt.dropdownLabel ? opt.dropdownLabel : `${finalLabel} (${opt.artNr})`;
-                            if (this.selectedTray.selections[mat.id] === opt.artNr) option.selected = true;
-                            select.appendChild(option);
-                        });
-                        select.addEventListener('change', (e) => {
-                            const val = e.target.value;
-                            this.selectedTray.selections[mat.id] = val;
-
-                            // --- SPECIAL DEPENDENCY: Multiplex Trio ---
-                            const isWanneApp = title.toLowerCase().includes('wanne') || title.toLowerCase().includes('duschfläche');
-                            if (isWanneApp) {
-                                // Trim sets
-                                const isMT5Trim = val === '1411 342.501.000' || val === '1411 342.100.000';
-                                const isM5Trim = val === '1411 322.501.000' || val === '1411 322.100.000';
-                                
-                                // Siphons
-                                const isMT5Siphon = val === '1411 333.000.000' || val === '1411 334.000.000';
-                                const isM5Siphon = val === '1411 311.000.000' || val === '1411 312.000.000';
-
-                                if (isMT5Trim) {
-                                    const siphonMat = this.selectedTray.mountingMaterials.find(m => m.name.includes('Ablaufgarnitur'));
-                                    if (siphonMat) {
-                                        // Try to find the matching trio body (standard or long)
-                                        const trioBody = siphonMat.options.find(o => o.artNr === '1411 333.000.000' || o.artNr === '1411 334.000.000');
-                                        if (trioBody) this.selectedTray.selections[siphonMat.id] = trioBody.artNr;
-                                    }
-                                } else if (isMT5Siphon) {
-                                    const overflowMat = this.selectedTray.mountingMaterials.find(m => m.name.includes('Ab- und Überlaufset'));
-                                    if (overflowMat) {
-                                        const mt5Trim = overflowMat.options.find(o => o.artNr === '1411 342.501.000' || o.artNr === '1411 342.100.000');
-                                        if (mt5Trim) this.selectedTray.selections[overflowMat.id] = mt5Trim.artNr;
-                                    }
-                                } else if (isM5Trim) {
-                                    const siphonMat = this.selectedTray.mountingMaterials.find(m => m.name.includes('Ablaufgarnitur'));
-                                    if (siphonMat) {
-                                        // Try to find standard body (without einlauf)
-                                        const stdBody = siphonMat.options.find(o => o.artNr === '1411 311.000.000' || o.artNr === '1411 312.000.000' || o.artNr === '1411 107.000.000');
-                                        if (stdBody) this.selectedTray.selections[siphonMat.id] = stdBody.artNr;
-                                    }
-                                } else if (isM5Siphon) {
-                                    const overflowMat = this.selectedTray.mountingMaterials.find(m => m.name.includes('Ab- und Überlaufset'));
-                                    if (overflowMat) {
-                                        const m5Trim = overflowMat.options.find(o => o.artNr === '1411 322.501.000' || o.artNr === '1411 322.100.000');
-                                        if (m5Trim) this.selectedTray.selections[overflowMat.id] = m5Trim.artNr;
-                                    }
-                                }
-                            }
-
-                            this.updateBOM();
-                            this.renderConfigurator(); // Re-render to show updated cross-selections
-                        });
-                        groupDiv.appendChild(label);
-                        groupDiv.appendChild(select);
-                    }
-                    inner.appendChild(groupDiv);
-                });
-            },
-            clearBOM: function () {
-                bomCountCounter.textContent = "0 Artikel ausgewählt";
-                bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9da3ad; padding: 2rem;">Bitte wählen Sie ein Produkt aus den Suchergebnissen.</td></tr>';
-            },
-            updateBOM: function () {
-                if (!this.selectedTray) return;
-
-                const materials = this.selectedTray.mountingMaterials || [];
-                bomTableBody.innerHTML = '';
-                const finalBOM = [];
-
-                const titleLower = title.toLowerCase();
-                const isWandKlosett = titleLower.includes('wandklosett');
-                const isStandKlosett = titleLower.includes('standklosett');
-                const isWanne = titleLower.includes('wanne') || titleLower.includes('duschfläche');
-
-                // 1. Ceramic (Main Item)
-                let activeTrayArtNr = this.selectedTray.artNr;
-                let activeTrayLabel = this.selectedTray.label;
-                let activeTrayMenge = this.selectedTray.menge || 1;
-                if (this.selectedTray.selections['__variant__'] && this.selectedTray.selections['__variant__'] !== this.selectedTray.artNr) {
-                    const variant = (this.selectedTray.variants || []).find(v => v.artNr === this.selectedTray.selections['__variant__']);
-                    if (variant) {
-                        activeTrayArtNr = variant.artNr;
-                        activeTrayLabel = variant.label;
-                        activeTrayMenge = variant.menge || 1;
-                    }
-                }
-
-                const isAufputz = activeTrayArtNr === '2111 845.100.000' || activeTrayArtNr === '3231 113.100.000';
-                const ceramicPriority = isAufputz ? 2 : 1;
-                
-                finalBOM.push({ artNr: activeTrayArtNr, label: activeTrayLabel, typ: title, menge: activeTrayMenge, img: this.selectedTray.imgUrl || this.mainImgUrl, note: 'Hauptartikel', priority: ceramicPriority });
-
-                // ─── STANDKLOSETT: Dedicated BOM Priority Engine ─────────────────────
-                if (isStandKlosett) {
-                    const standLbl = activeTrayLabel.toLowerCase();
-                    const isStandUnterputz = standLbl.includes('einbauspülkasten') || standLbl.includes('einbauspulkasten');
-
-                    // Ceramic priority: Aufputz → 2 (Spülkasten is #1), Unterputz → 1
-                    const standCeramicPriority = isStandUnterputz ? 1 : 2;
-                    // Override the ceramic priority that was already pushed
-                    finalBOM[finalBOM.length - 1].priority = standCeramicPriority;
-
-                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-
-                    materials.forEach(mat => {
-                        const selectedArtNr = this.selectedTray.selections[mat.id];
-                        const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                        if (!selectedOption) return;
-
-                        // Check against active Montageart filter
-                        const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
-                        if (this.currentMontageart !== 'alle') {
-                            if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                        }
-
-                        const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
-                        const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
-                        const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
-
-                        const lbl = enrichedLabel.toLowerCase();
-                        const matName = mat.name.toLowerCase();
-
-                        let priority = 99;
-                        const note = mat.name || 'Zubehör';
-
-                        if (isStandUnterputz) {
-                            // UNTERPUTZ: 1=Klosett 2=Sitz 3=Platte 4=Schall 5=Screws 6=Ablaufmanschette 7=Duofix 8=Rückwand 9=Ablaufbogen
-                            if (matName === 'wc-sitz' || matName === 'klosettsitz') priority = 2;
-                            else if (matName === 'betätigungsplatte') priority = 3;
-                            else if (matName === 'schallschutz') priority = 4;
-                            else if (matName === 'befestigungsschrauben') priority = 5;
-                            else if (matName === 'ablaufmanschette') priority = 6;
-                            else if (matName === 'duofix element' || selectedOption.artNr === '3612 348.000.000') priority = 7;
-                            else if (matName === 'rückwandbefestigungssatz' || selectedOption.artNr === '3612 500.000.000') priority = 8;
-                            else if (matName === 'ablaufbogen' || selectedOption.artNr === '3612 374.000.000') priority = 9;
-                        } else {
-                            // AUFPUTZ: 1=Spülkasten 2=Klosett 3=Sitz 4=Schall 5=Screws 6=Ablaufanschluss
-                            if (matName === 'spülkasten') priority = 1;
-                            else if (matName === 'wc-sitz' || matName === 'klosettsitz') priority = 3;
-                            else if (matName === 'schallschutz') priority = 4;
-                            else if (matName === 'befestigungsschrauben') priority = 5;
-                            else if (matName === 'ablaufanschluss') priority = 6;
-                        }
-
-                        finalBOM.push({
-                            artNr: selectedOption.artNr,
-                            label: enrichedLabel,
-                            typ: selectedOption.type || mat.name || 'Zubehör',
-                            menge: selectedOption.menge || 1,
-                            img: enrichedImg,
-                            note: note,
-                            priority: priority
-                        });
-                    });
-
-                } else if (isWanne) {
-                    // ─── DUSCHENWANNE / BADEWANNE: Dedicated Priority Engine ──────────
-                    materials.forEach(mat => {
-                        const selectedArtNr = this.selectedTray.selections[mat.id];
-                        const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                        if (!selectedOption) return;
-
-                        // Check dependency for Infinity Board Add-on
-                        if (mat.name.includes("Infinity Board (Add-on)")) {
-                            const feetMat = this.selectedTray.mountingMaterials.find(m => m.name.includes("Füsse / Anker"));
-                            if (feetMat) {
-                                const selectedFeet = this.selectedTray.selections[feetMat.id];
-                                if (selectedFeet !== '1111 905.000.000') {
-                                    return; // Hide the add-on from BOM if the Infinity Foot isn't active
-                                }
-                            }
-                        }
-
-                        // Check against active Montageart filter
-                        const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
-                        if (this.currentMontageart !== 'alle') {
-                            if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                        }
-
-                        const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-                        const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
-                        const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
-                        const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
-
-                        const combinedLbl = (enrichedLabel + ' ' + (selectedOption.type || mat.name || '')).toLowerCase();
-
-                        let priority = 99; // Fallback
-                        const note = mat.name || 'Zubehör';
-
-                        // 1. Wanne / Duschfläche (Handled earlier, priority: 1)
-                        // 2. Ablaufdeckel
-                        // 3. Ablaufgarnitur / Sifon
-                        // 4. Zargen-Wannendichtband
-                        // 5. Wannenträger OR Montagerahmen
-                        // 6. Montageschaum OR Fussset OR Mittenabstützsystem
-                        // 7. Schallschutzset
-
-                        if (combinedLbl.includes('deckel') || combinedLbl.includes('überlauf')) priority = 2;
-                        else if (combinedLbl.includes('ablauf') || combinedLbl.includes('siphon') || combinedLbl.includes('garnitur') || combinedLbl.includes('sifon')) priority = 3;
-                        else if (combinedLbl.includes('dichtband') || combinedLbl.includes('wannenband') || combinedLbl.includes('zargen') || combinedLbl.includes('dichtset')) priority = 4;
-                        else if (combinedLbl.includes('träger') || combinedLbl.includes('rahmen') || combinedLbl.includes('wannenträger') || combinedLbl.includes('montagerahmen') || combinedLbl.includes('fuss') || combinedLbl.includes('füsse') || combinedLbl.includes('mittenabstütz') || combinedLbl.includes('wannenanker') || combinedLbl.includes('stütz')) priority = 5;
-                        else if (combinedLbl.includes('schaum')) priority = 6;
-                        else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = 7;
-                        else priority = 8; // Any generic unclassified accessories
-
-                        let calculatedMenge = selectedOption.menge !== undefined ? selectedOption.menge : 1;
-
-                        // RULE: Do not overwrite Calima logic without asking the user for keyword 'Jariel'
-                        // Dynamic quantity calculation for Kaldewei Calima Stelzfüsse (Pack of 4)
-                        const trayLbl = (this.selectedTray.label || '').toLowerCase();
-                        if (trayLbl.includes('calima') && combinedLbl.includes('stelz')) {
-                            const dims = trayLbl.match(/(\d{3,4})\s*x\s*(\d{3,4})/);
-                            if (dims) {
-                                const l = Math.max(parseInt(dims[1]), parseInt(dims[2]));
-                                const w = Math.min(parseInt(dims[1]), parseInt(dims[2]));
-                                
-                                let req = 16;
-                                if (w <= 700) {
-                                    if (l <= 1000) req = 12;
-                                    else if (l <= 1300) req = 15;
-                                    else if (l <= 1600) req = 18;
-                                    else req = 21;
-                                } else {
-                                    if (l <= 1000) req = 16;
-                                    else if (l <= 1300) req = 20;
-                                    else if (l <= 1600) req = 24;
-                                    else req = 28;
-                                }
-                                // Feet are sold in packs of 4. Round up to the nearest pack.
-                                calculatedMenge = Math.ceil(req / 4);
-                            }
-                        }
-
-                        finalBOM.push({
-                            artNr: selectedOption.artNr,
-                            label: enrichedLabel,
-                            typ: selectedOption.type || mat.name || 'Zubehör',
-                            menge: calculatedMenge,
-                            img: enrichedImg,
-                            note: note,
-                            priority: priority
-                        });
-                    });
-
-                } else {
-                    // ─── WANDKLOSETT / OTHER: Original Priority Engine ────────────────
-                    materials.forEach(mat => {
-                        const selectedArtNr = this.selectedTray.selections[mat.id];
-                        const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                        if (!selectedOption) return;
-
-                        // Check against active Montageart filter
-                        const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
-                        if (this.currentMontageart !== 'alle') {
-                            if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                        }
-
-                        // Dynamically enrich from zubehoer_pool (for imported seats/plates)
-                        const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-                        const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
-                        
-                        const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
-                        const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
-
-                        const lbl = enrichedLabel.toLowerCase();
-                        const typeLbl = (selectedOption.type || mat.name || '').toLowerCase();
-                        const combinedLbl = lbl + ' ' + typeLbl;
-                        
-                        let priority = 99; // Default for unknown
-                        let note = mat.name || 'Zubehör';
-
-                        if (combinedLbl.includes('sitz') || combinedLbl.includes('deckel')) priority = isAufputz ? 3 : 2;
-                        else if (combinedLbl.includes('platte') || combinedLbl.includes('betätigung')) priority = 3;
-                        else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = isAufputz ? 5 : 4;
-                        else if (combinedLbl.includes('reservoir') || combinedLbl.includes('spülkasten') || combinedLbl.includes('ap128') || combinedLbl.includes('ap116')) priority = 1;
-                        else if (combinedLbl.includes('manschette') || combinedLbl.includes('garnitur') || combinedLbl.includes('ablaufanschluss') || selectedOption.artNr.includes('3241 116') || selectedOption.artNr.includes('3241 101') || selectedOption.artNr.includes('3241 102')) priority = 5;
-
-                        finalBOM.push({ 
-                            artNr: selectedOption.artNr, 
-                            label: enrichedLabel, 
-                            typ: selectedOption.type || mat.name || 'Zubehör', 
-                            menge: selectedOption.menge || 1, 
-                            img: enrichedImg,
-                            note: note,
-                            priority: priority
-                        });
-                    });
-                }
-
-                // 5-8. Technical Injection for Wandklosett (with Dynamic Lookup)
-                if (isWandKlosett) {
-                    const mainLbl = activeTrayLabel.toLowerCase();
-                    
-                    // Access the global pool if available
-                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-                    
-                    const getZub = (art) => {
-                        const found = zubPool.find(z => z.artNr === art);
-                        return found ? { artNr: found.artNr, label: found.label, img: found.imgUrl } : null;
-                    };
-
-                    if (isAufputz) {
-                        const screws = getZub('8211 114.000.000') || { artNr: '8211 114.000.000', label: 'Befestigungsschrauben' };
-                        finalBOM.push({ ...screws, typ: 'Technik', menge: 2, priority: 4, note: 'Aufputz-Technik' });
-                    } else {
-                        const hasManschette = mainLbl.includes('manschette') || mainLbl.includes('garnitur');
-                        const hasScrapedSleeve = finalBOM.some(item => item.priority === 5);
-
-                        if (!hasManschette && !hasScrapedSleeve) {
-                            const item = getZub('3241 101.000.000') || { artNr: '3241 101.000.000', label: 'Manschettengarnitur' };
-                            finalBOM.push({ ...item, typ: 'Technik', menge: 1, priority: 5, note: 'Standard-Technik' });
-                        }
-                        
-                        const step6 = getZub('3612 348.000.000') || { artNr: '3612 348.000.000', label: 'Wandklosettelement Geberit Duofix' };
-                        finalBOM.push({ ...step6, typ: 'Technik', menge: 1, priority: 6, note: 'Standard-Technik' });
-
-                        const step7 = getZub('3612 500.000.000') || { artNr: '3612 500.000.000', label: 'Rückwandbefestigungssatz Geberit Duofix' };
-                        finalBOM.push({ ...step7, typ: 'Technik', menge: 1, priority: 7, note: 'Standard-Technik' });
-
-                        const step8 = getZub('3612 374.000.000') || { artNr: '3612 374.000.000', label: 'Ablaufbogen Geberit- Silent' };
-                        finalBOM.push({ ...step8, typ: 'Technik', menge: 1, priority: 8, note: 'Standard-Technik' });
-                    }
-                }
-
-                // Final Sort and Independent Deduplication Checks
-                const mainLblLower = activeTrayLabel.toLowerCase();
-                
-                // Seat Deduplication: Catch 'inkl. sitz', 'inkl. klosettsitz', 'inkl. wc-sitz', 'm. sitz'
-                const ceramicIncludesSeat = mainLblLower.includes('pack') || 
-                                            /m\.\s*(klosett|wc-)?sitz/.test(mainLblLower) || 
-                                            /inkl\.\s*(klosett|wc-)?sitz/.test(mainLblLower) ||
-                                            (/\bset\b/.test(mainLblLower) && !mainLblLower.includes('schallschutz'));
-                
-                // Isolation Deduplication: Only if explicitly included or stated as 'Schallschutz-Set'
-                const ceramicIncludesSchallschutz = mainLblLower.includes('inkl. schall') || 
-                                                    mainLblLower.includes('m. schall') ||
-                                                    mainLblLower.includes('schallschutz-set') ||
-                                                    mainLblLower.includes('schallschutzset') ||
-                                                    mainLblLower.includes('inkl. isolation');
-
-                let sortedBOM = finalBOM.sort((a, b) => a.priority - b.priority);
-                
-                // Remove redundant line items if they are already physically bundled with the main ceramic
-                if (ceramicIncludesSeat) {
-                    sortedBOM = sortedBOM.filter(item => item.priority !== 2);
-                }
-                if (ceramicIncludesSchallschutz) {
-                    sortedBOM = sortedBOM.filter(item => item.priority !== 4);
-                }
-
-                // Render
-                let totalCount = 0;
-                sortedBOM.forEach(item => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><div class="img-cell" ${!item.img ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>
-                            ${item.img ? `<img src="${item.img}" alt="${item.label}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>'}
+                        `,t.appendChild(l)}[...this.selectedTray.mountingMaterials].sort((a,l)=>{const o=y=>{const M=(y.name||"").toLowerCase()
+return M.includes("sitz")||M.includes("deckel")||M.includes("überlauf")?2:M.includes("platte")||M.includes("betätigung")||M.includes("garnitur")||M.includes("siphon")?3:M.includes("zargen")||M.includes("dicht")?4:M.includes("manschette")||M.includes("träger")||M.includes("füsse")||M.includes("anker")?5:M.includes("schaum")||M.includes("kleber")?6:M.includes("schall")||M.includes("isolation")?7:99}
+return o(a)-o(l)}).forEach(a=>{if(!a.options||a.options.length===0)return
+const l=this.classifyAccessory(a.options[0])!=="common"?this.classifyAccessory(a.options[0]):this.classifyAccessory(a)
+if(this.currentMontageart!=="alle"&&l!=="common"&&l!==this.currentMontageart)return
+if(a.name.includes("Infinity Board (Add-on)")){const v=this.selectedTray.mountingMaterials.find(S=>S.name.includes("Füsse / Anker"))
+if(v&&this.selectedTray.selections[v.id]!=="1111 905.000.000")return}const o=document.createElement("div")
+o.className="filter-group"
+const y=document.createElement("label")
+y.textContent=a.name||"Zubehör"
+const M=window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]
+if(a.options.length===1){const v=a.options[0],S=M.find(u=>u.artNr===v.artNr),_=S?S.label:v.label
+o.innerHTML=`<label>${a.name}</label>
+                            <div style="background:var(--bg-surface)
+ padding:0.75rem
+ border-radius:6px
+ font-size:0.85rem
+ color:var(--text-primary)
+ border:1px solid var(--border)
+">
+                                <strong style="display:block
+ margin-bottom:0.25rem
+">${_}</strong>
+                                <span style="color:var(--text-secondary)
+ font-family:monospace
+">${v.artNr}</span>
+                            </div>`}else{const v=document.createElement("select")
+v.className="filter-select",a.options.forEach(S=>{const _=M.find(A=>A.artNr===S.artNr),u=_?_.label:S.label,x=document.createElement("option")
+x.value=S.artNr,x.textContent=S.dropdownLabel?S.dropdownLabel:`${u} (${S.artNr})`,this.selectedTray.selections[a.id]===S.artNr&&(x.selected=!0),v.appendChild(x)}),v.addEventListener("change",S=>{const _=S.target.value
+if(this.selectedTray.selections[a.id]=_,B.toLowerCase().includes("wanne")||B.toLowerCase().includes("duschfläche")){const x=_==="1411 342.501.000"||_==="1411 342.100.000",A=_==="1411 322.501.000"||_==="1411 322.100.000",H=_==="1411 333.000.000"||_==="1411 334.000.000",p=_==="1411 311.000.000"||_==="1411 312.000.000"
+if(x){const k=this.selectedTray.mountingMaterials.find(f=>f.name.includes("Ablaufgarnitur"))
+if(k){const f=k.options.find(g=>g.artNr==="1411 333.000.000"||g.artNr==="1411 334.000.000")
+f&&(this.selectedTray.selections[k.id]=f.artNr)}}else if(H){const k=this.selectedTray.mountingMaterials.find(f=>f.name.includes("Ab- und Überlaufset"))
+if(k){const f=k.options.find(g=>g.artNr==="1411 342.501.000"||g.artNr==="1411 342.100.000")
+f&&(this.selectedTray.selections[k.id]=f.artNr)}}else if(A){const k=this.selectedTray.mountingMaterials.find(f=>f.name.includes("Ablaufgarnitur"))
+if(k){const f=k.options.find(g=>g.artNr==="1411 311.000.000"||g.artNr==="1411 312.000.000"||g.artNr==="1411 107.000.000")
+f&&(this.selectedTray.selections[k.id]=f.artNr)}}else if(p){const k=this.selectedTray.mountingMaterials.find(f=>f.name.includes("Ab- und Überlaufset"))
+if(k){const f=k.options.find(g=>g.artNr==="1411 322.501.000"||g.artNr==="1411 322.100.000")
+f&&(this.selectedTray.selections[k.id]=f.artNr)}}}this.updateBOM(),this.renderConfigurator()}),o.appendChild(y),o.appendChild(v)}t.appendChild(o)})},clearBOM:function(){me.textContent="0 Artikel ausgewählt",re.innerHTML='<tr><td colspan="5" style="text-align: center  color: #9da3ad  padding: 2rem ">Bitte wählen Sie ein Produkt aus den Suchergebnissen.</td></tr>'},updateBOM:function(){if(!this.selectedTray)return
+const e=this.selectedTray.mountingMaterials||[]
+re.innerHTML=""
+const t=[],n=B.toLowerCase(),i=n.includes("wandklosett"),a=n.includes("standklosett"),l=n.includes("wanne")||n.includes("duschfläche")
+let o=this.selectedTray.artNr,y=this.selectedTray.label,M=this.selectedTray.menge||1
+if(this.selectedTray.selections.__variant__&&this.selectedTray.selections.__variant__!==this.selectedTray.artNr){const p=(this.selectedTray.variants||[]).find(k=>k.artNr===this.selectedTray.selections.__variant__)
+p&&(o=p.artNr,y=p.label,M=p.menge||1)}const v=o==="2111 845.100.000"||o==="3231 113.100.000",S=v?2:1
+if(t.push({artNr:o,label:y,typ:B,menge:M,img:this.selectedTray.imgUrl||this.mainImgUrl,note:"Hauptartikel",priority:S}),a){const p=y.toLowerCase(),k=p.includes("einbauspülkasten")||p.includes("einbauspulkasten"),f=k?1:2
+t[t.length-1].priority=f
+const g=window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]
+e.forEach(c=>{const d=this.selectedTray.selections[c.id],z=(c.options||[]).find(b=>b.artNr===d)||c.options&&c.options[0]
+if(!z)return
+const L=this.classifyAccessory(z)!=="common"?this.classifyAccessory(z):this.classifyAccessory(c)
+if(this.currentMontageart!=="alle"&&L!=="common"&&L!==this.currentMontageart)return
+const G=g.find(b=>b.artNr===z.artNr),C=G?G.label:z.label,K=G&&G.imgUrl?G.imgUrl:z.imgUrl
+C.toLowerCase()
+const D=c.name.toLowerCase()
+let E=99
+const h=c.name||"Zubehör"
+k?D==="wc-sitz"||D==="klosettsitz"?E=2:D==="betätigungsplatte"?E=3:D==="schallschutz"?E=4:D==="befestigungsschrauben"?E=5:D==="ablaufmanschette"?E=6:D==="duofix element"||z.artNr==="3612 348.000.000"?E=7:D==="rückwandbefestigungssatz"||z.artNr==="3612 500.000.000"?E=8:(D==="ablaufbogen"||z.artNr==="3612 374.000.000")&&(E=9):D==="spülkasten"?E=1:D==="wc-sitz"||D==="klosettsitz"?E=3:D==="schallschutz"?E=4:D==="befestigungsschrauben"?E=5:D==="ablaufanschluss"&&(E=6),t.push({artNr:z.artNr,label:C,typ:z.type||c.name||"Zubehör",menge:z.menge||1,img:K,note:h,priority:E})})}else l?e.forEach(p=>{const k=this.selectedTray.selections[p.id],f=(p.options||[]).find(h=>h.artNr===k)||p.options&&p.options[0]
+if(!f)return
+if(p.name.includes("Infinity Board (Add-on)")){const h=this.selectedTray.mountingMaterials.find(b=>b.name.includes("Füsse / Anker"))
+if(h&&this.selectedTray.selections[h.id]!=="1111 905.000.000")return}const g=this.classifyAccessory(f)!=="common"?this.classifyAccessory(f):this.classifyAccessory(p)
+if(this.currentMontageart!=="alle"&&g!=="common"&&g!==this.currentMontageart)return
+const d=(window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]).find(h=>h.artNr===f.artNr),z=d?d.label:f.label,L=d&&d.imgUrl?d.imgUrl:f.imgUrl,G=(z+" "+(f.type||p.name||"")).toLowerCase()
+let C=99
+const K=p.name||"Zubehör"
+G.includes("deckel")||G.includes("überlauf")?C=2:G.includes("ablauf")||G.includes("siphon")||G.includes("garnitur")||G.includes("sifon")?C=3:G.includes("dichtband")||G.includes("wannenband")||G.includes("zargen")||G.includes("dichtset")?C=4:G.includes("träger")||G.includes("rahmen")||G.includes("wannenträger")||G.includes("montagerahmen")||G.includes("fuss")||G.includes("füsse")||G.includes("mittenabstütz")||G.includes("wannenanker")||G.includes("stütz")?C=5:G.includes("schaum")?C=6:G.includes("schall")||G.includes("isolation")?C=7:C=8
+let D=f.menge!==void 0?f.menge:1
+const E=(this.selectedTray.label||"").toLowerCase()
+if(E.includes("calima")&&G.includes("stelz")){const h=E.match(/(\d{3,4})\s*x\s*(\d{3,4})/)
+if(h){const b=Math.max(parseInt(h[1]),parseInt(h[2])),U=Math.min(parseInt(h[1]),parseInt(h[2]))
+let W=16
+U<=700?b<=1e3?W=12:b<=1300?W=15:b<=1600?W=18:W=21:b<=1e3?W=16:b<=1300?W=20:b<=1600?W=24:W=28,D=Math.ceil(W/4)}}t.push({artNr:f.artNr,label:z,typ:f.type||p.name||"Zubehör",menge:D,img:L,note:K,priority:C})}):e.forEach(p=>{const k=this.selectedTray.selections[p.id],f=(p.options||[]).find(h=>h.artNr===k)||p.options&&p.options[0]
+if(!f)return
+const g=this.classifyAccessory(f)!=="common"?this.classifyAccessory(f):this.classifyAccessory(p)
+if(this.currentMontageart!=="alle"&&g!=="common"&&g!==this.currentMontageart)return
+const d=(window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]).find(h=>h.artNr===f.artNr),z=d?d.label:f.label,L=d&&d.imgUrl?d.imgUrl:f.imgUrl,G=z.toLowerCase(),C=(f.type||p.name||"").toLowerCase(),K=G+" "+C
+let D=99,E=p.name||"Zubehör"
+K.includes("sitz")||K.includes("deckel")?D=v?3:2:K.includes("platte")||K.includes("betätigung")?D=3:K.includes("schall")||K.includes("isolation")?D=v?5:4:K.includes("reservoir")||K.includes("spülkasten")||K.includes("ap128")||K.includes("ap116")?D=1:(K.includes("manschette")||K.includes("garnitur")||K.includes("ablaufanschluss")||f.artNr.includes("3241 116")||f.artNr.includes("3241 101")||f.artNr.includes("3241 102"))&&(D=5),t.push({artNr:f.artNr,label:z,typ:f.type||p.name||"Zubehör",menge:f.menge||1,img:L,note:E,priority:D})})
+if(i){const p=y.toLowerCase(),k=window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[],f=g=>{const c=k.find(d=>d.artNr===g)
+return c?{artNr:c.artNr,label:c.label,img:c.imgUrl}:null}
+if(v){const g=f("8211 114.000.000")||{artNr:"8211 114.000.000",label:"Befestigungsschrauben"}
+t.push({...g,typ:"Technik",menge:2,priority:4,note:"Aufputz-Technik"})}else{const g=p.includes("manschette")||p.includes("garnitur"),c=t.some(G=>G.priority===5)
+if(!g&&!c){const G=f("3241 101.000.000")||{artNr:"3241 101.000.000",label:"Manschettengarnitur"}
+t.push({...G,typ:"Technik",menge:1,priority:5,note:"Standard-Technik"})}const d=f("3612 348.000.000")||{artNr:"3612 348.000.000",label:"Wandklosettelement Geberit Duofix"}
+t.push({...d,typ:"Technik",menge:1,priority:6,note:"Standard-Technik"})
+const z=f("3612 500.000.000")||{artNr:"3612 500.000.000",label:"Rückwandbefestigungssatz Geberit Duofix"}
+t.push({...z,typ:"Technik",menge:1,priority:7,note:"Standard-Technik"})
+const L=f("3612 374.000.000")||{artNr:"3612 374.000.000",label:"Ablaufbogen Geberit- Silent"}
+t.push({...L,typ:"Technik",menge:1,priority:8,note:"Standard-Technik"})}}const _=y.toLowerCase(),u=_.includes("pack")||/m\.\s*(klosett|wc-)?sitz/.test(_)||/inkl\.\s*(klosett|wc-)?sitz/.test(_)||/\bset\b/.test(_)&&!_.includes("schallschutz"),x=_.includes("inkl. schall")||_.includes("m. schall")||_.includes("schallschutz-set")||_.includes("schallschutzset")||_.includes("inkl. isolation")
+let A=t.sort((p,k)=>p.priority-k.priority)
+u&&(A=A.filter(p=>p.priority!==2)),x&&(A=A.filter(p=>p.priority!==4))
+let H=0
+A.forEach(p=>{const k=document.createElement("tr")
+k.innerHTML=`
+                        <td><div class="img-cell" ${p.img?"":'style="background: transparent  border: 1px dashed var(--border) "'}>
+                            ${p.img?`<img src="${p.img}" alt="${p.label}">`:'<i class="ri-settings-3-line" style="font-size:1.2rem opacity:0.3 "></i>'}
                         </div></td>
-                        <td><span class="bom-code">${item.artNr}</span></td>
+                        <td><span class="bom-code">${p.artNr}</span></td>
                         <td>
-                            <div class="bom-desc">${item.label}</div>
-                            <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">${item.note}</div>
+                            <div class="bom-desc">${p.label}</div>
+                            <div style="font-size: 0.8rem
+ color: #9e9e9e
+ margin-top: 0.25rem
+">${p.note}</div>
                         </td>
-                        <td><span class="bom-type">${item.typ}</span></td>
-                        <td><strong>${item.menge}</strong></td>
-                    `;
-                    bomTableBody.appendChild(row);
-                    totalCount += item.menge;
-                });
+                        <td><span class="bom-type">${p.typ}</span></td>
+                        <td><strong>${p.menge}</strong></td>
+                    `,re.appendChild(k),H+=p.menge}),me.textContent=`${H} Artikel benötigt`},copyToClipboard:function(){if(!this.selectedTray){alert("Bitte wählen Sie zuerst ein Produkt aus.")
+return}let e=[]
+const t=document.getElementById("bomTableBody")
+if(t)t.querySelectorAll("tr").forEach(a=>{const l=a.querySelector(".bom-code"),o=a.querySelector("strong")
+if(l&&o){const y=l.textContent.replace(/\t/g,"").trim(),M=o.textContent.replace(/\t/g,"").trim()
+e.push(`${y}	${M}`)}})
+else{alert("Tabelle konnte nicht gefunden werden.")
+return}const n=e.join(`
+`)
+navigator.clipboard.writeText(n).then(()=>{alert(`Artikel und Menge kopiert für SAP:
 
-                bomCountCounter.textContent = `${totalCount} Artikel benötigt`;
-            },
-            copyToClipboard: function () {
-                if (!this.selectedTray) {
-                    alert('Bitte wählen Sie zuerst ein Produkt aus.');
-                    return;
-                }
-
-                let textLines = [];
-                const bomTableBody = document.getElementById('bomTableBody');
-                
-                if (bomTableBody) {
-                    const rows = bomTableBody.querySelectorAll('tr');
-                    rows.forEach(row => {
-                        const codeSpan = row.querySelector('.bom-code');
-                        const qtyStrong = row.querySelector('strong');
-                        if (codeSpan && qtyStrong) {
-                            const code = codeSpan.textContent.replace(/\t/g, '').trim();
-                            const menge = qtyStrong.textContent.replace(/\t/g, '').trim();
-                            textLines.push(`${code}\t${menge}`);
-                        }
-                    });
-                } else {
-                    alert("Tabelle konnte nicht gefunden werden.");
-                    return;
-                }
-
-                const text = textLines.join('\n');
-                navigator.clipboard.writeText(text).then(() => {
-                    alert("Artikel und Menge kopiert für SAP:\n\n" + text.replace(/\t/g, "    "));
-                }).catch(e => alert("Kopieren fehlgeschlagen."));
-            }
-        };
+`+n.replace(/\t/g,"    "))}).catch(i=>alert("Kopieren fehlgeschlagen."))}}}
+    return bt(title, desc, mainImgUrl, config);
 }

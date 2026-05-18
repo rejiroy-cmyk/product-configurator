@@ -1,370 +1,644 @@
 const fs = require('fs');
+const path = require('path');
 
-const DATA_PATH = './custom-data.json';
-const data = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
+/**
+ * SHOWER TRAY CONFIGURATOR v3 - MASTER PATCH SCRIPT
+ *
+ * Rules:
+ * 1. BOM Order: Tray -> Deckel -> Siphon -> Tape -> Sealing -> Carrier/Frame -> Foam only ifWannenträger used -> Sound only ifWannenträger used
+ * 2. Kaldewei: FR 5300 Frame + MAS if side > 90cm.
+ * 3. Schmidlin: Omnia Frame + Fussset.
+ * 4. Alterna loa: Schmidlin Omnia Frame.
+ * 5. Laufen Pro/Pro S: Ineo Frame + Series Schallschutz.
+ * 6. Calima: Stelzfüsse and Wannenträger.
+ * 7. Swiss Line: Skip Frames/Feet (All-in-one).
+ */
 
-const pool = data.zubehoer_pool;
-const fullPool = [
-    ...(pool.trays || []),
-    ...(pool.parts || []),
-    ...(pool.finishes || [])
-];
+const DATA_PATH = path.join(__dirname, '../custom-data.json');
+const SCRAPER_DATA_PATH = path.join(__dirname, '../st-scraper/duschenwanne-accessories.json');
 
-const SHOWER_RULES = {
-    "alterna": {
-        "ecoplan": { deckel: "1422 118.501.000", siphon: "1422 117.000.000" },
-        "loa": { deckel: "1311 698.501.000", siphon: "1311 701.000.000" }
-    },
-    "schmidlin": {
-        "duschwanne": { deckel: "1422 118.501.000", siphon: "1422 117.000.000" },
-        "viva": { deckel: "1311 698.501.000", siphon: "1311 701.000.000" },
-        "floor": { deckel: "1311 698.501.000", siphon: "1311 701.000.000" }
-    },
-    "kaldewei": {
-        "superplan zero": { siphon: "1313 271.501.000" },
-        "cayonoplan": { siphon: "1313 271.501.000" },
-        "calima": { deckel: "1313 284.100.185", siphon: "1313 277.501.000" },
-        "superplan": { siphon: "1313 271.501.000" },
-        "duschplan": { deckel: "1422 118.501.000", siphon: "1422 117.000.000" },
-        "sanidusch": { siphon: "1422 117.000.000" },
-        "superplan classic": { siphon: "1313 271.501.000" },
-        "conoflat": { deckel: "1313 282.100.000", siphon: "1313 274.000.000" }
-    },
-    "laufen": {
-        "pro s superflach": { siphon: "1425 561.000.000" },
-        "pro superflach": { siphon: "1171 405.000.000" }
-    }
-};
-
-const CALIMA_FEET_MAP = {
-    "800x800": 16, "900x700": 12, "900x750": 16, "900x800": 16, "900x900": 16,
-    "1000x700": 12, "1000x750": 16, "1000x800": 16, "1000x900": 16, "1000x1000": 16,
-    "1100x700": 15, "1100x750": 20, "1100x800": 20, "1100x900": 20,
-    "1200x700": 15, "1200x750": 20, "1200x800": 20, "1200x900": 20, "1200x1000": 20,
-    "1300x700": 15, "1300x750": 20, "1300x800": 20, "1300x900": 20,
-    "1400x700": 18, "1400x750": 24, "1400x800": 24, "1400x900": 24, "1400x1000": 24,
-    "1500x700": 18, "1500x750": 24, "1500x800": 24, "1500x900": 24,
-    "1600x700": 18, "1600x750": 24, "1600x800": 24, "1600x900": 24,
-    "1700x700": 21, "1700x750": 28, "1700x800": 28, "1700x900": 28,
-    "1800x700": 21, "1800x750": 28, "1800x800": 28, "1800x900": 28
-};
-
-function normalizeSize(s) {
-    if (!s) return null;
-    const matches = s.match(/(\d+(?:[.,]\d+)?)\s*[xX\/\*\-]\s*(\d+(?:[.,]\d+)?)/);
-    if (!matches) return null;
-    let w = parseFloat(matches[1].replace(',', '.'));
-    let h = parseFloat(matches[2].replace(',', '.'));
-    if (w > 300) w /= 10;
-    if (h > 300) h /= 10;
-    return [w, h];
+// --- 1. Load Data ---
+let data = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
+let scraperResults = {};
+if (fs.existsSync(SCRAPER_DATA_PATH)) {
+    scraperResults = JSON.parse(fs.readFileSync(SCRAPER_DATA_PATH, 'utf8'));
 }
 
-console.log("Patching Duschenwanne with Advanced Admin Logic...");
+const pool = data.zubehoer_pool;
+const FULL_POOL = [
+    ...(pool.trays || []),
+    ...(pool.parts || []),
+    ...(pool.finishes || []),
+];
 
-data.duschenwanne.trays.forEach(tray => {
-    tray.mountingMaterials = []; // Wipe and restart cleanly
-    
-    const manufacturer = (tray.manufacturer || '').toLowerCase().trim();
-    const labelLower = (tray.label || '').toLowerCase().trim();
-    const size = (tray.size || '').replace(/\s/g, '').toLowerCase();
-    const sizeParts = normalizeSize(tray.size);
-    const isLargeTray = sizeParts ? (Math.max(sizeParts[0], sizeParts[1]) > 90) : false;
+// --- 2. Master Part Library ---
+// --- 2. Master Part Library ---
+const MASTER_PARTS = {
+    SCHAUM: "1441 791.000.000",
+    SCHALLSCHUTZ: "1445 782.000.000",
+    NIVODUEBEL: "1451 116.000.000",
+    WANNENANKER: "1451 131.000.000",
+    FR5300_SMALL: "1435 424.000.000", // bis 120x120
+    FR5300_LARGE: "1435 428.000.000", // bis 150x180
+    MAS_5305: "1435 435.000.000",
+    OMNIA_FUSSSET: "1435 191.000.000",
+    TAPE_200: "1461 001.000.000",
+    TAPE_250: "1461 002.000.000",
+    TAPE_340: "1461 004.000.000"
+};
 
-    let modelRule = null;
-    if (SHOWER_RULES[manufacturer]) {
-        for (const series in SHOWER_RULES[manufacturer]) {
-            if (labelLower.includes(series)) {
-                modelRule = SHOWER_RULES[manufacturer][series];
-                break;
-            }
-        }
+// --- 3. Helper Functions ---
+
+function getTechnicalItem(artNr, label) {
+    return {
+        artNr: artNr,
+        label: label,
+        type: "Zubehör",
+        imgUrl: `https://profishop.sanitastroesch.ch/multimedia/Web/PS1/0${artNr.replace(/\s/g, '').replace(/\./g, '')}.png`,
+        menge: 1
+    };
+}
+
+function byArtNr(artNr) {
+    if (!artNr) return [];
+    const found = findPoolItem(artNr);
+
+    // If not found in pool, return a hard-coded technical item for known master parts
+    if (!found) {
+        if (artNr === MASTER_PARTS.SCHAUM) return [getTechnicalItem(artNr, "Montageschaum Alterna, Kartusche 400 ml")];
+        if (artNr === MASTER_PARTS.SCHALLSCHUTZ) return [getTechnicalItem(artNr, "Schallschutzset Alterna - Stahl")];
+        if (artNr === MASTER_PARTS.TAPE_200) return [getTechnicalItem(artNr, "Zargen- Wannendichtband Alterna, Länge 2 m")];
+        if (artNr === MASTER_PARTS.TAPE_250) return [getTechnicalItem(artNr, "Zargen- Wannendichtband Alterna, Länge 2,5 m")];
+        if (artNr === MASTER_PARTS.TAPE_340) return [getTechnicalItem(artNr, "Zargen- Wannendichtband Alterna, Länge 3,4 m")];
+        return [];
     }
 
-    const categories = [
-        { name: 'Ablaufdeckel', keywords: ['ablaufdeckel', 'deckel'] },
-        { name: 'Ablaufgarnitur', keywords: ['ablaufgarnitur', 'siphon', 'garnitur'] },
-        { name: 'Zargen-Wannendichtband', keywords: ['zargen', 'dichtband'] },
+    return [{
+        artNr: found.artNr,
+        label: found.label,
+        type: "Zubehör",
+        imgUrl: found.imgUrl,
+        menge: 1
+    }];
+}
 
-        // Group 1: Wannenträger System
-        { name: 'Wannenträger', keywords: ['wannenträger'], group: 'wannenträger', condition: manufacturer !== 'laufen' },
-        { name: 'Montageschaum', keywords: ['montageschaum', 'schaum'], group: 'wannenträger' },
-        { name: 'Schallschutzset (Träger)', keywords: [], artNr: '1445 782.000.000', group: 'wannenträger' },
+function cleanArtNr(artNr) {
+    return (artNr || '').replace(/[^0-9]/g, '');
+}
 
-        // Group 2: Montagerahmen System
-        { name: 'Montagerahmen', keywords: ['montagerahmen', 'einbaurahmen', 'omnia', 'ineo', 'fr 5300'], group: 'montagerahmen' },
-        { name: 'Wannenfüsse', keywords: [], artNr: '1435 191.000.000', group: 'montagerahmen', condition: labelLower.includes('omnia') || labelLower.includes('loa') || manufacturer === 'schmidlin' },
-        { name: 'Mittenabstützsystem (Standard)', keywords: [], artNr: '1435 435.000.000', group: 'montagerahmen', condition: (manufacturer === 'kaldewei' && isLargeTray && !labelLower.includes('conoflat')) },
-        { name: 'Mittenabstützsystem (Conoflat)', keywords: [], artNr: '1435 433.000.000', group: 'montagerahmen', condition: (manufacturer === 'kaldewei' && isLargeTray && labelLower.includes('conoflat')) },
+function findPoolItem(artNr) {
+    const cleanSearch = cleanArtNr(artNr);
+    return FULL_POOL.find(p => cleanArtNr(p.artNr) === cleanSearch);
+}
 
-        // Group 3: Calima Stelzfüsse System
-        { name: 'Stelzfüsse-Pack (4 Stk)', keywords: ['stelzfüsse', 'stelzfuss'], group: 'stelzfüsse', condition: labelLower.includes('calima') },
+function enrichScrapedItem(item) {
+    const poolItem = findPoolItem(item.artNr);
+    return {
+        ...item,
+        label: item.label || poolItem?.label || '',
+        imgUrl: item.imgUrl || poolItem?.imgUrl,
+        type: 'Zubehör',
+        menge: 1
+    };
+}
 
-        // Group 4: Swiss Line Sets
-        { name: 'Montageset', keywords: ['montageset', 'swiss line'], group: 'montageset', condition: labelLower.includes('swiss line') }
-    ];
+function cleanBaseArtNr(artNr) {
+    return cleanArtNr(artNr).slice(0, 7);
+}
 
-    categories.forEach(cat => {
-        if (tray.mountingMaterials.some(m => m.name === cat.name)) return;
-        if (cat.condition === false) return;
-        if (cat.name === 'Ablaufdeckel' && modelRule && !modelRule.deckel) return;
-        
-        if (labelLower.includes('calima') && cat.group === 'montagerahmen') return; // Calima now supports carriers!
-        if (labelLower.includes('swiss line') && cat.name !== 'Montageset') return;
+function dedupeItems(items) {
+    const seen = new Set();
+    return items.filter(item => {
+        const key = cleanArtNr(item.artNr);
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
 
-        if (cat.name === 'Montageschaum' || (cat.artNr === '1445 782.000.000' && cat.group === 'wannenträger')) {
-            const hasCarrier = tray.mountingMaterials.some(m => m.name === 'Wannenträger');
-            if (!hasCarrier) return;
-        }
+function startsWithAny(label, prefixes) {
+    return prefixes.some(prefix => label.startsWith(prefix));
+}
 
-        let matches = fullPool.filter(item => {
-            const lbl = item.label.toLowerCase();
-            const artNrClean = (item.artNr || '').replace(/[^a-zA-Z0-9]/g, '');
+function isDrainAssembly(item) {
+    const label = (item.label || '').toLowerCase();
+    return startsWithAny(label, [
+        'ablaufgarnitur',
+        'duschwannengarnitur',
+        'duschwannenablauf',
+        'duschwannen-ablauf'
+    ]) || label.includes('siphon') || label.includes('sifon') || label.includes('geruchverschluss');
+}
 
-            if (cat.artNr) {
-                const targetArtNrClean = cat.artNr.replace(/[^a-zA-Z0-9]/g, '');
-                if (artNrClean === targetArtNrClean) return true;
-                // If it's a specific artNr search, and it didn't match, we should return false, EXCEPT for Wannenträger overrides.
-                // Actually, let's just let the Wannenträger overrides handle it later, or wait...
-            }
-            
-            // STRICT KEYWORD GATING
-            if (cat.keywords && cat.keywords.length > 0) {
-                const hasKeyword = cat.keywords.some(k => lbl.includes(k));
-                if (!hasKeyword) return false;
-            }
+function isDrainCover(item) {
+    const label = (item.label || '').toLowerCase();
+    if (startsWithAny(label, ['duschwannengarnitur', 'ablaufgarnitur', 'duschwannenablauf', 'duschwannen-ablauf'])) return false;
+    return label.includes('ablaufdeckel') || label.includes('ablaufhaube') || label.includes('ablaufabdeckung');
+}
 
-            if (cat.name === 'Wannenträger') {
-                const tArt = (tray.artNr || '').replace(/[^0-9]/g, '');
-                const iArt = (item.artNr || '').replace(/[^0-9]/g, '');
-                if (tArt === '1313311100000' && iArt === '1445727000000') return true;
-                if (tArt === '1313307100000' && iArt === '1445726000000') return true;
-                if ((tArt === '1111547100000' || tArt === '1111545100000') && iArt.startsWith('1435')) {
-                    if (lbl.includes('omnia') || lbl.includes('montagerahmen')) return true;
-                }
-            }
+function drainNeedsCover(item) {
+    const label = (item.label || '').toLowerCase();
+    return label.includes('ohne ablaufdeckel') || label.includes('ohne ablaufhaube') || label.includes('ohne ablaufabdeckung');
+}
 
-            const isOmnia = lbl.includes('omnia');
-            const isLoa = labelLower.includes('loa');
+function drainIncludesCover(item) {
+    const label = (item.label || '').toLowerCase();
+    if (drainNeedsCover(item)) return false;
+    return label.includes('mit ablaufdeckel')
+        || label.includes('ablaufdeckel')
+        || label.includes('mit ablaufhaube')
+        || label.includes('ablaufhaube')
+        || label.includes('mit ablaufabdeckung')
+        || label.includes('ablaufabdeckung');
+}
 
-            if (cat.name === 'Montagerahmen' || cat.group === 'montagerahmen') {
-                if (cat.name === 'Montagerahmen' && (lbl.includes('klosett') || lbl.includes('sitz') || lbl.includes('wannenfüsse') || artNrClean === '1435191000000')) return false;
-                
-                const isIneo = lbl.includes('ineo');
-                const isFR = lbl.includes('fr 5300');
-                const isUniversal = isOmnia || isIneo || isFR;
+function isPuKleber(item) {
+    const label = (item.label || '').toLowerCase();
+    return cleanArtNr(item.artNr) === cleanArtNr('1441 792.000.000') || (label.includes('pu') && label.includes('kleber'));
+}
 
-                if (manufacturer === 'kaldewei' && !lbl.includes('kaldewei')) return false;
-                if (manufacturer === 'schmidlin' && !isOmnia) return false;
-                if (manufacturer === 'laufen' && !lbl.includes('laufen')) return false;
+function isMontageFoam(item) {
+    const label = (item.label || '').toLowerCase();
+    return label.includes('montageschaum') || (label.includes('schaum') && !isPuKleber(item));
+}
 
-                if (isLoa && isOmnia) { return true; }
-                else if (manufacturer === 'alterna' && isOmnia) { return true; }
-                else if (manufacturer === 'alterna' && !lbl.includes('alterna')) { return false; }
-                if (manufacturer === 'laufen' && !isIneo && !lbl.includes('pro s')) return false;
+function isDichtband(item) {
+    const label = (item.label || '').toLowerCase();
+    return label.includes('dichtband') || label.includes('wannenband') || label.includes('zargen');
+}
 
-                if (sizeParts) {
-                    const tw = sizeParts[0];
-                    const th = sizeParts[1];
-                    const trayLong = Math.max(tw, th);
-                    const trayShort = Math.min(tw, th);
+function isSchallschutz(item) {
+    const label = (item.label || '').toLowerCase();
+    return !isDichtband(item) && (label.includes('schallschutz') || label.includes('schallschutzset') || label.includes('schall-set'));
+}
 
-                    if (isIneo || lbl.includes('laufen pro s')) {
-                        const m1 = lbl.match(/(\d+)\s*[xX]\s*(\d+)\s*-\s*(\d+)\s*mm/);
-                        const m2 = lbl.match(/breite\s*(\d+)\s*mm\s*länge\s*\(ausziehbar\)\s*(\d+)\s*-\s*(\d+)\s*mm/);
-                        const ineoMatch = m1 || m2;
-                        if (ineoMatch) {
-                            const b = parseInt(ineoMatch[1]) / 10;
-                            const minL = parseInt(ineoMatch[2]) / 10;
-                            const maxL = parseInt(ineoMatch[3]) / 10;
-                            if ((Math.abs(tw - b) < 1 && th >= minL - 1 && th <= maxL + 1) ||
-                                (Math.abs(th - b) < 1 && tw >= minL - 1 && tw <= maxL + 1)) return true;
-                            return false;
-                        }
-                    }
+function drainCoverMatches(drain, cover) {
+    const drainLabel = (drain.label || '').toLowerCase();
+    const coverLabel = (cover.label || '').toLowerCase();
+    const coverDigits = cleanArtNr(cover.label || '');
+    const drainBase = cleanBaseArtNr(drain.artNr);
+    const coverBase = cleanBaseArtNr(cover.artNr);
 
-                    const frameSizeMatch = lbl.match(/bis\s*(\d+(?:[.,]\d+)?)\s*[xX\/\*\-]\s*(\d+(?:[.,]\d+)?)/);
-                    const exactSizeMatch = !lbl.includes('bis') ? lbl.match(/(\d+(?:[.,]\d+)?)\s*[xX\/\*\-]\s*(\d+(?:[.,]\d+)?)/) : null;
+    if (drainBase && coverDigits.includes(drainBase)) return true;
+    if (drainBase === '1422117' && coverBase === '1422118') return true;
+    if (drainBase === '1422221' && coverBase === '1422225') return true;
+    if (drainBase === '1311701' && (coverBase === '1311698' || coverBase === '1311699')) return true;
+    if (['1313271', '1313272', '1313273'].includes(drainBase) && coverBase === '1313281') return true;
+    if (['1313277', '1313278'].includes(drainBase) && coverBase === '1313284') return true;
+    if (drainBase === '1313274' && coverBase === '1313282') return true;
+    if (drainBase === '1171405' && (coverBase === '1171403' || coverBase === '1171404')) return true;
 
-                    if (frameSizeMatch) {
-                        const fw = parseFloat(frameSizeMatch[1].replace(',', '.'));
-                        const fh = parseFloat(frameSizeMatch[2].replace(',', '.'));
-                        if (trayLong > Math.max(fw, fh) + 0.5 || trayShort > Math.min(fw, fh) + 0.5) return false;
-                    } else if (exactSizeMatch) {
-                        let ew = parseFloat(exactSizeMatch[1].replace(',', '.'));
-                        let eh = parseFloat(exactSizeMatch[2].replace(',', '.'));
-                        if (lbl.includes('mm') || ew > 300) { ew /= 10; eh /= 10; }
-                        const matchNormal = Math.abs(tw - ew) <= 2.0 && Math.abs(th - eh) <= 2.0;
-                        const matchRotated = Math.abs(th - ew) <= 2.0 && Math.abs(tw - eh) <= 2.0;
-                        if (!matchNormal && !matchRotated) return false;
-                    }
-                }
-                return true;
-            }
+    if (drainLabel.includes('tempoplex') && coverLabel.includes('tempoplex')) return true;
+    if (drainLabel.includes('flow') && (coverLabel.includes('flow') || coverLabel.includes('schmidlin'))) return true;
+    if (drainLabel.includes('ka 90') && coverLabel.includes('ka 90')) return true;
+    if (drainLabel.includes('ka 120') && (coverLabel.includes('ka120') || coverLabel.includes('ka 120'))) return true;
+    if (drainLabel.includes('laufen pro') && coverLabel.includes('ablaufabdeckung laufen pro')) return true;
 
-            if (cat.group === 'montagerahmen' && labelLower.includes('calima')) return false;
+    return false;
+}
 
-            if (modelRule) {
-                if (cat.name === 'Ablaufdeckel' && modelRule.deckel && artNrClean.includes(modelRule.deckel.replace(/[^a-zA-Z0-9]/g, ''))) return true;
-                if (cat.name === 'Ablaufgarnitur' && modelRule.siphon && artNrClean.includes(modelRule.siphon.replace(/[^a-zA-Z0-9]/g, ''))) return true;
-                if ((modelRule.deckel || modelRule.siphon) && (cat.name === 'Ablaufdeckel' || cat.name === 'Ablaufgarnitur')) return false;
-            }
+function buildDrainCoverRules(drains, covers) {
+    if (drains.length === 0 || covers.length === 0) return [];
 
-            if (cat.name === 'Zargen-Wannendichtband') {
-                if (lbl.includes('montageset')) return false;
-            }
+    return drains.map(drain => {
+        let matched = covers.filter(cover => drainCoverMatches(drain, cover));
+        if (matched.length === 0 && drainNeedsCover(drain)) matched = covers;
+        if (drainIncludesCover(drain)) matched = [];
 
-            if (cat.name === 'Wannenträger') {
-                if (lbl.includes('montageschaum') || lbl.includes('schallschutzset') || lbl.includes('nicht in zusammenhang mit wannenträger') || lbl.includes('badewannenträger')) return false;
-                
-                const pMfr = (item.manufacturer || '').toLowerCase();
-                // If the carrier is from a different manufacturer, it MUST explicitly mention this tray's brand or series
-                if (pMfr && manufacturer && pMfr !== manufacturer) {
-                    const seriesRaw = tray.label.toLowerCase().replace(manufacturer, '').replace('duschwanne', '').replace('duschenwanne', '').replace('duschfläche', '').split(',')[0].trim();
-                    const series = seriesRaw.replace(/[^a-z]/g, '').trim();
-                    const mentionsBrand = lbl.includes(manufacturer);
-                    const mentionsSeries = series.length >= 3 && lbl.includes(series);
-                    if (!mentionsBrand && !mentionsSeries) return false;
-                } else if (!lbl.includes(manufacturer) && (!pMfr || pMfr === 'andere')) {
-                    // Fallback for generic carriers
-                    return false;
-                }
+        return {
+            whenArtNr: drain.artNr,
+            optionArtNrs: matched.map(cover => cover.artNr)
+        };
+    });
+}
 
-                const trayLabel = tray.label.toLowerCase();
-                const variants = ['classic', 'zero', 'duschplan', 'superplan zero', 'superplan classic'];
-                for (const v of variants) {
-                    const trayHasVariant = trayLabel.includes(v);
-                    const itemHasVariant = lbl.includes(v);
-                    if (trayHasVariant !== itemHasVariant) {
-                        if (trayLabel.includes('superplan') && lbl.includes('superplan')) return false;
-                        if (trayLabel.includes('duschplan') && lbl.includes('duschplan')) return false;
-                    }
-                }
+function getTrayDimensions(tray) {
+    if (!tray.size) return [0, 0];
+    const parts = tray.size.split('x').map(p => parseFloat(p.trim()));
+    return [parts[0] || 0, parts[1] || 0];
+}
 
-                if (manufacturer === 'alterna' && (lbl.includes('laufen') || lbl.includes('ineo'))) return false;
-                if (manufacturer === 'laufen' && lbl.includes('alterna')) return false;
+/**
+ * Logic 1: Deep scan carrier descriptions
+ */
+function findCarriersForTray(tray) {
+    const results = [];
+    const [l, w] = getTrayDimensions(tray);
+    const mfr = (tray.manufacturer || '').toLowerCase();
 
-                const seriesRaw = tray.label.toLowerCase().replace(manufacturer, '').replace('duschwanne', '').replace('duschenwanne', '').replace('duschfläche', '').split(',')[0].trim();
-                const series = seriesRaw.replace(/[^a-z]/g, '').trim();
-                const seriesWords = series.split(' ').filter(w => w.length >= 3);
-                const seriesMatch = seriesWords.length > 0 && seriesWords.some(w => lbl.includes(w));
-                const isFuzzySeriesMatch = seriesMatch || (series.length >= 3 && lbl.includes(series));
-                const isUniversalFrame = lbl.includes('omnia') || lbl.includes('ineo') || lbl.includes('fr 5300');
-                
-                if (series.length >= 3 && !isFuzzySeriesMatch && !isUniversalFrame) return false;
-
-                if (sizeParts) {
-                    const tw = sizeParts[0];
-                    const th = sizeParts[1];
-                    const smMatch = lbl.match(/(\d+)\s*[xX]\s*(\d+)/);
-                    if (smMatch) {
-                        let ew = parseInt(smMatch[1]), eh = parseInt(smMatch[2]);
-                        if (lbl.includes('mm') || ew > 300) { ew /= 10; eh /= 10; }
-                        
-                        // Strict Depth Matching for Alterna Ecoplan
-                        const trayDepthMatch = tray.label.match(/x\s*(\d+)\s*mm/);
-                        const itemDepthMatch = lbl.match(/x\s*(\d+)\s*mm/);
-                        if (manufacturer === 'alterna' && labelLower.includes('ecoplan') && trayDepthMatch && itemDepthMatch) {
-                            const tDepth = parseInt(trayDepthMatch[1]);
-                            const iDepth = parseInt(itemDepthMatch[1]);
-                            if (tDepth !== iDepth) return false;
-                        }
-                        const matchNormal = Math.abs(tw - ew) <= 2.0 && Math.abs(th - eh) <= 2.0;
-                        const matchRotated = Math.abs(th - ew) <= 2.0 && Math.abs(tw - eh) <= 2.0;
-                        if (!matchNormal && !matchRotated) return false;
-                    } else {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
+    // Check scraper results first
+    if (scraperResults[tray.artNr] && scraperResults[tray.artNr].wannentraeger) {
+        scraperResults[tray.artNr].wannentraeger.forEach(c => {
+            if ((c.label || '').toLowerCase().includes('badewannenträger')) return;
+            results.push({
+                artNr: c.artNr,
+                label: c.label || "Wannenträger",
+                imgUrl: c.imgUrl,
+                type: "wannenträger",
+                menge: 1
+            });
         });
+    }
 
-        if (cat.name === 'Stelzfüsse-Pack (4 Stk)' && labelLower.includes('calima') && size) {
-            const reqFeet = CALIMA_FEET_MAP[size];
-            if (reqFeet && matches.length > 0) {
-                matches[0].menge = Math.ceil(reqFeet / 4);
-                matches = [matches[0]];
+    // fallback: scan pool for name/size matches
+    if (results.length === 0) {
+        FULL_POOL.forEach(p => {
+            const lbl = (p.label || '').toLowerCase();
+            if (!lbl.includes('träger') || lbl.includes('badewannenträger')) return;
+
+            // Check if it mentions the tray dimensions (e.g. 1600 x 1000)
+            const mmL = l < 250 ? l * 10 : l;
+            const mmW = w < 250 ? w * 10 : w;
+
+            const hasSize = lbl.includes(mmL.toString()) && lbl.includes(mmW.toString());
+            const hasMfr = lbl.includes(mfr);
+
+            // Add strict matching for model family
+            const trayLbl = (tray.label || '').toLowerCase();
+            let hasModel = true;
+            if (trayLbl.includes('calima') && !lbl.includes('calima')) hasModel = false;
+            else if (trayLbl.includes('superplan') && !lbl.includes('superplan')) hasModel = false;
+            else if (trayLbl.includes('cayonoplan') && !lbl.includes('cayonoplan')) hasModel = false;
+            else if (trayLbl.includes('duschplan') && !lbl.includes('duschplan')) hasModel = false;
+
+            if (hasSize && hasMfr && hasModel) {
+                results.push({
+                    artNr: p.artNr,
+                    label: p.label,
+                    imgUrl: p.imgUrl,
+                    type: "wannenträger",
+                    menge: 1
+                });
+            }
+        });
+    }
+
+    return results;
+}
+
+function findIneoFramesForTray(l, w) {
+    const l_mm = l < 250 ? l * 10 : l;
+    const w_mm = w < 250 ? w * 10 : w;
+    const max_mm = Math.max(l_mm, w_mm);
+    const min_mm = Math.min(l_mm, w_mm);
+
+    const matches = [];
+    FULL_POOL.forEach(p => {
+        const lbl = (p.label || '').toLowerCase();
+        if (!lbl.includes('ineo') || !lbl.includes('rahmen')) return;
+
+        let lMin=0, lMax=0, wMin=0, wMax=0;
+        const match1 = lbl.match(/(\d+)\s*-\s*(\d+)\s*x\s*(\d+)\s*-\s*(\d+)/);
+        if (match1) {
+            lMin = parseInt(match1[1]); lMax = parseInt(match1[2]);
+            wMin = parseInt(match1[3]); wMax = parseInt(match1[4]);
+            const realLMin = Math.max(lMin, wMin); const realLMax = Math.max(lMax, wMax);
+            const realWMin = Math.min(lMin, wMin); const realWMax = Math.min(lMax, wMax);
+            if (max_mm >= realLMin && max_mm <= realLMax && min_mm >= realWMin && min_mm <= realWMax) {
+                matches.push(p);
             }
         } else {
-            matches.forEach(m => m.menge = 1);
-        }
-
-        // Zargen Logic (L/U logic + 20cm margin)
-        if (cat.name === 'Zargen-Wannendichtband') {
-            const sizeMatch = (tray.size || '').match(/(\d+)\s*x\s*(\d+)/);
-            if (sizeMatch) {
-                const s1 = parseInt(sizeMatch[1]);
-                const s2 = parseInt(sizeMatch[2]);
-                const longSide = Math.max(s1, s2);
-                const shortSide = Math.min(s1, s2);
-                const reqL = (longSide + shortSide + 20) / 100;
-                const reqU = (longSide + (2 * shortSide) + 20) / 100;
-                
-                let lTape = null, uTape = null;
-                let minLDiff = Infinity, minUDiff = Infinity;
-                matches.forEach(m => {
-                    const mMatch = m.label.match(/Länge\s*(\d+(?:[.,]\d+)?)\s*m/i);
-                    if (mMatch) {
-                        const len = parseFloat(mMatch[1].replace(',', '.'));
-                        if (len >= reqL && len - reqL < minLDiff) { minLDiff = len - reqL; lTape = m; }
-                        if (len >= reqU && len - reqU < minUDiff) { minUDiff = len - reqU; uTape = m; }
-                    }
-                });
-                
-                if (lTape || uTape) {
-                    const options = [];
-                    if (lTape) options.push({ artNr: lTape.artNr, label: lTape.label, dropdownLabel: '2-seitige Montage (L-Variante)', menge: 1, type: 'Zubehör', imgUrl: lTape.imgUrl || '' });
-                    if (uTape && uTape.artNr !== (lTape ? lTape.artNr : '')) {
-                        options.push({ artNr: uTape.artNr, label: uTape.label, dropdownLabel: '3-seitige Montage (U-Variante)', menge: 1, type: 'Option', imgUrl: uTape.imgUrl || '' });
-                    }
-                    if (options.length > 0) {
-                        tray.mountingMaterials.push({ id: 'mat_' + Math.random().toString(36).substr(2, 5), name: cat.name, options });
-                        return; // Skip standard injection
-                    }
-                }
+            const wMatch = lbl.match(/breite (\d+) mm/);
+            if (wMatch) { wMin = wMax = parseInt(wMatch[1]); }
+            const lMatch = lbl.match(/länge.*?(\d+)\s*-\s*(\d+)\s*mm/);
+            if (lMatch) { lMin = parseInt(lMatch[1]); lMax = parseInt(lMatch[2]); }
+            if (max_mm >= lMin && max_mm <= lMax && min_mm >= wMin && min_mm <= wMax) {
+                matches.push(p);
             }
-        }
-
-        // Deduplicate
-
-        const uniqueArtNrs = new Set();
-        matches = matches.filter(m => {
-            if (!m.artNr || uniqueArtNrs.has(m.artNr)) return false;
-            uniqueArtNrs.add(m.artNr);
-            return true;
-        });
-
-        if (matches.length > 0) {
-            tray.mountingMaterials.push({
-                id: 'mat_' + Math.random().toString(36).substr(2, 5),
-                name: cat.name,
-                options: matches.map(m => ({ artNr: m.artNr, label: m.label, type: 'Option', imgUrl: m.imgUrl || '', menge: m.menge }))
-            });
         }
     });
 
-    if (manufacturer === 'laufen' && labelLower.includes('superflach')) {
-        const isProS = labelLower.includes('pro s');
-        const targetArtNr = isProS ? "1311 200.000.000" : "1311 201.000.000";
-        const setName = isProS ? "Schallschutzset (Rahmen Pro S)" : "Schallschutzset (Rahmen Pro)";
+    return matches.map(m => ({ ...m, type: "Zubehör", menge: 1 }));
+}
 
-        if (!tray.mountingMaterials.some(m => m.name.includes('Schallschutzset (Rahmen)'))) {
-            tray.mountingMaterials.push({
-                id: 'mat_' + Math.random().toString(36).substr(2, 5),
-                name: setName,
-                options: [{
-                    artNr: targetArtNr,
-                    label: `Schallschutz- Set Laufen, Art. ${targetArtNr}`,
-                    menge: 1,
-                    type: 'montagerahmen',
-                    imgUrl: `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/0${targetArtNr.replace(/[^0-9]/g, '')}.png`
-                }]
-            });
+// --- 4. Main Execution ---
+
+console.log('Injecting rules for Duschenwanne...');
+
+data.duschenwanne.trays.forEach(tray => {
+    const [l, w] = getTrayDimensions(tray);
+    const maxSide = Math.max(l, w);
+    const mfr = (tray.manufacturer || '').toLowerCase();
+    const lbl = (tray.label || '').toLowerCase();
+    const trayArtNrClean = cleanArtNr(tray.artNr);
+    const isSwissLine = lbl.includes('swiss line');
+    const isCalima = lbl.includes('calima');
+    const isAlternaLoa = lbl.includes('alterna loa');
+
+    const rawScraped = scraperResults[tray.artNr] || {};
+    const scraped = {
+        ablaufdeckel: rawScraped.ablaufdeckel || [],
+        ablaufgarnitur: rawScraped.ablaufgarnitur || [],
+        wannentraeger: rawScraped.wannentraeger || [],
+        montagerahmen: rawScraped.montagerahmen || [],
+        stelzfüsse: rawScraped.stelzfüsse || [],
+        montageset: rawScraped.montageset || [],
+        dichtband: rawScraped.dichtband || [],
+        montageschaum: rawScraped.montageschaum || [],
+        schallschutz: rawScraped.schallschutz || [],
+        others: rawScraped.others || []
+    };
+
+    // Gather and deduplicate all scraped items (excluding the tray and its variants)
+    const allScrapedRaw = [
+        ...scraped.ablaufdeckel, ...scraped.ablaufgarnitur, ...scraped.wannentraeger,
+        ...scraped.montagerahmen, ...scraped.stelzfüsse, ...scraped.montageset,
+        ...scraped.dichtband, ...scraped.montageschaum, ...scraped.schallschutz,
+        ...scraped.others
+    ];
+    const uniqueScrapedMap = new Map();
+    const trayPrefix = trayArtNrClean.substring(0, 8); // e.g., "1313 453" -> "1313 453"
+
+    allScrapedRaw.forEach(item => {
+        const enrichedItem = enrichScrapedItem(item);
+        const art = cleanArtNr(enrichedItem.artNr);
+        const itemLbl = (enrichedItem.label || '').toLowerCase();
+
+        // CRITICAL FILTER: Exclude the tray itself, any variants (same prefix), and anything labeled as a "Duschwanne" unless it is a "Träger" or "Rahmen"
+        const isActuallyATray = itemLbl.startsWith('duschwanne')
+            && !itemLbl.includes('träger')
+            && !itemLbl.includes('rahmen')
+            && !itemLbl.includes('siphon')
+            && !itemLbl.includes('ablauf')
+            && !itemLbl.includes('garnitur');
+        const isVariant = art.startsWith(trayPrefix);
+
+        if (art && art !== trayArtNrClean && !isVariant && !isActuallyATray && !uniqueScrapedMap.has(art)) {
+            uniqueScrapedMap.set(art, enrichedItem);
         }
+    });
+    const allScraped = Array.from(uniqueScrapedMap.values());
+
+    const getByKeyword = (keywords) => allScraped.filter(i => keywords.some(k => (i.label || '').toLowerCase().includes(k)));
+
+    tray.mountingMaterials = [];
+
+    // --- 1. SIPHON ---
+    const siphons = dedupeItems([
+        ...scraped.ablaufgarnitur.filter(isDrainAssembly),
+        ...allScraped.filter(isDrainAssembly)
+    ]).map(s => ({ ...s, type: 'Zubehör', menge: 1 }));
+
+    // Sort to make Geberit the default option
+    siphons.sort((a, b) => {
+        const aGeberit = (a.label || '').toLowerCase().includes('geberit');
+        const bGeberit = (b.label || '').toLowerCase().includes('geberit');
+        if (aGeberit && !bGeberit) return -1;
+        if (!aGeberit && bGeberit) return 1;
+        return 0;
+    });
+
+    // Fallback for Alterna/ecoplan siphons if not in scraper
+    if (siphons.length === 0 && (mfr.includes('alterna') || lbl.includes('ecoplan'))) {
+        siphons.push(...byArtNr('1422 117.000.000')); // Geberit d90 Standard for Alterna
+    }
+
+    // Fallback for Kaldewei Calima siphons
+    if (siphons.length === 0 && mfr.includes('kaldewei') && lbl.includes('calima')) {
+        siphons.push(...byArtNr('1313 277.501.000')); // KA 300
+    }
+
+    if (siphons.length > 0) {
+        tray.mountingMaterials.push({
+            id: 'mat_siphon',
+            name: 'Ablaufgarnitur',
+            options: siphons
+        });
+    }
+
+    // --- 2. DECKEL ---
+    const deckels = dedupeItems([
+        ...scraped.ablaufdeckel.filter(isDrainCover),
+        ...allScraped.filter(isDrainCover)
+    ]).map(d => ({ ...d, type: 'Zubehör', menge: 1 }));
+    const drainCoverRules = buildDrainCoverRules(siphons, deckels);
+    const filteredDeckels = drainCoverRules.length > 0
+        ? deckels.filter(deckel => drainCoverRules.some(rule => rule.optionArtNrs.includes(deckel.artNr)))
+        : deckels;
+
+    filteredDeckels.sort((a, b) => {
+        const aGeberit = (a.label || '').toLowerCase().includes('geberit');
+        const bGeberit = (b.label || '').toLowerCase().includes('geberit');
+        if (aGeberit && !bGeberit) return -1;
+        if (!aGeberit && bGeberit) return 1;
+        return 0;
+    });
+
+    // If the tray description says the Ablaufabdeckung is included, don't inject another one
+    if (lbl.includes('ablaufabdeckung') || lbl.includes('inkl. ablaufdeckel') || lbl.includes('ablaufdeckel edelstahl lackiert in wannenfarbe')) {
+        filteredDeckels.length = 0;
+    }
+
+    if (filteredDeckels.length > 0) {
+        tray.mountingMaterials.push({
+            id: 'mat_deckel',
+            name: 'Ablaufdeckel',
+            options: filteredDeckels,
+            dependsOn: siphons.length > 0 ? 'mat_siphon' : undefined,
+            optionRules: drainCoverRules,
+            blockedMessage: 'Bitte zuerst Ablaufgarnitur wählen.',
+            noOptionsMessage: 'Für die gewählte Ablaufgarnitur ist kein separater Ablaufdeckel nötig.'
+        });
+    }
+
+    // --- 3. TAPE ---
+    // Ignore scraped tapes to enforce L-Variante and U-Variante length calculation
+    let tapes = [];
+    if (!isSwissLine) {
+        // Calculate L-Variante (2 sided) and U-Variante (3 sided) lengths
+        const lenL = l + w;
+        const lenU = l + 2 * w; // assuming w is the short side
+
+        const getTapeArt = (len) => {
+            if (len <= 200) return '1461 001.000.000'; // 2m
+            if (len <= 250) return '1461 002.000.000'; // 2.5m
+            if (len <= 280) return '1461 018.000.000'; // 2.8m
+            if (len <= 300) return '1461 003.000.000'; // 3m
+            if (len <= 340) return '1461 004.000.000'; // 3.4m
+            if (len <= 360) return '1461 005.000.000'; // 3.6m
+            if (len <= 380) return '1461 016.000.000'; // 3.8m
+            if (len <= 480) return '1461 006.000.000'; // 4.8m
+            return '1461 007.000.000'; // 6m
+        };
+
+        const tapeLArt = getTapeArt(lenL);
+        const tapeUArt = getTapeArt(lenU);
+
+        if (tapeLArt === tapeUArt) {
+            tapes.push(...byArtNr(tapeLArt).map(t => ({ 
+                ...t, 
+                label: t.label + " (für L- und U-Variante geeignet)", 
+                type: 'Zubehör', menge: 1 
+            })));
+        } else {
+            tapes.push(...byArtNr(tapeLArt).map(t => ({ 
+                ...t, 
+                label: t.label + " (L-Variante / 2-seitig)", 
+                type: 'Zubehör', menge: 1 
+            })));
+            tapes.push(...byArtNr(tapeUArt).map(t => ({ 
+                ...t, 
+                label: t.label + " (U-Variante / 3-seitig)", 
+                type: 'Zubehör', menge: 1 
+            })));
+        }
+    }
+    if (tapes.length > 0) {
+        tray.mountingMaterials.push({ id: 'mat_tape', name: 'Zargen-Wannendichtband', options: tapes });
+    }
+
+    // --- 4. SEALING / MONTAGESET ---
+    const sets = getByKeyword(['montageset', 'einbauset', 'dichtset']).filter(s => !tapes.some(t => t.artNr === s.artNr));
+    if (sets.length > 0) {
+        // If we found sets, add them to the tape category or similar, but the user wants to remove Step 5.
+        // I will add them to the Tape category options to avoid a separate step.
+        tapes.push(...sets);
+    }
+
+    // --- 5. TECHNICAL BUNDLE (Foam, Sound) ---
+    const nivoduebel = allScraped.filter(i => {
+        const itemLabel = (i.label || '').toLowerCase();
+        return i.artNr === MASTER_PARTS.NIVODUEBEL || itemLabel.includes('nivo') || itemLabel.includes('nivodübel') || itemLabel.includes('nivoduebel');
+    });
+    const wannenanker = allScraped.filter(i => {
+        const itemLabel = (i.label || '').toLowerCase();
+        return i.artNr === MASTER_PARTS.WANNENANKER || itemLabel.includes('wannenanker');
+    });
+    const separateMountArtNrs = new Set([...nivoduebel, ...wannenanker].map(i => i.artNr));
+    
+    // Foam quantity rule: 2 if both sides >= 120 (meaning minSide >= 120) or maxSide >= 120? 
+    // Usually if l >= 120 or w >= 120 it takes 2. I'll use l >= 120 || w >= 120 ? 2 : 1.
+    // The user said "dimensions of both side are 120 cm or larger" -> l >= 120 && w >= 120.
+    const foamMenge = (l >= 120 && w >= 120) ? 2 : 1;
+    
+    const foam = allScraped.filter(isMontageFoam).map(f => ({ ...f, menge: foamMenge }));
+    const sound = allScraped.filter(isSchallschutz)
+        .filter(s => !separateMountArtNrs.has(s.artNr));
+
+    // Fallback for mandatory Foam/Sound if not in scraper
+    if (foam.length === 0 && !isSwissLine) {
+        foam.push(...byArtNr(MASTER_PARTS.SCHAUM).map(f => ({ ...f, menge: foamMenge })));
+    }
+    const isMineralCast = lbl.includes('mineralguss') || lbl.includes('marbond') || lbl.includes('pro s') || lbl.includes('pro n') || (mfr.includes('laufen') && lbl.includes('pro'));
+
+    if (sound.length === 0 && !isSwissLine) {
+        if (mfr.includes('laufen') && lbl.includes('pro')) {
+            sound.push(...byArtNr(lbl.includes('pro s') ? '1311 200.000.000' : '1311 201.000.000'));
+        } else if (!isMineralCast) {
+            sound.push(...byArtNr(MASTER_PARTS.SCHALLSCHUTZ));
+        }
+    }
+
+    // --- 6. CARRIER SYSTEM (Only for Ecoplan/Alterna or if Scraped) ---
+    let carriers = getByKeyword(['träger', 'wannenträger'])
+        .filter(c => !isPuKleber(c) && !foam.some(f => f.artNr === c.artNr) && !sound.some(s => s.artNr === c.artNr) && !(c.label || '').toLowerCase().includes('badewannenträger'));
+        
+    if (carriers.length === 0) {
+        carriers = findCarriersForTray(tray);
+    }
+
+    // Explicitly CLEAR carriers for Laufen Pro / Pro S and Schmidlin Contura, as they only use specific frames
+    if (lbl.includes('laufen pro') || lbl.includes('contura')) {
+        carriers = [];
+    }
+    
+    if (carriers.length > 0) {
+        tray.mountingMaterials.push({
+            id: 'mat_carrier',
+            name: 'Wannenträger System',
+            options: carriers,
+            bundle: [...foam, ...sound]
+        });
+    }
+
+    // --- 7. FRAME SYSTEM (Manufacturer Specific) ---
+    let frames = getByKeyword(['rahmen', 'montagerahmen'])
+        .filter(f => !isPuKleber(f) && !foam.some(fo => fo.artNr === f.artNr) && !sound.some(s => s.artNr === f.artNr) && !carriers.some(c => c.artNr === f.artNr));
+    // Montagerahmen always have acoustic isolation integrated in their feet, so no need for Schallschutzset
+    const frameBundle = [];
+
+    // Explicitly CLEAR frames for Ecoplan since it only supports Wannenträger
+    if (lbl.includes('ecoplan')) {
+        frames = [];
+    }
+
+    // Laufen Pro / Pro S only use Ineo frames
+    if (lbl.includes('laufen pro')) {
+        frames = frames.filter(f => (f.label || '').toLowerCase().includes('ineo'));
+    }
+
+    // Schmidlin Contura only uses Omnia frames
+    if (lbl.includes('contura') && mfr.includes('schmidlin')) {
+        frames = frames.filter(f => (f.label || '').toLowerCase().includes('omnia'));
+        // We'll let it use the existing scraped frames if any, otherwise it falls back to whatever was matched
+    }
+
+    // RESTRICT Frame fallbacks to specific manufacturers
+    if (frames.length === 0 && !isSwissLine && !lbl.includes('ecoplan') && !mfr.includes('alterna')) {
+        if (mfr.includes('kaldewei')) {
+            if (!lbl.includes('calima') && !lbl.includes('cona')) {
+                const frameArtNr = (l <= 120 && w <= 120) ? MASTER_PARTS.FR5300_SMALL : MASTER_PARTS.FR5300_LARGE;
+                frames = byArtNr(frameArtNr);
+                if (maxSide > 90) frameBundle.push(...byArtNr(MASTER_PARTS.MAS_5305));
+            }
+        } else if (mfr.includes('schmidlin') || isAlternaLoa) {
+            const omnia = getByKeyword(['omnia']).filter(o => o.label.toLowerCase().includes('rahmen'));
+            frames = omnia.length > 0 ? omnia : byArtNr('1435 105.000.000');
+        } else if (mfr.includes('laufen') && (lbl.includes('pro') || lbl.includes('pro s'))) {
+            frames = findIneoFramesForTray(l, w);
+        }
+    }
+
+    if (frames.length > 0) {
+        const omniaFrameArtNrs = frames
+            .filter(frame => (frame.label || '').toLowerCase().includes('omnia'))
+            .map(frame => frame.artNr);
+        const bundleRules = [];
+        if (omniaFrameArtNrs.length > 0) {
+            const fussset = byArtNr(MASTER_PARTS.OMNIA_FUSSSET);
+            if (fussset.length > 0) {
+                bundleRules.push({ optionArtNrs: omniaFrameArtNrs, bundle: fussset });
+            }
+        }
+        tray.mountingMaterials.push({ id: 'mat_frame', name: 'Montagerahmen System', options: frames, bundle: frameBundle, bundleRules });
+    }
+
+    // --- 8. STELZFÜSSE (Special for Calima) ---
+    const stelz = getByKeyword(['stelz', 'füsse', 'fuß']);
+    if (stelz.length > 0 || isCalima) {
+        const stelzOpts = stelz.length > 0 ? stelz : byArtNr('1314 366.000.000');
+        tray.mountingMaterials.push({ id: 'mat_stelz', name: 'Stelzfüsse System', options: stelzOpts });
+    }
+
+    // --- 9. SEPARATE MOUNTING METHODS ---
+    if (nivoduebel.length > 0) {
+        tray.mountingMaterials.push({
+            id: 'mat_nivoduebel',
+            name: 'Nivodübel System',
+            options: nivoduebel.map(n => ({ ...n, overrideMontageart: 'nivodübel' }))
+        });
+    }
+
+    if (wannenanker.length > 0) {
+        tray.mountingMaterials.push({
+            id: 'mat_wannenanker',
+            name: 'Wannenanker System',
+            options: wannenanker.map(w => ({ ...w, overrideMontageart: 'wannenanker' }))
+        });
+    }
+
+    // --- 10. MISC ---
+    const assigned = new Set(tray.mountingMaterials.flatMap(m => [...m.options.map(o => o.artNr), ...(m.bundle || []).map(b => b.artNr)]));
+    const isTape = (item) => {
+        const lbl = (item.label || '').toLowerCase();
+        return lbl.includes('dichtband') || lbl.includes('wannenband') || lbl.includes('zargen');
+    };
+    const misc = allScraped.filter(item => !assigned.has(item.artNr) && !isPuKleber(item) && !isDrainCover(item) && !isDrainAssembly(item) && item.artNr !== '1461 015.000.000' && !isTape(item));
+    if (misc.length > 0) {
+        tray.mountingMaterials.push({ id: 'mat_misc', name: 'Weiteres Zubehör', options: misc });
     }
 });
 
+// --- 5. Save ---
 fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
-console.log(`Successfully patched ${data.duschenwanne.trays.length} shower trays.`);
+console.log(`Success! Scraper-accurate mapping applied to ${data.duschenwanne.trays.length} shower trays.`);

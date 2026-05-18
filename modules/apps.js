@@ -1,4 +1,4 @@
-import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp } from './factories.js';
+import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp } from './factories.js?v=2.5.0';
 
 const configSidebar = document.getElementById('configSidebar');
 const bomTableBody = document.getElementById('bomTableBody');
@@ -441,7 +441,7 @@ const bomCountCounter = document.getElementById('bomCount');
         // ------------------------------------------
         //  App 7: Duschenwanne (Dynamic Filter)
         // ------------------------------------------
-        "duschenwanne": Object.assign(createDuschenwanneApp("Duschenwanne", "Duschsystem mit passenden Komponenten", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311872_100_181.png", { montageLabel3: "Stelzfüsse" }), {
+        "duschenwanne": Object.assign(createDuschenwanneApp("Duschenwanne", "Duschsystem mit passenden Komponenten", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311872_100_181.png", { montageLabel3: "Stelzfüsse", montageLabel4: "Nivodübel", montageLabel5: "Wannenanker" }), {
             trays: [
                 // === Alterna ===
                 {

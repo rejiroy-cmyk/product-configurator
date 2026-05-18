@@ -99,10 +99,13 @@ body:before {
   opacity: 0;
   transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 .view.active-view {
   display: block;
   opacity: 1;
+}
+
+.view.hidden-view {
+  display: none !important;
 }
 
 #searchResultView.active-view {

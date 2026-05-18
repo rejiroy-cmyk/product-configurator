@@ -1,4 +1,4 @@
-export const DATA_VERSION = 'v2.1.908';
+export const DATA_VERSION = 'v3.0.0';
 
 export const catalog = [
     {

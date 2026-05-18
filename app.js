@@ -1,6 +1,6 @@
-import { DATA_VERSION, catalog } from './modules/data.js';
-import { productApps } from './modules/apps.js';
-import { setupAdmin } from './modules/admin.js';
+import { DATA_VERSION, catalog } from './modules/data.js?v=2.5.0';
+import { productApps } from './modules/apps.js?v=2.5.0';
+import { setupAdmin } from './modules/admin.js?v=2.5.0';
 
 document.addEventListener('DOMContentLoaded', async () => {
     window.productApps = productApps;
@@ -108,7 +108,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 localStorage.setItem('theme', 'dark');
             }
         };
-        if (localStorage.getItem('theme') === 'light') toggleTheme(true);
+        // Default to dark mode — only apply light if explicitly saved
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            toggleTheme(true);
+        } else {
+            // Ensure dark mode is active and saved
+            toggleTheme(false);
+        }
         themeBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 toggleTheme(!document.body.classList.contains('light-theme'));
@@ -202,13 +209,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     backHomeBtn.addEventListener('click', () => {
         document.body.classList.remove('mixmatch-active');
-        configView.classList.remove('active-view');
-        configView.classList.add('hidden-view');
-        if (searchResultView) {
-            searchResultView.classList.remove('active-view');
-            searchResultView.classList.add('hidden-view');
-        }
+        
+        // Hide all views first
+        [homeView, configView, searchResultView, adminView].forEach(v => {
+            if (v) {
+                v.classList.remove('active-view');
+                v.classList.add('hidden-view');
+            }
+        });
 
+        // Show Home
         homeView.classList.remove('hidden-view');
         homeView.classList.add('active-view');
         window.currentActiveApp = null;
@@ -403,13 +413,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             return card;
         };
 
+        let searchTimeout = null;
         masterSearchInput.addEventListener('input', (e) => {
             const query = e.target.value.trim().toLowerCase();
             
             if (query.length < 2) {
+                if (searchTimeout) clearTimeout(searchTimeout);
                 masterSearchResults.style.display = 'none';
                 return;
             }
+
+            if (searchTimeout) clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                executeGlobalSearch(query);
+            }, 300);
+        });
+
+        const executeGlobalSearch = (query) => {
 
             const queries = query.split(/\s+/).filter(q => q.length > 0);
             const regexQueries = queries.map(wildcardQueryToRegex);
@@ -486,7 +506,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 renderSearchEmptyState(query);
             }
-        });
+        };
 
         // Enter key handling: Open full search result view!
         masterSearchInput.addEventListener('keydown', (e) => {
@@ -662,41 +682,49 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let dataLoaded = false;
 
-    // 1. Primary: fetch from Mac filesystem via Vite dev server
+    // 1. Seed baseline data from bundled custom-data.json (Vite packages this directly)
     try {
-        const res = await fetch('/api/data');
+        const files = import.meta.glob('./custom-data.json', { eager: true });
+        if (files['./custom-data.json'] && files['./custom-data.json'].default) {
+            applyDataToApps(files['./custom-data.json'].default);
+            dataLoaded = true;
+            console.log('[Konfigurator] Seeded baseline data from bundled custom-data.json.');
+        }
+    } catch(e) {
+        console.warn('[Konfigurator] Bundled custom-data.json glob not found or failed to load:', e.message);
+    }
+
+    // 2. Fetch fresh live data from Mac filesystem via Vite dev server
+    try {
+        const res = await fetch('/api/data?t=' + Date.now());
         if (res.ok) {
             const diskData = await res.json();
             const keys = Object.keys(diskData);
             if (keys.length > 0) {
                 applyDataToApps(diskData);
                 dataLoaded = true;
-                console.log(`[Konfigurator] Loaded from Mac file: ${keys.length} categories.`);
+                console.log(`[Konfigurator] Loaded fresh data from Mac file: ${keys.length} categories.`);
             } else {
-                console.warn('[Konfigurator] /api/data returned empty — will try IndexedDB.');
+                console.warn('[Konfigurator] /api/data returned empty.');
             }
         } else {
-            console.warn(`[Konfigurator] /api/data responded ${res.status} — will try IndexedDB.`);
+            console.warn(`[Konfigurator] /api/data responded ${res.status}.`);
         }
     } catch(e) {
-        console.warn('[Konfigurator] /api/data unavailable (not in dev server?) — will try IndexedDB.', e.message);
+        console.warn('[Konfigurator] /api/data unavailable (not in dev server?):', e.message);
     }
 
-    // 2. Fallback: load from IndexedDB if the file was unavailable
-    if (!dataLoaded) {
-        try {
-            const { loadFromIndexedDB } = await import('./modules/storage.js');
-            const backup = await loadFromIndexedDB('latest_config');
-            if (backup && Object.keys(backup).length > 0) {
-                applyDataToApps(backup);
-                dataLoaded = true;
-                console.log('[Konfigurator] Loaded from IndexedDB backup.');
-            } else {
-                console.warn('[Konfigurator] IndexedDB backup also empty. Using default empty state.');
-            }
-        } catch(e) {
-            console.warn('[Konfigurator] IndexedDB unavailable.', e.message);
+    // 3. Fallback: load from IndexedDB
+    try {
+        const { loadFromIndexedDB } = await import('./modules/storage.js');
+        const backup = await loadFromIndexedDB('latest_config');
+        if (backup && Object.keys(backup).length > 0) {
+            applyDataToApps(backup);
+            dataLoaded = true;
+            console.log('[Konfigurator] Loaded from IndexedDB backup.');
         }
+    } catch(e) {
+        console.warn('[Konfigurator] IndexedDB backup unavailable:', e.message);
     }
 
 
