@@ -95,7 +95,7 @@ function enrichScrapedItem(item) {
     const poolItem = findPoolItem(item.artNr);
     return {
         ...item,
-        label: item.label || poolItem?.label || '',
+        label: poolItem?.label || item.label || '',
         imgUrl: item.imgUrl || poolItem?.imgUrl,
         type: 'Zubehör',
         menge: 1

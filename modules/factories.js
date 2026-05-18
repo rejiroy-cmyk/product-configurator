@@ -4390,11 +4390,8 @@ const r=document.getElementById(`searchResults_${s}`),e=document.getElementById(
 if(!r)return
 let n=this.trays
 if(this.currentHersteller!=="all"&&(n=n.filter(a=>a.manufacturer===this.currentHersteller)),this.currentSerie!=="all"&&(n=n.filter(a=>this.extractSerie(a)===this.currentSerie)),this.currentMontage!=="all"&&(n=n.filter(a=>this.extractMontage(a)===this.currentMontage)),t&&(n=n.filter(a=>(a.label||"").toLowerCase().includes(t)||(a.artNr||"").toLowerCase().includes(t))),e.textContent=n.length,n.length===0){r.innerHTML='<div style="padding:2rem  text-align:center  color:var(--text-secondary) ">Keine Produkte gefunden. Bitte passen Sie die Filter an.</div>'
-return}r.innerHTML=n.map(a=>{const l=this.selectedTray&&this.selectedTray.id===a.id,o=a.imgUrl?`<img src="${a.imgUrl}" style="max-width:100%
- max-height:100%
- object-fit:contain
-">`:'<div style="font-size:10px  color:#bbb ">No Image</div>'
-return`
+return}            r.innerHTML=n.map(a=>{const l=this.selectedTray&&this.selectedTray.id===a.id,o=a.imgUrl?`<img src="${a.imgUrl}" style="max-width:100%; max-height:100%; object-fit:contain;">`:'<div style="font-size:10px; color:#bbb;">No Image</div>'
+                    return`
                     <div class="result-item-btn ${l?"active":""}" data-tid="${a.id}" style="display:flex
  align-items:center
  gap:0.6rem
@@ -4486,10 +4483,7 @@ a.innerHTML=`
  padding:2px
  flex-shrink:0
 ">
-                            ${y?`<img src="${y}" style="max-width:100%
- max-height:100%
- object-fit:contain
-">`:'<i class="ri-image-line" style="color:#ddd "></i>'}
+                            ${y?`<img src="${y}" style="max-width:100%; max-height:100%; object-fit:contain;">`:'<i class="ri-image-line" style="color:#ddd;"></i>'}
                         </div>
                         <div style="flex:1
  position:relative
@@ -4620,11 +4614,8 @@ const r=document.getElementById(`searchResults_${s}`),e=document.getElementById(
 if(!r)return
 let n=this.trays
 if(this.currentHersteller!=="all"&&(n=n.filter(a=>a.manufacturer===this.currentHersteller)),this.currentSerie!=="all"&&(n=n.filter(a=>this.extractSerie(a)===this.currentSerie)),this.currentMontage!=="all"&&(n=n.filter(a=>this.extractMontage(a)===this.currentMontage)),t&&(n=n.filter(a=>(a.label||"").toLowerCase().includes(t)||(a.artNr||"").toLowerCase().includes(t))),e.textContent=n.length,n.length===0){r.innerHTML='<div style="padding:2rem  text-align:center  color:var(--text-secondary) ">Keine Produkte gefunden. Bitte passen Sie die Filter an.</div>'
-return}r.innerHTML=n.map(a=>{const l=this.selectedTray&&this.selectedTray.id===a.id,o=a.imgUrl?`<img src="${a.imgUrl}" style="max-width:100%
- max-height:100%
- object-fit:contain
-">`:'<div style="font-size:10px  color:#bbb ">No Image</div>'
-return`
+return}            r.innerHTML=n.map(a=>{const l=this.selectedTray&&this.selectedTray.id===a.id,o=a.imgUrl?`<img src="${a.imgUrl}" style="max-width:100%; max-height:100%; object-fit:contain;">`:'<div style="font-size:10px; color:#bbb;">No Image</div>'
+                    return`
                     <div class="result-item-btn ${l?"active":""}" data-tid="${a.id}" style="display:flex
  align-items:center
  gap:0.6rem
@@ -4717,10 +4708,7 @@ a.innerHTML=`
  padding:2px
  flex-shrink:0
 ">
-                            ${y?`<img src="${y}" style="max-width:100%
- max-height:100%
- object-fit:contain
-">`:'<i class="ri-image-line" style="color:#ddd "></i>'}
+                            ${y?`<img src="${y}" style="max-width:100%; max-height:100%; object-fit:contain;">`:'<i class="ri-image-line" style="color:#ddd;"></i>'}
                         </div>
                         <div style="flex:1
  position:relative
