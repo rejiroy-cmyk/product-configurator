@@ -696,41 +696,18 @@ Bitte NACH dem G1-Set einfügen!
                     </div>
                 </div>
                 `).join(""),r.querySelectorAll(".result-item-card").forEach(h=>{h.addEventListener("click",()=>{this.selectItem(h.dataset.tid)})})},selectItem:function(n){this.selectedTray=this.trays.find(r=>r.id===n),this.mischerOptionsState={},this.selectedTray&&this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((r,e)=>{r.options&&r.options.length>0&&(this.mischerOptionsState[e]=0)}),this.filterResults(),this.renderConfigurator(),this.updateBOM()},isMatVisible:function(n,r){if(!this.selectedTray||!this.selectedTray.mountingMaterials)return!0;if((n.name||"").toLowerCase().includes("duschengleitstange")){const e=this.selectedTray.mountingMaterials.findIndex(o=>(o.name||"").toLowerCase().includes("brausehalter"));if(e>=0){const o=this.mischerOptionsState[e];if(o!==void 0){const l=this.selectedTray.mountingMaterials[e].options[o];return!!(l&&l.label&&l.label.toLowerCase().startsWith("ohne"))}}}return!0},renderConfigurator:function(){const n=document.getElementById(`trayConfigurator_${m}`),r=document.getElementById(`trayConfiguratorInner_${m}`);if(!this.selectedTray){n&&(n.style.display="none");return}if(n&&(n.style.display="block"),!r)return;r.innerHTML="";const e=this.selectedTray.mountingMaterials||[];if(e.length===0){r.innerHTML='<p class="section-desc">Kein spezifisches Zubehör verfügbar.</p>';return}e.forEach((o,l)=>{if(!this.isMatVisible(o,l))return;const h=document.createElement("div");h.className="filter-group",h.style.marginBottom="1.25rem";const b=this.mischerOptionsState[l],c=b!==void 0?o.options[b]:null,u=(c==null?void 0:c.imgUrl)||"",P=o.options.length>1;h.innerHTML=`
-                    <label style="display:block
- margin-bottom:0.4rem
- font-size:0.85rem
- color:var(--text-secondary)
- text-transform:uppercase
- letter-spacing:0.5px
-">${o.name||"Zubehör"}</label>
-                    <div style="display:flex
- align-items:center
- gap:0.75rem
-">
-                        <div style="width:40px
- height:40px
- background:#fff
- border-radius:4px
- border:1px solid var(--border)
- display:flex
- align-items:center
- justify-content:center
- padding:2px
- flex-shrink:0
-">
+                    <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">${o.name||"Zubehör"}</label>
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <div style="width:40px; height:40px; background:#fff; border-radius:4px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; padding:2px; flex-shrink:0;">
                             ${u?`<img src="${u}" style="max-width:100%; max-height:100%; object-fit:contain;">`:'<i class="ri-image-line" style="color:#ddd;"></i>'}
                         </div>
-                        <div style="flex:1
- position:relative
-">
-                            <select class="filter-select mischer-acc-select" data-midx="${l}" style="width:100%
- padding-right:2rem
- ${P?"":"pointer-events:none  background-image:none !important "}">
+                        <div style="flex:1; position:relative;">
+                            <select class="filter-select mischer-acc-select" data-midx="${l}" style="width:100%; padding-right:2rem; ${P?"":"pointer-events:none; background-image:none !important;"}">
                                 ${o.options.map((A,U)=>`
                                     <option value="${U}" ${b==U?"selected":""}>${A.label} (${A.artNr})</option>
                                 `).join("")}
                             </select>
-                            ${P?'<i class="ri-arrow-down-s-line" style="position:absolute  right:10px  top:50%  transform:translateY(-50%)  pointer-events:none  color:var(--text-secondary)  font-size:1.2rem "></i>':""}
+                            ${P?'<i class="ri-arrow-down-s-line" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--text-secondary); font-size:1.2rem;"></i>':""}
                         </div>
                     </div>
                 `,r.appendChild(h)}),r.querySelectorAll(".mischer-acc-select").forEach(o=>{o.addEventListener("change",l=>{const h=parseInt(o.dataset.midx),b=parseInt(o.value);this.mischerOptionsState[h]=b,this.renderConfigurator(),this.updateBOM()})})},updateBOM:function(){const n=document.getElementById("bomTableBody"),r=document.getElementById("bomCount");if(!n)return;if(n.innerHTML="",!this.selectedTray){r&&(r.textContent="0 Artikel");return}let e=1;n.innerHTML+=`
@@ -820,41 +797,18 @@ Bitte NACH dem G1-Set einfügen!
                     </div>
                 </div>
                 `).join(""),r.querySelectorAll(".result-item-card").forEach(h=>{h.addEventListener("click",()=>{this.selectItem(h.dataset.tid)})})},selectItem:function(n){this.selectedTray=this.trays.find(r=>r.id===n),this.mischerOptionsState={},this.selectedTray&&this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((r,e)=>{r.options&&r.options.length>0&&(this.mischerOptionsState[e]=0)}),this.filterResults(),this.renderConfigurator(),this.updateBOM()},isMatVisible:function(n,r){if(!this.selectedTray||!this.selectedTray.mountingMaterials)return!0;if((n.name||"").toLowerCase().includes("brausehalter")){const e=this.selectedTray.mountingMaterials.findIndex(l=>(l.name||"").toLowerCase().includes("duschgleitstange")||(l.name||"").toLowerCase().includes("gleitstange"));if(e>=0&&this.mischerOptionsState[e]!==void 0){const l=this.selectedTray.mountingMaterials[e].options[this.mischerOptionsState[e]];if(l&&!l.label.toLowerCase().startsWith("ohne"))return!1}const o=this.selectedTray.mountingMaterials.findIndex(l=>(l.name||"").toLowerCase().includes("anschlussbogen"));if(o>=0&&this.mischerOptionsState[o]!==void 0){const l=this.selectedTray.mountingMaterials[o].options[this.mischerOptionsState[o]];if(l&&l.label.toLowerCase().includes("mit integriertem brausehalter")||l&&l.label.toLowerCase().includes("mit brausehalter")||l&&l.artNr==="bitte_waehlen")return!1}}return!0},renderConfigurator:function(){const n=document.getElementById(`trayConfigurator_${m}`),r=document.getElementById(`trayConfiguratorInner_${m}`);if(!this.selectedTray){n&&(n.style.display="none");return}if(n&&(n.style.display="block"),!r)return;r.innerHTML="";const e=this.selectedTray.mountingMaterials||[];if(e.length===0){r.innerHTML='<p class="section-desc">Kein spezifisches Zubehör verfügbar.</p>';return}e.forEach((o,l)=>{if(!this.isMatVisible(o,l))return;const h=document.createElement("div");h.className="filter-group",h.style.marginBottom="1.25rem";const b=this.mischerOptionsState[l],c=b!==void 0?o.options[b]:null,u=(c==null?void 0:c.imgUrl)||"",P=o.options.length>1;h.innerHTML=`
-                    <label style="display:block
- margin-bottom:0.4rem
- font-size:0.85rem
- color:var(--text-secondary)
- text-transform:uppercase
- letter-spacing:0.5px
-">${o.name||"Zubehör"}</label>
-                    <div style="display:flex
- align-items:center
- gap:0.75rem
-">
-                        <div style="width:40px
- height:40px
- background:#fff
- border-radius:4px
- border:1px solid var(--border)
- display:flex
- align-items:center
- justify-content:center
- padding:2px
- flex-shrink:0
-">
+                    <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">${o.name||"Zubehör"}</label>
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <div style="width:40px; height:40px; background:#fff; border-radius:4px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; padding:2px; flex-shrink:0;">
                             ${u?`<img src="${u}" style="max-width:100%; max-height:100%; object-fit:contain;">`:'<i class="ri-image-line" style="color:#ddd;"></i>'}
                         </div>
-                        <div style="flex:1
- position:relative
-">
-                            <select class="filter-select mischer-acc-select" data-midx="${l}" style="width:100%
- padding-right:2rem
- ${P?"":"pointer-events:none  background-image:none !important "}">
+                        <div style="flex:1; position:relative;">
+                            <select class="filter-select mischer-acc-select" data-midx="${l}" style="width:100%; padding-right:2rem; ${P?"":"pointer-events:none; background-image:none !important;"}">
                                 ${o.options.map((A,U)=>`
                                     <option value="${U}" ${b==U?"selected":""}>${A.label} (${A.artNr})</option>
                                 `).join("")}
                             </select>
-                            ${P?'<i class="ri-arrow-down-s-line" style="position:absolute  right:10px  top:50%  transform:translateY(-50%)  pointer-events:none  color:var(--text-secondary)  font-size:1.2rem "></i>':""}
+                            ${P?'<i class="ri-arrow-down-s-line" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--text-secondary); font-size:1.2rem;"></i>':""}
                         </div>
                     </div>
                 `,r.appendChild(h)}),r.querySelectorAll(".mischer-acc-select").forEach(o=>{o.addEventListener("change",l=>{const h=parseInt(o.dataset.midx),b=parseInt(o.value);this.mischerOptionsState[h]=b;const c=this.selectedTray.mountingMaterials[h],u=(c.name||"").toLowerCase(),P=c.options[b];if(u.includes("gleitstange")||u.includes("duschgleitstange")){const A=this.selectedTray.mountingMaterials.findIndex(U=>(U.name||"").toLowerCase().includes("brauseschlauch"));if(A>=0){const U=this.selectedTray.mountingMaterials[A];if(P.label.toLowerCase().startsWith("ohne")){const N=U.options.findIndex(H=>H.label.includes("1250")||H.label.includes("1.25"));N>=0&&(this.mischerOptionsState[A]=N)}else{const N=U.options.findIndex(H=>H.label.includes("1800"));N>=0&&(this.mischerOptionsState[A]=N)}}}this.renderConfigurator(),this.updateBOM()})})},updateBOM:function(){const n=document.getElementById("bomTableBody"),r=document.getElementById("bomCount");if(!n)return;if(n.innerHTML="",!this.selectedTray){r&&(r.textContent="0 Artikel");return}let e=1;n.innerHTML+=`

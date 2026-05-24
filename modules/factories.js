@@ -4649,41 +4649,18 @@ const a=document.createElement("div")
 a.className="filter-group",a.style.marginBottom="1.25rem"
 const l=this.mischerOptionsState[i],o=l!==void 0?n.options[l]:null,y=(o==null?void 0:o.imgUrl)||"",M=n.options.length>1
 a.innerHTML=`
-                    <label style="display:block
- margin-bottom:0.4rem
- font-size:0.85rem
- color:var(--text-secondary)
- text-transform:uppercase
- letter-spacing:0.5px
-">${n.name||"Zubehör"}</label>
-                    <div style="display:flex
- align-items:center
- gap:0.75rem
-">
-                        <div style="width:40px
- height:40px
- background:#fff
- border-radius:4px
- border:1px solid var(--border)
- display:flex
- align-items:center
- justify-content:center
- padding:2px
- flex-shrink:0
-">
+                    <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">${n.name||"Zubehör"}</label>
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <div style="width:40px; height:40px; background:#fff; border-radius:4px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; padding:2px; flex-shrink:0;">
                             ${y?`<img src="${y}" style="max-width:100%; max-height:100%; object-fit:contain;">`:'<i class="ri-image-line" style="color:#ddd;"></i>'}
                         </div>
-                        <div style="flex:1
- position:relative
-">
-                            <select class="filter-select mischer-acc-select" data-midx="${i}" style="width:100%
- padding-right:2rem
- ${M?"":"pointer-events:none  background-image:none !important "}">
+                        <div style="flex:1; position:relative;">
+                            <select class="filter-select mischer-acc-select" data-midx="${i}" style="width:100%; padding-right:2rem; ${M?"":"pointer-events:none; background-image:none !important;"}">
                                 ${n.options.map((v,S)=>`
                                     <option value="${S}" ${l==S?"selected":""}>${v.label} (${v.artNr})</option>
                                 `).join("")}
                             </select>
-                            ${M?'<i class="ri-arrow-down-s-line" style="position:absolute  right:10px  top:50%  transform:translateY(-50%)  pointer-events:none  color:var(--text-secondary)  font-size:1.2rem "></i>':""}
+                            ${M?'<i class="ri-arrow-down-s-line" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--text-secondary); font-size:1.2rem;"></i>':""}
                         </div>
                     </div>
                 `,e.appendChild(a)}),e.querySelectorAll(".mischer-acc-select").forEach(n=>{n.addEventListener("change",i=>{const a=parseInt(n.dataset.midx),l=parseInt(n.value)
@@ -4833,41 +4810,18 @@ const a=document.createElement("div")
 a.className="filter-group",a.style.marginBottom="1.25rem"
 const l=this.mischerOptionsState[i],o=l!==void 0?n.options[l]:null,y=(o==null?void 0:o.imgUrl)||"",M=n.options.length>1
 a.innerHTML=`
-                    <label style="display:block
- margin-bottom:0.4rem
- font-size:0.85rem
- color:var(--text-secondary)
- text-transform:uppercase
- letter-spacing:0.5px
-">${n.name||"Zubehör"}</label>
-                    <div style="display:flex
- align-items:center
- gap:0.75rem
-">
-                        <div style="width:40px
- height:40px
- background:#fff
- border-radius:4px
- border:1px solid var(--border)
- display:flex
- align-items:center
- justify-content:center
- padding:2px
- flex-shrink:0
-">
+                    <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">${n.name||"Zubehör"}</label>
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <div style="width:40px; height:40px; background:#fff; border-radius:4px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; padding:2px; flex-shrink:0;">
                             ${y?`<img src="${y}" style="max-width:100%; max-height:100%; object-fit:contain;">`:'<i class="ri-image-line" style="color:#ddd;"></i>'}
                         </div>
-                        <div style="flex:1
- position:relative
-">
-                            <select class="filter-select mischer-acc-select" data-midx="${i}" style="width:100%
- padding-right:2rem
- ${M?"":"pointer-events:none  background-image:none !important "}">
+                        <div style="flex:1; position:relative;">
+                            <select class="filter-select mischer-acc-select" data-midx="${i}" style="width:100%; padding-right:2rem; ${M?"":"pointer-events:none; background-image:none !important;"}">
                                 ${n.options.map((v,S)=>`
                                     <option value="${S}" ${l==S?"selected":""}>${v.label} (${v.artNr})</option>
                                 `).join("")}
                             </select>
-                            ${M?'<i class="ri-arrow-down-s-line" style="position:absolute  right:10px  top:50%  transform:translateY(-50%)  pointer-events:none  color:var(--text-secondary)  font-size:1.2rem "></i>':""}
+                            ${M?'<i class="ri-arrow-down-s-line" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--text-secondary); font-size:1.2rem;"></i>':""}
                         </div>
                     </div>
                 `,e.appendChild(a)}),e.querySelectorAll(".mischer-acc-select").forEach(n=>{n.addEventListener("change",i=>{const a=parseInt(n.dataset.midx),l=parseInt(n.value)
