@@ -4622,7 +4622,7 @@ if(this.currentHersteller!=="all"&&(n=n.filter(a=>a.manufacturer===this.currentH
 return}            r.innerHTML=n.map(a=>{
                 const l=this.selectedTray&&this.selectedTray.id===a.id;
                 return `
-                <div class="result-item-card ${l?"active":""}" onclick="window.currentActiveApp.selectItem('${a.id}')">
+                <div class="result-item-card ${l?"active":""}" onclick="window.currentActiveApp.selectItem('${a.id}')" data-tid="${a.id}">
                     <div class="card-img-wrapper">
                         ${a.imgUrl ? `<img src="${a.imgUrl}">` : '<i class="ri-image-line placeholder-icon"></i>'}
                     </div>
@@ -4805,7 +4805,7 @@ if(this.currentHersteller!=="all"&&(n=n.filter(a=>a.manufacturer===this.currentH
 return}            r.innerHTML=n.map(a=>{
                 const l=this.selectedTray&&this.selectedTray.id===a.id;
                 return `
-                <div class="result-item-card ${l?"active":""}" onclick="window.currentActiveApp.selectItem('${a.id}')">
+                <div class="result-item-card ${l?"active":""}" onclick="window.currentActiveApp.selectItem('${a.id}')" data-tid="${a.id}">
                     <div class="card-img-wrapper">
                         ${a.imgUrl ? `<img src="${a.imgUrl}">` : '<i class="ri-image-line placeholder-icon"></i>'}
                     </div>

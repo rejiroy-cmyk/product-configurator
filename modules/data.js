@@ -14,12 +14,6 @@ export const catalog = [
                 "hasApp": true
             },
             {
-                "id": "duschenrinne",
-                "name": "Duschenrinne",
-                "appId": "duschenrinne",
-                "hasApp": true
-            },
-            {
                 "id": "duschenmischer",
                 "name": "Duschenmischer",
                 "appId": "duschenmischer",
@@ -29,6 +23,20 @@ export const catalog = [
                 "id": "duschtrennwand",
                 "name": "Duschtrennwand",
                 "appId": "duschtrennwand",
+                "hasApp": true
+            }
+        ]
+    },
+    {
+        "id": "duschenrinne_cat",
+        "name": "Duschenrinne",
+        "icon": "ri-compass-3-fill",
+        "thumbnail": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01424287_617_000.png",
+        "subcategories": [
+            {
+                "id": "duschenrinne",
+                "name": "Duschenrinne",
+                "appId": "duschenrinne",
                 "hasApp": true
             }
         ]
