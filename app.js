@@ -1,6 +1,6 @@
-import { DATA_VERSION, catalog } from './modules/data.js?v=2.5.0';
-import { productApps } from './modules/apps.js?v=2.5.0';
-import { setupAdmin } from './modules/admin.js?v=2.5.0';
+import { DATA_VERSION, catalog } from './modules/data.js?v=2.5.4';
+import { productApps } from './modules/apps.js?v=2.6.3';
+import { setupAdmin } from './modules/admin.js?v=2.5.4';
 
 document.addEventListener('DOMContentLoaded', async () => {
     window.productApps = productApps;
@@ -682,21 +682,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let dataLoaded = false;
 
-    // 1. Seed baseline data from bundled custom-data.json (Vite packages this directly)
+    // 1. Fetch fresh live data from Mac filesystem via Vite dev server
     try {
-        const files = import.meta.glob('./custom-data.json', { eager: true });
-        if (files['./custom-data.json'] && files['./custom-data.json'].default) {
-            applyDataToApps(files['./custom-data.json'].default);
-            dataLoaded = true;
-            console.log('[Konfigurator] Seeded baseline data from bundled custom-data.json.');
-        }
-    } catch(e) {
-        console.warn('[Konfigurator] Bundled custom-data.json glob not found or failed to load:', e.message);
-    }
-
-    // 2. Fetch fresh live data from Mac filesystem via Vite dev server
-    try {
-        const res = await fetch('/api/data?t=' + Date.now());
+        const res = await fetch('/api/data?t=' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
             const diskData = await res.json();
             const keys = Object.keys(diskData);
@@ -714,7 +702,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn('[Konfigurator] /api/data unavailable (not in dev server?):', e.message);
     }
 
+    // 2. Fetch from bundled data (for static build)
+    if (!dataLoaded) {
+        try {
+            const files = import.meta.glob('./custom-data.json', { eager: true });
+            if (files['./custom-data.json']) {
+                const bundledData = files['./custom-data.json'].default;
+                if (bundledData && Object.keys(bundledData).length > 0) {
+                    applyDataToApps(bundledData);
+                    dataLoaded = true;
+                    console.log('[Konfigurator] Loaded data from Vite bundled JSON.');
+                }
+            }
+        } catch(e) {
+            console.warn('[Konfigurator] Failed to load bundled JSON:', e.message);
+        }
+    }
+
     // 3. Fallback: load from IndexedDB
+    if (!dataLoaded) {
     try {
         const { loadFromIndexedDB } = await import('./modules/storage.js');
         const backup = await loadFromIndexedDB('latest_config');
@@ -725,6 +731,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch(e) {
         console.warn('[Konfigurator] IndexedDB backup unavailable:', e.message);
+    }
     }
 
 

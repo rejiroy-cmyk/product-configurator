@@ -1,0 +1,247 @@
+[
+  {
+    "id": "mat_howjw",
+    "name": "Abstellverschraubung,",
+    "options": [
+      {
+        "artNr": "6521 109.501.000",
+        "label": "Abstellverschraubung, ½\" x ¾\", mit flacher Rosette, Verchromt",
+        "menge": 2,
+        "type": "Zubehör",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06521109_501_000.png"
+      }
+    ]
+  },
+  {
+    "id": "mat_dweg4",
+    "name": "Brauseschlauch",
+    "options": [
+      {
+        "artNr": "6542 316.501.000",
+        "label": "Brauseschlauch Alterna flexline, 1250 mm, ½\"x½\", Kunststoff mit Metalleffekt",
+        "type": "Zubehör",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06542316_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6542 318.501.000",
+        "label": "Brauseschlauch Alterna flexline, 1800 mm, ½\"x½\", Kunststoff mit Metalleffekt",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06542318_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "ohne_schlauch",
+        "label": "Ohne Brauseschlauch",
+        "type": "Option",
+        "imgUrl": "",
+        "menge": 0
+      }
+    ],
+    "dependsOn": "mat_gleitstange_5hsod",
+    "optionRules": [
+      {
+        "whenArtNr": "ohne_gleitstange",
+        "optionArtNrs": [
+          "6542 316.501.000",
+          "6542 318.501.000",
+          "ohne_schlauch"
+        ]
+      },
+      {
+        "whenArtNr": "6531 404.501.000",
+        "optionArtNrs": [
+          "6542 318.501.000",
+          "ohne_schlauch"
+        ]
+      },
+      {
+        "whenArtNr": "6531 403.501.000",
+        "optionArtNrs": [
+          "6542 318.501.000",
+          "ohne_schlauch"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mat_5utlf",
+    "name": "Handbrause",
+    "options": [
+      {
+        "artNr": "6541 328.501.000",
+        "label": "Handbrause Alterna squareline, eckig, 1- jet, SoftRain, Durchflussleistung 14,54 l/min. Energieeffizienzklasse C Geräuschgruppe NT Verchromt",
+        "type": "Zubehör",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541328_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6541 326.501.000",
+        "label": "Handbrause Alterna easyline, Ø 101 mm, 1- jet, SoftRain, Einlage des Brausekopfes grau, Durchflussleistung 10,3 l/min. Energieeffizienzklasse C Geräuschgruppe NT Verchromt",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541326_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6541 329.501.000",
+        "label": "Handbrause Alterna streamline, rund, 1- jet, SoftRain, Durchflussleistung 14,34 l/min. Energieeffizienzklasse C Geräuschgruppe NT Verchromt",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541329_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6541 333.501.000",
+        "label": "Handbrause Alterna saveline, Ø 120 mm, 1- jet, IntensiveRain, Eco, Einlage des Brausekopfes verchromt, Durchflussleistung 6 l/min. Energieeffizienzklasse A Geräuschgruppe NT Verchromt",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541333_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6541 324.501.000",
+        "label": "Handbrause Alterna smartline, Ø 93 mm, 1- jet, SoftRain, Einlage des Brausekopfes weiss, Durchflussleistung 10,8 l/min. Energieeffizienzklasse C Geräuschgruppe NT Verchromt",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541324_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6541 337.501.000",
+        "label": "Handbrause Alterna cosyline, Ø 120 mm, 3- jet, ZenMode, PowerJet, MixedRainSpray, umstellbar, Einlage des Brausekopfes weiss, Durchflussleistung 8,2 l/min. Energieeffizienzklasse B Geräuschgruppe NT Verchromt",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541337_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6541 327.501.000",
+        "label": "Handbrause Alterna easyline 3, Ø 101 mm, 3- jet, SoftRain, JetStream, MixedRainSpray, umstellbar, Einlage des Brausekopfes grau, Durchflussleistung 9,96 l/min. Energieeffizienzklasse C Geräuschgruppe NT Verchromt",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541327_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6541 336.501.000",
+        "label": "Handbrause Alterna saveline 3, Ø 120 mm, 3- jet, CareFlow, IntensiveRain Eco, MixedRainSpray, umstellbar, Einlage des Brausekopfes verchromt, Durchflussleistung 4,5 l/min. Energieeffizienzklasse A Geräuschgruppe NT Verchromt",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541336_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6252 351.501.000",
+        "label": "Handbrause Alterna / Emporio, Ø 100 mm, 1- jet, Durchflussleistung 8 I/min. Energieeffizienzklasse C Geräuschgruppe I Verchromt",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06252351_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6541 330.501.000",
+        "label": "Handbrause Alterna chromeline, Ø 120 mm, 1- jet, ZenMode, Einlage des Brausekopfes verchromt, Durchflussleistung 8,9 l/min. Energieeffizienzklasse B Geräuschgruppe NT Verchromt",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541330_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6541 340.501.000",
+        "label": "Handbrause Alterna showerline chrome, Ø 130 mm, 3- jet, ZenMode, IntensiveRain, PulseSpray, umstellbar, Einlage des Brausekopfes verchromt, Durchflussleistung 9,48 l/min. Energieeffizienzklasse C Geräuschgruppe NT Verchromt",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541340_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6541 334.501.000",
+        "label": "Handbrause Alterna chromeline 3, Ø 120 mm, 3- jet, ZenMode, InteniveRain Eco, MixedRainSpray, umstellbar, Einsatz des Brausekopfes verchromt, Durchflussleistung 8,3 l/min. Energieeffizienzklasse B Geräuschgruppe NT Verchromt",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541334_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6541 342.501.000",
+        "label": "Handbrause Alterna showerline white, Ø 130 mm, 3- jet, ZenMode, IntensiveRain, PulseSpray, umstellbar, Einlage des Brausekopfes weiss, Durchflussleistung 9,48 l/min. Energieeffizienzklasse C Geräuschgruppe NT Verchromt",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541342_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6541 338.501.000",
+        "label": "Handbrause Alterna cosyline square, 120 x 110 mm, 3- jet, ZenMode, PowerJet, MixedRainSpray, umstellbar, Einlage des Brausekopfes weiss, Durchflussleistung 8,9 l/min. Energieeffizienzklasse B Geräuschgruppe NT Verchromt",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541338_501_000.png",
+        "menge": 1
+      },
+      {
+        "artNr": "6541 325.501.000",
+        "label": "Handbrause Alterna smartline 3, Ø 93 mm, 3- jet, SoftRain, HydroBoost, MixedRainSpray, umstellbar, Einlage des Brausekopfes weiss, Durchflussleistung 9,45 l/min. Energieeffizienzklasse B Geräuschgruppe NT Verchromt Preisübersicht Unverbindliche Richtpreise Total2'984.00 geschätzte Transportkosten116.42 8.1 % MWSt251.13 Rundungsdifferenz0.00 Gesamtbetrag inkl. MwSt. in CHF 3'351.55 Preisänderung vorbehalten Unverbindliche Richtpreise Bei den Preisangaben handelt es sich um unverbindliche Richtpreise. Auf diese unverbindlichen Richtpreise gibt Sanitas Troesch den Installateur-Unternehmen individuelle Einkaufsrabatte. Die unverbindlichen Richtpreise sind für Installateur-Unternehmen nicht bindend. Die Installateur-Unternehmen legen die Verkaufspreise an ihre Kunden vollkommen frei und im eigenen Ermessen fest.",
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541325_501_000.png",
+        "menge": 1
+      }
+    ]
+  },
+  {
+    "id": "mat_37d4w",
+    "name": "Brausehalter",
+    "options": [
+      {
+        "artNr": "6543 131.501.000",
+        "label": "Brausehalter Alterna eco, Verchromt",
+        "menge": 1,
+        "type": "Zubehör",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06543131_501_000.png"
+      },
+      {
+        "artNr": "ohne_halter",
+        "label": "Ohne Brausehalter",
+        "type": "Option",
+        "menge": 0,
+        "imgUrl": ""
+      }
+    ],
+    "dependsOn": "mat_gleitstange_5hsod",
+    "optionRules": [
+      {
+        "whenArtNr": "ohne_gleitstange",
+        "optionArtNrs": [
+          "6543 131.501.000"
+        ]
+      },
+      {
+        "whenArtNr": "6531 404.501.000",
+        "optionArtNrs": [
+          "ohne_halter"
+        ]
+      },
+      {
+        "whenArtNr": "6531 403.501.000",
+        "optionArtNrs": [
+          "ohne_halter"
+        ]
+      }
+    ],
+    "blockedMessage": "Durch Duschgleitstange ersetzt"
+  },
+  {
+    "id": "mat_gleitstange_5hsod",
+    "name": "Duschgleitstange (Optional)",
+    "options": [
+      {
+        "artNr": "ohne_gleitstange",
+        "label": "Ohne Duschgleitstange",
+        "type": "Option",
+        "menge": 0,
+        "imgUrl": ""
+      },
+      {
+        "artNr": "6531 404.501.000",
+        "label": "Duschengleitstange Alterna fit Gelenkhalter Arretierungshebel, 1100 mm Verchromt",
+        "menge": 1,
+        "type": "Zubehör",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06531404_501_000.png"
+      },
+      {
+        "artNr": "6531 403.501.000",
+        "label": "Duschengleitstange Alterna fit Gelenkhalter Arretierungshebel, 610 mm Verchromt",
+        "menge": 1,
+        "type": "Option",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06531403_501_000.png"
+      }
+    ]
+  }
+]

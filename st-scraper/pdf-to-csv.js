@@ -83,16 +83,23 @@ function parseProducts(text) {
             if (descLower.includes('ohne überlauf') || descLower.includes('ohne ueberlauf')) ueberlauf = 'ohne';
             else if (descLower.includes('mit überlauf') || descLower.includes('überlauf')) ueberlauf = 'mit';
 
-            // 4. Size (e.g. "55 x 46 cm" or "70 x 46,5 cm")
+            // 4. Size (e.g. "55 x 46 cm" or "90 x 75 x 6,5 cm")
             let size = '';
-            const sizeMatch = fullDesc.match(/(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)\s*cm/i);
-            if (sizeMatch) {
-                // Parse width/height, strip decimal part for display
-                let w = parseFloat(sizeMatch[1].replace(',', '.'));
-                let h = parseFloat(sizeMatch[2].replace(',', '.'));
+            const sizeMatch3D = fullDesc.match(/(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)\s*cm/i);
+            const sizeMatch2D = fullDesc.match(/(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)\s*cm/i);
+            const fmt = n => Number.isInteger(n) ? `${n}` : `${n.toFixed(1)}`;
+
+            if (sizeMatch3D) {
+                let d1 = parseFloat(sizeMatch3D[1].replace(',', '.'));
+                let d2 = parseFloat(sizeMatch3D[2].replace(',', '.'));
+                let d3 = parseFloat(sizeMatch3D[3].replace(',', '.'));
+                // Sort d1 and d2 so larger is first, keep d3 as depth
+                if (d2 > d1) [d1, d2] = [d2, d1];
+                size = `${fmt(d1)} x ${fmt(d2)} x ${fmt(d3)}`;
+            } else if (sizeMatch2D) {
+                let w = parseFloat(sizeMatch2D[1].replace(',', '.'));
+                let h = parseFloat(sizeMatch2D[2].replace(',', '.'));
                 if (h > w) [w, h] = [h, w]; // ensure larger first
-                // Format: round to integer if whole number, otherwise keep 1 decimal
-                const fmt = n => Number.isInteger(n) ? `${n}` : `${n.toFixed(1)}`;
                 size = `${fmt(w)} x ${fmt(h)}`;
             }
 

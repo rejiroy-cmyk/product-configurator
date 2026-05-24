@@ -5,11 +5,8 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 
 export default defineConfig({
     server: {
-        port: 5175,
-        strictPort: true,
-        watch: {
-            ignored: ['**/custom-data.json']
-        }
+        port: 5176,
+        strictPort: true
     },
     plugins: [
         viteSingleFile(),

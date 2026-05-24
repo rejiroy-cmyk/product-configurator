@@ -1,0 +1,167 @@
+# Tubs with Missing Carriers (EDIV Artikel fallback)
+
+| Type | Manufacturer | Article Number | Size | Label |
+|---|---|---|---|---|
+| Badewanne | Schmidlin | 1111 112.100.000 | 160 x 75 | Badewanne Schmidlin Norm Classic, 160 x 75 cm, Tiefe 45 cm, Stahl, Schallisolierung Weiss |
+| Badewanne | Schmidlin | 1111 115.100.000 | 175 x 70 | Badewanne Schmidlin Norm Classic, 175 x 70 cm, Tiefe 45 cm, Stahl, Schallisolierung Weiss |
+| Badewanne | Schmidlin | 1111 116.100.000 | 175 x 75 | Badewanne Schmidlin Norm Classic, 175 x 75 cm, Tiefe 45 cm, Stahl, Schallisolierung Weiss |
+| Badewanne | Schmidlin | 1111 111.100.000 | 170 x 80 | Badewanne Schmidlin Norm Classic 170 x 80 Tiefe 45 cm Schallisolierung, Stahl Weiss |
+| Badewanne | Schmidlin | 1111 118.100.000 | 190 x 80 | Badewanne Schmidlin Norm Classic 190 x 80 cm Tiefe 45 cm Schallisolierung, Stahl Weiss |
+| Badewanne | Schmidlin | 1111 143.100.000 | 194 x 78 | Badewanne Schmidlin Norm Classic Vario, 185 - 194 x 78 - 84 x 45 cm, Stahl, Schallisolierung, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 161.100.000 | 170 x 75 | Badewanne Schmidlin Amena 170 x 75 Tiefe 42 cm Stahl, Schallisolierung Weiss |
+| Badewanne | Schmidlin | 1111 280.100.000 | 170 x 80 | Badewanne Schmidlin Sola 170 x 80 cm, Tiefe 45 cm Schallisolierung, Stahl Weiss |
+| Badewanne | Schmidlin | 1111 174.100.000 | 180 x 80 | Badewanne Schmidlin Ona 180 x 80 Tiefe 42 cm Stahl, Schallisolierung Weiss |
+| Badewanne | Schmidlin | 1111 247.100.000 | 180 x 80 | Badewanne Schmidlin Norm Classic mit Zargen, 180 x 80 cm, Ablauf links, Zargen vorne und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 235.100.000 | 170 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 70 cm, Ablauf links, Zarge vorne, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 232.100.000 | 170 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 70 cm, Ablauf links, Zargen hinten und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 405.100.000 | 180 x 100 | Badewanne Schmidlin Ella Oval, Einbau, 180 x 100 cm, Tiefe 45 cm, Stahl, Schallisolierung, Ablaufloch Ø 52 mm Weiss |
+| Badewanne | Schmidlin | 1111 282.100.000 | 180 x 80 | Badewanne Schmidlin Sola, 180 x 80 cm, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 218.100.000 | 160 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 160 x 70 cm, Ablauf links, Zargen vorne, rechts und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 214.100.000 | 160 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 160 x 70 cm, Ablauf links, Zarge hinten, links und rechts, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 569.100.000 | 180 x 80 | Badewanne Schmidlin Duett mit Zargen, Zargen hinten und rechts, 180 x 80 cm, Stahl, Schallisolierung, Tiefe 42 cm, Überlauf vorne Weiss |
+| Badewanne | Schmidlin | 1111 594.100.000 | 170 x 75 | Badewanne Schmidlin Purista 170 x 75 cm, Tiefe 45 cm Fussteil links, Überlauf vorne Schallisolierung, Stahl Weiss |
+| Badewanne | Schmidlin | 1111 595.100.000 | 170 x 80 | Badewanne Schmidlin Purista 170 x 80 cm, Tiefe 45 cm Fussteil links, Überlauf vorne Schallisolierung, Stahl Weiss |
+| Badewanne | Schmidlin | 1111 234.100.000 | 170 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 70 cm, Ablauf links, Zargen hinten, rechts und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 146.100.000 | 162 x 65 | Badewanne Schmidlin Duett Vario, 153 - 162 x 65 - 79 x 42 cm, Stahl, Schallisolierung, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 240.100.181 | 150 x 70 | Badewanne Schmidlin Ocean 150 x 70 x Tiefe 45 cm Duschteil links Schallisolierung, Stahl Weiss Gleitschutz Antigliss Pro |
+| Badewanne | Schmidlin | 1111 784.100.000 | 190 x 90 | Badewanne Schmidlin Viva X 190 x 90 cm, Tiefe 45 cm Randhöhe 8 mm Schallisolierung, Stahl Weiss |
+| Badewanne | Duscholux | 1124 120.100.000 | 160 x 75 | Badewanne Duscholux Piccolo, 160 x 75 cm, Ablauf rechts, Mod. 163, Kunststoff Acryl Weiss |
+| Badewanne | Kaldewei | 1113 215.100.000 | 170 x 75 | Badewanne Kaldewei Dynaset Star- Griffe, 170 x 75 cm, Stahl, Schallisolierung, ohne Griffe Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 226.100.000 | 170 x 75 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 75 cm, Ablauf links, Zargen hinten, rechts und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 228.100.000 | 170 x 75 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 75 cm, Ablauf links, Zargen vorne und rechts, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Kaldewei | 1113 325.100.000 | 170 x 75 | Badewanne Kaldewei Classic Duo, 170 x 75 cm, Stahl, Schallisolierung Umweltdeklaration EPD Weiss |
+| Badewanne | Kaldewei | 1113 164.100.000 | 170 x 75 | Badewanne Kaldewei Cayono Duo, 170 x 75 cm, Stahl, Schallisolierung Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 682.100.000 | 170 x 75 | Badewanne Schmidlin Viva, 170 x 75 cm, Schallisolierung, Stahl, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 224.100.000 | 170 x 75 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 75 cm, Ablauf links, Zargen hinten und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 172.100.000 | 170 x 70 | Badewanne Schmidlin Ona 170 x 70 Tiefe 42 cm Stahl, Schallisolierung Weiss |
+| Badewanne | Schmidlin | 1111 236.100.000 | 170 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 70 cm, Ablauf links, Zargen vorne und rechts, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 171.100.000 | 160 x 70 | Badewanne Schmidlin Ona 160 x 70 Tiefe 42 cm Stahl, Schallisolierung Weiss |
+| Badewanne | Schmidlin | 1111 173.100.000 | 170 x 75 | Badewanne Schmidlin Ona 170 x 75 Tiefe 42 cm Stahl, Schallisolierung Weiss |
+| Badewanne | Kaldewei | 1113 156.100.000 | 180 x 80 | Badewanne Kaldewei Vaio Set Star- Griff, 180 x 80 cm, Rückenteil rechts, Überlauf vorne, Stahl, Schallisolierung, ohne Griffe Umweltdeklaration EPD Weiss |
+| Badewanne | Kaldewei | 1113 217.100.000 | 150 x 75 | Badewanne Kaldewei Dynaset Star- Griffe, 150 x 75 cm, Stahl, Schallisolierung, ohne Griffe Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 211.100.000 | 160 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 160 x 70 cm, Ablauf links, Zarge hinten, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 131.100.186 | 170 x 75 | Badewanne Schmidlin Inoa 50, 1700 x 750 mm, Duschteil links, Stahl, Schallisolierung, Tiefe 500 mm, Überlauf vorne Weiss Gleitschutz Aquagrip |
+| Badewanne | Schmidlin | 1111 302.100.000 | 118 x 73 | Sitzbadewanne Schmidlin, 118 x 73 cm, Stahl, Schallisolierung, Tiefe 42 cm Weiss |
+| Badewanne | Schmidlin | 1111 584.100.000 | 170 x 75 | Badewanne Schmidlin Purista, 170 x 75 cm, Fussteil rechts, Stahl, Schallisolierung, Tiefe 45 cm, Überlauf vorne Weiss |
+| Badewanne | Schmidlin | 1111 588.100.000 | 190 x 90 | Badewanne Schmidlin Purista, 190 x 90 cm, Fussteil beidseitig, Stahl, Schallisolierung, Tiefe 45 cm, Überlauf vorne Weiss |
+| Badewanne | Schmidlin | 1111 493.100.000 | 170 x 75 | Badewanne Schmidlin Kombi- Griff, 170 x 75 cm, Stahl, Schallisolierung, Tiefe 38 cm, ohne Griffe Weiss |
+| Badewanne | Schmidlin | 1111 113.100.000 | 165 x 75 | Badewanne Schmidlin Norm Classic, 165 x 75 cm, Tiefe 45 cm, Stahl, Schallisolierung Weiss |
+| Badewanne | Duscholux | 1124 128.100.000 | 175 x 75 | Badewanne Duscholux Piccolo, 175 x 75 cm, Ablauf rechts, Mod. 173, Kunststoff Acryl Weiss |
+| Badewanne | Kaldewei | 1113 211.100.000 | 170 x 75 | Badewanne Kaldewei Dynaset, 170 x 75 cm, Stahl, Schallisolierung Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 585.100.000 | 170 x 80 | Badewanne Schmidlin Purista, 170 x 80 cm, Fussteil rechts, Stahl, Schallisolierung, Tiefe 45 cm, Überlauf vorne Weiss |
+| Badewanne | Kaldewei | 1113 155.100.000 | 180 x 80 | Badewanne Kaldewei Vaio Set Star- Griff, 180 x 80 cm, Rückenteil links, Überlauf vorne, Stahl, Schallisolierung, ohne Griffe Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 526.100.000 | 170 x 75 | Badewanne Schmidlin Riva 170 x 75 cm, Tiefe 45 cm Schallisolierung, Stahl Weiss |
+| Badewanne | Duravit | 1124 665.100.000 | 180 x 90 | Badewanne Duravit Starck, 180 x 90 cm, Kunststoff Acryl Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 528.100.000 | 180 x 80 | Badewanne Schmidlin Riva 180 x 80 cm, Tiefe 45 cm Schallisolierung, Stahl Weiss |
+| Badewanne | Duscholux | 1124 116.100.000 | 160 x 75 | Badewanne Duscholux Piccolo, 160 x 75 cm, Ablauf links, Mod. 164, Kunststoff Acryl Weiss |
+| Badewanne | Schmidlin | 1111 490.100.000 | 150 x 75 | Badewanne Schmidlin Kombi- Griff, 150 x 75 cm, Stahl, Schallisolierung, Tiefe 38 cm, ohne Griffe Weiss |
+| Badewanne | Schmidlin | 1111 646.100.000 | 180 x 80 | Badewanne Schmidlin Contura Comfort, 180 x 80 cm, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 144.100.000 | 152 x 76 | Badewanne Schmidlin Duett Vario, 146 - 152 x 76 - 85 x 42 cm, Stahl, Schallisolierung, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 542.100.000 | 180 x 80 | Badewanne Schmidlin Free, 180 x 80 cm, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 242.100.000 | 180 x 80 | Badewanne Schmidlin Norm Classic mit Zargen, 180 x 80 cm, Ablauf links, Zargen hinten und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 215.100.000 | 160 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 160 x 70 cm, Ablauf links, Zarge vorne, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 147.100.000 | 165 x 65 | Badewanne Schmidlin Duett Vario, 163 - 165 x 65 - 84 x 42 cm, Stahl, Schallisolierung, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 245.100.000 | 180 x 80 | Badewanne Schmidlin Norm Classic mit Zargen, 180 x 80 cm, Ablauf links, Zarge vorne, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Duscholux | 1124 127.100.000 | 175 x 75 | Badewanne Duscholux Piccolo, 175 x 75 cm, Ablauf links, Mod. 174, Kunststoff Acryl Weiss |
+| Badewanne | Duravit | 1124 664.100.000 | 180 x 80 | Badewanne Duravit Starck, 180 x 80 cm, Kunststoff Acryl Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 583.100.000 | 160 x 75 | Badewanne Schmidlin Purista, 160 x 75 cm, Fussteil rechts, Stahl, Schallisolierung, Tiefe 45 cm, Überlauf vorne Weiss |
+| Badewanne | Kaldewei | 1113 135.100.000 | 170 x 80 | Badewanne Kaldewei Vaio Star- Griff, 170 x 80 cm, Rückenteil links, Überlauf vorne, Stahl, Schallisolierung, ohne Griffe Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 652.100.000 | 170 x 70 | Badewanne Schmidlin Contura Duo, 170 x 70 cm, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 222.100.000 | 168 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 168 x 70 cm, Ablauf links, Zargen vorne, rechts und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Duravit | 1124 661.100.000 | 170 x 70 | Badewanne Duravit Starck, 170 x 70 cm, Kunststoff Acryl Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 130.100.000 | 170 x 75 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 75 cm, Ablauf links, Zargen vorne, rechts und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 593.100.000 | 160 x 75 | Badewanne Schmidlin Purista 160 x 75 cm, Tiefe 45 cm Fussteil links, Überlauf vorne Schallisolierung, Stahl Weiss |
+| Badewanne | Schmidlin | 1111 529.100.000 | 190 x 90 | Badewanne Schmidlin Riva 190 x 90 cm, Tiefe 45 cm Schallisolierung, Stahl Weiss |
+| Badewanne | Schmidlin | 1111 246.100.000 | 180 x 80 | Badewanne Schmidlin Norm Classic mit Zargen, 180 x 80 cm, Ablauf links, Zargen vorne und rechts, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 159.100.000 | 185 x 78 | Badewanne Schmidlin Ocean Vario, 178 - 185 x 78 - 85 cm, Duschteil rechts, Stahl, Schallisolierung, Tiefe 45 cm, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 243.100.000 | 180 x 80 | Badewanne Schmidlin Norm Classic mit Zargen, 180 x 80 cm, Ablauf links, Zargen hinten und rechts, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Hoesch | 1122 310.100.000 | 190 x 120 | Badewanne Hoesch Santee 190 x 120 cm Kunststoff Acryl Weiss |
+| Badewanne | Schmidlin | 1111 149.100.000 | 194 x 83 | Badewanne Schmidlin Duett Vario, 184 - 194 x 83 - 94 x 42 cm, Stahl, Schallisolierung, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 653.100.000 | 170 x 75 | Badewanne Schmidlin Contura Duo, 170 x 75 cm, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 142.100.000 | 184 x 68 | Badewanne Schmidlin Norm Classic Vario, 175 - 184 x 68 - 84 x 45 cm, Stahl, Schallisolierung, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 693.100.000 | 180 x 85 | Badewanne Schmidlin Cubic, 180 x 85 cm, Schallisolierung, Stahl, Tiefe 45 cm, Ablaufloch Ø 90 mm Weiss |
+| Badewanne | Schmidlin | 1111 570.100.000 | 180 x 80 | Badewanne Schmidlin Duett mit Zargen, Zargen hinten, rechts und links, 180 x 80 cm, Stahl, Schallisolierung, Tiefe 42 cm, Überlauf vorne Weiss |
+| Badewanne | Schmidlin | 1111 567.100.000 | 180 x 80 | Badewanne Schmidlin Duett mit Zargen, Zargen hinten und links, 180 x 80 cm, Stahl, Schallisolierung, Tiefe 42 cm, Überlauf vorne Weiss |
+| Badewanne | Schmidlin | 1111 225.100.000 | 170 x 75 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 75 cm, Ablauf links, Zargen hinten und rechts, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 132.100.810 | 180 x 80 | Badewanne Schmidlin Inoa 50, 1800 x 800 mm, Duschteil links, Stahl, Schallisolierung, Tiefe 500 mm, Überlauf vorne Weiss Standard |
+| Badewanne | Schmidlin | 1111 301.100.000 | 105 x 65 | Sitzbadewanne Schmidlin, 105 x 65 cm, Stahl, Schallisolierung, Tiefe 42 cm Weiss |
+| Badewanne | Duravit | 1124 669.100.000 | 200 x 100 | Badewanne Duravit Starck, 200 x 100 cm, Kunststoff Acryl Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 157.100.000 | 177 x 72 | Badewanne Schmidlin Ocean Vario, 168 - 177 x 72 - 85 cm, Duschteil rechts, Stahl, Schallisolierung, Tiefe 45 cm, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 134.100.186 | 180 x 80 | Badewanne Schmidlin Inoa 50, 1800 x 800 mm, Duschteil rechts, Stahl, Schallisolierung, Tiefe 500 mm, Überlauf vorne Weiss Gleitschutz Aquagrip |
+| Badewanne | Schmidlin | 1111 315.100.000 | 180 x 80 | Badewanne Schmidlin Swiss Line 180 x 80 cm, Tiefe 42 cm Stahl, Schallisolierung Weiss |
+| Badewanne | Kaldewei | 1113 327.100.000 | 180 x 80 | Badewanne Kaldewei Classic Duo, 180 x 80 cm, Stahl, Schallisolierung Umweltdeklaration EPD Weiss |
+| Badewanne | Kaldewei | 1113 153.100.000 | 170 x 75 | Badewanne Kaldewei Vaio Set Star- Griff, 170 x 75 cm, Rückenteil links, Überlauf vorne, Stahl, Schallisolierung, ohne Griffe Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 782.100.000 | 170 x 75 | Badewanne Schmidlin Viva X 170 x 75 cm, Tiefe 45 cm Randhöhe 8 mm Schallisolierung, Stahl Weiss |
+| Badewanne | Kaldewei | 1113 216.100.000 | 180 x 80 | Badewanne Kaldewei Dynaset Star- Griffe, 180 x 80 cm, Stahl, Schallisolierung, ohne Griffe Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 213.100.000 | 160 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 160 x 70 cm, Ablauf links, Zarge hinten und rechts, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Kaldewei | 1113 218.100.000 | 160 x 70 | Badewanne Kaldewei Dynaset Star- Griffe, 160 x 70 cm, Stahl, Schallisolierung, ohne Griffe Umweltdeklaration EPD Weiss |
+| Badewanne | Duravit | 1124 667.100.000 | 190 x 90 | Badewanne Duravit Starck, 190 x 90 cm, Kunststoff Acryl Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 314.100.000 | 170 x 75 | Badewanne Schmidlin Swiss Line 170 x 75 cm, Tiefe 42 cm Stahl, Schallisolierung Weiss |
+| Badewanne | Kaldewei | 1113 324.100.000 | 170 x 70 | Badewanne Kaldewei Classic Duo, 170 x 70 cm, Stahl, Schallisolierung Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 156.100.000 | 177 x 72 | Badewanne Schmidlin Ocean Vario, 168 - 177 x 72 - 85 cm, Duschteil links, Stahl, Schallisolierung, Tiefe 45 cm, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Kaldewei | 1113 151.100.000 | 160 x 70 | Badewanne Kaldewei Vaio Set Star- Griff, 160 x 70 cm, Rückenteil rechts, Überlauf vorne, Stahl, Schallisolierung, ohne Griffe Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 632.100.000 | 157 x 70 | Badewanne Schmidlin Bambino, 157 x 70/55 cm, Ablauf rechts, Stahl, Schallisolierung, Tiefe 42 cm Weiss |
+| Badewanne | Schmidlin | 1111 492.100.000 | 165 x 75 | Badewanne Schmidlin Kombi- Griff, 165 x 75 cm, Stahl, Schallisolierung, Tiefe 38 cm, ohne Griffe Weiss |
+| Badewanne | Schmidlin | 1111 227.100.000 | 170 x 75 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 75 cm, Ablauf links, Zarge vorne, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 281.100.000 | 170 x 75 | Badewanne Schmidlin Sola, 170 x 75 cm, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 249.100.000 | 157 x 68 | Badewanne Schmidlin Ocean Vario, 150 - 157 x 68 - 77 cm, Duschteil rechts, Stahl, Schallisolierung, Tiefe 45 cm, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 217.100.000 | 160 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 160 x 70 cm, Ablauf links, Zargen vorne und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 212.100.000 | 160 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 160 x 70 cm, Ablauf links, Zarge hinten und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 494.100.000 | 170 x 80 | Badewanne Schmidlin Kombi- Griff, 170 x 80 cm, Stahl, Schallisolierung, Tiefe 38 cm, ohne Griffe Weiss |
+| Badewanne | Schmidlin | 1111 158.100.000 | 185 x 78 | Badewanne Schmidlin Ocean Vario, 178 - 185 x 78 - 85 cm, Duschteil links, Stahl, Schallisolierung, Tiefe 45 cm, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 133.100.186 | 170 x 75 | Badewanne Schmidlin Inoa 50, 1700 x 750 mm, Duschteil rechts, Stahl, Schallisolierung, Tiefe 500 mm, Überlauf vorne Weiss Gleitschutz Aquagrip |
+| Badewanne | Schmidlin | 1111 404.100.000 | 180 x 100 | Badewanne Schmidlin Ella, Einbau, 180 x 100 cm, Tiefe 45 cm, Stahl, Schallisolierung, Ablaufloch Ø 52 mm Weiss |
+| Badewanne | Schmidlin | 1111 141.100.000 | 174 x 65 | Badewanne Schmidlin Norm Classic Vario, 156 - 174 x 65 - 80 x 44 cm, Stahl, Schallisolierung, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 654.100.000 | 180 x 80 | Badewanne Schmidlin Contura Duo, 180 x 80 cm, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Kaldewei | 1113 162.100.000 | 180 x 80 | Badewanne Kaldewei Vaioduo, 180 x 80 cm, Stahl, Schallisolierung Umweltdeklaration EPD Weiss |
+| Badewanne | Kaldewei | 1113 213.100.000 | 150 x 75 | Badewanne Kaldewei Dynaset, 150 x 75 cm, Stahl, Schallisolierung Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 233.100.000 | 170 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 70 cm, Ablauf links, Zargen hinten und rechts, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 229.100.000 | 170 x 75 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 75 cm, Ablauf links, Zargen vorne und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Kaldewei | 1113 136.100.000 | 170 x 80 | Badewanne Kaldewei Vaio Star- Griff, 170 x 80 cm, Rückenteil rechts, Überlauf vorne, Stahl, Schallisolierung, ohne Griffe Umweltdeklaration EPD Weiss |
+| Badewanne | Kaldewei | 1113 326.100.000 | 180 x 75 | Badewanne Kaldewei Classic Duo, 180 x 75 cm, Stahl, Schallisolierung Umweltdeklaration EPD Weiss |
+| Badewanne | Kaldewei | 1113 150.100.000 | 160 x 70 | Badewanne Kaldewei Vaio Set Star- Griff, 160 x 70 cm, Rückenteil links, Überlauf vorne, Stahl, Schallisolierung, ohne Griffe Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 148.100.000 | 182 x 69 | Badewanne Schmidlin Duett Vario, 166 - 182 x 69 - 84 x 42 cm, Stahl, Schallisolierung, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 221.100.000 | 168 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 168 x 70 cm, Ablauf links, Zarge hinten, rechts und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 162.100.000 | 180 x 80 | Badewanne Schmidlin Amena 180 x 80 Tiefe 42 cm Stahl, Schallisolierung Weiss |
+| Badewanne | Schmidlin | 1111 231.100.000 | 170 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 70 cm, Ablauf links, Zarge hinten, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 683.100.000 | 180 x 80 | Badewanne Schmidlin Viva, 180 x 80 cm, Schallisolierung, Stahl, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 223.100.000 | 170 x 75 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 75 cm, Ablauf links, Zarge hinten, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 406.100.000 | 180 x 100 | Badewanne Schmidlin Ella Oval Shape, freistehend, 180 x 100 x 45 cm, mit nahtlos emaillierter Schürze, inkl. Ab- und Überlaufgarnitur Multiplex, vormontiert, inkl. flexiblem Schlauch zum Anschluss der Ablaufgarnitur, Ablaufloch Ø 52 mm, Gesamthöhe 57.5 cm Weiss |
+| Badewanne | Schmidlin | 1111 587.100.000 | 180 x 90 | Badewanne Schmidlin Purista, 180 x 90 cm, Fussteil beidseitig, Stahl, Schallisolierung, Tiefe 45 cm, Überlauf vorne Weiss |
+| Badewanne | Schmidlin | 1111 237.100.000 | 170 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 70 cm, Ablauf links, Zargen vorne und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 238.100.000 | 170 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 170 x 70 cm, Ablauf links, Zargen vorne, rechts und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 140.100.000 | 155 x 70 | Badewanne Schmidlin Norm Classic Vario, 140 - 155 x 70 - 80 x 44 cm, Stahl, Schallisolierung, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 216.100.000 | 160 x 70 | Badewanne Schmidlin Norm Classic mit Zargen, 160 x 70 cm, Ablauf links, Zargen vorne und rechts, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Duravit | 1124 662.100.000 | 170 x 75 | Badewanne Duravit Starck, 170 x 75 cm, Kunststoff Acryl Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 244.100.000 | 180 x 80 | Badewanne Schmidlin Norm Classic mit Zargen, 180 x 80 cm, Ablauf links, Zargen hinten, rechts und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 313.100.000 | 170 x 70 | Badewanne Schmidlin Swiss Line 170 x 70 cm, Tiefe 42 cm Stahl, Schallisolierung Weiss |
+| Badewanne | Schmidlin | 1111 114.100.000 | 168 x 75 | Badewanne Schmidlin Norm Classic, 168 x 75 cm, Tiefe 45 cm, Stahl, Schallisolierung Weiss |
+| Badewanne | Schmidlin | 1111 684.100.000 | 190 x 90 | Badewanne Schmidlin Viva, 190 x 90 cm, Schallisolierung, Stahl, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 239.100.181 | 150 x 70 | Badewanne Schmidlin Ocean 150 x 70 x Tiefe 45 cm Duschteil rechts Schallisolierung, Stahl Weiss Gleitschutz Antigliss Pro |
+| Badewanne | Schmidlin | 1111 586.100.000 | 180 x 80 | Badewanne Schmidlin Purista, 180 x 80 cm, Fussteil rechts, Stahl, Schallisolierung, Tiefe 45 cm, Überlauf vorne Weiss |
+| Badewanne | Schmidlin | 1111 512.100.000 | 170 x 80 | Badewanne Schmidlin Superkombi, 170 x 80 cm, Armlehne, Stahl, Schallisolierung, Tiefe 42 cm Weiss |
+| Badewanne | Kaldewei | 1113 166.100.000 | 180 x 80 | Badewanne Kaldewei Cayono Duo, 180 x 80 cm, Stahl, Schallisolierung Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 596.100.000 | 180 x 80 | Badewanne Schmidlin Purista 180 x 80 cm, Tiefe 45 cm Fussteil links, Überlauf vorne Schallisolierung, Stahl Weiss |
+| Badewanne | Schmidlin | 1111 511.100.000 | 170 x 75 | Badewanne Schmidlin Superkombi, 170 x 75 cm, Armlehne, Stahl, Schallisolierung, Tiefe 42 cm Weiss |
+| Badewanne | Schmidlin | 1111 311.100.000 | 160 x 70 | Badewanne Schmidlin Swiss Line 160 x 70 cm, Tiefe 42 cm Stahl, Schallisolierung Weiss |
+| Badewanne | Schmidlin | 1111 250.100.000 | 157 x 68 | Badewanne Schmidlin Ocean Vario, 150 - 157 x 68 - 77 cm, Duschteil links, Stahl, Schallisolierung, Tiefe 45 cm, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 694.100.000 | 180 x 90 | Badewanne Schmidlin Cubic, 180 x 90 cm, Schallisolierung, Stahl, Tiefe 45 cm, Ablaufloch Ø 90 mm Weiss |
+| Badewanne | Schmidlin | 1111 154.100.000 | 167 x 68 | Badewanne Schmidlin Ocean Vario, 158 - 167 x 68 - 75 cm, Duschteil links, Stahl, Schallisolierung, Tiefe 45 cm, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Kaldewei | 1113 154.100.000 | 170 x 75 | Badewanne Kaldewei Vaio Set Star- Griff, 170 x 75 cm, Rückenteil rechts, Überlauf vorne, Stahl, Schallisolierung, ohne Griffe Umweltdeklaration EPD Weiss |
+| Badewanne | Schmidlin | 1111 631.100.000 | 157 x 70 | Badewanne Schmidlin Bambino, 157 x 70/55 cm, Ablauf links, Stahl, Schallisolierung, Tiefe 42 cm Weiss |
+| Badewanne | Schmidlin | 1111 491.100.000 | 160 x 75 | Badewanne Schmidlin Kombi- Griff, 160 x 75 cm, Stahl, Schallisolierung, Tiefe 38 cm, ohne Griffe Weiss |
+| Badewanne | Schmidlin | 1111 802.100.000 | 180 x 75 | Badewanne Schmidlin Loft freistehend, 180 x 75 cm, Stahl, mit angeformter emaillierter Schürze, Ab- und Überlaufgarnitur Loft / - Trio vormontiert, verchromt, (separat zu bestellen), Höhe 56 cm, Füllmenge 318 Liter Weiss |
+| Badewanne | Schmidlin | 1111 155.100.000 | 167 x 68 | Badewanne Schmidlin Ocean Vario, 158 - 167 x 68 - 75 cm, Duschteil rechts, Stahl, Schallisolierung, Tiefe 45 cm, (Masse in 1 cm Schritten frei wählbar) Weiss |
+| Badewanne | Schmidlin | 1111 248.100.000 | 180 x 80 | Badewanne Schmidlin Norm Classic mit Zargen, 180 x 80 cm, Ablauf links, Zargen vorne, rechts und links, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 241.100.000 | 180 x 80 | Badewanne Schmidlin Norm Classic mit Zargen, 180 x 80 cm, Ablauf links, Zarge hinten, Stahl, Schallisolierung, Tiefe 45 cm Weiss |
+| Badewanne | Schmidlin | 1111 496.100.000 | 180 x 80 | Badewanne Schmidlin Kombi- Griff, 180 x 80 cm, Stahl, Schallisolierung, Tiefe 38 cm, ohne Griffe Weiss |
+| Badewanne | Schmidlin | 1111 258.100.000 | 160 x 70 | Badewanne Schmidlin Norm Classic mit Loch, 160 x 70 cm, Ablauf und Loch rechts, Stahl, Schallisolierung, Tiefe 45 cm, Loch für Armatur hinten Weiss |
+| Badewanne | Schmidlin | 1111 264.100.000 | 170 x 70 | Badewanne Schmidlin Norm Classic mit Loch, 170 x 70 cm, Ablauf und Loch rechts, Stahl, Schallisolierung, Tiefe 45 cm, Loch für Armatur hinten Weiss |
+| Badewanne | Schmidlin | 1111 251.100.000 | 140 x 70 | Badewanne Schmidlin Norm Classic mit Loch, 140 x 70 cm, Tiefe 44 cm, Ablauf und Loch links, Stahl, Schallisolierung, Tiefe 45 cm, Loch für Armatur hinten Weiss |
+| Badewanne | Schmidlin | 1111 263.100.000 | 170 x 70 | Badewanne Schmidlin Norm Classic mit Loch, 170 x 70 cm, Ablauf und Loch links, Stahl, Schallisolierung, Tiefe 45 cm, Loch für Armatur hinten Weiss |
+| Badewanne | Schmidlin | 1111 262.100.000 | 168 x 70 | Badewanne Schmidlin Norm Classic mit Loch, 168 x 70 cm, Ablauf und Loch rechts, Stahl, Schallisolierung, Tiefe 45 cm, Loch für Armatur hinten Weiss |
+| Badewanne | Schmidlin | 1111 261.100.000 | 168 x 70 | Badewanne Schmidlin Norm Classic mit Loch, 168 x 70 cm, Ablauf und Loch links, Stahl, Schallisolierung, Tiefe 45 cm, Loch für Armatur hinten Weiss |
+| Badewanne | Schmidlin | 1111 252.100.000 | 140 x 70 | Badewanne Schmidlin Norm Classic mit Loch, 140 x 70 cm, Tiefe 44 cm, Ablauf und Loch rechts, Stahl, Schallisolierung, Tiefe 45 cm, Loch für Armatur hinten Weiss |
+| Badewanne | Schmidlin | 1111 253.100.000 | 150 x 70 | Badewanne Schmidlin Norm Classic mit Loch, 150 x 70 cm, Tiefe 44 cm, Ablauf und Loch links, Stahl, Schallisolierung, Tiefe 45 cm, Loch für Armatur hinten Weiss |
+| Badewanne | Schmidlin | 1111 257.100.000 | 160 x 70 | Badewanne Schmidlin Norm Classic mit Loch, 160 x 70 cm, Ablauf und Loch links, Stahl, Schallisolierung, Tiefe 45 cm, Loch für Armatur hinten Weiss |
+| Badewanne | Schmidlin | 1111 254.100.000 | 150 x 70 | Badewanne Schmidlin Norm Classic mit Loch, 150 x 70 cm, Tiefe 44 cm, Ablauf und Loch rechts, Stahl, Schallisolierung, Tiefe 45 cm, Loch für Armatur hinten Weiss |

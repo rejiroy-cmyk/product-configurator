@@ -14,6 +14,12 @@ export const catalog = [
                 "hasApp": true
             },
             {
+                "id": "duschenrinne",
+                "name": "Duschenrinne",
+                "appId": "duschenrinne",
+                "hasApp": true
+            },
+            {
                 "id": "duschenmischer",
                 "name": "Duschenmischer",
                 "appId": "duschenmischer",

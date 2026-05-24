@@ -1,4 +1,4 @@
-import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp } from './factories.js?v=2.5.0';
+import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp } from './factories.js?v=2.6.3';
 
 const configSidebar = document.getElementById('configSidebar');
 const bomTableBody = document.getElementById('bomTableBody');
@@ -474,6 +474,11 @@ const bomCountCounter = document.getElementById('bomCount');
                 }
             ]
         }),
+        
+        // ------------------------------------------
+        //  App 7.5: Duschenrinne
+        // ------------------------------------------
+        "duschenrinne": createDuschenrinneApp("Duschenrinne", "Rinnen für bodenebene Duschen", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01424287_617_000.png"),
         
         // ------------------------------------------
         //  App 8: Zubehör Pool (Admin Only)

@@ -77,6 +77,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
             if (l.includes('vitra')) return 'Vitra';
             if (l.includes('burgbad')) return 'Burgbad';
             if (l.includes('keuco')) return 'Keuco';
+            if (l.includes('schaco')) return 'Schaco';
 
             // Fallback to existing or Andere
             return tray.manufacturer && tray.manufacturer !== 'Andere' ? tray.manufacturer : 'Andere';
@@ -341,6 +342,8 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                                                 targetAppId = 'waschtisch';
                                             } else if (lblLower.includes('duschenwanne') || lblLower.includes('duschwanne')) {
                                                 targetAppId = 'duschenwanne';
+                                            } else if (lblLower.includes('duschenrinne') || lblLower.includes('duschrinne') || lblLower.includes('duschkanal')) {
+                                                targetAppId = 'duschenrinne';
                                             } else if (lblLower.includes('badewanne')) {
                                                 targetAppId = 'badewanne';
                                             }
@@ -421,8 +424,14 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                                                 } else if (singleSizeMatch) {
                                                     let s1 = parseInt(singleSizeMatch[1], 10);
                                                     if (singleSizeMatch[2].toLowerCase() === 'mm' || s1 >= 400) s1 = Math.round(s1 / 10);
-                                                    parsedSize = `${s1} x ${s1}`;
-                                                    parsedForm = "Quadratisch";
+                                                    
+                                                    if (targetAppId === 'duschenrinne') {
+                                                        parsedSize = `${s1}`;
+                                                        parsedForm = "Rinne";
+                                                    } else {
+                                                        parsedSize = `${s1} x ${s1}`;
+                                                        parsedForm = "Quadratisch";
+                                                    }
                                                 }
                                             }
 
@@ -432,6 +441,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                                                 if (lblLower.includes('viertelkreis') || lblLower.includes('1/4') || lblLower.includes('rund')) parsedForm = "Viertelkreis";
                                                 else if (lblLower.includes('fünfeck') || lblLower.includes('5-eck') || lblLower.includes('fuenfeck')) parsedForm = "Fünfeck";
                                                 else if (lblLower.includes('oval')) parsedForm = "Oval";
+                                                else if (targetAppId === 'duschenrinne') parsedForm = "Rinne";
                                             }
                                         }
 

@@ -1,41 +1,44 @@
 const fs = require('fs');
-let code = fs.readFileSync('scripts/patch-shower-data.cjs', 'utf8');
+const file = 'modules/factories.js';
+let content = fs.readFileSync(file, 'utf8');
 
-// We need to inject a strict keyword check at the beginning of the fullPool filter
-const strictKeywordLogic = `
-            if (cat.artNr) {
-                const targetArtNrClean = cat.artNr.replace(/[^a-zA-Z0-9]/g, '');
-                if (artNrClean === targetArtNrClean) return true;
-                // If it's a specific artNr search, and it didn't match, we should return false, EXCEPT for Wannenträger overrides.
-                // Actually, let's just let the Wannenträger overrides handle it later, or wait...
-            }
-            
-            // STRICT KEYWORD GATING
-            if (cat.keywords && cat.keywords.length > 0) {
-                const hasKeyword = cat.keywords.some(k => lbl.includes(k));
-                if (!hasKeyword) return false;
-            }
+const newLogic = `
+                    // Reordered evaluation to prevent partial word conflicts (e.g., "Schallschutz für Wannenanker" should be Schallschutz, not Wannenanker).
+                    if ((combinedLbl.includes('deckel') || combinedLbl.includes('ablaufabdeckung')) && !combinedLbl.includes('ohne ablaufdeckel') && !combinedLbl.includes('ohne deckel') && !combinedLbl.includes('ohne ablaufabdeckung')) {
+                        priority = 2;
+                    } else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) {
+                        priority = 8;
+                    } else if (combinedLbl.includes('schaum') || combinedLbl.includes('fuss') || combinedLbl.includes('füsse') || combinedLbl.includes('mittenabstütz') || combinedLbl.includes('wannenanker') || combinedLbl.includes('stütz')) {
+                        priority = 7;
+                    } else if (combinedLbl.includes('träger') || combinedLbl.includes('rahmen') || combinedLbl.includes('wannenträger') || combinedLbl.includes('montagerahmen')) {
+                        priority = 6;
+                    } else if (combinedLbl.includes("montageset") || combinedLbl.includes("dichtset") || combinedLbl.includes("einbauset")) {
+                        priority = 5;
+                    } else if (combinedLbl.includes('dichtband') || combinedLbl.includes('wannenband') || combinedLbl.includes('zargen')) {
+                        priority = 4;
+                    } else if (combinedLbl.includes('ablauf') || combinedLbl.includes('siphon') || combinedLbl.includes('garnitur') || combinedLbl.includes('sifon')) {
+                        priority = 3;
+                    } else {
+                        priority = 9; // Any generic unclassified accessories
+                    }
 `;
 
-// Replace the old logic
-code = code.replace(`
-            if (cat.artNr) {
-                const targetArtNrClean = cat.artNr.replace(/[^a-zA-Z0-9]/g, '');
-                return artNrClean === targetArtNrClean;
-            }
-`, strictKeywordLogic);
+const unminifiedRegex1 = /if\s*\(\(combinedLbl\.includes\('deckel'\)[\s\S]*?else priority = 9;\s*\/\/ Any generic unclassified accessories/g;
+content = content.replace(unminifiedRegex1, newLogic.trim());
 
-// We also need to remove the redundant keyword checks later in the code
-code = code.replace(`
-            const hasKeyword = cat.keywords.some(k => lbl.includes(k));
-            if (!hasKeyword) return false;
-`, '');
+const minifiedRegex = /\(G\.includes\("deckel"\)&&!G\.includes\("ohne ablaufdeckel"\)\)\?C=2:G\.includes\("ablauf"\)\|\|G\.includes\("siphon"\)\|\|G\.includes\("garnitur"\)\|\|G\.includes\("sifon"\)\?C=3:G\.includes\("dichtband"\)\|\|G\.includes\("wannenband"\)\|\|G\.includes\("zargen"\)\|\|G\.includes\("dichtset"\)\?C=4:G\.includes\("träger"\)\|\|G\.includes\("rahmen"\)\|\|G\.includes\("wannenträger"\)\|\|G\.includes\("montagerahmen"\)\?C=5:G\.includes\("schaum"\)\|\|G\.includes\("fuss"\)\|\|G\.includes\("füsse"\)\|\|G\.includes\("mittenabstütz"\)\|\|G\.includes\("wannenanker"\)\|\|G\.includes\("stütz"\)\?C=6:G\.includes\("schall"\)\|\|G\.includes\("isolation"\)\?C=7:C=8/g;
 
-// Remove the `else` block in size matching that does keywords since we do it at the top
-code = code.replace(`} else {
-                        const hasKeyword = cat.keywords.some(k => lbl.includes(k));
-                        if (!hasKeyword) return false;
-                    }`, '}');
+const newMinifiedLogic = `
+(G.includes("deckel")&&!G.includes("ohne ablaufdeckel"))?C=2:
+G.includes("schall")||G.includes("isolation")?C=7:
+G.includes("schaum")||G.includes("fuss")||G.includes("füsse")||G.includes("mittenabstütz")||G.includes("wannenanker")||G.includes("stütz")?C=6:
+G.includes("träger")||G.includes("rahmen")||G.includes("wannenträger")||G.includes("montagerahmen")?C=5:
+G.includes("montageset")||G.includes("dichtset")||G.includes("einbauset")?C=4:
+G.includes("dichtband")||G.includes("wannenband")||G.includes("zargen")?C=4:
+G.includes("ablauf")||G.includes("siphon")||G.includes("garnitur")||G.includes("sifon")?C=3:
+8`.replace(/\s+/g, '');
 
+content = content.replace(minifiedRegex, newMinifiedLogic);
 
-fs.writeFileSync('scripts/patch-shower-data.cjs', code);
+fs.writeFileSync(file, content, 'utf8');
+console.log("Patched successfully");

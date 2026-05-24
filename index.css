@@ -575,7 +575,7 @@ body.light-theme .highlight-btn {
 
 .dashboard-layout {
   display: grid;
-  grid-template-columns: 350px 1fr;
+  grid-template-columns: 420px 1fr;
   height: calc(100vh - 65px);
   overflow: hidden;
 }
@@ -1925,4 +1925,79 @@ body.mixmatch-active {
   .action-footer {
     padding: 1rem 0;
   }
+}
+
+
+.result-item-card {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.result-item-card:hover {
+  background: var(--bg-subtle);
+  border-color: var(--text-secondary);
+}
+
+.result-item-card.active {
+  background: var(--accent-fade);
+  border-color: var(--accent);
+}
+
+.result-item-card .card-img-wrapper {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.result-item-card .card-img-wrapper img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.result-item-card .card-img-wrapper .placeholder-icon {
+  font-size: 1.5rem;
+  color: #ccc;
+}
+
+.result-item-card .result-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.result-item-card .result-info strong {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.result-item-card .result-meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.result-item-card .finish-artnr {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  align-self: center;
 }

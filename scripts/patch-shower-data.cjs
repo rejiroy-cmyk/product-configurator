@@ -40,7 +40,8 @@ const MASTER_PARTS = {
     WANNENANKER: "1451 131.000.000",
     FR5300_SMALL: "1435 424.000.000", // bis 120x120
     FR5300_LARGE: "1435 428.000.000", // bis 150x180
-    MAS_5305: "1435 435.000.000",
+    MAS_5305: "1435 435.000.000",     // Universal Kaldewei (alle ausser Conoflat)
+    MAS_5315: "1435 433.000.000",     // Conoflat-spezifisch
     OMNIA_FUSSSET: "1435 191.000.000",
     TAPE_200: "1461 001.000.000",
     TAPE_250: "1461 002.000.000",
@@ -197,17 +198,36 @@ function drainCoverMatches(drain, cover) {
     return false;
 }
 
+
 function buildDrainCoverRules(drains, covers) {
     if (drains.length === 0 || covers.length === 0) return [];
 
     return drains.map(drain => {
         let matched = covers.filter(cover => drainCoverMatches(drain, cover));
         if (matched.length === 0 && drainNeedsCover(drain)) matched = covers;
-        if (drainIncludesCover(drain)) matched = [];
+        // Do NOT clear matches if drain includes cover! The user might want an optional colored cover.
+        // if (drainIncludesCover(drain)) matched = [];
 
         return {
             whenArtNr: drain.artNr,
             optionArtNrs: matched.map(cover => cover.artNr)
+        };
+    });
+}
+
+function buildSiphonRules(covers, drains) {
+    if (drains.length === 0 || covers.length === 0) return [];
+
+    return covers.map(cover => {
+        let matched = drains.filter(drain => drainCoverMatches(drain, cover));
+        if (matched.length === 0) {
+            matched = drains.filter(drain => !drainIncludesCover(drain));
+            if (matched.length === 0) matched = drains;
+        }
+
+        return {
+            whenArtNr: cover.artNr,
+            optionArtNrs: matched.map(drain => drain.artNr)
         };
     });
 }
@@ -398,6 +418,48 @@ data.duschenwanne.trays.forEach(tray => {
         siphons.push(...byArtNr('1313 277.501.000')); // KA 300
     }
 
+    // Fallback for Schmidlin Swiss Line siphons
+    if (siphons.length === 0 && isSwissLine) {
+        siphons.push(...byArtNr('1311 701.000.000')); // Schmidlin flow 50
+    }
+
+    // --- 2. DECKEL ---
+    const deckels = dedupeItems([
+        ...scraped.ablaufdeckel.filter(isDrainCover),
+        ...allScraped.filter(isDrainCover)
+    ]).map(d => ({ ...d, type: 'Zubehör', menge: 1 }));
+
+    // Fallback for Schmidlin Swiss Line deckels
+    if (deckels.length === 0 && isSwissLine) {
+        deckels.push(...byArtNr('1311 699.100.000')); // Schmidlin Ablaufdeckel
+    }
+    
+    // Sort deckels
+    deckels.sort((a, b) => {
+        const aGeberit = (a.label || '').toLowerCase().includes('geberit');
+        const bGeberit = (b.label || '').toLowerCase().includes('geberit');
+        if (aGeberit && !bGeberit) return -1;
+        if (!aGeberit && bGeberit) return 1;
+        return 0;
+    });
+
+    // Build rules (Deckel depends on Siphon)
+    const deckelRules = buildDrainCoverRules(siphons, deckels);
+    deckelRules.forEach(r => {
+        // ONLY KA 90 includes an Ablaufdeckel out of the box
+        if (r.whenArtNr === '1313 271.501.000') {
+            r.optionArtNrs.unshift('none');
+        }
+    });
+    
+    let finalDeckels = deckels;
+    
+    // If the tray description says the Ablaufabdeckung is included, don't inject another one
+    if (lbl.includes('ablaufabdeckung') || lbl.includes('inkl. ablaufdeckel') || lbl.includes('ablaufdeckel edelstahl lackiert in wannenfarbe')) {
+        finalDeckels = [];
+    }
+
+    // PUSH SIPHON FIRST! (Because it's mandatory and may include a basic cover)
     if (siphons.length > 0) {
         tray.mountingMaterials.push({
             id: 'mat_siphon',
@@ -406,38 +468,23 @@ data.duschenwanne.trays.forEach(tray => {
         });
     }
 
-    // --- 2. DECKEL ---
-    const deckels = dedupeItems([
-        ...scraped.ablaufdeckel.filter(isDrainCover),
-        ...allScraped.filter(isDrainCover)
-    ]).map(d => ({ ...d, type: 'Zubehör', menge: 1 }));
-    const drainCoverRules = buildDrainCoverRules(siphons, deckels);
-    const filteredDeckels = drainCoverRules.length > 0
-        ? deckels.filter(deckel => drainCoverRules.some(rule => rule.optionArtNrs.includes(deckel.artNr)))
-        : deckels;
-
-    filteredDeckels.sort((a, b) => {
-        const aGeberit = (a.label || '').toLowerCase().includes('geberit');
-        const bGeberit = (b.label || '').toLowerCase().includes('geberit');
-        if (aGeberit && !bGeberit) return -1;
-        if (!aGeberit && bGeberit) return 1;
-        return 0;
-    });
-
-    // If the tray description says the Ablaufabdeckung is included, don't inject another one
-    if (lbl.includes('ablaufabdeckung') || lbl.includes('inkl. ablaufdeckel') || lbl.includes('ablaufdeckel edelstahl lackiert in wannenfarbe')) {
-        filteredDeckels.length = 0;
-    }
-
-    if (filteredDeckels.length > 0) {
+    // PUSH DECKEL SECOND AS OPTIONAL ADD-ON!
+    if (finalDeckels.length > 0) {
+        // Add a "None" option so the user isn't forced to buy an extra cover
+        const optionalDeckels = [
+            { artNr: 'none', label: 'Ohne (Standardabdeckung der Ablaufgarnitur nutzen)', type: 'Zubehör', menge: 0 },
+            ...finalDeckels
+        ];
+        
+        const hasSiphon = siphons.length > 0;
         tray.mountingMaterials.push({
             id: 'mat_deckel',
-            name: 'Ablaufdeckel',
-            options: filteredDeckels,
-            dependsOn: siphons.length > 0 ? 'mat_siphon' : undefined,
-            optionRules: drainCoverRules,
-            blockedMessage: 'Bitte zuerst Ablaufgarnitur wählen.',
-            noOptionsMessage: 'Für die gewählte Ablaufgarnitur ist kein separater Ablaufdeckel nötig.'
+            name: 'Farbiger Ablaufdeckel (Optional)',
+            options: optionalDeckels,
+            dependsOn: hasSiphon ? 'mat_siphon' : undefined,
+            optionRules: hasSiphon ? deckelRules : [],
+            blockedMessage: 'Bitte zuerst eine Ablaufgarnitur wählen.',
+            noOptionsMessage: 'Keine passenden Deckel für diese Garnitur gefunden.'
         });
     }
 
@@ -537,8 +584,9 @@ data.duschenwanne.trays.forEach(tray => {
         carriers = findCarriersForTray(tray);
     }
 
-    // Explicitly CLEAR carriers for Laufen Pro / Pro S and Schmidlin Contura, as they only use specific frames
-    if (lbl.includes('laufen pro') || lbl.includes('contura')) {
+    // Explicitly CLEAR carriers for Laufen Pro / Pro S, Schmidlin Contura, and Kaldewei Conoflat
+    // Conoflat uses only FR 5300 Montagerahmen – Wannenträger is NOT compatible
+    if (lbl.includes('laufen pro') || lbl.includes('contura') || lbl.includes('conoflat')) {
         carriers = [];
     }
     
@@ -573,13 +621,26 @@ data.duschenwanne.trays.forEach(tray => {
         // We'll let it use the existing scraped frames if any, otherwise it falls back to whatever was matched
     }
 
+    // ALWAYS inject MAS for Kaldewei trays > 90cm
+    if (mfr.includes('kaldewei') && maxSide > 90) {
+        if (lbl.includes('conoflat')) {
+            frameBundle.push(...byArtNr(MASTER_PARTS.MAS_5315));
+        } else if (!lbl.includes('calima')) {
+            frameBundle.push(...byArtNr(MASTER_PARTS.MAS_5305));
+        }
+    }
+
     // RESTRICT Frame fallbacks to specific manufacturers
     if (frames.length === 0 && !isSwissLine && !lbl.includes('ecoplan') && !mfr.includes('alterna')) {
         if (mfr.includes('kaldewei')) {
-            if (!lbl.includes('calima') && !lbl.includes('cona')) {
+            if (lbl.includes('conoflat')) {
+                // Conoflat: always uses FR 5300
                 const frameArtNr = (l <= 120 && w <= 120) ? MASTER_PARTS.FR5300_SMALL : MASTER_PARTS.FR5300_LARGE;
                 frames = byArtNr(frameArtNr);
-                if (maxSide > 90) frameBundle.push(...byArtNr(MASTER_PARTS.MAS_5305));
+            } else if (!lbl.includes('calima')) {
+                // All other Kaldewei (not Calima, not Conoflat): FR 5300
+                const frameArtNr = (l <= 120 && w <= 120) ? MASTER_PARTS.FR5300_SMALL : MASTER_PARTS.FR5300_LARGE;
+                frames = byArtNr(frameArtNr);
             }
         } else if (mfr.includes('schmidlin') || isAlternaLoa) {
             const omnia = getByKeyword(['omnia']).filter(o => o.label.toLowerCase().includes('rahmen'));
