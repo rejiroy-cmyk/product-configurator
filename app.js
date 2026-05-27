@@ -177,6 +177,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         configView.classList.add('active-view');
 
         document.getElementById('currentConfigBreadcrumb').innerHTML = `Big Konfigurator / ${breadcrumbs}`;
+
+        const copyBtnText = document.getElementById('copyBtnText');
+        if (copyBtnText) {
+            if (appId === 'waschtisch' || appId === 'mixandmatch') {
+                copyBtnText.textContent = 'G1 kopieren';
+            } else {
+                copyBtnText.textContent = 'Artikelnummern kopieren';
+            }
+        }
         
         if (appId === 'mixandmatch') {
             document.body.classList.add('mixmatch-active');

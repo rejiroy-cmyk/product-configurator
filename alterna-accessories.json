@@ -180,11 +180,11 @@
     "name": "Brausehalter",
     "options": [
       {
-        "artNr": "6543 131.501.000",
-        "label": "Brausehalter Alterna eco, Verchromt",
+        "artNr": "6543 132.501.000",
+        "label": "Brausehalter Alterna, Rosette rund, Verchromt",
         "menge": 1,
         "type": "Zubehör",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06543131_501_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06543132_501_000.png"
       },
       {
         "artNr": "ohne_halter",
@@ -199,7 +199,7 @@
       {
         "whenArtNr": "ohne_gleitstange",
         "optionArtNrs": [
-          "6543 131.501.000"
+          "6543 132.501.000"
         ]
       },
       {
