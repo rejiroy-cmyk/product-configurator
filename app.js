@@ -1086,3 +1086,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateWishlistBadges();
 
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnGlobalReset = document.getElementById('btn_global_reset');
+    if (btnGlobalReset) {
+        btnGlobalReset.addEventListener('click', () => {
+            if (window.currentActiveApp && typeof window.currentActiveApp.init === 'function') {
+                if (document.body.classList.contains('mixmatch-active')) {
+                    const basins = window.productApps?.waschtisch?.trays || [];
+                    const allFaucets = window.productApps?.waschtischmischer?.trays || [];
+                    window.currentActiveApp.init(basins, allFaucets);
+                } else {
+                    window.currentActiveApp.init();
+                }
+            }
+        });
+    }
+});

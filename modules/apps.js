@@ -435,8 +435,8 @@ const bomCountCounter = document.getElementById('bomCount');
         "waschtisch": Object.assign(createWashbasinApp("Waschtisch", "Waschtisch mit Siphon und Montagezubehör", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/02112736_100_000.png"), {
             trays: [] // Data loaded dynamically via custom-data.json
         }),
-        "wandklosett": createWCApp("Wandklosett System", "Wand-WC inkl. passendem WC-Sitz", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/02111845_100_000.png"),
-        "standklosett": createWCApp("Standklosett System", "Bodenstehendes WC System", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/02111845_100_000.png"),
+        "wandklosett": createWCApp("Wandklosett System", "Wand-WC inkl. passendem WC-Sitz", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/02111845_100_000.png", { sizeLabel: 'Ausladung' }),
+        "standklosett": createWCApp("Standklosett System", "Bodenstehendes WC System", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/02111845_100_000.png", { sizeLabel: 'Ausladung' }),
 
         // ------------------------------------------
         //  App 7: Duschenwanne (Dynamic Filter)

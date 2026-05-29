@@ -208,6 +208,11 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
         trays: [],
         mainImgUrl: mainImgUrl,
         selectedTray: null,
+        showAccessoires: false,
+        currentAccessoiresSerie: 'all',
+        selectedAccessoires: [],
+        showAccessoires: false,
+        selectedAccessoires: [],
         cleanLabel: function (label) {
             if (config.sizeLabel === 'Breite' && label) {
                 return label.replace(/^(Duschrinne|Duschenrinne)\s+/i, '').trim();
@@ -262,7 +267,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
         extractSerie: function (t) {
             if (t.serie) return this.normalizeSerie(t.serie, t.manufacturer);
 
-            let typeKeywords = ["aufputz-duschenmischer", "unterputz-duschenmischer", "duschenmischer", "duschmischer", "aufputz-bademischer", "unterputz-bademischer", "bademischer", "waschtischmischer", "thermostatmischer", "thermostat-duschenmischer", "einhebelmischer", "einlochmischer", "mischer", "duschenrinne", "duschrinne", "duschkanal"];
+            let typeKeywords = ["aufputz-duschenmischer", "unterputz-duschenmischer", "duschenmischer", "duschmischer", "aufputz-bademischer", "unterputz-bademischer", "bademischer", "waschtischmischer", "thermostatmischer", "thermostat-duschenmischer", "einhebelmischer", "einlochmischer", "mischer", "duschenrinne", "duschrinne", "duschkanal", "papierhalter", "reserverollenhalter", "klosettbürstenhalter", "wc-bürste", "seifenhalter", "seifenspender", "glashalter", "doppelglashalter", "handtuchhalter", "handtuchring", "handtuchhaken", "badetuchstange", "hakenleiste", "drahtseifenhalter", "duschkorb", "schwammhalter", "accessoire"];
             if (title && title.toLowerCase().includes('wanne')) {
                 typeKeywords.push("duschenwanne", "duschwanne", "badewanne", "duschfläche", "wanne");
             }
@@ -289,6 +294,9 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
 
             const match = label.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm|\s+\d+\s*x\s*\d+)/);
             let serie = match && match[1] ? match[1].trim() : label.trim();
+
+            const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => (t.label||'').toLowerCase().includes(kw));
+            if (isAccessory && serie.includes(' ')) serie = serie.split(' ')[0];
 
             return this.normalizeSerie(serie, t.manufacturer);
         },
@@ -418,6 +426,11 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
         init: function () {
             this.isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
             this.selectedTray = null;
+            this.showAccessoires = false;
+            this.currentAccessoiresSerie = 'all';
+            this.selectedAccessoires = [];
+            this.showAccessoires = false;
+            this.selectedAccessoires = [];
             this.currentMontageart = 'alle';
             this.currentManufacturer = 'all';
             this.currentSerie = 'all';
@@ -495,11 +508,45 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         <div class="search-results-container" id="searchResults_${suffix}"></div>
                     </div>
 
+                    
+                    
                     <div class="sidebar-section" id="trayConfigurator_${suffix}" style="display:none; margin-top:2rem;">
                         <h2>Konfiguration</h2>
                         <p class="section-desc">Wählen Sie das passende Zubehör.</p>
                         <div id="trayConfiguratorInner_${title.replace(/\s/g, '')}"></div>
                     </div>
+
+                    ${(title.toLowerCase().includes('dusche') || title.toLowerCase().includes('wanne') || title.toLowerCase().includes('rinne')) && !isMixer ? `
+                    <div class="sidebar-section addon-toggles-section" id="addon_toggles_section_${suffix}" style="display:none; margin-top:2rem;">
+                        <div class="finder-sub-header">Zusatzoptionen</div>
+                        <div class="addon-toggle-row" id="toggle_accessoires_${suffix}">
+                            <span class="addon-toggle-label"><i class="ri-archive-line"></i> Accessoires</span>
+                            <button class="ios-toggle" data-target="accessoires_dusche" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
+                        </div>
+                        <div id="addon_accessoires_dusche_panel_${suffix}" class="addon-panel" style="display:none;">
+                            <div class="finder-sub-header">Serie</div>
+                            <div class="pill-group" id="list_addon_accessoires_serie_dusche_${suffix}" style="margin-bottom: 0.75rem;"></div>
+                            <div class="finder-sub-header">Accessoires wählen</div>
+                            <div class="finder-list" id="list_addon_accessoires_dusche_${suffix}"></div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+
+                    ${isToiletApp ? `
+                    <div class="sidebar-section addon-toggles-section" id="addon_toggles_section_${suffix}" style="display:none; margin-top:2rem;">
+                        <div class="finder-sub-header">Zusatzoptionen</div>
+                        <div class="addon-toggle-row" id="toggle_accessoires_${suffix}">
+                            <span class="addon-toggle-label"><i class="ri-archive-line"></i> Accessoires</span>
+                            <button class="ios-toggle" data-target="accessoires_wc" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
+                        </div>
+                        <div id="addon_accessoires_wc_panel_${suffix}" class="addon-panel" style="display:none;">
+                            <div class="finder-sub-header">Accessoires wählen</div>
+                            <div class="finder-list" id="list_addon_accessoires_wc_${suffix}"></div>
+                        </div>
+                    </div>
+                    ` : ''}
+
                 `;
             this.updatePillFilters();
         },
@@ -892,6 +939,10 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
 
             this.filterResults(); // re-render to highlight active
             this.renderConfigurator();
+            
+            const addonSection = document.getElementById(`addon_toggles_section_${suffix}`);
+            if (addonSection) addonSection.style.display = 'block';
+            if (this.updateAccessoiresToggles) this.updateAccessoiresToggles();
             this.updateBOM();
         },
         renderConfigurator: function () {
@@ -1042,6 +1093,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
 
             const titleLower = title.toLowerCase();
             const isWanne = titleLower.includes('wanne') || titleLower.includes('duschfläche');
+            const isRinne = titleLower.includes('rinne');
 
             // Create a sorted copy of mountingMaterials for UI rendering
             const sortedMaterials = [...this.selectedTray.mountingMaterials].sort((a, b) => {
@@ -1055,6 +1107,11 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                          if (lbl.includes('träger') || lbl.includes('rahmen')) return 6;
                          if (lbl.includes('schaum') || lbl.includes('fuss') || lbl.includes('stütz') || lbl.includes('anker')) return 7;
                          if (lbl.includes('schall') || lbl.includes('isolation')) return 8;
+                         return 99;
+                    } else if (isRinne) {
+                         if (lbl.includes('abdeckung') || lbl.includes('rost') || lbl.includes('deckel')) return 2;
+                         if (lbl.includes('gehäuse') || lbl.includes('gehause')) return 3;
+                         if (lbl.includes('schall')) return 4;
                          return 99;
                     } else {
                          if (lbl.includes('sitz') || lbl.includes('deckel')) return 2;
@@ -1180,6 +1237,135 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 inner.appendChild(groupDiv);
             });
         },
+        
+        updateAccessoiresToggles: function () {
+            const suffix = title.replace(/\s/g, '');
+            const btn = document.querySelector(`#toggle_accessoires_${suffix} .ios-toggle`);
+            const isToiletApp = ['Wandklosett', 'Standklosett'].includes(title);
+            const isShowerApp = ['Duschenwanne', 'Duschenrinne', 'Badewanne'].includes(title);
+            let panelId = '';
+            if (isToiletApp) panelId = `addon_accessoires_wc_panel_${suffix}`;
+            else if (isShowerApp) panelId = `addon_accessoires_dusche_panel_${suffix}`;
+            const panel = document.getElementById(panelId);
+            if (btn) btn.classList.toggle('active', this.showAccessoires);
+            if (panel) panel.style.display = this.showAccessoires ? 'block' : 'none';
+
+            const section = document.getElementById(`addon_toggles_section_${suffix}`);
+            if (section && !section._bound) {
+                section._bound = true;
+                const toggleBtn = section.querySelector('.ios-toggle');
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', () => {
+                        this.showAccessoires = !this.showAccessoires;
+                        if (!this.showAccessoires) {
+                            this.selectedAccessoires = [];
+                            this.currentAccessoiresSerie = 'all';
+                        }
+                        this.updateAccessoiresToggles();
+                        if (this.showAccessoires) this.populateAccessoires();
+                        this.updateBOM();
+                    });
+                }
+            }
+        },
+        populateAccessoires: function () {
+            const suffix = title.replace(/\s/g, '');
+            
+            const isToiletApp = ['Wandklosett', 'Standklosett'].includes(title);
+            const isShowerApp = ['Duschenwanne', 'Duschenrinne', 'Badewanne'].includes(title);
+            
+            let listId = '';
+            let keywords = [];
+            
+            if (isToiletApp) {
+                listId = `list_addon_accessoires_wc_${suffix}`;
+                keywords = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste'];
+            } else if (isShowerApp) {
+                listId = `list_addon_accessoires_dusche_${suffix}`;
+                if (title === 'Duschenwanne' || title === 'Duschenrinne') {
+                    keywords = ['drahtseifenhalter', 'duschkorb', 'badetuchstange', 'schwammhalter keuco elegance, eckmodell'];
+                } else if (title === 'Badewanne') {
+                    keywords = ['drahtseifenhalter', 'duschkorb', 'badetuchstange', 'schwammhalter keuco elegance, 10,5 x 23,9 cm'];
+                } else {
+                    keywords = ['drahtseifenhalter', 'duschkorb', 'badetuchstange'];
+                }
+            } else {
+                return;
+            }
+            
+            const listEl = document.getElementById(listId);
+            if (!listEl) return;
+            const serieListEl = document.getElementById(listId.replace('list_addon_accessoires_', 'list_addon_accessoires_serie_'));
+
+            let candidates = [];
+            const allApps = window.productApps || {};
+            Object.keys(allApps).forEach(appKey => {
+                const a = allApps[appKey];
+                if (a.trays) {
+                    a.trays.forEach(t => {
+                        const lbl = (t.label || t.name || '').toLowerCase();
+                        if (keywords.some(kw => lbl.includes(kw))) {
+                            candidates.push(t);
+                        }
+                    });
+                }
+            });
+            const seen = new Set();
+            candidates = candidates.filter(c => {
+                if (seen.has(c.artNr)) return false;
+                seen.add(c.artNr);
+                return true;
+            });
+            
+            
+            if (serieListEl) {
+                const series = [...new Set(candidates.map(c => this.extractSerie(c)))].filter(Boolean).sort();
+                serieListEl.innerHTML = `<button class="pill-btn ${this.currentAccessoiresSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                    series.map(s => `<button class="pill-btn ${this.currentAccessoiresSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
+                
+                serieListEl.querySelectorAll('.pill-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.currentAccessoiresSerie = btn.dataset.val;
+                        this.populateAccessoires();
+                    });
+                });
+            }
+            
+            if (this.currentAccessoiresSerie !== 'all') {
+                candidates = candidates.filter(c => this.extractSerie(c) === this.currentAccessoiresSerie);
+            }
+            
+            listEl.innerHTML = '';
+            if (candidates.length === 0) {
+                listEl.innerHTML = '<div class="finder-empty-state" style="font-size:0.8rem;">Keine passenden Produkte gefunden.</div>';
+                return;
+            }
+            candidates.forEach(c => {
+                const btn = document.createElement('div');
+                btn.className = `finder-item ${this.selectedAccessoires.includes(c.artNr) ? 'active' : ''}`;
+                btn.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        ${(c.imgUrl || getSanitasImgUrl(c.artNr)) ? `<img src="${c.imgUrl || getSanitasImgUrl(c.artNr)}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;" onerror="this.outerHTML='<div style=&quot;width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;&quot;><i class=&quot;ri-image-line placeholder-icon&quot;></i></div>'">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
+                        <div>
+                            <div style="font-size:0.8rem; font-weight:500; line-height:1.3;">${c.label}</div>
+                            <div style="font-size:0.7rem; color:var(--st-gray); margin-top:0.25rem;">
+                                ${c.manufacturer || ''} ${this.extractSerie(c) !== 'Andere' ? '· ' + this.extractSerie(c) : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--st-gray); font-family:var(--st-font-mono); margin-top:0.5rem; text-align:right;">${c.artNr}</div>
+                `;
+                btn.addEventListener('click', () => {
+                    const idx = this.selectedAccessoires.indexOf(c.artNr);
+                    if (idx > -1) this.selectedAccessoires.splice(idx, 1);
+                    else this.selectedAccessoires.push(c.artNr);
+                    this.populateAccessoires(); 
+                    this.updateBOM();
+                });
+                listEl.appendChild(btn);
+            });
+        },
+        
         clearBOM: function () {
             bomCountCounter.textContent = "0 Artikel ausgewählt";
             bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9da3ad; padding: 2rem;">Bitte wählen Sie ein Produkt aus den Suchergebnissen.</td></tr>';
@@ -1195,6 +1381,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             const isWandKlosett = titleLower.includes('wandklosett');
             const isStandKlosett = titleLower.includes('standklosett');
             const isWanne = titleLower.includes('wanne') || titleLower.includes('duschfläche');
+            const isRinne = titleLower.includes('rinne');
 
             const isMatActive = (mat) => {
                 let blocked = false;
@@ -1515,6 +1702,65 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     }
                 });
 
+            } else if (isRinne) {
+                // ─── DUSCHENRINNE: Dedicated Priority Engine ─────────────────────
+                materials.forEach(mat => {
+                    if (!isMatActive(mat)) return;
+                    const selectedArtNr = this.selectedTray.selections[mat.id];
+                    const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
+                    if (!selectedOption) return;
+
+                    // Check against active Montageart filter
+                    const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
+                    if (this.currentMontageart !== 'alle') {
+                        if (matClass !== 'common' && matClass !== this.currentMontageart) return;
+                    }
+
+                    const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
+                    const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
+                    const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
+                    const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
+
+                    const mName = (mat.name || '').toLowerCase();
+                    const combinedLbl = (enrichedLabel + ' ' + (selectedOption.type || '') + ' ' + (mat.name || '')).toLowerCase();
+
+                    let priority = 99; // Fallback
+                    const note = mat.name || 'Zubehör';
+
+                    const exactMatch = (words) => words.some(w => new RegExp(`(^|\\s|-|\\/)${w}(\\s|-|\\/|$)`, 'i').test(combinedLbl));
+
+                    if (mName.includes('abdeckung') || mName.includes('rost')) {
+                        priority = 2;
+                    } else if (mName.includes('gehäuse') || mName.includes('gehause')) {
+                        priority = 3;
+                    } else if (mName.includes('schall')) {
+                        priority = 4;
+                    } else {
+                        // Fallback logic
+                        if (exactMatch(['abdeckung', 'rost', 'deckel', 'ablaufabdeckung'])) {
+                            priority = 2;
+                        } else if (exactMatch(['gehäuse', 'gehause', 'ablaufgehäuse', 'ablaufgehause'])) {
+                            priority = 3;
+                        } else if (exactMatch(['schallschutz', 'schallschutzset', 'schall', 'isolation', 'schallband'])) {
+                            priority = 4;
+                        } else if (exactMatch(['dichtband', 'butylband', 'zargen', 'zargen-wannendichtband'])) {
+                            priority = 5;
+                        } else {
+                            priority = 6;
+                        }
+                    }
+
+                    finalBOM.push({
+                        artNr: selectedOption.artNr,
+                        label: enrichedLabel,
+                        typ: selectedOption.type || mat.name || 'Zubehör',
+                        menge: selectedOption.menge || 1,
+                        img: enrichedImg,
+                        note: note,
+                        priority: priority
+                    });
+                });
+
             } else {
                 // ─── WANDKLOSETT / OTHER: Original Priority Engine ────────────────
                 materials.forEach(mat => {
@@ -1611,6 +1857,33 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 mainLblLower.includes('schallschutz-set') ||
                 mainLblLower.includes('schallschutzset') ||
                 mainLblLower.includes('inkl. isolation');
+
+            
+            // Add Accessories to finalBOM
+            if (this.showAccessoires && this.selectedAccessoires && this.selectedAccessoires.length > 0) {
+                const allApps = window.productApps || {};
+                this.selectedAccessoires.forEach(artNr => {
+                    let accObj = null;
+                    Object.keys(allApps).forEach(appKey => {
+                        if (accObj) return;
+                        const app = allApps[appKey];
+                        const itemsToSearch = app.trays || [];
+                        accObj = itemsToSearch.find(t => t.artNr === artNr);
+                    });
+                    if (accObj) {
+                        finalBOM.push({
+                            artNr: accObj.artNr,
+                            label: accObj.label,
+                            typ: 'Accessoire',
+                            menge: 1,
+                            img: accObj.imgUrl,
+                            note: 'Accessoire',
+                            priority: 90
+                        });
+                    }
+                });
+            }
+
 
             let sortedBOM = finalBOM.sort((a, b) => a.priority - b.priority);
 
@@ -1798,6 +2071,9 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             // 3. Extract the series name up to any size, comma, or bracket
             const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d)/);
             let serie = match && match[1] ? match[1].trim() : cleaned.trim();
+
+            const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => (t.label||'').toLowerCase().includes(kw));
+            if (isAccessory && serie.includes(' ')) serie = serie.split(' ')[0];
 
             // 4. Capitalize each word
             serie = serie.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -2357,7 +2633,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             let lbl = (t.label || '');
 
             lbl = lbl.split(',')[0].trim();
-            lbl = lbl.replace(/A\s*\d+/i, '').trim();
+            lbl = lbl.replace(/\bA\s*\d+/i, '').trim();
 
             const brand = (t.manufacturer || '').toLowerCase();
             const skipWords = [
@@ -3047,6 +3323,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         showMoebel: false,
         showSpiegelschrank: false,
         showAccessoires: false,
+        currentAccessoiresSerie: 'all',
         selectedMoebel: null,
         selectedSpiegelschrank: null,
         selectedAccessoires: [],
@@ -3112,6 +3389,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             this.currentSpiegelschrankBrand = 'all';
             this.currentSpiegelschrankSerie = 'all';
+            this.currentSpiegelschrankBreite = 'all';
+            this.currentSpiegelschrankBand = 'all';
+            this.currentSpiegelschrankSteckdose = 'all';
+            this.currentSpiegelschrankLichtfarbe = 'all';
 
             this.basinSearchQuery = '';
             this.faucetSearchQuery = '';
@@ -3155,7 +3436,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 'spiegelschrank', 'spiegelkabinett', 'miroir', 'mirror',
                 'doppelwaschtisch', 'möbelwaschtisch', 'aufsatzwaschbecken', 'aufsatzbecken',
                 'auflegewaschtisch', 'wandbecken', 'handwaschbecken', 'waschtisch', 'becken', 'waschbecken',
-                'wandmischer', 'einlochmischer', 'mischer', 'batterie', 'armatur'
+                'wandmischer', 'einlochmischer', 'mischer', 'batterie', 'armatur',
+                'papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste',
+                'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste',
+                'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'
             ];
 
             let changed = true;
@@ -3180,6 +3464,9 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             // 3. Extract the first part of what remains (usually the series name)
             const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d)/);
             let serie = match && match[1] ? match[1].trim() : cleaned.trim();
+
+            const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => (t.label||'').toLowerCase().includes(kw));
+            if (isAccessory && serie.includes(' ')) serie = serie.split(' ')[0];
 
             // 4. Capitalize each word
             serie = serie.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -3401,16 +3688,30 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             <div class="finder-list" id="list_addon_moebel"></div>
                         </div>
                         <div id="addon_spiegelschrank_panel" class="addon-panel" style="display:none;">
-                            <div class="finder-sub-header">Marke</div>
+                            <div class="finder-sub-header" id="spiegelschrank_breite_header" style="display:none;">Breite</div>
+                            <div class="pill-group" id="list_spiegelschrank_breite" style="margin-bottom: 0.75rem; display:none;"></div>
+                            
+                            <div class="finder-sub-header" id="spiegelschrank_brand_header">Marke</div>
                             <div class="pill-group" id="list_spiegelschrank_brand" style="margin-bottom: 0.75rem;"></div>
                             
-                            <div class="finder-sub-header">Serie</div>
+                            <div class="finder-sub-header" id="spiegelschrank_serie_header">Serie</div>
                             <div class="pill-group" id="list_spiegelschrank_serie" style="margin-bottom: 0.75rem;"></div>
+
+                            <div class="finder-sub-header" id="spiegelschrank_band_header" style="display:none;">Band</div>
+                            <div class="pill-group" id="list_spiegelschrank_band" style="margin-bottom: 0.75rem; display:none;"></div>
+
+                            <div class="finder-sub-header" id="spiegelschrank_steckdose_header" style="display:none;">Steckdose</div>
+                            <div class="pill-group" id="list_spiegelschrank_steckdose" style="margin-bottom: 0.75rem; display:none;"></div>
+
+                            <div class="finder-sub-header" id="spiegelschrank_lichtfarbe_header" style="display:none;">Lichtfarbe</div>
+                            <div class="pill-group" id="list_spiegelschrank_lichtfarbe" style="margin-bottom: 0.75rem; display:none;"></div>
 
                             <div class="finder-sub-header">Modell wählen</div>
                             <div class="finder-list" id="list_addon_spiegelschrank"></div>
                         </div>
                         <div id="addon_accessoires_panel" class="addon-panel" style="display:none;">
+                            <div class="finder-sub-header" id="addon_accessoires_serie_header">Serie</div>
+                            <div class="pill-group" id="list_addon_accessoires_serie" style="margin-bottom: 0.75rem;"></div>
                             <div class="finder-sub-header">Accessoires wählen</div>
                             <div class="finder-list" id="list_addon_accessoires"></div>
                         </div>
@@ -3651,7 +3952,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             let lbl = (t.label || '');
 
             lbl = lbl.split(',')[0].trim();
-            lbl = lbl.replace(/A\s*\d+/i, '').trim();
+            lbl = lbl.replace(/\bA\s*\d+/i, '').trim();
 
             const brand = (t.manufacturer || '').toLowerCase();
             const skipWords = [
@@ -3980,7 +4281,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             // Clear selection when toggled off
                             if (t === 'moebel') this.selectedMoebel = null;
                             if (t === 'spiegelschrank') this.selectedSpiegelschrank = null;
-                            if (t === 'accessoires') this.selectedAccessoires = [];
+                            if (t === 'accessoires') {
+                                this.selectedAccessoires = [];
+                                this.currentAccessoiresSerie = 'all';
+                            }
                         }
                         this.updateAddonToggles();
                         this.populateAddonPanel(t);
@@ -4005,13 +4309,16 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             const keywordMap = {
                 moebel: ['möbel', 'meuble', 'unterschrank', 'waschtischunterschrank', 'schrankunterschrank'],
                 spiegelschrank: ['spiegelschrank', 'spiegelkabinett', 'miroir', 'mirror', ' mirror '],
-                accessoires: ['accessoire', 'seifenspender', 'handtuchring', 'handtuchhalter', 'ablage', 'zahnbürstenhalter', 'wc-bürste']
+                accessoires: ['accessoire', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'hakenleiste'],
+                accessoires_wc: ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste'],
+                accessoires_dusche: ['drahtseifenhalter', 'duschkorb', 'badetuchstange', 'schwammhalter']
             };
 
             const keywords = keywordMap[target] || [];
 
             // 1. Search all app data for matching products (Gather Base Candidates)
             let baseCandidates = [];
+            let allSpiegelschrankCandidates = []; // For width fallback logic
             const allApps = window.productApps || {};
             Object.values(allApps).forEach(app => {
                 // Relational apps use 'trays', Mix & Match uses 'basinTrays'/'faucets'
@@ -4019,6 +4326,13 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 items.forEach(t => {
                     const lbl = (t.label || t.name || '').toLowerCase();
                     if (keywords.some(k => lbl.includes(k))) {
+                        if (target === 'spiegelschrank') {
+                            if (lbl.includes('schallschutz')) return;
+                        }
+                        if (target === 'accessoires' || target === 'accessoires_wc' || target === 'accessoires_dusche') {
+                            if (lbl.includes('spiegelschrank') || lbl.includes('spiegelkabinett')) return;
+                        }
+
                         // Filter to matching rules if basin is selected
                         if (this.selectedBasin) {
                             let matchFound = false;
@@ -4063,6 +4377,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                                 if (basinWStr !== 'unknown' && cabinetWStr !== 'unknown') {
                                     const bW = parseFloat(basinWStr);
                                     const cW = parseFloat(cabinetWStr);
+                                    
+                                    // Save all valid cabinets for potential fallback
+                                    allSpiegelschrankCandidates.push({ item: t, width: cW });
+
                                     // Round both to nearest integer cm (handles 59.5 vs 60 cases)
                                     if (Math.round(bW) !== Math.round(cW)) return;
                                     // If width matches, we consider it a found match (even if series differ)
@@ -4074,7 +4392,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             }
 
                             // 2. Fallback to Series match if no specific rule matched
-                            if (!matchFound) {
+                            if (!matchFound && target !== 'accessoires') {
                                 const basinSerie = this.extractSerie(this.selectedBasin).toLowerCase();
                                 const tSerie = this.extractSerie(t).toLowerCase();
                                 if (!tSerie.includes(basinSerie) && !basinSerie.includes(tSerie)) return;
@@ -4084,6 +4402,35 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     }
                 });
             });
+
+
+            // 1.8 Fallback logic for Spiegelschrank if NO exact match was found
+            let isOffsetMatch = false;
+            if (target === 'spiegelschrank' && this.selectedBasin && baseCandidates.length === 0 && allSpiegelschrankCandidates.length > 0) {
+                const basinWStr = this.extractBreite(this.selectedBasin);
+                if (basinWStr !== 'unknown') {
+                    const bW = Math.round(parseFloat(basinWStr));
+                    
+                    // Find all unique available mirror widths
+                    const uniqueWidths = [...new Set(allSpiegelschrankCandidates.map(c => Math.round(c.width)))].sort((a, b) => a - b);
+                    
+                    // Find closest smaller and closest larger
+                    let smallerWidth = -1;
+                    let largerWidth = Infinity;
+                    
+                    for (let w of uniqueWidths) {
+                        if (w < bW && w > smallerWidth) smallerWidth = w;
+                        if (w > bW && w < largerWidth) largerWidth = w;
+                    }
+                    
+                    // Add all cabinets that match the smaller or larger width (Bypass series filter just like exact match)
+                    const fallbackItems = allSpiegelschrankCandidates.filter(c => Math.round(c.width) === smallerWidth || Math.round(c.width) === largerWidth);
+                    if (fallbackItems.length > 0) {
+                        isOffsetMatch = true;
+                        fallbackItems.forEach(c => baseCandidates.push(c.item));
+                    }
+                }
+            }
 
             // Deduplicate baseCandidates by artNr
             const seenArt = new Set();
@@ -4096,8 +4443,39 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             // 2. Handle Pill Filters for Spiegelschrank
             if (target === 'spiegelschrank') {
+                const breiteHeaderEl = document.getElementById('spiegelschrank_breite_header');
+                const breiteListEl = document.getElementById('list_spiegelschrank_breite');
                 const brandListEl = document.getElementById('list_spiegelschrank_brand');
                 const serieListEl = document.getElementById('list_spiegelschrank_serie');
+
+                if (breiteHeaderEl && breiteListEl) {
+                    if (isOffsetMatch) {
+                        breiteHeaderEl.style.display = 'block';
+                        breiteListEl.style.display = 'flex';
+                        
+                        // Extract precise raw widths from the fallback candidates
+                        const widths = [...new Set(baseCandidates.map(c => {
+                            const wStr = this.extractBreite(c);
+                            return wStr !== 'unknown' ? parseFloat(wStr) : null;
+                        }).filter(w => w !== null))].sort((a, b) => a - b);
+                        
+                        breiteListEl.innerHTML = `<button class="pill-btn ${this.currentSpiegelschrankBreite === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                            widths.map(w => `<button class="pill-btn ${this.currentSpiegelschrankBreite === w.toString() ? 'active' : ''}" data-val="${w}">${w} cm</button>`).join('');
+                            
+                        breiteListEl.querySelectorAll('.pill-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                this.currentSpiegelschrankBreite = btn.dataset.val;
+                                this.currentSpiegelschrankBrand = 'all';
+                                this.currentSpiegelschrankSerie = 'all';
+                                this.populateAddonPanel('spiegelschrank');
+                            });
+                        });
+                    } else {
+                        breiteHeaderEl.style.display = 'none';
+                        breiteListEl.style.display = 'none';
+                        this.currentSpiegelschrankBreite = 'all'; // Reset if not in offset mode
+                    }
+                }
 
                 if (brandListEl && serieListEl) {
                     // Gather brands from base candidates
@@ -4116,7 +4494,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     // Gather series from filtered brands
                     let fSeries = baseCandidates;
                     if (this.currentSpiegelschrankBrand !== 'all') fSeries = fSeries.filter(c => c.manufacturer === this.currentSpiegelschrankBrand);
-                    const series = [...new Set(fSeries.map(c => this.extractSerie(c)))].sort();
+                    const series = [...new Set(fSeries.map(c => this.extractSerie(c)))].filter(s => s !== 'Andere').sort();
 
                     serieListEl.innerHTML = `<button class="pill-btn ${this.currentSpiegelschrankSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
                         series.map(s => `<button class="pill-btn ${this.currentSpiegelschrankSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
@@ -4128,9 +4506,95 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         });
                     });
 
+                    // APPLY UI RESET BUTTONS
+                    const resetSpiegelschrankFn = () => {
+                        this.currentSpiegelschrankBreite = 'all';
+                        this.currentSpiegelschrankBrand = 'all';
+                        this.currentSpiegelschrankSerie = 'all';
+                        this.currentSpiegelschrankBand = 'all';
+                        this.currentSpiegelschrankSteckdose = 'all';
+                        this.currentSpiegelschrankLichtfarbe = 'all';
+                        this.populateAddonPanel('spiegelschrank');
+                    };
+
+                    if (isOffsetMatch) {
+                        applyPillUI('spiegelschrank_breite_header', 'list_spiegelschrank_breite', this.currentSpiegelschrankBreite, 'Breite', resetSpiegelschrankFn, this.currentSpiegelschrankBreite !== 'all' ? this.currentSpiegelschrankBreite + ' cm' : 'all');
+                    }
+                    applyPillUI('spiegelschrank_brand_header', 'list_spiegelschrank_brand', this.currentSpiegelschrankBrand, 'Marke', resetSpiegelschrankFn);
+                    applyPillUI('spiegelschrank_serie_header', 'list_spiegelschrank_serie', this.currentSpiegelschrankSerie, 'Serie', resetSpiegelschrankFn);
+
                     // Final display filtering
+                    if (this.currentSpiegelschrankBreite !== 'all') {
+                        displayCandidates = displayCandidates.filter(c => {
+                            const wStr = this.extractBreite(c);
+                            return wStr !== 'unknown' && parseFloat(wStr).toString() === this.currentSpiegelschrankBreite;
+                        });
+                    }
                     if (this.currentSpiegelschrankBrand !== 'all') displayCandidates = displayCandidates.filter(c => c.manufacturer === this.currentSpiegelschrankBrand);
                     if (this.currentSpiegelschrankSerie !== 'all') displayCandidates = displayCandidates.filter(c => this.extractSerie(c) === this.currentSpiegelschrankSerie);
+
+                    // NEW FILTERS: BAND, STECKDOSE, LICHTFARBE
+                    const getProp = (c, type) => {
+                        const l = (c.label || '').toLowerCase();
+                        if (type === 'band') {
+                            if (l.includes('band links')) return 'links';
+                            if (l.includes('band rechts')) return 'rechts';
+                            if (l.includes('wechselbar') || l.includes('beides')) return 'beides';
+                            return null;
+                        }
+                        if (type === 'steckdose') {
+                            if (!l.includes('steckdose')) return null;
+                            if (l.includes('steckdose links')) return 'links';
+                            if (l.includes('steckdose rechts')) return 'rechts';
+                            if (l.includes('steckdose mitte') || l.includes('steckdose in der mitte')) return 'mitte';
+                            return 'vorhanden';
+                        }
+                        if (type === 'lichtfarbe') {
+                            if (l.includes('3000 k') || l.includes('3000k')) return '3000K';
+                            if (l.includes('4000 k') || l.includes('4000k')) return '4000K';
+                            if (l.includes('stufenlos')) return 'Stufenlos wechselbar';
+                            return null;
+                        }
+                        return null;
+                    };
+
+                    const renderFilter = (type, currentVal, headerId, listId, titleLabel) => {
+                        const header = document.getElementById(headerId);
+                        const list = document.getElementById(listId);
+                        if (!header || !list) return;
+
+                        // Only show filter if there are actually options in the current displayCandidates
+                        const options = [...new Set(displayCandidates.map(c => getProp(c, type)).filter(Boolean))].sort();
+                        if (options.length === 0) {
+                            header.style.display = 'none';
+                            list.style.display = 'none';
+                            return;
+                        }
+                        header.style.display = 'block';
+                        list.style.display = 'flex';
+
+                        list.innerHTML = `<button class="pill-btn ${currentVal === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                            options.map(o => `<button class="pill-btn ${currentVal === o ? 'active' : ''}" data-val="${o}">${o}</button>`).join('');
+                        
+                        list.querySelectorAll('.pill-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                if (type === 'band') this.currentSpiegelschrankBand = btn.dataset.val;
+                                if (type === 'steckdose') this.currentSpiegelschrankSteckdose = btn.dataset.val;
+                                if (type === 'lichtfarbe') this.currentSpiegelschrankLichtfarbe = btn.dataset.val;
+                                this.populateAddonPanel('spiegelschrank');
+                            });
+                        });
+                        
+                        applyPillUI(headerId, listId, currentVal, titleLabel, resetSpiegelschrankFn);
+                    };
+
+                    renderFilter('band', this.currentSpiegelschrankBand, 'spiegelschrank_band_header', 'list_spiegelschrank_band', 'Band');
+                    renderFilter('steckdose', this.currentSpiegelschrankSteckdose, 'spiegelschrank_steckdose_header', 'list_spiegelschrank_steckdose', 'Steckdose');
+                    renderFilter('lichtfarbe', this.currentSpiegelschrankLichtfarbe, 'spiegelschrank_lichtfarbe_header', 'list_spiegelschrank_lichtfarbe', 'Lichtfarbe');
+
+                    if (this.currentSpiegelschrankBand !== 'all') displayCandidates = displayCandidates.filter(c => getProp(c, 'band') === this.currentSpiegelschrankBand);
+                    if (this.currentSpiegelschrankSteckdose !== 'all') displayCandidates = displayCandidates.filter(c => getProp(c, 'steckdose') === this.currentSpiegelschrankSteckdose);
+                    if (this.currentSpiegelschrankLichtfarbe !== 'all') displayCandidates = displayCandidates.filter(c => getProp(c, 'lichtfarbe') === this.currentSpiegelschrankLichtfarbe);
                 }
             }
 
@@ -4141,17 +4605,37 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             }
 
             const isMulti = target === 'accessoires';
+            if (target === 'accessoires') {
+                const serieListEl = document.getElementById('list_addon_accessoires_serie');
+                if (serieListEl) {
+                    const series = [...new Set(displayCandidates.map(c => this.extractSerie(c)))].filter(Boolean).sort();
+                    serieListEl.innerHTML = `<button class="pill-btn ${this.currentAccessoiresSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                        series.map(s => `<button class="pill-btn ${this.currentAccessoiresSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
+                    
+                    serieListEl.querySelectorAll('.pill-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            this.currentAccessoiresSerie = btn.dataset.val;
+                            this.populateAddonPanel(target);
+                        });
+                    });
+                }
+                
+                if (this.currentAccessoiresSerie !== 'all') {
+                    displayCandidates = displayCandidates.filter(c => this.extractSerie(c) === this.currentAccessoiresSerie);
+                }
+            }
+            
             listEl.innerHTML = displayCandidates.map(c => {
                 const isSelected = isMulti
                     ? this.selectedAccessoires.includes(c.artNr)
                     : (target === 'moebel' ? this.selectedMoebel === c.artNr : this.selectedSpiegelschrank === c.artNr);
                 return `
                     <div class="finder-item ${isSelected ? 'active' : ''}" data-artnr="${c.artNr}" data-target="${target}" title="${c.artNr}">
-                        <div style="display:flex; align-items:center; gap:0.5rem;">
-                            ${c.imgUrl ? `<img src="${c.imgUrl}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;">` : ''}
-                            <div>
-                                <div style="font-size:0.8rem; font-weight:500; line-height:1.3;">${this.cleanLabel(c)}</div>
-                                <div style="font-size:0.7rem; color:var(--text-secondary); font-family:monospace;">${c.artNr}</div>
+                        <div style="display:flex; align-items:center; gap:0.5rem; overflow:hidden;">
+                            ${(c.imgUrl || getSanitasImgUrl(c.artNr)) ? `<img src="${c.imgUrl || getSanitasImgUrl(c.artNr)}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;" onerror="this.outerHTML='<div style=&quot;width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;&quot;><i class=&quot;ri-image-line placeholder-icon&quot;></i></div>'">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
+                            <div style="min-width:0; overflow:hidden;">
+                                <div style="font-size:0.8rem; font-weight:500; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis;">${this.cleanLabel(c)}</div>
+                                <div style="font-size:0.7rem; color:var(--text-secondary); font-family:monospace; margin-top:2px;">${c.artNr}</div>
                             </div>
                         </div>
                         ${isSelected ? '<i class="ri-check-line" style="margin-left:auto; color:var(--accent); flex-shrink:0;"></i>' : ''}
@@ -5543,38 +6027,53 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
         trays: [],
         mainImgUrl: mainImgUrl,
         selectedTray: null,
+        showAccessoires: false,
+        currentAccessoiresSerie: 'all',
+        selectedAccessoires: [],
         extractSerie: function (t) {
             if (t.serie) return t.serie;
-            let cleaned = t.label || '';
-            if (t.manufacturer && cleaned.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                cleaned = cleaned.substring(t.manufacturer.length).trim();
-            }
-            const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-| \d+)/);
-            let serie = match && match[1] ? match[1].trim() : cleaned.trim();
+            let cleaned = (t.label || t.name || '').trim().toLowerCase();
+            const manufacturer = (t.manufacturer || '').toLowerCase();
 
-            // Strip redundant basin/wanne type prefixes from series names
-            const prefixes = [
-                'Doppelwaschtisch', 'Möbelwaschtisch', 'Aufsatzwaschtisch',
-                'Waschtisch', 'Handwaschbecken', 'Einbaubecken', 'Wandbecken',
-                'Waschtischanlage', 'Aufsatzbecken', 'Waschbecken',
-                'Duschenwanne', 'Duschwanne', 'Badewanne', 'Duschfläche', 'Wanne'
+            // 1. Strip product-type prefixes
+            const typeWords = [
+                'spiegelschrank', 'spiegelkabinett', 'miroir', 'mirror',
+                'doppelwaschtisch', 'möbelwaschtisch', 'aufsatzwaschbecken', 'aufsatzbecken',
+                'auflegewaschtisch', 'wandbecken', 'handwaschbecken', 'waschtisch', 'becken', 'waschbecken',
+                'wandmischer', 'einlochmischer', 'mischer', 'batterie', 'armatur',
+                'papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste',
+                'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste',
+                'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'
             ];
-            for (const prefix of prefixes) {
-                if (serie.toLowerCase().startsWith(prefix.toLowerCase())) {
-                    serie = serie.substring(prefix.length).trim();
-                    if (serie.startsWith('-') || serie.startsWith('/')) serie = serie.substring(1).trim();
-                    // Strip manufacturer name again if it appears after the prefix (e.g. "Duschwanne Kaldewei...")
-                    if (t.manufacturer && serie.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                        serie = serie.substring(t.manufacturer.length).trim();
+
+            let changed = true;
+            while (changed) {
+                changed = false;
+                for (const word of typeWords) {
+                    if (cleaned.startsWith(word)) {
+                        cleaned = cleaned.substring(word.length).trim();
+                        if (['-', ':', '/', ','].includes(cleaned[0])) cleaned = cleaned.substring(1).trim();
+                        changed = true;
+                        break;
                     }
-                    break;
                 }
             }
 
-            // Final safety: if manufacturer is still at front, strip it
-            if (t.manufacturer && serie.toLowerCase().startsWith(t.manufacturer.toLowerCase())) {
-                serie = serie.substring(t.manufacturer.length).trim();
+            // 2. Strip manufacturer name from the front if present
+            if (manufacturer && cleaned.startsWith(manufacturer)) {
+                cleaned = cleaned.substring(manufacturer.length).trim();
+                if (['-', ':', '/', ','].includes(cleaned[0])) cleaned = cleaned.substring(1).trim();
             }
+
+            // 3. Extract the first part of what remains (usually the series name)
+            const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d)/);
+            let serie = match && match[1] ? match[1].trim() : cleaned.trim();
+
+            const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => (t.label||'').toLowerCase().includes(kw));
+            if (isAccessory && serie.includes(' ')) serie = serie.split(' ')[0];
+
+            // 4. Capitalize each word
+            serie = serie.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
             return serie || 'Andere';
         },
@@ -5586,8 +6085,16 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
         },
         classifyAccessory: function (obj) {
             if (!obj) return 'common';
-            // Only use mountingMaterials to detect the main tray object, because accessories now have manufacturer fields too.
-            if (obj.mountingMaterials !== undefined) return 'common';
+            // Detect main tray object using mountingMaterials. For toilets, extract explicit montage info from description.
+            if (obj.mountingMaterials !== undefined) {
+                const label = (obj.label || obj.name || '').toLowerCase();
+                const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
+                if (isToilet) {
+                    if (label.includes('für einbauspülkasten') || label.includes('fuer einbauspuelkasten')) return 'unterputz';
+                    if (label.includes('für spülkastenmontage') || label.includes('fuer spuelkastenmontage') || label.includes('für aufputzspülkasten')) return 'aufputz';
+                }
+                return 'common';
+            }
 
             // 1. Check for manual admin override first
             if (obj.overrideMontageart && obj.overrideMontageart !== 'auto') {
@@ -5668,6 +6175,9 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
         init: function () {
             this.isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
             this.selectedTray = null;
+            this.showAccessoires = false;
+            this.currentAccessoiresSerie = 'all';
+            this.selectedAccessoires = [];
             this.currentMontageart = 'alle';
             this.currentManufacturer = 'all';
             this.currentSerie = 'all';
@@ -5739,11 +6249,29 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         <div class="search-results-container" id="searchResults_${suffix}"></div>
                     </div>
 
+                    
                     <div class="sidebar-section" id="trayConfigurator_${suffix}" style="display:none; margin-top:2rem;">
                         <h2>Konfiguration</h2>
                         <p class="section-desc">Wählen Sie das passende Zubehör.</p>
                         <div id="trayConfiguratorInner_${title.replace(/\s/g, '')}"></div>
                     </div>
+
+                    ${isToiletApp ? `
+                    <div class="sidebar-section addon-toggles-section" id="addon_toggles_section_${suffix}" style="display:none; margin-top:2rem;">
+                        <div class="finder-sub-header">Zusatzoptionen</div>
+                        <div class="addon-toggle-row" id="toggle_accessoires_${suffix}">
+                            <span class="addon-toggle-label"><i class="ri-archive-line"></i> Accessoires</span>
+                            <button class="ios-toggle" data-target="accessoires_wc" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
+                        </div>
+                        <div id="addon_accessoires_wc_panel_${suffix}" class="addon-panel" style="display:none;">
+                            <div class="finder-sub-header">Serie</div>
+                            <div class="pill-group" id="list_addon_accessoires_serie_wc_${suffix}" style="margin-bottom: 0.75rem;"></div>
+                            <div class="finder-sub-header">Accessoires wählen</div>
+                            <div class="finder-list" id="list_addon_accessoires_wc_${suffix}"></div>
+                        </div>
+                    </div>
+                    ` : ''}
+
                 `;
             this.updatePillFilters();
         },
@@ -6019,6 +6547,12 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
 
             if (filtered.length === 0) {
                 resultsContainer.innerHTML = '<div class="no-results">Keine Produkte gefunden. Bitte Filter anpassen.</div>';
+                if (this.selectedTray) {
+                    this.renderConfigurator();
+                    this.updateBOM();
+                } else {
+                    this.renderGridInMainPanel(filtered);
+                }
                 return;
             }
 
@@ -6118,6 +6652,10 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
 
             this.filterResults(); // re-render to highlight active
             this.renderConfigurator();
+            
+            const addonSection = document.getElementById(`addon_toggles_section_${suffix}`);
+            if (addonSection) addonSection.style.display = 'block';
+            if (this.updateAccessoiresToggles) this.updateAccessoiresToggles();
             this.updateBOM();
         },
         renderConfigurator: function () {
@@ -6330,6 +6868,106 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     groupDiv.appendChild(select);
                 }
                 inner.appendChild(groupDiv);
+            });
+        },
+        
+        updateAccessoiresToggles: function () {
+            const suffix = title.replace(/\s/g, '');
+            const btn = document.querySelector(`#toggle_accessoires_${suffix} .ios-toggle`);
+            const panel = document.getElementById(`addon_accessoires_wc_panel_${suffix}`);
+            if (btn) btn.classList.toggle('active', this.showAccessoires);
+            if (panel) panel.style.display = this.showAccessoires ? 'block' : 'none';
+
+            const section = document.getElementById(`addon_toggles_section_${suffix}`);
+            if (section && !section._bound) {
+                section._bound = true;
+                const toggleBtn = section.querySelector('.ios-toggle');
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', () => {
+                        this.showAccessoires = !this.showAccessoires;
+                        if (!this.showAccessoires) {
+                            this.selectedAccessoires = [];
+                            this.currentAccessoiresSerie = 'all';
+                        }
+                        this.updateAccessoiresToggles();
+                        if (this.showAccessoires) this.populateAccessoires();
+                        this.updateBOM();
+                    });
+                }
+            }
+        },
+        populateAccessoires: function () {
+            const suffix = title.replace(/\s/g, '');
+            const listEl = document.getElementById(`list_addon_accessoires_wc_${suffix}`);
+            if (!listEl) return;
+            const keywords = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste'];
+            let candidates = [];
+            const allApps = window.productApps || {};
+            Object.keys(allApps).forEach(appKey => {
+                const a = allApps[appKey];
+                if (a.trays) {
+                    a.trays.forEach(t => {
+                        const lbl = (t.label || t.name || '').toLowerCase();
+                        if (keywords.some(kw => lbl.includes(kw))) {
+                            candidates.push(t);
+                        }
+                    });
+                }
+            });
+            const seen = new Set();
+            candidates = candidates.filter(c => {
+                if (seen.has(c.artNr)) return false;
+                seen.add(c.artNr);
+                return true;
+            });
+            
+            
+            const serieListEl = document.getElementById(`list_addon_accessoires_serie_wc_${suffix}`);
+            if (serieListEl) {
+                const series = [...new Set(candidates.map(c => this.extractSerie(c)))].filter(Boolean).sort();
+                serieListEl.innerHTML = `<button class="pill-btn ${this.currentAccessoiresSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                    series.map(s => `<button class="pill-btn ${this.currentAccessoiresSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
+                
+                serieListEl.querySelectorAll('.pill-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.currentAccessoiresSerie = btn.dataset.val;
+                        this.populateAccessoires();
+                    });
+                });
+            }
+            
+            if (this.currentAccessoiresSerie !== 'all') {
+                candidates = candidates.filter(c => this.extractSerie(c) === this.currentAccessoiresSerie);
+            }
+            
+            listEl.innerHTML = '';
+            if (candidates.length === 0) {
+                listEl.innerHTML = '<div class="finder-empty-state" style="font-size:0.8rem;">Keine passenden Produkte gefunden.</div>';
+                return;
+            }
+            candidates.forEach(c => {
+                const btn = document.createElement('div');
+                btn.className = `finder-item ${this.selectedAccessoires.includes(c.artNr) ? 'active' : ''}`;
+                btn.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        ${(c.imgUrl || getSanitasImgUrl(c.artNr)) ? `<img src="${c.imgUrl || getSanitasImgUrl(c.artNr)}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;" onerror="this.outerHTML='<div style=&quot;width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;&quot;><i class=&quot;ri-image-line placeholder-icon&quot;></i></div>'">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
+                        <div>
+                            <div style="font-size:0.8rem; font-weight:500; line-height:1.3;">${c.label}</div>
+                            <div style="font-size:0.7rem; color:var(--st-gray); margin-top:0.25rem;">
+                                ${c.manufacturer || ''} ${this.extractSerie(c) !== 'Andere' ? '· ' + this.extractSerie(c) : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--st-gray); font-family:var(--st-font-mono); margin-top:0.5rem; text-align:right;">${c.artNr}</div>
+                `;
+                btn.addEventListener('click', () => {
+                    const idx = this.selectedAccessoires.indexOf(c.artNr);
+                    if (idx > -1) this.selectedAccessoires.splice(idx, 1);
+                    else this.selectedAccessoires.push(c.artNr);
+                    this.populateAccessoires(); 
+                    this.updateBOM();
+                });
+                listEl.appendChild(btn);
             });
         },
         clearBOM: function () {
@@ -6626,6 +7264,33 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 mainLblLower.includes('schallschutz-set') ||
                 mainLblLower.includes('schallschutzset') ||
                 mainLblLower.includes('inkl. isolation');
+
+            
+            // Add Accessories to finalBOM
+            if (this.showAccessoires && this.selectedAccessoires && this.selectedAccessoires.length > 0) {
+                const allApps = window.productApps || {};
+                this.selectedAccessoires.forEach(artNr => {
+                    let accObj = null;
+                    Object.keys(allApps).forEach(appKey => {
+                        if (accObj) return;
+                        const app = allApps[appKey];
+                        const itemsToSearch = app.trays || [];
+                        accObj = itemsToSearch.find(t => t.artNr === artNr);
+                    });
+                    if (accObj) {
+                        finalBOM.push({
+                            artNr: accObj.artNr,
+                            label: accObj.label,
+                            typ: 'Accessoire',
+                            menge: 1,
+                            img: accObj.imgUrl,
+                            note: 'Accessoire',
+                            priority: 90
+                        });
+                    }
+                });
+            }
+
 
             let sortedBOM = finalBOM.sort((a, b) => a.priority - b.priority);
 
