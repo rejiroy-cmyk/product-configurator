@@ -4381,9 +4381,9 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                                     // Save all valid cabinets for potential fallback
                                     allSpiegelschrankCandidates.push({ item: t, width: cW });
 
-                                    // Round both to nearest integer cm (handles 59.5 vs 60 cases)
-                                    if (Math.round(bW) !== Math.round(cW)) return;
-                                    // If width matches, we consider it a found match (even if series differ)
+                                    // Allow up to 3cm difference (e.g. 78cm quattro luci for 80cm basin)
+                                    if (Math.abs(bW - cW) > 3) return;
+                                    // If width matches or is close, we consider it a found match
                                     matchFound = true;
                                 } else if (target === 'spiegelschrank' && basinWStr !== 'unknown') {
                                     // Basin has a width, but cabinet doesn't? Skip it to be safe.
@@ -4392,7 +4392,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             }
 
                             // 2. Fallback to Series match if no specific rule matched
-                            if (!matchFound && target !== 'accessoires') {
+                            if (!matchFound && !target.startsWith('accessoires')) {
                                 const basinSerie = this.extractSerie(this.selectedBasin).toLowerCase();
                                 const tSerie = this.extractSerie(t).toLowerCase();
                                 if (!tSerie.includes(basinSerie) && !basinSerie.includes(tSerie)) return;
