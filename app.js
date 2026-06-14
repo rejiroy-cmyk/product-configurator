@@ -1,6 +1,37 @@
 import { DATA_VERSION, catalog } from './modules/data.js?v=2.5.4';
-import { productApps } from './modules/apps.js?v=2.6.3';
+import { productApps } from './modules/apps.js?v=2.6.27';
 import { setupAdmin } from './modules/admin.js?v=2.5.4';
+
+window.copyTextToClipboard = function(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).catch(err => {
+            console.warn("navigator.clipboard.writeText failed, trying fallback...", err);
+            return copyFallback(text);
+        });
+    }
+    return copyFallback(text);
+
+    function copyFallback(txt) {
+        const textArea = document.createElement("textarea");
+        textArea.value = txt;
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            return successful ? Promise.resolve() : Promise.reject(new Error("Fallback copy failed"));
+        } catch (err) {
+            document.body.removeChild(textArea);
+            return Promise.reject(err);
+        }
+    }
+};
+
 
 document.addEventListener('DOMContentLoaded', async () => {
     window.productApps = productApps;
@@ -186,7 +217,34 @@ document.addEventListener('DOMContentLoaded', async () => {
                 copyBtnText.textContent = 'Artikelnummern kopieren';
             }
         }
+
+        // --- GLOBAL DOM CLEANUP ---
+        const grid = document.getElementById('catalogPreviewGrid');
+        if (grid) {
+            grid.style.display = 'none';
+            grid.innerHTML = '';
+        }
+
+        const btb = document.getElementById('bomTableBody');
+        if (btb) btb.innerHTML = '';
+
+        const bomTable = document.querySelector('.table-container.bom-table-wrapper .bom-table');
+        if (bomTable) bomTable.style.display = '';
+
+        const backBtn = document.getElementById('backToCatalogBtn');
+        if (backBtn) backBtn.style.display = 'none';
         
+        const wcBackBtnStand = document.getElementById('wcBackBtn_Standklosett');
+        if (wcBackBtnStand) wcBackBtnStand.style.display = 'none';
+        const wcBackBtnWand = document.getElementById('wcBackBtn_Wandklosett');
+        if (wcBackBtnWand) wcBackBtnWand.style.display = 'none';
+        
+        const wcTheadStand = document.querySelector('#trayBOM_Standklosett thead');
+        if (wcTheadStand) wcTheadStand.style.display = '';
+        const wcTheadWand = document.querySelector('#trayBOM_Wandklosett thead');
+        if (wcTheadWand) wcTheadWand.style.display = '';
+        // --------------------------
+
         if (appId === 'mixandmatch') {
             document.body.classList.add('mixmatch-active');
             const basins = productApps.waschtisch?.trays || [];
@@ -442,6 +500,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const queries = query.split(/\s+/).filter(q => q.length > 0);
             const regexQueries = queries.map(wildcardQueryToRegex);
+            const fullCleanQuery = query.replace(/[\s\.]/g, '');
+            const fullCleanRegex = fullCleanQuery.length > 0 ? wildcardQueryToRegex(fullCleanQuery) : null;
 
             let results = [];
             
@@ -454,7 +514,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const labelStr = item.label ? String(item.label) : (item.name ? String(item.name) : '');
                     
                     const combinedStr = `${artNrStr} ${labelStr}`;
-                    const isMatch = regexQueries.every(regex => regex.test(combinedStr));
+                    const cleanArtNr = artNrStr.replace(/[\s\.]/g, '');
+                    
+                    let isMatch = regexQueries.every(regex => regex.test(combinedStr));
+                    if (!isMatch && fullCleanRegex) {
+                        isMatch = fullCleanRegex.test(cleanArtNr);
+                    }
                     
                     if (isMatch) {
                         results.push({
@@ -922,9 +987,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
             const text = window.customWishlist.map(i => `${i.artNr}\t${i.menge}`).join('\n');
-            navigator.clipboard.writeText(text).then(() => {
+            window.copyTextToClipboard(text).then(() => {
                 alert("Eigene Selektion für SAP kopiert:\n\n" + text.replace(/\t/g, "    "));
-            });
+            }).catch(e => alert("Kopieren fehlgeschlagen."));
         });
     }
 
@@ -1036,26 +1101,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             rows.forEach(row => {
                 const artNrEl = row.querySelector('.bom-code');
                 const labelEl = row.querySelector('.bom-desc');
+                const selectEl = row.querySelector('.inline-bom-select');
                 const typEl = row.querySelector('.bom-type');
                 const imgEl = row.querySelector('.img-cell img');
-                const mengeEl = row.querySelector("td:nth-child(5) strong");
+                const mengeEl = row.querySelector("strong");
 
-                if (artNrEl && labelEl) {
+                if (artNrEl) {
                     const artNr = artNrEl.textContent.trim();
-                    const label = labelEl.textContent.trim();
-                    const typ = typEl ? typEl.textContent.trim() : 'Artikel';
-                    const imgUrl = imgEl ? imgEl.src : undefined;
-                    const menge = mengeEl ? parseInt(mengeEl.textContent) : 1;
-
-                    const exists = window.customWishlist.find(i => i.artNr === artNr);
-                    if (exists) {
-                        exists.menge += menge;
-                    } else {
-                        window.customWishlist.push({
-                            artNr, label, typ, imgUrl, menge
-                        });
+                    let label = '';
+                    if (labelEl) {
+                        label = labelEl.textContent.trim();
+                    } else if (selectEl) {
+                        const selectedOpt = selectEl.options[selectEl.selectedIndex];
+                        if (selectedOpt) {
+                            label = selectedOpt.text.replace(/\s*\([^)]+\)$/, '').trim();
+                        }
                     }
-                    addedCount++;
+
+                    if (label && artNr && artNr !== "Ausstehend" && artNr !== "none" && !artNr.toLowerCase().startsWith("ohne")) {
+                        const typ = typEl ? typEl.textContent.trim() : 'Artikel';
+                        const imgUrl = imgEl ? imgEl.src : undefined;
+                        const menge = mengeEl ? parseInt(mengeEl.textContent) : 1;
+
+                        const exists = window.customWishlist.find(i => i.artNr === artNr);
+                        if (exists) {
+                            exists.menge += menge;
+                        } else {
+                            window.customWishlist.push({
+                                artNr, label, typ, imgUrl, menge
+                            });
+                        }
+                        addedCount++;
+                    }
                 }
             });
 

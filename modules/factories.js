@@ -1,3 +1,74 @@
+window.copyTextToClipboard = function(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).catch(err => {
+            console.warn("navigator.clipboard.writeText failed, trying fallback...", err);
+            return copyFallback(text);
+        });
+    }
+    return copyFallback(text);
+
+    function copyFallback(txt) {
+        const textArea = document.createElement("textarea");
+        textArea.value = txt;
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            return successful ? Promise.resolve() : Promise.reject(new Error("Fallback copy failed"));
+        } catch (err) {
+            document.body.removeChild(textArea);
+            return Promise.reject(err);
+        }
+    }
+};
+
+window.copyBOMToClipboard = function() {
+    try {
+        if (window.currentActiveApp && !window.currentActiveApp.parts && !window.currentActiveApp.selectedTray) {
+            alert("Bitte wählen Sie zuerst ein Produkt aus.");
+            return;
+        }
+        const bomTableBody = document.getElementById("bomTableBody");
+        if (!bomTableBody) {
+            alert("Keine Produkte gefunden.");
+            return;
+        }
+        let textLines = [];
+        bomTableBody.querySelectorAll("tr").forEach(row => {
+            if (row.style.display === "none" || row.style.opacity === "0.5" || window.getComputedStyle(row).display === "none") return;
+            if (row.querySelector("td[colspan]")) return;
+            
+            const codeSpan = row.querySelector(".bom-code");
+            const qtyStrong = row.querySelector("strong");
+            if (codeSpan && codeSpan.textContent.trim()) {
+                let code = codeSpan.textContent.replace(/\t/g, "").trim();
+                let menge = qtyStrong ? qtyStrong.textContent.replace(/\t/g, "").trim() : "1";
+                if (!/^\d+$/.test(menge)) menge = "1";
+                if (code !== "-" && code !== "none" && code !== "" && !code.toLowerCase().startsWith("ohne") && code !== "Ausstehend") {
+                    textLines.push(code + "\t" + menge);
+                }
+            }
+        });
+        if (textLines.length === 0) {
+            alert("Keine kopierbaren Produkte gefunden.");
+            return;
+        }
+        const text = textLines.join("\n");
+        window.copyTextToClipboard(text).then(() => {
+            alert("Kopiert:\n\n" + text.replace(/\t/g, "    "));
+        }).catch(e => alert("Kopieren fehlgeschlagen: " + e.message));
+    } catch (err) {
+        alert("Fehler beim Kopieren: " + err.message);
+    }
+};
+
+
 // DOM Elements needed by factories
 const configSidebar = document.getElementById('configSidebar');
 const bomTableBody = document.getElementById('bomTableBody');
@@ -185,12 +256,17 @@ export function createFinishesApp(title, desc, mainImgUrl, baseBodyLabel, baseBo
             const finish = this.finishes.find(f => f.id === this.currentFinishId) || this.finishes[0];
             if (!finish) return;
             const text = `${finish.artNr}\t${finish.menge || 1}\n${this.baseBody.artNr}\t${this.baseBody.menge || 1}`;
-            navigator.clipboard.writeText(text).then(() => alert("SAP Format kopiert:\n\n" + text.replace(/\t/g, "    "))).catch(e => alert("Fehler."));
+            window.copyTextToClipboard(text).then(() => alert("SAP Format kopiert:\n\n" + text.replace(/\t/g, "    "))).catch(e => alert("Fehler."));
         }
     };
 }
 
 export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
+    const w = title;
+    const E = desc;
+    const V = mainImgUrl;
+    const k = config;
+    
     if (!config.sizeLabel && title.toLowerCase().includes('rinne')) {
         config.sizeLabel = 'Breite';
     }
@@ -204,6 +280,68 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
     const suffix = title.replace(/\s/g, '');
 
     return {
+        parseSize: function (t) {
+            let s = t.size || '';
+            const isRange = s.includes('-');
+            const hasMissingDim = s.split('x').length < 3;
+            
+            let isVario = false;
+            let vMinL = null, vMaxL = null, vMinW = null, vMaxW = null;
+
+            if (isRange || hasMissingDim) {
+                const match = t.label && t.label.match(/(?:(\d+)\s*-\s*)?(\d+)\s*x\s*(?:(\d+)\s*-\s*)?(\d+)\s*x\s*(\d+(?:[.,]\d+)?)/);
+                if (match) {
+                    let m1_min = match[1] ? parseFloat(match[1]) : parseFloat(match[2]);
+                    let m1_max = parseFloat(match[2]);
+                    
+                    let m2_min = match[3] ? parseFloat(match[3]) : parseFloat(match[4]);
+                    let m2_max = parseFloat(match[4]);
+                    
+                    let m3 = parseFloat(match[5].replace(',', '.'));
+
+                    if (m1_max > 300 || m2_max > 300) {
+                        m1_min /= 10; m1_max /= 10;
+                        m2_min /= 10; m2_max /= 10;
+                        m3 /= 10;
+                    }
+                    
+                    s = `${m1_max} x ${m2_max} x ${m3}`;
+                    
+                    if (match[1] || match[3] || (t.label && t.label.includes('Vario'))) {
+                        isVario = true;
+                        vMinL = m1_min; vMaxL = m1_max;
+                        vMinW = m2_min; vMaxW = m2_max;
+                    }
+                }
+            } else if (s.includes('Vario') || (t.label && t.label.includes('Vario'))) {
+                 isVario = true;
+            }
+
+            if (!s) return { size2D: '', size2DReversed: '', depth: null, isVario: false };
+            
+            let parts = s.split('x').map(p => p.trim());
+            if (parts.length >= 2) {
+                let m1 = parseFloat(parts[0]);
+                let m2 = parseFloat(parts[1]);
+                if (m1 > 300 || m2 > 300) {
+                    m1 /= 10; m2 /= 10;
+                    parts[0] = m1.toString();
+                    parts[1] = m2.toString();
+                    if (parts.length >= 3) {
+                        parts[2] = (parseFloat(parts[2].replace(',', '.')) / 10).toString();
+                    }
+                }
+            }
+
+            return { 
+                size2D: parts.length >= 2 ? parts[0] + ' x ' + parts[1] : s, 
+                size2DReversed: parts.length >= 2 ? parts[1] + ' x ' + parts[0] : s,
+                depth: parts.length >= 3 ? parts[2] : null,
+                isVario: isVario,
+                varioMinL: vMinL, varioMaxL: vMaxL,
+                varioMinW: vMinW, varioMaxW: vMaxW
+            };
+        },
         title: title,
         trays: [],
         mainImgUrl: mainImgUrl,
@@ -211,8 +349,12 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
         showAccessoires: false,
         currentAccessoiresSerie: 'all',
         selectedAccessoires: [],
-        showAccessoires: false,
-        selectedAccessoires: [],
+        useMontageset: false,
+        toggleMontageset: function (val) {
+            this.useMontageset = val;
+            this.renderConfigurator();
+            this.updateBOM();
+        },
         cleanLabel: function (label) {
             if (config.sizeLabel === 'Breite' && label) {
                 return label.replace(/^(Duschrinne|Duschenrinne)\s+/i, '').trim();
@@ -295,13 +437,13 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             const match = label.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm|\s+\d+\s*x\s*\d+)/);
             let serie = match && match[1] ? match[1].trim() : label.trim();
 
-            const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => (t.label||'').toLowerCase().includes(kw));
+            const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => ((t.label||'') + ' ' + (t.description||'')).toLowerCase().includes(kw));
             if (isAccessory && serie.includes(' ')) serie = serie.split(' ')[0];
 
             return this.normalizeSerie(serie, t.manufacturer);
         },
         extractMontage: function (t) {
-            const l = (t.label || '').toLowerCase();
+            const l = ((t.label || '') + ' ' + (t.description || '')).toLowerCase();
             const isBath = title.toLowerCase().includes('badewanne') || title.toLowerCase().includes('wanne');
 
             if (l.includes('unterputz') || l.includes(' up ') || l.includes('einbau') || l.includes('endmontageset') || l.includes('grundkörper')) {
@@ -316,8 +458,8 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             return 'Aufputz';
         },
         extractTrayMontage: function (t) {
-            const l = (t.label || '').toLowerCase();
-            const s = (t.serie || t.label || '').toLowerCase();
+            const l = ((t.label || '') + ' ' + (t.description || '')).toLowerCase();
+            const s = ((t.serie || t.label || '') + ' ' + (t.description || '')).toLowerCase();
             
             if (s.includes('cerawall')) return 'wand';
             if (s.includes('cerafloor') || s.includes('ceraframe')) return 'raum';
@@ -339,89 +481,110 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             return [...new Set(this.trays.map(t => t[key]))].sort();
         },
         classifyAccessory: function (obj) {
-            if (!obj) return 'common';
-            // Only use mountingMaterials to detect the main tray object, because accessories now have manufacturer fields too.
-            if (obj.mountingMaterials !== undefined) return 'common';
+            const getRawClass = (obj) => {
+                if (!obj) return 'common';
+                // Only use mountingMaterials to detect the main tray object, because accessories now have manufacturer fields too.
+                if (obj.mountingMaterials !== undefined) return 'common';
 
-            // 1. Check for manual admin override first
-            if (obj.overrideMontageart && obj.overrideMontageart !== 'auto') {
-                return obj.overrideMontageart.toLowerCase();
-            }
-
-            // 2. CHECK CATEGORY NAME / ID FIRST (New & Robust)
-            // If the object is a category (mat) or an option, check its container name
-            const catName = (obj.name || '').toLowerCase();
-            const catId = (obj.id || '').toLowerCase();
-            if (catName.includes('träger') || catName.includes('wannenträger') || catId.includes('carrier') || catId.includes('träger')) return 'wannenträger';
-            if (catName.includes('rahmen') || catName.includes('montagerahmen') || catId.includes('rahmen') || catId.includes('frame')) return 'montagerahmen';
-            if (catName.includes('stelz')) return 'stelzfüsse';
-
-            // 3. Clean input data for keyword matching
-            const label = (obj.label || obj.name || '').toLowerCase();
-            const artNr = (obj.artNr || '').replace(/\s/g, '');
-
-            // 4. HARD EXCEPTIONS (Firm IDs)
-            if (this.title === 'Duschenwanne') {
-                if (artNr === '1445782.000.000' || artNr === '1441782.000.000') {
-                    return 'wannenträger';
+                // 1. Check for manual admin override first
+                if (obj.overrideMontageart && obj.overrideMontageart !== 'auto') {
+                    return obj.overrideMontageart.toLowerCase();
                 }
-                if (artNr === '1431191.000.000' || artNr === '1431190.000.000' || artNr === '1435435.000.000' || artNr === '1435433.000.000') {
-                    return 'montagerahmen';
-                }
-            } else if (this.title === 'Badewanne') {
-                // Future Badewanne specific exceptions go here
-            }
 
-            // 5. KEYWORD LOGIC
-            // Special Rule: If it's a Siphon (Ablauf) or Deckel, it's ALWAYS common
-            if (label.includes('ablauf') || label.includes('siphon') || label.includes('garnitur') || label.includes('ventil') || label.includes('deckel')) {
+                // 2. CHECK CATEGORY NAME / ID FIRST (New & Robust)
+                // If the object is a category (mat) or an option, check its container name
+                const catName = (obj.name || '').toLowerCase();
+                const catId = (obj.id || '').toLowerCase();
+                if (catName.includes('träger') || catName.includes('wannenträger') || catId.includes('carrier') || catId.includes('träger')) return 'wannenträger';
+                if (catName.includes('rahmen') || catName.includes('montagerahmen') || catId.includes('rahmen') || catId.includes('frame')) return 'montagerahmen';
+                if (catName.includes('stelz')) return 'stelzfüsse';
+
+                // 3. Clean input data for keyword matching
+                const label = ((obj.label || obj.name || '') + ' ' + (obj.description || '')).toLowerCase();
+                const artNr = (obj.artNr || '').replace(/\s/g, '');
+
+                // 4. HARD EXCEPTIONS (Firm IDs)
+                if (this.title === 'Duschenwanne') {
+                    if (artNr === '1445782.000.000' || artNr === '1441782.000.000') {
+                        return 'wannenträger';
+                    }
+                    if (artNr === '1431191.000.000' || artNr === '1431190.000.000' || artNr === '1435435.000.000' || artNr === '1435433.000.000') {
+                        return 'montagerahmen';
+                    }
+                } else if (this.title === 'Badewanne') {
+                    // Future Badewanne specific exceptions go here
+                }
+
+                // 5. KEYWORD LOGIC
+                // Special Rule: If it's a Siphon (Ablauf) or Deckel, it's ALWAYS common
+                if (label.includes('ablauf') || label.includes('siphon') || label.includes('garnitur') || label.includes('ventil') || label.includes('deckel')) {
+                    return 'common';
+                }
+
+                if (label.includes('schallschutzset') || label.includes('schallschutz')) {
+                    return isMixer ? 'unterputz' : 'montagerahmen';
+                }
+
+                const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
+
+                if (isMixer) {
+                    const lblLower = label.toLowerCase();
+                    if (lblLower.includes('standmodell') || lblLower.includes('freien stand')) {
+                        return 'standmodell';
+                    }
+                    if (lblLower.includes('einbaukörper') || lblLower.includes('grundkörper') || lblLower.includes('ibox') || lblLower.includes('up-gehäuse')) {
+                        return 'unterputz';
+                    }
+                    if (lblLower.includes('endmontage') || lblLower.includes('einbau') || lblLower.includes('anschlussbogen') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
+                        return 'unterputz';
+                    }
+                    if (lblLower.includes('aufputz') || lblLower.includes(' ap ') || lblLower.includes('ausserhalb') || lblLower.includes('mischer') || lblLower.includes('batterie')) {
+                        return 'aufputz';
+                    }
+                } else if (isToilet) {
+                    const lblLower = label.toLowerCase();
+                    if (lblLower.includes('einbauspülkasten') || lblLower.includes('einbauspulkasten')) {
+                        return 'unterputz';
+                    }
+                    return 'aufputz';
+                } else {
+                    if (label.includes('träger') || label.includes('wannenträger') || label.includes('montageschaum')) {
+                        return 'wannenträger';
+                    }
+                    // IMPORTANT: stelzfüsse check MUST come before generic 'füsse' check
+                    // otherwise "Stelzfüsse" matches 'füsse' and is wrongly classified as montagerahmen
+                    if (label.includes('stelzfüss') || label.includes('stelzfuss')) {
+                        return 'stelzfüsse';
+                    }
+                    if (label.includes('rahmen') || label.includes('füsse') || label.includes('fussset')) {
+                        return 'montagerahmen';
+                    }
+                    if (label.includes('schallschutzset') || label.includes('schallschutz')) {
+                        return 'montagerahmen';
+                    }
+                }
+
+                return 'common';
+            };
+
+            const rawClass = getRawClass.call(this, obj);
+            
+            const validCategories = [
+                'common',
+                'alle',
+                'all',
+                (config.montageLabel1 || (isMixer ? "Aufputz" : "Wannenträger")).toLowerCase(),
+                (config.montageLabel2 || (isMixer ? "Unterputz" : "Montagerahmen")).toLowerCase(),
+                (config.montageLabel3 || "").toLowerCase(),
+                (config.montageLabel4 || "").toLowerCase(),
+                (config.montageLabel5 || "").toLowerCase()
+            ].filter(Boolean);
+
+            if (!validCategories.includes(rawClass)) {
+                console.warn(`[Configurator] Invalid RelationalApp mounting category "${rawClass}" detected for ${obj.artNr || obj.name}. Falling back to "common" to prevent silent exclusion.`);
                 return 'common';
             }
-
-            if (label.includes('schallschutzset') || label.includes('schallschutz')) {
-                return isMixer ? 'unterputz' : 'schallschutz';
-            }
-
-            const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
-
-            if (isMixer) {
-                const lblLower = label.toLowerCase();
-                if (lblLower.includes('standmodell') || lblLower.includes('freien stand')) {
-                    return 'standmodell';
-                }
-                if (lblLower.includes('einbaukörper') || lblLower.includes('grundkörper') || lblLower.includes('ibox') || lblLower.includes('up-gehäuse')) {
-                    return 'unterputz';
-                }
-                if (lblLower.includes('endmontage') || lblLower.includes('einbau') || lblLower.includes('anschlussbogen') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
-                    return 'unterputz';
-                }
-                if (lblLower.includes('aufputz') || lblLower.includes(' ap ') || lblLower.includes('ausserhalb') || lblLower.includes('mischer') || lblLower.includes('batterie')) {
-                    return 'aufputz';
-                }
-            } else if (isToilet) {
-                const lblLower = label.toLowerCase();
-                if (lblLower.includes('einbauspülkasten') || lblLower.includes('einbauspulkasten')) {
-                    return 'unterputz';
-                }
-                return 'aufputz';
-            } else {
-                if (label.includes('träger') || label.includes('wannenträger') || label.includes('montageschaum')) {
-                    return 'wannenträger';
-                }
-                // IMPORTANT: stelzfüsse check MUST come before generic 'füsse' check
-                // otherwise "Stelzfüsse" matches 'füsse' and is wrongly classified as montagerahmen
-                if (label.includes('stelzfüss') || label.includes('stelzfuss')) {
-                    return 'stelzfüsse';
-                }
-                if (label.includes('rahmen') || label.includes('füsse') || label.includes('fussset')) {
-                    return 'montagerahmen';
-                }
-                if (label.includes('schallschutzset') || label.includes('schallschutz')) {
-                    return 'schallschutz';
-                }
-            }
-
-            return 'common';
+            return rawClass;
         },
         init: function () {
             this.isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
@@ -440,7 +603,6 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             this.renderSidebar();
             this.bindFilters();
             this.filterResults(); // initial run
-            this.clearBOM();
         },
         renderSidebar: function () {
             const isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
@@ -481,6 +643,11 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         <div class="filter-group">
                             <div class="finder-sub-header" id="head_rel_size_${suffix}">${config.sizeLabel || 'Grösse'}</div>
                             <div class="pill-group" id="list_rel_size_${suffix}"></div>
+                        </div>
+
+                        <div class="filter-group" id="group_rel_tiefe_${suffix}" style="display: none;">
+                            <div class="finder-sub-header" id="head_rel_tiefe_${suffix}">Tiefe</div>
+                            <div class="pill-group" id="list_rel_tiefe_${suffix}"></div>
                         </div>
                         `}
                         
@@ -578,6 +745,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 this.currentSerie = 'all';
                 this.currentForm = 'all';
                 this.currentSize = 'all';
+                this.currentTiefe = 'all';
                 this.updatePillFilters();
                 this.filterResults();
             });
@@ -661,6 +829,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 applyPillUI(`head_rel_form_${suffix}`, `list_rel_form_${suffix}`, this.currentForm, formLabel, () => {
                     this.currentForm = 'all';
                     this.currentSize = 'all';
+                    this.currentTiefe = 'all';
                     this.updatePillFilters();
                     this.filterResults();
                 });
@@ -680,29 +849,89 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 if (this.currentForm !== 'all') {
                     validTraysForSize = validTraysForSize.filter(t => t.form === this.currentForm);
                 }
-                const sizes = [...new Set(validTraysForSize.map(t => t.size))].sort((a, b) => {
-                    const numA = parseFloat(a);
-                    const numB = parseFloat(b);
-                    if (isNaN(numA) && isNaN(numB)) return String(a).localeCompare(String(b));
-                    if (isNaN(numA)) return 1;
-                    if (isNaN(numB)) return -1;
-                    return numA - numB;
+                const sizes2D = [...new Set(validTraysForSize.filter(t => !this.parseSize(t).isVario).map(t => this.parseSize(t).size2D))].filter(Boolean).sort((a, b) => {
+                    const partsA = String(a).split('x').map(s => parseFloat(s.trim()));
+                    const partsB = String(b).split('x').map(s => parseFloat(s.trim()));
+                    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+                        const numA = partsA[i];
+                        const numB = partsB[i];
+                        if (isNaN(numA) && isNaN(numB)) continue;
+                        if (isNaN(numA)) return 1;
+                        if (isNaN(numB)) return -1;
+                        if (numA !== numB) return numA - numB;
+                    }
+                    return String(a).localeCompare(String(b));
                 });
-                sList.innerHTML = `<button class="pill-btn ${this.currentSize === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + sizes.map(s => {
+                sList.innerHTML = `<button class="pill-btn ${this.currentSize === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + sizes2D.map(s => {
                     const btnLabel = config.sizeLabel === 'Breite' ? `bis ${s} cm` : s;
                     return `<button class="pill-btn ${this.currentSize === s ? 'active' : ''}" data-val="${s}">${btnLabel}</button>`;
                 }).join('');
                 const displaySizeVal = config.sizeLabel === 'Breite' ? `bis ${this.currentSize} cm` : this.currentSize;
                 applyPillUI(`head_rel_size_${suffix}`, `list_rel_size_${suffix}`, this.currentSize, config.sizeLabel || 'Grösse', () => {
                     this.currentSize = 'all';
+                    this.currentTiefe = 'all';
                     this.updatePillFilters();
                     this.filterResults();
                 }, displaySizeVal);
                 sList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
                     this.currentSize = btn.dataset.val;
+                    this.currentTiefe = 'all';
                     this.updatePillFilters();
                     this.filterResults();
                 }));
+            }
+
+            // 4.5. Tiefe (Depth)
+            const tiefeGroup = document.getElementById(`group_rel_tiefe_${suffix}`);
+            const tList = document.getElementById(`list_rel_tiefe_${suffix}`);
+            if (tiefeGroup && tList) {
+                if (title.toLowerCase().includes('wanne') && this.currentSize !== 'all') {
+                    let validTraysForTiefe = validTraysForSerie;
+                    if (this.currentSerie !== 'all') validTraysForTiefe = validTraysForTiefe.filter(t => this.extractSerie(t) === this.currentSerie);
+                    if (this.currentForm !== 'all') validTraysForTiefe = validTraysForTiefe.filter(t => t.form === this.currentForm);
+                    
+                    let filterW = null, filterL = null;
+                    if (this.currentSize && this.currentSize !== 'all' && this.currentSize !== 'alle') {
+                        const fParts = this.currentSize.split('x').map(x => parseFloat(x.trim()));
+                        if (fParts.length >= 2) { filterW = fParts[0]; filterL = fParts[1]; }
+                    }
+                    
+                    let traysForDepth = validTraysForTiefe.filter(t => {
+                        const parsed = this.parseSize(t);
+                        if (parsed.isVario && filterW && filterL) {
+                            let passDirect = (filterW >= parsed.varioMinL && filterW <= parsed.varioMaxL) && (filterL >= parsed.varioMinW && filterL <= parsed.varioMaxW);
+                            let passRotated = (filterW >= parsed.varioMinW && filterW <= parsed.varioMaxW) && (filterL >= parsed.varioMinL && filterL <= parsed.varioMaxL);
+                            return passDirect || passRotated;
+                        }
+                        return parsed.size2D === this.currentSize || parsed.size2DReversed === this.currentSize;
+                    });
+                    const depths = [...new Set(traysForDepth.map(t => this.parseSize(t).depth).filter(Boolean))].sort((a,b) => parseFloat(a) - parseFloat(b));
+                    
+                    if (depths.length > 0) {
+                        tiefeGroup.style.display = 'block';
+                        tList.innerHTML = `<button class="pill-btn ${this.currentTiefe === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + depths.map(d => {
+                            return `<button class="pill-btn ${this.currentTiefe === d ? 'active' : ''}" data-val="${d}">${d}</button>`;
+                        }).join('');
+                        
+                        applyPillUI(`head_rel_tiefe_${suffix}`, `list_rel_tiefe_${suffix}`, this.currentTiefe, 'Tiefe', () => {
+                            this.currentTiefe = 'all';
+                            this.updatePillFilters();
+                            this.filterResults();
+                        });
+                        
+                        tList.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
+                            this.currentTiefe = btn.dataset.val;
+                            this.updatePillFilters();
+                            this.filterResults();
+                        }));
+                    } else {
+                        tiefeGroup.style.display = 'none';
+                        this.currentTiefe = 'all';
+                    }
+                } else {
+                    tiefeGroup.style.display = 'none';
+                    this.currentTiefe = 'all';
+                }
             }
 
             const val1 = label1.toLowerCase();
@@ -767,7 +996,9 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             const lInput = lEl.value;
             const wInput = wEl.value;
 
-            if (lInput && wInput) {
+            if (!lInput && !wInput) {
+                this.currentSize = 'all';
+            } else if (lInput && wInput) {
                 const sizeStr = `${lInput} x ${wInput}`;
                 const sizeStrRev = `${wInput} x ${lInput}`;
 
@@ -775,10 +1006,10 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 if (found) {
                     this.currentSize = found.size;
                 } else {
-                    this.currentSize = 'all';
+                    this.currentSize = 'custom';
                 }
             } else {
-                this.currentSize = 'all';
+                this.currentSize = 'custom';
             }
             this.updatePillFilters();
         },
@@ -787,6 +1018,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             const serieFilter = this.currentSerie || 'all';
             const fFilter = this.currentForm || 'all';
             const sFilter = this.currentSize || 'all';
+            const tiefeFilter = this.currentTiefe || 'all';
             const lFilter = document.getElementById(`filterLength_${suffix}`)?.value || '';
             const wFilter = document.getElementById(`filterWidth_${suffix}`)?.value || '';
 
@@ -812,25 +1044,49 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     const tFormClean = (t.form || '').toLowerCase();
                     if (fFilterClean !== 'all' && fFilterClean !== 'alle' && !tFormClean.includes(fFilterClean) && !fFilterClean.includes(tFormClean)) return false;
 
-                    if (sFilter !== 'all' && sFilter !== 'alle') {
-                        if (t.size !== sFilter) return false;
-                    } else if (!isToilet && (lFilter || wFilter)) {
-                        // Only run numeric parsing if it's NOT a toilet and looks like "120 x 80"
-                        if (t.size && t.size.includes('x')) {
-                            const parts = t.size.toLowerCase().split('x').map(p => p.trim());
-                            if (parts.length >= 2) {
-                                let [l, w] = parts.map(p => parseFloat(p));
-                                let lf = parseFloat(lFilter);
-                                let wf = parseFloat(wFilter);
-                                const norm = (v) => (v < 400 ? v * 10 : v);
-                                if (lFilter && wFilter) {
-                                    if (!((norm(l) == norm(lf) && norm(w) == norm(wf)) || (norm(l) == norm(wf) && norm(w) == norm(lf)))) return false;
-                                } else if (lFilter) {
-                                    if (norm(l) != norm(lf) && norm(w) != norm(lf)) return false;
-                                } else if (wFilter) {
-                                    if (norm(l) != norm(wf) && norm(w) != norm(wf)) return false;
-                                }
+                    if (sFilter !== 'all' && sFilter !== 'alle' && sFilter !== 'custom') {
+                        const parsed = this.parseSize(t);
+                        
+                        if (parsed.isVario) {
+                            const fParts = sFilter.split('x').map(x => parseFloat(x.trim()));
+                            if (fParts.length >= 2) {
+                                let filterW = fParts[0];
+                                let filterL = fParts[1];
+                                let passDirect = (filterW >= parsed.varioMinL && filterW <= parsed.varioMaxL) && (filterL >= parsed.varioMinW && filterL <= parsed.varioMaxW);
+                                let passRotated = (filterW >= parsed.varioMinW && filterW <= parsed.varioMaxW) && (filterL >= parsed.varioMinL && filterL <= parsed.varioMaxL);
+                                if (!passDirect && !passRotated) return false;
+                            } else {
+                                return false;
                             }
+                        } else {
+                            if (parsed.size2D !== sFilter && parsed.size2DReversed !== sFilter) return false;
+                        }
+                        
+                        if (tiefeFilter !== 'all' && parsed.depth !== tiefeFilter) return false;
+                    } else if (!isToilet && (lFilter || wFilter)) {
+                        const parsed = this.parseSize(t);
+                        let lf = parseFloat(lFilter);
+                        let wf = parseFloat(wFilter);
+                        
+                        if (parsed.isVario) {
+                            let passDirect = (!lf || (lf >= parsed.varioMinL && lf <= parsed.varioMaxL)) && 
+                                             (!wf || (wf >= parsed.varioMinW && wf <= parsed.varioMaxW));
+                            let passRotated = (!lf || (lf >= parsed.varioMinW && lf <= parsed.varioMaxW)) && 
+                                              (!wf || (wf >= parsed.varioMinL && wf <= parsed.varioMaxL));
+                            if (!passDirect && !passRotated) return false;
+                        } else if (parsed.size2D) {
+                            const fParts = parsed.size2D.split('x').map(x => parseFloat(x.trim()));
+                            if (fParts.length >= 2) {
+                                let tL = fParts[0];
+                                let tW = fParts[1];
+                                let passDirect = (!lf || lf === tL) && (!wf || wf === tW);
+                                let passRotated = (!lf || lf === tW) && (!wf || wf === tL);
+                                if (!passDirect && !passRotated) return false;
+                            } else {
+                                return false;
+                            }
+                        } else {
+                            return false;
                         }
                     }
                 }
@@ -885,7 +1141,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 btn.className = `result-item-card ${this.selectedTray && this.selectedTray.id === t.id ? 'active' : ''}`;
                 btn.innerHTML = `
                         <div class="card-img-wrapper">
-                            ${t.imgUrl ? `<img src="${t.imgUrl}">` : '<i class="ri-image-line placeholder-icon"></i>'}
+                            ${(t.imgUrl || getSanitasImgUrl(t.artNr)) ? `<img src="${t.imgUrl || getSanitasImgUrl(t.artNr)}">` : '<i class="ri-image-line placeholder-icon"></i>'}
                         </div>
                         <div class="result-info">
                             <strong>${t.label}</strong>
@@ -903,9 +1159,73 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             if (this.selectedTray) {
                 this.renderConfigurator();
                 this.updateBOM();
+            } else {
+                if (config.enableGalleryUX) {
+                    this.renderGridInMainPanel(filtered);
+                } else {
+                    this.clearBOM();
+                }
             }
         },
+        renderGridInMainPanel: function (filtered) {
+            bomCountCounter.textContent = filtered.length + ' Produkte gefunden';
+            if (filtered.length === 0) {
+                bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#9da3ad; padding:2rem;">Keine Produkte gefunden. Bitte passen Sie die Filter an.</td></tr>';
+                return;
+            }
+
+            // Explicitly sort by size for the initial load
+            const sortedFiltered = [...filtered].sort((a, b) => {
+                const partsA = String(a.size || '').split('x').map(s => parseFloat(s.trim()));
+                const partsB = String(b.size || '').split('x').map(s => parseFloat(s.trim()));
+                for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+                    const numA = partsA[i];
+                    const numB = partsB[i];
+                    if (isNaN(numA) && isNaN(numB)) continue;
+                    if (isNaN(numA)) return 1;
+                    if (isNaN(numB)) return -1;
+                    if (numA !== numB) return numA - numB;
+                }
+                return String(a.size || '').localeCompare(String(b.size || ''));
+            });
+
+            // If there's an overwhelming number, cap it like GlassApp
+            const cappedFiltered = sortedFiltered.slice(0, 150);
+
+            let cards = cappedFiltered.map(t => {
+                return `
+                    <div class="result-item-card catalog-preview-card" onclick="window.currentActiveApp.selectTray('${t.id}')" style="display:flex; flex-direction:row; align-items:center; gap:1rem; border:1px solid var(--border); border-radius:8px; padding:1rem; background:var(--bg-surface); cursor:pointer; transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                        <div class="card-img-wrapper" style="width:70px; height:90px; display:flex; align-items:center; justify-content:center; border-radius:6px; overflow:hidden; background:var(--bg-subtle); flex-shrink:0;">
+                            ${(t.imgUrl || getSanitasImgUrl(t.artNr)) ? `<img src="${t.imgUrl || getSanitasImgUrl(t.artNr)}" loading="lazy" style="max-height:100%; max-width:100%; object-fit:contain;">` : '<i class="ri-image-line placeholder-icon" style="font-size:2rem; color:var(--text-secondary);"></i>'}
+                        </div>
+                        <div class="result-info" style="display:flex; flex-direction:column; flex:1; min-width:0;">
+                            <span style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">${t.manufacturer || "Marke unbekannt"}</span>
+                            <strong style="font-size:0.85rem; line-height:1.3; margin-bottom:4px; color:var(--text-primary); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${t.label}</strong>
+                            <div style="font-size:0.75rem; color:var(--text-secondary);">${t.size || ""}</div>
+                            ${t.form ? `<div style="font-size:0.7rem; color:var(--text-secondary); margin-top:2px;">${t.form}</div>` : ''}
+                            <span class="finish-artnr" style="margin-top:6px; font-size:0.8rem;">${t.artNr}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (sortedFiltered.length > 150) {
+                cards += `<div style="grid-column:1/-1; padding:2rem; text-align:center; color:var(--text-secondary); font-size:0.95rem;">Es gibt ${sortedFiltered.length - 150} weitere Ergebnisse. Bitte passen Sie Ihre Filter an, um diese zu sehen.</div>`;
+            }
+
+            bomTableBody.innerHTML = '<tr><td colspan="5" style="padding:0; border:none; background:transparent;"><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px; padding:12px; background:var(--bg-body); border-radius:8px;">' + cards + '</div></td></tr>';
+        },
         selectTray: function (id) {
+            if (!id) {
+                this.selectedTray = null;
+                if (config.enableGalleryUX) {
+                    this.filterResults();
+                } else {
+                    this.clearBOM();
+                    this.renderConfigurator();
+                }
+                return;
+            }
             this.selectedTray = this.trays.find(t => t.id === id);
 
             // Do NOT auto-change currentMontageart when a tray is selected.
@@ -932,7 +1252,12 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         this.selectedTray.mountingMaterials[mIdx] = mat;
                     }
                     if (mat.options.length > 0) {
-                        this.selectedTray.selections[mat.id] = mat.options[0].artNr;
+                        let defaultOpt = mat.options[0];
+                        if (title && title.toLowerCase().includes('badewanne') && (mat.id === 'mat_tape' || (mat.name && mat.name.includes('Dichtband')))) {
+                            const nischeOpt = mat.options.find(o => (o.label && o.label.includes('3-seitig')) || (o.dropdownLabel && o.dropdownLabel.includes('3-seitig')));
+                            if (nischeOpt) defaultOpt = nischeOpt;
+                        }
+                        this.selectedTray.selections[mat.id] = defaultOpt.artNr;
                     }
                 });
             }
@@ -949,6 +1274,11 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             const configBlock = document.getElementById(`trayConfigurator_${suffix}`);
             const inner = document.getElementById(`trayConfiguratorInner_${suffix}`);
             inner.innerHTML = '';
+
+            if (config.enableGalleryUX) {
+                if (configBlock) configBlock.style.display = 'none';
+                return;
+            }
 
             let hasConfig = false;
 
@@ -1057,9 +1387,29 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             }
 
             // 2. Render Accessories
+            const titleLower = title.toLowerCase();
+            const isWanne = titleLower.includes('wanne') || titleLower.includes('duschfläche');
+            const isDuschenwanne = titleLower === 'duschenwanne';
+            const isRinne = titleLower.includes('rinne');
+
             if (this.selectedTray && this.selectedTray.mountingMaterials && this.selectedTray.mountingMaterials.length > 0) {
-                hasConfig = true;
+                if (!isDuschenwanne) {
+                    hasConfig = true;
+                } else if (this.selectedTray.mountingMaterials.some(g => g.id === 'mat_montageset')) {
+                    hasConfig = true;
+                }
             }
+
+            // Technical Compatibility Warning might also need configBlock
+            let needsWarning = false;
+            if (this.currentMontageart === 'wannenträger') {
+                const hasCarrier = this.selectedTray && this.selectedTray.mountingMaterials && this.selectedTray.mountingMaterials.some(m => {
+                    const firstOpt = m.options?.[0];
+                    return firstOpt && this.classifyAccessory(firstOpt) === 'wannenträger';
+                });
+                if (!hasCarrier) needsWarning = true;
+            }
+            if (needsWarning) hasConfig = true;
 
             if (!hasConfig) {
                 configBlock.style.display = 'none';
@@ -1069,31 +1419,37 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             configBlock.style.display = 'block';
 
             // --- Technical Compatibility Warning ---
-            if (this.currentMontageart === 'wannenträger') {
-                const hasCarrier = this.selectedTray.mountingMaterials.some(m => {
-                    const firstOpt = m.options?.[0];
-                    return firstOpt && this.classifyAccessory(firstOpt) === 'wannenträger';
-                });
-
-                if (!hasCarrier) {
-                    const warnDiv = document.createElement('div');
-                    warnDiv.className = 'compatibility-warning';
-                    warnDiv.innerHTML = `
-                            <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); color: #e65100; padding: 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1.5rem; display: flex; align-items: start; gap: 0.75rem;">
-                                <span style="font-size: 1.2rem;">⚠️</span>
-                                <div>
-                                    <strong style="display: block; margin-bottom: 0.25rem;">Kein Wannenträger verfügbar</strong>
-                                    Diese Duschwanne ist nicht carrier-kompatibel oder es wurde kein passender Träger im Pool gefunden. Bitte nutzen Sie das <strong>Montagerahmen-System</strong>.
-                                </div>
+            if (needsWarning) {
+                const warnDiv = document.createElement('div');
+                warnDiv.className = 'compatibility-warning';
+                warnDiv.innerHTML = `
+                        <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); color: #e65100; padding: 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1.5rem; display: flex; align-items: start; gap: 0.75rem;">
+                            <span style="font-size: 1.2rem;">⚠️</span>
+                            <div>
+                                <strong style="display: block; margin-bottom: 0.25rem;">Kein Wannenträger verfügbar</strong>
+                                Diese Duschwanne ist nicht carrier-kompatibel oder es wurde kein passender Träger im Pool gefunden. Bitte nutzen Sie das <strong>Montagerahmen-System</strong>.
                             </div>
-                        `;
-                    inner.appendChild(warnDiv);
-                }
+                        </div>
+                    `;
+                inner.appendChild(warnDiv);
             }
 
-            const titleLower = title.toLowerCase();
-            const isWanne = titleLower.includes('wanne') || titleLower.includes('duschfläche');
-            const isRinne = titleLower.includes('rinne');
+            if (this.selectedTray.mountingMaterials.some(g => g.id === 'mat_montageset')) {
+                const toggleDiv = document.createElement('div');
+                toggleDiv.className = 'montageset-toggle-wrapper';
+                toggleDiv.style.marginBottom = '1.5rem';
+                toggleDiv.innerHTML = `
+                    <div class="addon-toggle-row" style="cursor: pointer;">
+                        <span class="addon-toggle-label"><i class="ri-box-3-line"></i> Komplettes Montageset verwenden</span>
+                        <button class="ios-toggle ${this.useMontageset ? 'active' : ''}" aria-label="Montageset ein/aus" style="pointer-events: none;"><span class="ios-toggle-knob"></span></button>
+                    </div>
+                `;
+                inner.appendChild(toggleDiv);
+
+                toggleDiv.querySelector('.addon-toggle-row').addEventListener('click', () => {
+                    this.toggleMontageset(!this.useMontageset);
+                });
+            }
 
             // Create a sorted copy of mountingMaterials for UI rendering
             const sortedMaterials = [...this.selectedTray.mountingMaterials].sort((a, b) => {
@@ -1124,8 +1480,16 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 return getPri(a) - getPri(b);
             });
 
+            const isAufMass = this.selectedTray && this.selectedTray.label && !!this.selectedTray.label.match(/\d+\s*-\s*\d+\s*x\s*\d+\s*-\s*\d+/);
+
             sortedMaterials.forEach(mat => {
                 if (!mat.options || mat.options.length === 0) return;
+
+                if (mat.id === 'mat_montageset') return;
+                if (this.useMontageset) return;
+                
+                const isTape = mat.id === 'mat_tape' || mat.name === 'Zargen-Wannendichtband' || mat.name === 'Wannenzargenband';
+                if (isWanne && isAufMass && isTape) return; // Hide tape from sidebar for custom trays, render inline in BOM instead
 
                 const matClass = this.classifyAccessory(mat.options[0]) !== 'common' ? this.classifyAccessory(mat.options[0]) : this.classifyAccessory(mat);
 
@@ -1178,11 +1542,18 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 // Auto-select first option if current selection is invalid or missing
                 if (!blocked && !noOptionsNeeded) {
                     if (!this.selectedTray.selections[mat.id] || !activeOptions.find(o => o.artNr === this.selectedTray.selections[mat.id])) {
-                        this.selectedTray.selections[mat.id] = activeOptions[0].artNr;
+                        let defaultOpt = activeOptions[0];
+                        if (title && title.toLowerCase().includes('badewanne') && (mat.id === 'mat_tape' || (mat.name && mat.name.includes('Dichtband')))) {
+                            const nischeOpt = activeOptions.find(o => (o.label && o.label.includes('3-seitig')) || (o.dropdownLabel && o.dropdownLabel.includes('3-seitig')));
+                            if (nischeOpt) defaultOpt = nischeOpt;
+                        }
+                        this.selectedTray.selections[mat.id] = defaultOpt.artNr;
                         // Re-render immediately to propagate dependencies (cascading updates)
                         setTimeout(() => { this.renderConfigurator(); this.updateBOM(); }, 0);
                     }
                 }
+
+                if (title.toLowerCase() === 'duschenwanne') return;
 
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'filter-group';
@@ -1371,9 +1742,38 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9da3ad; padding: 2rem;">Bitte wählen Sie ein Produkt aus den Suchergebnissen.</td></tr>';
         },
         updateBOM: function () {
-            if (!this.selectedTray) return;
+            let backBtn = document.getElementById("backToCatalogBtn");
+            if (!this.selectedTray) {
+                if (backBtn) backBtn.style.display = "none";
+                return;
+            }
+            if (config.enableGalleryUX) {
+                if (!backBtn) {
+                    const h = document.querySelector(".bom-header");
+                    if (h) {
+                        backBtn = document.createElement("button");
+                        backBtn.id = "backToCatalogBtn";
+                        backBtn.className = "icon-btn highlight-btn";
+                        backBtn.style.marginRight = "auto";
+                        backBtn.innerHTML = '<i class="ri-arrow-left-s-line" aria-hidden="true"></i> Zurück zur Übersicht';
+                        h.insertBefore(backBtn, h.firstChild);
+                    }
+                }
+                if (backBtn) {
+                    backBtn.onclick = () => {
+                        if (window.currentActiveApp) {
+                            if (typeof window.currentActiveApp.selectTray === 'function') {
+                                window.currentActiveApp.selectTray(null);
+                            } else if (typeof window.currentActiveApp.selectItem === 'function') {
+                                window.currentActiveApp.selectItem(null);
+                            }
+                        }
+                    };
+                    backBtn.style.display = "inline-flex";
+                }
+            }
 
-            const materials = this.selectedTray.mountingMaterials || [];
+            let materials = this.selectedTray.mountingMaterials || [];
             bomTableBody.innerHTML = '';
             const finalBOM = [];
 
@@ -1413,6 +1813,28 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         }
                     }
                 });
+
+                // === ALL-IN-ONE SUPPRESSION LOGIC ===
+                const allInOneItems = ['1411 556.501.000', '1124 769.501.000', '1124 770.501.000', '1113 302.100.000', '1113 397.100.000'];
+
+                if (mat.name && (mat.name.toLowerCase().includes('ablaufgarnitur') || mat.name.toLowerCase().includes('wannengarnitur'))) {
+                    const coverGroup = materials.find(m => m.name && (m.name.toLowerCase().includes('überlaufset') || m.name.toLowerCase().includes('ablaufdeckel')));
+                    if (coverGroup && this.selectedTray.selections[coverGroup.id]) {
+                        if (allInOneItems.includes(this.selectedTray.selections[coverGroup.id])) {
+                            blocked = true;
+                        }
+                    }
+                }
+                if (mat.name && (mat.name.toLowerCase().includes('überlaufset') || mat.name.toLowerCase().includes('ablaufdeckel'))) {
+                    const siphonGroup = materials.find(m => m.name && (m.name.toLowerCase().includes('ablaufgarnitur') || m.name.toLowerCase().includes('wannengarnitur')));
+                    if (siphonGroup && this.selectedTray.selections[siphonGroup.id]) {
+                        if (allInOneItems.includes(this.selectedTray.selections[siphonGroup.id])) {
+                            blocked = true;
+                        }
+                    }
+                }
+                // ===================================
+
                 if (blocked || noOptionsNeeded || isBundled || activeOptions.length === 0) return false;
                 return true;
             };
@@ -1433,7 +1855,45 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             const isAufputz = activeTrayArtNr === '2111 845.100.000' || activeTrayArtNr === '3231 113.100.000';
             const ceramicPriority = isAufputz ? 2 : 1;
 
-            finalBOM.push({ artNr: activeTrayArtNr, label: activeTrayLabel, typ: title, menge: activeTrayMenge, img: this.selectedTray.imgUrl || this.mainImgUrl, note: 'Hauptartikel', priority: ceramicPriority });
+            let variantInline = false;
+            let variantOpts = [];
+            if (config.enableGalleryUX && this.selectedTray.variants && this.selectedTray.variants.length > 0) {
+                variantInline = true;
+                variantOpts = [{ artNr: this.selectedTray.artNr, label: this.selectedTray.label }].concat(this.selectedTray.variants);
+            }
+            finalBOM.push({ 
+                artNr: activeTrayArtNr, 
+                label: activeTrayLabel, 
+                typ: title, 
+                menge: activeTrayMenge, 
+                img: this.selectedTray.imgUrl || this.mainImgUrl, 
+                note: 'Hauptartikel', 
+                priority: ceramicPriority,
+                isInlineDropdown: variantInline,
+                options: variantOpts,
+                matId: '__variant__'
+            });
+
+            if (this.useMontageset) {
+                const mSet = materials.find(m => m.id === 'mat_montageset');
+                if (mSet) {
+                    const mSetOption = mSet.options.find(o => o.artNr !== 'none');
+                    if (mSetOption) {
+                        finalBOM.push({
+                            artNr: mSetOption.artNr,
+                            label: mSetOption.label,
+                            typ: mSetOption.type || 'Montageset',
+                            menge: mSetOption.menge || 1,
+                            img: mSetOption.imgUrl || this.selectedTray.imgUrl || this.mainImgUrl,
+                            note: 'Montageset',
+                            priority: 5
+                        });
+                    }
+                }
+                materials = [];
+            } else {
+                materials = materials.filter(m => m.id !== 'mat_montageset');
+            }
 
             // ─── STANDKLOSETT: Dedicated BOM Priority Engine ─────────────────────
             if (isStandKlosett) {
@@ -1554,11 +2014,11 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         priority = 2;
                     } else if (mName === 'ablaufgarnitur') {
                         priority = 3;
-                    } else if (mName === 'zargen-wannendichtband' || mName === 'dichtband') {
+                    } else if (mName === 'zargen-wannendichtband' || mName === 'dichtband' || mName === 'wannenzargenband') {
                         priority = 4;
                     } else if (mName === 'montageset' || mName === 'dichtset') {
                         priority = 5;
-                    } else if (mName === 'wannenträger system' || mName === 'wannenträger' || mName === 'montagerahmen') {
+                    } else if (mName === 'wannenträger system' || mName === 'wannenträger' || mName === 'montagerahmen' || mName.includes('installationsrahmen')) {
                         priority = 6;
                     } else if (mName === 'montageschaum' || mName === 'fussset' || mName === 'wannenfüsse' || mName === 'stelzfüsse' || mName.includes('abstütz') || mName.includes('anker')) {
                         priority = 7;
@@ -1576,7 +2036,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                             priority = 6;
                         } else if (exactMatch(['montageset', 'dichtset', 'einbauset'])) {
                             priority = 5;
-                        } else if (exactMatch(['dichtband', 'wannenband', 'zargen', 'zargen-wannendichtband', 'zargenband'])) {
+                        } else if (exactMatch(['dichtband', 'wannenband', 'zargen', 'zargen-wannendichtband', 'zargenband', 'wannenzargenband'])) {
                             priority = 4;
                         } else if (exactMatch(['ablauf', 'siphon', 'garnitur', 'sifon', 'ablaufgarnitur'])) {
                             priority = 3;
@@ -1629,10 +2089,22 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                             }
                         }
                     } else if (this.title === 'Badewanne') {
-                        // Future Badewanne specific skipPush rules go here
+                        if (mat.name === 'Wannenzargenband' && this.selectedTray.mountingMaterials.some(m => m.name === 'Zargen-Wannendichtband')) {
+                            skipPush = true; // Remove duplicate tape
+                        }
+                    } else if (this.title === 'Duschenwanne') {
+                        // Reverted Ablaufdeckel skip rules
                     }
 
                     if (!skipPush) {
+                        const isAufMass = activeTrayLabel && !!activeTrayLabel.match(/\d+\s*-\s*\d+\s*x\s*\d+\s*-\s*\d+/);
+                        const isTape = mat.id === 'mat_tape' || mat.name === 'Zargen-Wannendichtband' || mat.name === 'Wannenzargenband';
+                        let isInlineDropdown = isAufMass && isTape;
+
+                        if ((this.title === 'Duschenwanne' || config.enableGalleryUX) && mat.options && mat.options.length > 1) {
+                            isInlineDropdown = true;
+                        }
+
                         finalBOM.push({
                             artNr: selectedOption.artNr,
                             label: enrichedLabel,
@@ -1640,7 +2112,10 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                             menge: calculatedMenge,
                             img: enrichedImg,
                             note: note,
-                            priority: priority
+                            priority: priority,
+                            isInlineDropdown: isInlineDropdown,
+                            matId: mat.id,
+                            options: isInlineDropdown ? mat.options : null
                         });
                     }
 
@@ -1750,6 +2225,11 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         }
                     }
 
+                    let isInlineDropdown = false;
+                    if (config.enableGalleryUX && mat.options && mat.options.length > 1) {
+                        isInlineDropdown = true;
+                    }
+
                     finalBOM.push({
                         artNr: selectedOption.artNr,
                         label: enrichedLabel,
@@ -1757,7 +2237,10 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         menge: selectedOption.menge || 1,
                         img: enrichedImg,
                         note: note,
-                        priority: priority
+                        priority: priority,
+                        isInlineDropdown: isInlineDropdown,
+                        matId: mat.id,
+                        options: isInlineDropdown ? mat.options : null
                     });
                 });
 
@@ -1917,59 +2400,452 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
 
             // Render
             let totalCount = 0;
+            const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
+
             dedupedBOM.forEach(item => {
                 if (!item.artNr || item.artNr === 'none' || item.menge === 0 || (item.label && item.label.toLowerCase().startsWith('ohne'))) return;
+                
+                let descHTML = `<div class="bom-desc">${item.label}</div>`;
+                if (item.isInlineDropdown && item.options) {
+                    if (this.selectedTray.artNr === '1121 533.100.000' && item.matId === '__variant__') {
+                        const currentSel = this.selectedTray.selections['__variant__'] || '1121 533.100.000';
+                        
+                        let curColor = '100';
+                        let curSurface = '000';
+                        if (currentSel === '1121 533.100.000') { curColor = '100'; curSurface = '000'; }
+                        else if (currentSel === '1121 533.100.186') { curColor = '100'; curSurface = '186'; }
+                        else if (currentSel === '1121 533.105.000') { curColor = '105'; curSurface = '000'; }
+                        else if (currentSel === '1121 533.536.000') { curColor = '536'; curSurface = '000'; }
+                        else if (currentSel === '1121 533.536.202') { curColor = '536'; curSurface = '202'; }
+                        
+                        const colors = [
+                            { val: '100', lbl: 'Farbe: Weiss' },
+                            { val: '105', lbl: 'Farbe: Weiss Cleaneffect' },
+                            { val: '536', lbl: 'Farbe: Weiss matt' }
+                        ];
+                        
+                        const availableSurfaces = [];
+                        if (curColor === '100') availableSurfaces.push('000', '186');
+                        else if (curColor === '105') availableSurfaces.push('000');
+                        else if (curColor === '536') availableSurfaces.push('000', '202');
+                        
+                        const colorSwatchesHTML = `
+                            <div style="display:flex; gap:0.5rem;">
+                                <button class="custom-swatch" data-color="100" title="Weiss" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${curColor==='100' ? 'var(--accent)' : 'rgba(0,0,0,0.1)'}; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor:pointer; padding:0; position: relative;">
+                                    ${curColor==='100' ? '<i class="ri-check-line" style="color:white; position:absolute; top:-4px; right:-6px; font-size:10px; background:var(--accent); border-radius:50%; padding: 1px;"></i>' : ''}
+                                </button>
+                                <button class="custom-swatch" data-color="105" title="Weiss Cleaneffect" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${curColor==='105' ? 'var(--accent)' : 'rgba(0,0,0,0.1)'}; background: #fdfdfd; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor:pointer; padding:0; position: relative;">
+                                    ${curColor==='105' ? '<i class="ri-check-line" style="color:white; position:absolute; top:-4px; right:-6px; font-size:10px; background:var(--accent); border-radius:50%; padding: 1px;"></i>' : ''}
+                                </button>
+                                <button class="custom-swatch" data-color="536" title="Weiss matt" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${curColor==='536' ? 'var(--accent)' : 'rgba(0,0,0,0.1)'}; background: #f1f3f5; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor:pointer; padding:0; position: relative;">
+                                    ${curColor==='536' ? '<i class="ri-check-line" style="color:white; position:absolute; top:-4px; right:-6px; font-size:10px; background:var(--accent); border-radius:50%; padding: 1px;"></i>' : ''}
+                                </button>
+                            </div>
+                        `;
+                        
+                        const surfacePillsHTML = `
+                            <div style="display:inline-flex; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 20px; padding: 3px;">
+                                ${availableSurfaces.includes('000') ? `<button class="custom-pill" data-surface="000" style="padding: 4px 12px; border:none; border-radius: 16px; font-size:0.8rem; font-weight:500; cursor:pointer; background: ${curSurface==='000' ? 'var(--bg-subtle)' : 'transparent'}; box-shadow: ${curSurface==='000' ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'}; color: ${curSurface==='000' ? 'var(--accent)' : 'var(--text-secondary)'}; transition: all 0.2s;">Standard</button>` : ''}
+                                ${availableSurfaces.includes('186') ? `<button class="custom-pill" data-surface="186" style="padding: 4px 12px; border:none; border-radius: 16px; font-size:0.8rem; font-weight:500; cursor:pointer; background: ${curSurface==='186' ? 'var(--bg-subtle)' : 'transparent'}; box-shadow: ${curSurface==='186' ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'}; color: ${curSurface==='186' ? 'var(--accent)' : 'var(--text-secondary)'}; transition: all 0.2s;">Gleitschutz</button>` : ''}
+                                ${availableSurfaces.includes('202') ? `<button class="custom-pill" data-surface="202" style="padding: 4px 12px; border:none; border-radius: 16px; font-size:0.8rem; font-weight:500; cursor:pointer; background: ${curSurface==='202' ? 'var(--bg-subtle)' : 'transparent'}; box-shadow: ${curSurface==='202' ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'}; color: ${curSurface==='202' ? 'var(--accent)' : 'var(--text-secondary)'}; transition: all 0.2s;">Gleitschutz</button>` : ''}
+                            </div>
+                        `;
+
+                        descHTML = `
+                            <div class="bom-desc" style="margin-bottom: 0.75rem;">${item.label}</div>
+                            <div style="display:flex; gap:1.5rem; margin-bottom:0.5rem; align-items:center;">
+                                <div>
+                                    <div style="font-size: 0.7rem; color: var(--st-gray); margin-bottom: 0.35rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Farbe</div>
+                                    ${colorSwatchesHTML}
+                                </div>
+                                <div style="width: 1px; height: 30px; background: var(--border); margin-top: 15px;"></div>
+                                <div>
+                                    <div style="font-size: 0.7rem; color: var(--st-gray); margin-bottom: 0.35rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Oberfläche</div>
+                                    ${surfacePillsHTML}
+                                </div>
+                                <div id="variantStateData" data-color="${curColor}" data-surface="${curSurface}" style="display:none;"></div>
+                            </div>
+                        `;
+                    } else if (this.title === 'Duschenwanne' && this.selectedTray.artNr === '1425 543.536.000' && item.matId === '__variant__') {
+                        const currentSel = this.selectedTray.selections['__variant__'] || '1425 543.536.000';
+                        
+                        let curColor = '536';
+                        if (currentSel === '1425 543.536.000') { curColor = '536'; }
+                        else if (currentSel === '1425 543.136.000') { curColor = '136'; }
+                        else if (currentSel === '1425 543.171.000') { curColor = '171'; }
+                        else if (currentSel === '1425 543.841.000') { curColor = '841'; }
+                        
+                        const colorSwatchesHTML = `
+                            <div style="display:flex; gap:0.5rem;">
+                                <button class="custom-swatch-laufen" data-color="536" title="Weiss matt" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${curColor==='536' ? 'var(--accent)' : 'rgba(0,0,0,0.1)'}; background: #f1f3f5; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor:pointer; padding:0; position: relative;">
+                                    ${curColor==='536' ? '<i class="ri-check-line" style="color:white; position:absolute; top:-4px; right:-6px; font-size:10px; background:var(--accent); border-radius:50%; padding: 1px;"></i>' : ''}
+                                </button>
+                                <button class="custom-swatch-laufen" data-color="136" title="Betongrau matt" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${curColor==='136' ? 'var(--accent)' : 'rgba(0,0,0,0.1)'}; background: #9e9e9e; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor:pointer; padding:0; position: relative;">
+                                    ${curColor==='136' ? '<i class="ri-check-line" style="color:white; position:absolute; top:-4px; right:-6px; font-size:10px; background:var(--accent); border-radius:50%; padding: 1px;"></i>' : ''}
+                                </button>
+                                <button class="custom-swatch-laufen" data-color="171" title="Kaffee matt" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${curColor==='171' ? 'var(--accent)' : 'rgba(0,0,0,0.1)'}; background: #795548; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor:pointer; padding:0; position: relative;">
+                                    ${curColor==='171' ? '<i class="ri-check-line" style="color:white; position:absolute; top:-4px; right:-6px; font-size:10px; background:var(--accent); border-radius:50%; padding: 1px;"></i>' : ''}
+                                </button>
+                                <button class="custom-swatch-laufen" data-color="841" title="Anthrazit matt" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${curColor==='841' ? 'var(--accent)' : 'rgba(0,0,0,0.1)'}; background: #36454f; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor:pointer; padding:0; position: relative;">
+                                    ${curColor==='841' ? '<i class="ri-check-line" style="color:white; position:absolute; top:-4px; right:-6px; font-size:10px; background:var(--accent); border-radius:50%; padding: 1px;"></i>' : ''}
+                                </button>
+                            </div>
+                        `;
+                        
+                        descHTML = `
+                            <div class="bom-desc" style="margin-bottom: 0.75rem;">${item.label}</div>
+                            <div style="display:flex; gap:1.5rem; margin-bottom:0.5rem; align-items:center;">
+                                <div>
+                                    <div style="font-size: 0.7rem; color: var(--st-gray); margin-bottom: 0.35rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Farbe (Marbond)</div>
+                                    ${colorSwatchesHTML}
+                                </div>
+                                <div class="variantStateDataLaufen" data-color="${curColor}" style="display:none;"></div>
+                            </div>
+                        `;
+                    } else if (this.title === 'Duschenwanne' && this.selectedTray.artNr === '1311 407.100.000' && item.matId === '__variant__') {
+                        const currentSel = this.selectedTray.selections['__variant__'] || '1311 407.100.000';
+                        
+                        let curColor = '100';
+                        let curSurface = '000';
+                        
+                        const parts = currentSel.split('.');
+                        if (parts.length === 3) {
+                            curColor = parts[1];
+                            curSurface = parts[2];
+                        }
+                        
+                        const colorSwatchesHTML = `
+                            <div style="display:flex; flex-wrap:wrap; gap:0.5rem; max-width:200px;">
+                                <button class="custom-swatch-schmidlin" data-color="100" title="Weiss" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${curColor==='100' ? 'var(--accent)' : 'rgba(0,0,0,0.1)'}; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor:pointer; padding:0; position: relative;">
+                                    ${curColor==='100' ? '<i class="ri-check-line" style="color:white; position:absolute; top:-4px; right:-6px; font-size:10px; background:var(--accent); border-radius:50%; padding: 1px;"></i>' : ''}
+                                </button>
+                                <button class="custom-swatch-schmidlin" data-color="105" title="Weiss Cleaneffect" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${curColor==='105' ? 'var(--accent)' : 'rgba(0,0,0,0.1)'}; background: #fdfdfd; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor:pointer; padding:0; position: relative;">
+                                    ${curColor==='105' ? '<i class="ri-check-line" style="color:white; position:absolute; top:-4px; right:-6px; font-size:10px; background:var(--accent); border-radius:50%; padding: 1px;"></i>' : ''}
+                                </button>
+                                <button class="custom-swatch-schmidlin" data-color="536" title="Weiss matt" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${curColor==='536' ? 'var(--accent)' : 'rgba(0,0,0,0.1)'}; background: #f1f3f5; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor:pointer; padding:0; position: relative;">
+                                    ${curColor==='536' ? '<i class="ri-check-line" style="color:white; position:absolute; top:-4px; right:-6px; font-size:10px; background:var(--accent); border-radius:50%; padding: 1px;"></i>' : ''}
+                                </button>
+                                <button class="custom-swatch-schmidlin" data-color="151" title="Bahamabeige Cleaneffect" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${curColor==='151' ? 'var(--accent)' : 'rgba(0,0,0,0.1)'}; background: #e0d5c1; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor:pointer; padding:0; position: relative;">
+                                    ${curColor==='151' ? '<i class="ri-check-line" style="color:white; position:absolute; top:-4px; right:-6px; font-size:10px; background:var(--accent); border-radius:50%; padding: 1px;"></i>' : ''}
+                                </button>
+                                <button class="custom-swatch-schmidlin" data-color="152" title="Manhattan Cleaneffect" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${curColor==='152' ? 'var(--accent)' : 'rgba(0,0,0,0.1)'}; background: #b0b5b9; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor:pointer; padding:0; position: relative;">
+                                    ${curColor==='152' ? '<i class="ri-check-line" style="color:white; position:absolute; top:-4px; right:-6px; font-size:10px; background:var(--accent); border-radius:50%; padding: 1px;"></i>' : ''}
+                                </button>
+                                <button class="custom-swatch-schmidlin" data-color="153" title="Pergamon Cleaneffect" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${curColor==='153' ? 'var(--accent)' : 'rgba(0,0,0,0.1)'}; background: #e8e3d9; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor:pointer; padding:0; position: relative;">
+                                    ${curColor==='153' ? '<i class="ri-check-line" style="color:white; position:absolute; top:-4px; right:-6px; font-size:10px; background:var(--accent); border-radius:50%; padding: 1px;"></i>' : ''}
+                                </button>
+                            </div>
+                        `;
+
+                        const availableSurfaces = ['000', '181'];
+                        if (curColor === '100') availableSurfaces.push('186');
+
+                        const surfacePillsHTML = `
+                            <div style="display:inline-flex; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 20px; padding: 3px;">
+                                ${availableSurfaces.includes('000') ? `<button class="custom-pill-schmidlin" data-surface="000" style="padding: 4px 12px; border:none; border-radius: 16px; font-size:0.8rem; font-weight:500; cursor:pointer; background: ${curSurface==='000' ? 'var(--bg-subtle)' : 'transparent'}; box-shadow: ${curSurface==='000' ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'}; color: ${curSurface==='000' ? 'var(--accent)' : 'var(--text-secondary)'}; transition: all 0.2s;">Standard</button>` : ''}
+                                ${availableSurfaces.includes('181') ? `<button class="custom-pill-schmidlin" data-surface="181" style="padding: 4px 12px; border:none; border-radius: 16px; font-size:0.8rem; font-weight:500; cursor:pointer; background: ${curSurface==='181' ? 'var(--bg-subtle)' : 'transparent'}; box-shadow: ${curSurface==='181' ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'}; color: ${curSurface==='181' ? 'var(--accent)' : 'var(--text-secondary)'}; transition: all 0.2s;">Gleitschutz Antigliss Pro</button>` : ''}
+                                ${availableSurfaces.includes('186') ? `<button class="custom-pill-schmidlin" data-surface="186" style="padding: 4px 12px; border:none; border-radius: 16px; font-size:0.8rem; font-weight:500; cursor:pointer; background: ${curSurface==='186' ? 'var(--bg-subtle)' : 'transparent'}; box-shadow: ${curSurface==='186' ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'}; color: ${curSurface==='186' ? 'var(--accent)' : 'var(--text-secondary)'}; transition: all 0.2s;">Gleitschutz 186</button>` : ''}
+                            </div>
+                        `;
+
+                        descHTML = `
+                            <div class="bom-desc" style="margin-bottom: 0.75rem;">${item.label}</div>
+                            <div style="display:flex; gap:1.5rem; margin-bottom:0.5rem; align-items:center; flex-wrap: wrap;">
+                                <div>
+                                    <div style="font-size: 0.7rem; color: var(--st-gray); margin-bottom: 0.35rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Farbe</div>
+                                    ${colorSwatchesHTML}
+                                </div>
+                                <div style="width: 1px; height: 30px; background: var(--border); margin-top: 15px;"></div>
+                                <div>
+                                    <div style="font-size: 0.7rem; color: var(--st-gray); margin-bottom: 0.35rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Oberfläche</div>
+                                    ${surfacePillsHTML}
+                                </div>
+                                <div class="variantStateDataSchmidlin" data-color="${curColor}" data-surface="${curSurface}" style="display:none;"></div>
+                            </div>
+                        `;
+                    } else {
+                        const optionsHTML = item.options.map(opt => {
+                            const foundZub = zubPool.find(z => z.artNr === opt.artNr);
+                            const finalLabel = foundZub ? foundZub.label : opt.label;
+                            const selected = (this.selectedTray.selections[item.matId] === opt.artNr) ? 'selected' : '';
+                            const dropdownLbl = opt.dropdownLabel ? opt.dropdownLabel : `${finalLabel} (${opt.artNr})`;
+                            return `<option value="${opt.artNr}" ${selected}>${dropdownLbl}</option>`;
+                        }).join('');
+                        
+                        const selectedArtNr = this.selectedTray.selections[item.matId] || (item.options[0] && item.options[0].artNr);
+                        const selectedOpt = item.options.find(opt => opt.artNr === selectedArtNr);
+                        const foundZub = selectedOpt ? zubPool.find(z => z.artNr === selectedOpt.artNr) : null;
+                        const selectedDesc = foundZub ? foundZub.label : (selectedOpt ? selectedOpt.label : '');
+
+                        const isTape = item.matId === 'mat_tape' || 
+                                       (item.label && item.label.toLowerCase().includes('dichtband')) ||
+                                       (item.artNr && item.artNr.replace(/\s/g, '').startsWith('1461')) ||
+                                       (item.options && item.options.some(o => o.artNr && o.artNr.replace(/\s/g, '').startsWith('1461')));
+
+                        let tapeDescHTML = '';
+                        if (isTape && selectedDesc) {
+                            tapeDescHTML = `<div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.35; background: rgba(0,0,0,0.15); padding: 0.5rem; border-radius: 4px; border-left: 3px solid var(--accent); font-weight: normal; text-align: left;">${selectedDesc}</div>`;
+                        }
+                        
+                        descHTML = `
+                            <select class="inline-bom-select" data-matid="${item.matId}" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.9rem; margin-bottom: 0.25rem; font-family: inherit; font-weight: 500; cursor: pointer; outline: none; transition: border-color 0.2s ease;">
+                                ${optionsHTML}
+                            </select>
+                            ${tapeDescHTML}
+                        `;
+                    }
+                }
+
                 const row = document.createElement('tr');
+                const isPlaceholder = item.artNr === 'bitte_waehlen';
+                const artNrDisplay = isPlaceholder ? '<span style="color:var(--accent); font-weight:bold;">Ausstehend</span>' : item.artNr;
+                const rowOpacity = isPlaceholder ? 'opacity: 0.8; background: rgba(255,152,0,0.05);' : '';
+
                 row.innerHTML = `
-                        <td><div class="img-cell" ${!item.img ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>
+                        <td style="${rowOpacity}"><div class="img-cell" ${!item.img ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>
                             ${item.img ? `<img src="${item.img}" alt="${item.label}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>'}
                         </div></td>
-                        <td><span class="bom-code">${item.artNr}</span></td>
-                        <td>
-                            <div class="bom-desc">${item.label}</div>
+                        <td style="${rowOpacity}"><span class="bom-code">${artNrDisplay}</span></td>
+                        <td style="${rowOpacity}">
+                            ${descHTML}
                             <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">${item.note}</div>
                         </td>
                         
-                        <td><strong>${item.menge}</strong></td>
+                        <td style="${rowOpacity}"><strong>${isPlaceholder ? '-' : item.menge}</strong></td>
                     `;
+                    
+                if (item.isInlineDropdown) {
+                    const selectEl = row.querySelector('.inline-bom-select');
+                    if (selectEl) {
+                        selectEl.addEventListener('change', (e) => {
+                            const newVal = e.target.value;
+                            this.selectedTray.selections[item.matId] = newVal;
+                            
+                            // Reverse Dependency Check (Bidirectional Auto-switching)
+                            console.log("=== INLINE BOM CHANGE ===");
+                            console.log("Changed:", item.matId, "to", newVal);
+                            // Forward Dependency Check (Bidirectional Auto-switching)
+                            if (this.selectedTray && this.selectedTray.mountingMaterials) {
+                                this.selectedTray.mountingMaterials.forEach(mat => {
+                                    if (mat.dependsOn === item.matId && mat.optionRules) {
+                                        const rule = mat.optionRules.find(r => r.whenArtNr === newVal);
+                                        if (rule) {
+                                            const validOpt = mat.options.find(o => rule.optionArtNrs.includes(o.artNr));
+                                            if (validOpt) {
+                                                this.selectedTray.selections[mat.id] = validOpt.artNr;
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+
+                            // Reverse Dependency Check (Bidirectional Auto-switching)
+                            if (this.selectedTray && this.selectedTray.mountingMaterials) {
+                                const currentMat = this.selectedTray.mountingMaterials.find(m => m.id === item.matId);
+                                if (currentMat && currentMat.dependsOn) {
+                                    const parentMatId = currentMat.dependsOn;
+                                    if (currentMat.optionRules) {
+                                        const matchingRules = currentMat.optionRules.filter(r => r.optionArtNrs.includes(newVal));
+                                        if (matchingRules.length > 0) {
+                                            const currentParentVal = this.selectedTray.selections[parentMatId];
+                                            const isAlreadyCompatible = matchingRules.some(r => r.whenArtNr === currentParentVal);
+                                            if (!isAlreadyCompatible) {
+                                                let nextParent = matchingRules[0].whenArtNr;
+                                                if (currentParentVal) {
+                                                    const currentCode = currentParentVal.split('.')[1] || '';
+                                                    const bestMatch = matchingRules.find(r => r.whenArtNr.includes('.' + currentCode + '.'));
+                                                    if (bestMatch) nextParent = bestMatch.whenArtNr;
+                                                }
+                                                this.selectedTray.selections[parentMatId] = nextParent;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            this.renderConfigurator();
+                            this.updateBOM();
+                        });
+                    }
+
+                    const stateDataEl = row.querySelector('#variantStateData');
+                    if (stateDataEl) {
+                        const updateVariant = (newColor, newSurface) => {
+                            const validCombs = {
+                                '100_000': '1121 533.100.000',
+                                '100_186': '1121 533.100.186',
+                                '105_000': '1121 533.105.000',
+                                '536_000': '1121 533.536.000',
+                                '536_202': '1121 533.536.202'
+                            };
+                            
+                            let key = `${newColor}_${newSurface}`;
+                            if (!validCombs[key]) {
+                                newSurface = '000';
+                                key = `${newColor}_${newSurface}`;
+                            }
+                            
+                            if (validCombs[key]) {
+                                this.selectedTray.selections['__variant__'] = validCombs[key];
+                                this.renderConfigurator();
+                                this.updateBOM();
+                            }
+                        };
+
+                        const curColor = stateDataEl.getAttribute('data-color');
+                        const curSurface = stateDataEl.getAttribute('data-surface');
+
+                        const swatches = row.querySelectorAll('.custom-swatch');
+                        swatches.forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                const newColor = e.currentTarget.getAttribute('data-color');
+                                if (newColor !== curColor) updateVariant(newColor, curSurface);
+                            });
+                        });
+
+                        const pills = row.querySelectorAll('.custom-pill');
+                        pills.forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                const newSurface = e.currentTarget.getAttribute('data-surface');
+                                if (newSurface !== curSurface) updateVariant(curColor, newSurface);
+                            });
+                        });
+                    }
+
+                    const stateDataElLaufen = row.querySelector('.variantStateDataLaufen');
+                    if (stateDataElLaufen) {
+                        const updateVariantLaufen = (newColor) => {
+                            const validCombs = {
+                                '536': '1425 543.536.000',
+                                '136': '1425 543.136.000',
+                                '171': '1425 543.171.000',
+                                '841': '1425 543.841.000'
+                            };
+                            
+                            if (validCombs[newColor]) {
+                                this.selectedTray.selections['__variant__'] = validCombs[newColor];
+                                this.renderConfigurator();
+                                this.updateBOM();
+                            }
+                        };
+
+                        const curColor = stateDataElLaufen.getAttribute('data-color');
+
+                        const swatches = row.querySelectorAll('.custom-swatch-laufen');
+                        swatches.forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                const newColor = e.currentTarget.getAttribute('data-color');
+                                if (newColor !== curColor) updateVariantLaufen(newColor);
+                            });
+                        });
+                    }
+
+                    const stateDataElSchmidlin = row.querySelector('.variantStateDataSchmidlin');
+                    if (stateDataElSchmidlin) {
+                        const updateVariantSchmidlin = (newColor, newSurface) => {
+                            if (newSurface === '186' && newColor !== '100') {
+                                newSurface = '000';
+                            }
+                            
+                            const validCombs = {
+                                '100_000': '1311 407.100.000',
+                                '100_181': '1311 407.100.181',
+                                '100_186': '1311 407.100.186',
+                                '105_000': '1311 407.105.000',
+                                '105_181': '1311 407.105.181',
+                                '151_000': '1311 407.151.000',
+                                '151_181': '1311 407.151.181',
+                                '152_000': '1311 407.152.000',
+                                '152_181': '1311 407.152.181',
+                                '153_000': '1311 407.153.000',
+                                '153_181': '1311 407.153.181',
+                                '536_000': '1311 407.536.000',
+                                '536_181': '1311 407.536.181'
+                            };
+                            
+                            let key = `${newColor}_${newSurface}`;
+                            if (!validCombs[key]) {
+                                newSurface = '000';
+                                key = `${newColor}_${newSurface}`;
+                            }
+                            
+                            if (validCombs[key]) {
+                                this.selectedTray.selections['__variant__'] = validCombs[key];
+                                
+                                // Dynamic Deckel Sync for 1311 699
+                                const curDeckel = this.selectedTray.selections['mat_deckel'];
+                                if (curDeckel && curDeckel.startsWith('1311 699.')) {
+                                    const nextDeckel = `1311 699.${newColor}.${newSurface}`;
+                                    const nextDeckelFallback = `1311 699.${newColor}.000`;
+                                    
+                                    const allApps = window.productApps || {};
+                                    const zubPool = allApps['zubehoer_pool'] ? allApps['zubehoer_pool'].trays : [];
+                                    
+                                    let finalDeckel = null;
+                                    if (zubPool.find(z => z.artNr === nextDeckel)) finalDeckel = nextDeckel;
+                                    else if (zubPool.find(z => z.artNr === nextDeckelFallback)) finalDeckel = nextDeckelFallback;
+                                    
+                                    // FORCE Deckel Sync
+                                    if (finalDeckel) {
+                                        const matDeckelObj = this.selectedTray.mountingMaterials.find(m => m.id === 'mat_deckel');
+                                        if (matDeckelObj) {
+                                            if (!matDeckelObj.options.find(o => o.artNr === finalDeckel)) {
+                                                const zubObj = zubPool.find(z => z.artNr === finalDeckel);
+                                                matDeckelObj.options.push({
+                                                    artNr: finalDeckel,
+                                                    label: zubObj.label,
+                                                    type: 'Zubehör',
+                                                    imgUrl: zubObj.imgUrl,
+                                                    menge: 1
+                                                });
+                                            }
+                                            // Explicitly force the selection
+                                            this.selectedTray.selections['mat_deckel'] = finalDeckel;
+                                        }
+                                    }
+                                }
+
+                                // We must execute renderConfigurator BEFORE updateBOM 
+                                // to ensure the left panel is updated
+                                this.renderConfigurator();
+                                
+                                // Force selected Deckel again just in case renderConfigurator overrode it
+                                if (finalDeckel) {
+                                    this.selectedTray.selections['mat_deckel'] = finalDeckel;
+                                }
+
+                                this.updateBOM();
+                            }
+                        };
+
+                        const stateDataElSchmidlin = row.querySelector('.variantStateDataSchmidlin');
+                        const curColor = stateDataElSchmidlin ? stateDataElSchmidlin.getAttribute('data-color') : '100';
+                        const curSurface = stateDataElSchmidlin ? stateDataElSchmidlin.getAttribute('data-surface') : '000';
+
+                        const swatches = row.querySelectorAll('.custom-swatch-schmidlin');
+                        swatches.forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                const newColor = e.currentTarget.getAttribute('data-color');
+                                if (newColor !== curColor) updateVariantSchmidlin(newColor, curSurface);
+                            });
+                        });
+
+                        const pills = row.querySelectorAll('.custom-pill-schmidlin');
+                        pills.forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                const newSurface = e.currentTarget.getAttribute('data-surface');
+                                if (newSurface !== curSurface) updateVariantSchmidlin(curColor, newSurface);
+                            });
+                        });
+                    }
+                }
+                
                 bomTableBody.appendChild(row);
-                totalCount += item.menge;
+                totalCount += isPlaceholder ? 0 : item.menge;
             });
 
             bomCountCounter.textContent = `${totalCount} Artikel benötigt`;
         },
-        copyToClipboard: function () {
-            if (!this.selectedTray) {
-                alert('Bitte wählen Sie zuerst ein Produkt aus.');
-                return;
-            }
-
-            let textLines = [];
-            const bomTableBody = document.getElementById('bomTableBody');
-
-            if (bomTableBody) {
-                const rows = bomTableBody.querySelectorAll('tr');
-                rows.forEach(row => {
-                    const codeSpan = row.querySelector('.bom-code');
-                    const qtyStrong = row.querySelector('strong');
-                    if (codeSpan && qtyStrong) {
-                        const code = codeSpan.textContent.replace(/\t/g, '').trim();
-                        const menge = qtyStrong.textContent.replace(/\t/g, '').trim();
-                        if (code !== 'none' && code !== '') {
-                            textLines.push(`${code}\t${menge}`);
-                        }
-                    }
-                });
-            } else {
-                alert("Tabelle konnte nicht gefunden werden.");
-                return;
-            }
-
-            const text = textLines.join('\n');
-            navigator.clipboard.writeText(text).then(() => {
-                alert("Artikel und Menge kopiert für SAP:\n\n" + text.replace(/\t/g, "    "));
-            }).catch(e => alert("Kopieren fehlgeschlagen."));
-        }
+        copyToClipboard: window.copyBOMToClipboard
     };
 }
 
@@ -1995,7 +2871,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             this.clearBOM();
         },
         extractHahnloch: function (obj) {
-            const label = (obj.label || '').toLowerCase();
+            const label = ((obj.label || '') + ' ' + (obj.description || '')).toLowerCase();
             if (label.includes('ohne armaturenloch') || label.includes('ohne armaturenlöcher') || label.includes('ohne hahnloch')) return 'ohne';
             if (label.includes('3 armaturen') || label.includes('3 hahnlöcher')) return '3';
             if (label.includes('2 armaturen') || label.includes('2 hahnlöcher')) return '2';
@@ -2033,7 +2909,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             return 'unknown';
         },
         extractAusfuehrung: function (t) {
-            const lbl = (t.label || '').toLowerCase();
+            const lbl = ((t.label || '') + ' ' + (t.description || '')).toLowerCase();
             if (lbl.includes('doppelwaschtisch')) return 'Doppelwaschtisch';
             if (lbl.includes('aufsatzwaschbecken') || lbl.includes('aufsatzbecken') || lbl.includes('auflegewaschtisch')) return 'Aufsatzwaschtisch';
             if (lbl.includes('wandbecken')) return 'Wandbecken';
@@ -2072,7 +2948,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d)/);
             let serie = match && match[1] ? match[1].trim() : cleaned.trim();
 
-            const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => (t.label||'').toLowerCase().includes(kw));
+            const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => ((t.label||'') + ' ' + (t.description||'')).toLowerCase().includes(kw));
             if (isAccessory && serie.includes(' ')) serie = serie.split(' ')[0];
 
             // 4. Capitalize each word
@@ -2082,7 +2958,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
         },
         extractAbstellflaeche: function (obj) {
             if (obj.overrideAbstell && obj.overrideAbstell !== 'auto') return obj.overrideAbstell;
-            const label = (obj.label || '').toLowerCase();
+            const label = ((obj.label || '') + ' ' + (obj.description || '')).toLowerCase();
             if (label.includes('abstellfläche links') || label.includes('ablage links')) return 'links';
             if (label.includes('abstellfläche rechts') || label.includes('ablage rechts')) return 'rechts';
             if (label.includes('abstellfläche beidseitig') || label.includes('ablage beidseitig')) return 'beidseitig';
@@ -2385,7 +3261,15 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                 this.selectedTray.mountingMaterials.forEach((mat) => {
                     const filteredOptions = this.getCompatibleOptions(mat);
                     if (filteredOptions.length > 0) {
-                        this.selectedTray.selections[mat.id] = filteredOptions[0].artNr;
+                        let selectedArtNr = filteredOptions[0].artNr;
+                        // For Badewanne Zargen-Wannendichtband, default to 3-seitig (Nische-Variante)
+                        if (title === 'Badewanne' && (mat.name === 'Zargen-Wannendichtband' || mat.name === 'Wannenzargenband' || mat.id === 'mat_tape')) {
+                            const threeSided = filteredOptions.find(o => (o.label || '').toLowerCase().includes('3-seitig') || (o.label || '').toLowerCase().includes('nische'));
+                            if (threeSided) {
+                                selectedArtNr = threeSided.artNr;
+                            }
+                        }
+                        this.selectedTray.selections[mat.id] = selectedArtNr;
                     }
                 });
             }
@@ -2559,7 +3443,8 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                     textLines.push(`${cleanOptArtNr}\t${selectedOption.menge || 1}`);
                 }
             });
-            navigator.clipboard.writeText(textLines.join('\n')).then(() => alert("Kopiert!"));
+            const text = textLines.join('\n');
+            window.copyTextToClipboard(text).then(() => alert("Kopiert:\n\n" + text.replace(/\t/g, "    "))).catch(e => alert("Kopieren fehlgeschlagen."));
         }
     };
 }
@@ -2660,7 +3545,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             return serie || 'Andere';
         },
         isAblaufItem: function (t) {
-            const tl = (t.label || '').toLowerCase();
+            const tl = ((t.label || '') + ' ' + (t.description || '')).toLowerCase();
             if (tl.includes('einbaukosten')) return true;
 
             // Faucet keywords (if these are present, it's likely a faucet even if it mentions valves)
@@ -2679,20 +3564,20 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             return isValve;
         },
         extractAusladung: function (obj) {
-            const label = (obj.label || '');
+            const label = (obj.label || '') + ' ' + (obj.description || '');
             // Look for "A 120 mm" or "Ausladung 140 mm"
             const match = label.match(/(?:A\s|Ausladung\s*)([0-9]{2,3})\s*mm/i);
             if (match) return match[1];
             return 'unknown';
         },
         extractAblauf: function (obj) {
-            const label = (obj.label || '').toLowerCase();
+            const label = ((obj.label || '') + ' ' + (obj.description || '')).toLowerCase();
             if (label.includes('ohne ablauf')) return 'ohne';
             if (label.includes('ablauf')) return 'mit';
             return 'ohne';
         },
         extractAuslauf: function (obj) {
-            const label = (obj.label || '').toLowerCase();
+            const label = ((obj.label || '') + ' ' + (obj.description || '')).toLowerCase();
             if (label.includes('schwenkauslauf') || label.includes('schwenkbar')) return 'schwenkbar';
             if (label.includes('auslauf fest') || label.includes(' fest')) return 'fest';
             // some have "Auslauf" without specifying, assume fixed by default unless mentioned
@@ -3269,7 +4154,10 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             bomCountCounter.textContent = `${count} Artikel`;
         },
         copyToClipboard: function () {
-            if (!this.selectedTray) return;
+            if (!this.selectedTray) {
+                alert('Bitte wählen Sie zuerst ein Produkt aus.');
+                return;
+            }
 
             const activeTrayArtNr = this.selectedTray.selections.variant || this.selectedTray.artNr;
             let activeTrayMenge = 1;
@@ -3303,7 +4191,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             });
 
             const textArray = textLines.join('\n');
-            navigator.clipboard.writeText(textArray).then(() => {
+            window.copyTextToClipboard(textArray).then(() => {
                 alert("Artikel und Menge kopiert für SAP:\n\n" + textArray.replace(/\t/g, "    "));
             }).catch(e => alert("Kopieren fehlgeschlagen."));
         }
@@ -3465,7 +4353,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d)/);
             let serie = match && match[1] ? match[1].trim() : cleaned.trim();
 
-            const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => (t.label||'').toLowerCase().includes(kw));
+            const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => ((t.label||'') + ' ' + (t.description||'')).toLowerCase().includes(kw));
             if (isAccessory && serie.includes(' ')) serie = serie.split(' ')[0];
 
             // 4. Capitalize each word
@@ -3475,7 +4363,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         },
 
         isAblaufItem: function (t) {
-            const tl = (t.label || '').toLowerCase();
+            const tl = ((t.label || '') + ' ' + (t.description || '')).toLowerCase();
             const keywords = ['ablauf', 'siebventil', 'schaftventil', 'click', 'clack', 'clic', 'clac', 'ventilstopfen'];
             const isVentil = keywords.some(k => tl.includes(k));
             const isMischer = tl.includes('mischer') || tl.includes('batterie') || tl.includes('armatur');
@@ -4693,13 +5581,13 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         <div class="preview-details">
                         <div class="preview-bom-list" style="border-top: 1px solid var(--border); padding-top: 1.25rem;">
                             <h3 style="font-size: 0.75rem; margin-bottom: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Zusammenfassung</h3>
-                            <div style="background: rgba(255,255,255,0.02); border-radius: 12px; padding: 0.75rem 1rem; border: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: 24px 1fr auto; gap: 0.4rem 0.75rem; align-items: start;">
+                            <div style="background: rgba(255,255,255,0.02); border-radius: 12px; padding: 0.75rem 1rem; border: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: 24px max-content 1fr; gap: 0.4rem 0.75rem; align-items: start; max-width: 900px;">
                                 ${this.getBOMPreviewItems().map(item => {
                 if (item.isSpacer) return '<div style="grid-column: 1 / -1; margin: 0.3rem 0; border-top: 1px dashed rgba(255,255,255,0.1);"></div>';
                 return `
                                         <div style="color: var(--text-secondary); font-size: 0.7rem; padding-top: 2px;">${item.qty}x</div>
-                                        <div style="font-weight: 500; color: var(--text-primary); line-height: 1.35; font-size: 0.76rem; max-width: 380px;">${item.label}</div>
-                                        <div style="font-family: monospace; color: var(--accent); font-weight: 700; font-size: 0.76rem; white-space: nowrap; text-align: right;">${item.artNr}</div>
+                                        <div style="font-family: monospace; color: var(--accent); font-weight: 700; font-size: 0.76rem; white-space: nowrap; text-align: left;">${item.artNr}</div>
+                                        <div style="font-weight: 500; color: var(--text-primary); line-height: 1.35; font-size: 0.76rem;">${item.label}</div>
                                     `;
             }).join('')}
                             </div>
@@ -5026,7 +5914,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 return `${cleanArtNr}\t${item.qty}`;
             });
             const textArray = textLines.join('\n');
-            navigator.clipboard.writeText(textArray).then(() => {
+            window.copyTextToClipboard(textArray).then(() => {
                 alert("✅ G1-Set kopiert für SAP (" + g1Items.length + " Zeilen):\n\n" + textArray.replace(/\t/g, "    "));
             }).catch(e => alert("Kopieren fehlgeschlagen."));
         },
@@ -5057,7 +5945,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 return `${cleanArtNr}\t${item.qty}`;
             });
             const textArray = textLines.join('\n');
-            navigator.clipboard.writeText(textArray).then(() => {
+            window.copyTextToClipboard(textArray).then(() => {
                 alert("✅ Lose Artikel kopiert für SAP (" + looseItems.length + " Zeilen):\n\nBitte NACH dem G1-Set einfügen!\n\n" + textArray.replace(/\t/g, "    "));
             }).catch(e => alert("Kopieren fehlgeschlagen."));
         },
@@ -5108,24 +5996,184 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 /* Mischer Factory */
 
 export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
-    function ut(B,F,R,N={}){const m=N.isBath||!1,s=B.replace(/\s/g,"")
-return{trays:[],mainImgUrl:R,selectedTray:null,mischerOptionsState:{},currentHersteller:"all",currentMontage:"all",currentSerie:"all",init:function(){this.selectedTray=null,this.mischerOptionsState={},this.currentHersteller="all",this.currentMontage="all",this.currentSerie="all",this.renderSidebar(),this.bindFilters(),this.filterResults(),this.clearBOM()},normalizeDuschenmischerSerie:function(r,e=""){let t=String(r||"").toLowerCase().trim()
-const n=String(e||"").toLowerCase()
-return t=t.replace(/^[-\s/]+/,"").replace(/^-?\s*endmontageset\b/,"").replace(/^-?\s*fertigmontageset\b/,"").replace(/^[-\s/]+/,""),n&&t.startsWith(n)&&(t=t.slice(n.length).trim()),n&&(t=t.replace(new RegExp(`\\b${n.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}\\b`,"gi"),"").trim()),t=t.replace(/^[-\s/]+/,"").replace(/\babdeckplatte\b.*$/i,"").replace(/\bdurchflussleistung\b.*$/i,"").replace(/\bohne einbaukörper\b.*$/i,"").replace(/\benergieeffizienzklasse\b.*$/i,"").replace(/\bgeräuschgruppe\b.*$/i,"").replace(/\barmhebel\b.*$/i,"").replace(/\bselbstschliessend\b.*$/i,"").replace(/\btemperaturgriff\b.*$/i,"").replace(/^thermostat\s+/i,"").replace(/\s+½[\"”]?\s+thermostat\b.*$/i,"").replace(/\s+thermostat\b.*$/i,"").replace(/\bmit sicherheitstaste\b.*$/i,"").replace(/\b1-weg\b.*$/i,"").replace(/\s+½[\"”]?$/i,"").replace(/\bav\.0\b/g,"ava 2.0").replace(/\bvit\.0\b/g,"vita 2.0").replace(/\s*,\s*$/g,"").replace(/\s+/g," ").trim(),t?t.split(" ").map(i=>/^kwc$/i.test(i)?"KWC":/^\d/.test(i)?i:i.charAt(0).toUpperCase()+i.slice(1)).join(" "):"Andere"},extractSerie:function(r){if(r.serie)return this.normalizeDuschenmischerSerie(r.serie,r.manufacturer)
-const e=["aufputz-duschenmischer","unterputz-duschenmischer","duschenmischer","duschmischer","aufputz-bademischer","unterputz-bademischer","bademischer","waschtischmischer","thermostatmischer","thermostat-duschenmischer","einhebelmischer","einlochmischer","mischer"]
-let t=(r.label||"").toLowerCase()
-if(r.manufacturer){const a=r.manufacturer.toLowerCase()
-t.startsWith(a)&&(t=t.slice(a.length).trim())}for(const a of e)if(t.startsWith(a)){t=t.slice(a.length).trim()
-break}if(t=t.replace(/-?endmontageset/g,"").trim(),t=t.replace(/-?fertigmontageset/g,"").trim(),r.manufacturer){const a=r.manufacturer.toLowerCase()
-t.startsWith(a)&&(t=t.slice(a.length).trim())}const n=t.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/)
-let i=n&&n[1]?n[1].trim():t.trim()
-return this.normalizeDuschenmischerSerie(i,r.manufacturer)},extractMontage:function(r){const e=(r.label||"").toLowerCase()
-return e.includes("unterputz")||e.includes(" up ")||e.includes("einbau")||e.includes("endmontageset")||e.includes("grundkörper")||e.includes("grundkoerper")?"Unterputz":e.includes("aufputz")||e.includes(" ap ")||e.includes("wandbatterie")||e.includes("wandmischer")||e.includes("ad 153 mm")||e.includes("aufputz-duschenmischer")||e.includes("thermostat-duschenmischer")?"Aufputz":m&&(e.includes("standmodell")||e.includes("freistehend"))?"Standmodell":"Aufputz"},getUniqueValues:function(r,e){const t=e||this.trays
-if(r==="hersteller"){const n=this.trays.map(i=>i.manufacturer||"Andere")
-return[...new Set(n)].filter(Boolean).sort()}return r==="montage"?[...new Set(t.map(n=>this.extractMontage(n)))].sort():r==="serie"?[...new Set(t.map(n=>this.extractSerie(n)))].sort():[]},renderSidebar:function(){const r=document.getElementById("configSidebar")
-if(!r)return
-const e=this.currentHersteller==="all"?this.trays:this.trays.filter(o=>o.manufacturer===this.currentHersteller),t=e.filter(o=>this.currentMontage==="all"?!0:this.extractMontage(o)===this.currentMontage),n=this.getUniqueValues("hersteller"),i=this.getUniqueValues("serie",t),a=this.getUniqueValues("montage",e)
-r.innerHTML=`
+  function ut(B, F, R, N = {}) {
+    const m = N.isBath || !1,
+      s = B.replace(/\s/g, "");
+    return {
+      trays: [],
+      mainImgUrl: R,
+      selectedTray: null,
+      mischerOptionsState: {},
+      currentHersteller: "all",
+      currentMontage: "all",
+      currentSerie: "all",
+      showAccessoires: false,
+      selectedAddonAccessoires: [],
+      currentAccessoireSerie: 'Alle',
+      init: function () {
+        ((this.selectedTray = null),
+          (this.mischerOptionsState = {}),
+          (this.currentHersteller = "all"),
+          (this.currentMontage = "all"),
+          (this.currentSerie = "all"),
+          (this.showAccessoires = false),
+          (this.selectedAddonAccessoires = []),
+          (this.currentAccessoireSerie = 'Alle'),
+          this.renderSidebar(),
+          this.bindFilters(), this.filterResults());
+          if (!config.enableGalleryUX) { this.clearBOM(); }
+        
+      },
+      normalizeDuschenmischerSerie: function (r, e = "") {
+        let t = String(r || "")
+          .toLowerCase()
+          .trim();
+        const n = String(e || "").toLowerCase();
+        return (
+          (t = t
+            .replace(/^[-\s/]+/, "")
+            .replace(/^-?\s*endmontageset\b/, "")
+            .replace(/^-?\s*fertigmontageset\b/, "")
+            .replace(/^[-\s/]+/, "")),
+          n && t.startsWith(n) && (t = t.slice(n.length).trim()),
+          n &&
+            (t = t
+              .replace(
+                new RegExp(
+                  `\\b${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+                  "gi",
+                ),
+                "",
+              )
+              .trim()),
+          (t = t
+            .replace(/^[-\s/]+/, "")
+            .replace(/\babdeckplatte\b.*$/i, "")
+            .replace(/\bdurchflussleistung\b.*$/i, "")
+            .replace(/\bohne einbaukörper\b.*$/i, "")
+            .replace(/\benergieeffizienzklasse\b.*$/i, "")
+            .replace(/\bgeräuschgruppe\b.*$/i, "")
+            .replace(/\barmhebel\b.*$/i, "")
+            .replace(/\bselbstschliessend\b.*$/i, "")
+            .replace(/\btemperaturgriff\b.*$/i, "")
+            .replace(/^thermostat\s+/i, "")
+            .replace(/\s+½[\"”]?\s+thermostat\b.*$/i, "")
+            .replace(/\s+thermostat\b.*$/i, "")
+            .replace(/\bmit sicherheitstaste\b.*$/i, "")
+            .replace(/\b1-weg\b.*$/i, "")
+            .replace(/\s+½[\"”]?$/i, "")
+            .replace(/\bav\.0\b/g, "ava 2.0")
+            .replace(/\bvit\.0\b/g, "vita 2.0")
+            .replace(/\s*,\s*$/g, "")
+            .replace(/\s+/g, " ")
+            .trim()),
+          t
+            ? t
+                .split(" ")
+                .map((i) =>
+                  /^kwc$/i.test(i)
+                    ? "KWC"
+                    : /^\d/.test(i)
+                      ? i
+                      : i.charAt(0).toUpperCase() + i.slice(1),
+                )
+                .join(" ")
+            : "Andere"
+        );
+      },
+      extractSerie: function (r) {
+        if (r.serie)
+          return this.normalizeDuschenmischerSerie(r.serie, r.manufacturer);
+        const e = [
+          "aufputz-duschenmischer",
+          "unterputz-duschenmischer",
+          "duschenmischer",
+          "duschmischer",
+          "aufputz-bademischer",
+          "unterputz-bademischer",
+          "bademischer",
+          "waschtischmischer",
+          "thermostatmischer",
+          "thermostat-duschenmischer",
+          "einhebelmischer",
+          "einlochmischer",
+          "mischer",
+        ];
+        let t = (r.label || "").toLowerCase();
+        if (r.manufacturer) {
+          const a = r.manufacturer.toLowerCase();
+          t.startsWith(a) && (t = t.slice(a.length).trim());
+        }
+        for (const a of e)
+          if (t.startsWith(a)) {
+            t = t.slice(a.length).trim();
+            break;
+          }
+        if (
+          ((t = t.replace(/-?endmontageset/g, "").trim()),
+          (t = t.replace(/-?fertigmontageset/g, "").trim()),
+          r.manufacturer)
+        ) {
+          const a = r.manufacturer.toLowerCase();
+          t.startsWith(a) && (t = t.slice(a.length).trim());
+        }
+        const n = t.match(
+          /^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/,
+        );
+        let i = n && n[1] ? n[1].trim() : t.trim();
+        return this.normalizeDuschenmischerSerie(i, r.manufacturer);
+      },
+      extractMontage: function (r) {
+        const e = (r.label || "").toLowerCase();
+        return e.includes("unterputz") ||
+          e.includes(" up ") ||
+          e.includes("einbau") ||
+          e.includes("endmontageset") ||
+          e.includes("grundkörper") ||
+          e.includes("grundkoerper")
+          ? "Unterputz"
+          : e.includes("aufputz") ||
+              e.includes(" ap ") ||
+              e.includes("wandbatterie") ||
+              e.includes("wandmischer") ||
+              e.includes("ad 153 mm") ||
+              e.includes("aufputz-duschenmischer") ||
+              e.includes("thermostat-duschenmischer")
+            ? "Aufputz"
+            : m && (e.includes("standmodell") || e.includes("freistehend"))
+              ? "Standmodell"
+              : "Aufputz";
+      },
+      getUniqueValues: function (r, e) {
+        const t = e || this.trays;
+        if (r === "hersteller") {
+          const n = this.trays.map((i) => i.manufacturer || "Andere");
+          return [...new Set(n)].filter(Boolean).sort();
+        }
+        return r === "montage"
+          ? [...new Set(t.map((n) => this.extractMontage(n)))].sort()
+          : r === "serie"
+            ? [...new Set(t.map((n) => this.extractSerie(n)))].sort()
+            : [];
+      },
+      renderSidebar: function () {
+        const r = document.getElementById("configSidebar");
+        if (!r) return;
+        const e =
+            this.currentHersteller === "all"
+              ? this.trays
+              : this.trays.filter(
+                  (o) => o.manufacturer === this.currentHersteller,
+                ),
+          t = e.filter((o) =>
+            this.currentMontage === "all"
+              ? !0
+              : this.extractMontage(o) === this.currentMontage,
+          ),
+          n = this.getUniqueValues("hersteller"),
+          i = this.getUniqueValues("serie", t),
+          a = this.getUniqueValues("montage", e);
+        ((r.innerHTML = `
                 <div class="sidebar-section">
                     <h2 style="margin-bottom: 1.5rem
  display: flex
@@ -5139,24 +6187,24 @@ r.innerHTML=`
                     <div class="filter-group">
                         <label id="head_hersteller_${s}" class="filter-label">Hersteller</label>
                         <div class="pill-group" id="list_hersteller_${s}">
-                            <button class="pill-btn ${this.currentHersteller==="all"?"active":""}" data-key="Hersteller" data-val="all">Alle</button>
-                            ${n.map(o=>`<button class="pill-btn ${this.currentHersteller===o?"active":""}" data-key="Hersteller" data-val="${o}">${o}</button>`).join("")}
+                            <button class="pill-btn ${this.currentHersteller === "all" ? "active" : ""}" data-key="Hersteller" data-val="all">Alle</button>
+                            ${n.map((o) => `<button class="pill-btn ${this.currentHersteller === o ? "active" : ""}" data-key="Hersteller" data-val="${o}">${o}</button>`).join("")}
                         </div>
                     </div>
 
                     <div class="filter-group">
                         <label id="head_montage_${s}" class="filter-label">Montageart</label>
                         <div class="pill-group" id="list_montage_${s}">
-                            <button class="pill-btn ${this.currentMontage==="all"?"active":""}" data-key="Montage" data-val="all">Alle</button>
-                            ${a.map(o=>`<button class="pill-btn ${this.currentMontage===o?"active":""}" data-key="Montage" data-val="${o}">${o}</button>`).join("")}
+                            <button class="pill-btn ${this.currentMontage === "all" ? "active" : ""}" data-key="Montage" data-val="all">Alle</button>
+                            ${a.map((o) => `<button class="pill-btn ${this.currentMontage === o ? "active" : ""}" data-key="Montage" data-val="${o}">${o}</button>`).join("")}
                         </div>
                     </div>
 
                     <div class="filter-group">
                         <label id="head_serie_${s}" class="filter-label">Serie</label>
                         <div class="pill-group" id="list_serie_${s}">
-                            <button class="pill-btn ${this.currentSerie==="all"?"active":""}" data-key="Serie" data-val="all">Alle</button>
-                            ${i.map(o=>`<button class="pill-btn ${this.currentSerie===o?"active":""}" data-key="Serie" data-val="${o}">${o}</button>`).join("")}
+                            <button class="pill-btn ${this.currentSerie === "all" ? "active" : ""}" data-key="Serie" data-val="all">Alle</button>
+                            ${i.map((o) => `<button class="pill-btn ${this.currentSerie === o ? "active" : ""}" data-key="Serie" data-val="${o}">${o}</button>`).join("")}
                         </div>
                     </div>
 
@@ -5169,11 +6217,25 @@ r.innerHTML=`
                     </div>
                 </div>
                 
-                <div class="sidebar-section">
+                <div class="sidebar-section" ${config.enableGalleryUX ? 'style="display:none;"' : ''}>
                     <h2>Suchergebnisse <span id="resultCount_${s}" class="badge">0</span></h2>
                     <div class="search-results-container" id="searchResults_${s}"></div>
                 </div>
 
+                
+                <div class="sidebar-section addon-toggles-section" id="addon_toggles_section_${s}" style="display:none; margin-top:2rem;">
+                    <div class="finder-sub-header">Zusatzoptionen</div>
+                    <div class="addon-toggle-row" id="toggle_accessoires_${s}">
+                        <span class="addon-toggle-label"><i class="ri-archive-line"></i> Accessoires</span>
+                        <button class="ios-toggle" data-target="accessoires_mischer_${s}" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
+                    </div>
+                    <div id="addon_accessoires_mischer_panel_${s}" class="addon-panel" style="display:none;">
+                        <div class="finder-sub-header">Serie</div>
+                        <div class="pill-group" id="list_addon_accessoires_serie_${s}" style="margin-bottom: 0.75rem;"></div>
+                        <div class="finder-sub-header">Accessoires wählen</div>
+                        <div class="finder-list" id="list_addon_accessoires_${s}"></div>
+                    </div>
+                </div>
                 <div class="sidebar-section" id="trayConfigurator_${s}" style="display:none
  margin-top:2rem
 ">
@@ -5181,111 +6243,725 @@ r.innerHTML=`
                     <p class="section-desc">Bestimmen Sie das benötigte Zubehör.</p>
                     <div id="trayConfiguratorInner_${s}"></div>
                 </div>
-            `,r.querySelectorAll(".pill-btn[data-key]").forEach(o=>{o.addEventListener("click",()=>{this.setFilter(o.dataset.key,o.dataset.val)})}),X(`head_hersteller_${s}`,`list_hersteller_${s}`,this.currentHersteller,"Hersteller",()=>this.setFilter("Hersteller","all")),X(`head_montage_${s}`,`list_montage_${s}`,this.currentMontage,"Montageart",()=>this.setFilter("Montage","all")),X(`head_serie_${s}`,`list_serie_${s}`,this.currentSerie,"Serie",()=>this.setFilter("Serie","all"))
-const l=document.getElementById(`input_search_${s}`)
-l&&l.addEventListener("input",()=>this.filterResults()),this.filterResults()},setFilter:function(r,e){this[`current${r}`]=e,this.renderSidebar()},bindFilters:function(){},filterResults:function(){var i
-const r=document.getElementById(`searchResults_${s}`),e=document.getElementById(`resultCount_${s}`),t=(((i=document.getElementById(`input_search_${s}`))==null?void 0:i.value)||"").toLowerCase()
-if(!r)return
-let n=this.trays
-if(this.currentHersteller!=="all"&&(n=n.filter(a=>a.manufacturer===this.currentHersteller)),this.currentSerie!=="all"&&(n=n.filter(a=>this.extractSerie(a)===this.currentSerie)),this.currentMontage!=="all"&&(n=n.filter(a=>this.extractMontage(a)===this.currentMontage)),t&&(n=n.filter(a=>(a.label||"").toLowerCase().includes(t)||(a.artNr||"").toLowerCase().includes(t))),e.textContent=n.length,n.length===0){r.innerHTML='<div style="padding:2rem  text-align:center  color:var(--text-secondary) ">Keine Produkte gefunden. Bitte passen Sie die Filter an.</div>'
-return}            r.innerHTML=n.map(a=>{
-                const l=this.selectedTray&&this.selectedTray.id===a.id;
-                return `
-                <div class="result-item-card ${l?"active":""}" onclick="window.currentActiveApp.selectItem('${a.id}')" data-tid="${a.id}">
-                    <div class="card-img-wrapper">
-                        ${a.imgUrl ? `<img src="${a.imgUrl}">` : '<i class="ri-image-line placeholder-icon"></i>'}
-                    </div>
-                    <div class="result-info">
-                        <strong>${this.extractSerie(a)}</strong>
-                        <div class="result-meta">
-                            <span>${a.manufacturer||"Andere"}</span> | <span>${this.extractMontage(a)}</span>
+            `),
+          r.querySelectorAll(".pill-btn[data-key]").forEach((o) => {
+            o.addEventListener("click", () => {
+              this.setFilter(o.dataset.key, o.dataset.val);
+            });
+          }),
+          X(
+            `head_hersteller_${s}`,
+            `list_hersteller_${s}`,
+            this.currentHersteller,
+            "Hersteller",
+            () => this.setFilter("Hersteller", "all"),
+          ),
+          X(
+            `head_montage_${s}`,
+            `list_montage_${s}`,
+            this.currentMontage,
+            "Montageart",
+            () => this.setFilter("Montage", "all"),
+          ),
+          X(
+            `head_serie_${s}`,
+            `list_serie_${s}`,
+            this.currentSerie,
+            "Serie",
+            () => this.setFilter("Serie", "all"),
+          ));
+        
+          this.updateAccessoiresToggles();
+          this.populateAccessoires();
+          const l = document.getElementById(`input_search_${s}`);
+        (l && l.addEventListener("input", () => this.filterResults()),
+          this.filterResults());
+      },
+      setFilter: function (r, e) {
+        ((this[`current${r}`] = e), this.renderSidebar());
+      },
+      bindFilters: function () {},
+      
+      updateAccessoiresToggles: function () {
+            const btn = document.querySelector(`#toggle_accessoires_${s} .ios-toggle`);
+            const panel = document.getElementById(`addon_accessoires_mischer_panel_${s}`);
+            if (btn) btn.classList.toggle('active', this.showAccessoires);
+            if (panel) panel.style.display = this.showAccessoires ? 'block' : 'none';
+            
+            const section = document.getElementById(`addon_toggles_section_${s}`);
+            if (section) {
+                if (this.selectedTray) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                    this.showAccessoires = false;
+                }
+                const toggleBtn = section.querySelector('.ios-toggle');
+                if (toggleBtn && !toggleBtn.dataset.bound) {
+                    toggleBtn.dataset.bound = "true";
+                    toggleBtn.addEventListener('click', () => {
+                        this.showAccessoires = !this.showAccessoires;
+                        this.updateAccessoiresToggles();
+                        this.updateBOM();
+                    });
+                }
+            }
+      },
+      populateAccessoires: function () {
+            const listId = `list_addon_accessoires_${s}`;
+            const serieListId = `list_addon_accessoires_serie_${s}`;
+            const listEl = document.getElementById(listId);
+            const serieListEl = document.getElementById(serieListId);
+            if (!listEl || !serieListEl) return;
+            
+            let candidates = [];
+            const allApps = window.productApps || {};
+            const keywords = ['badetuchstange', 'schwammhalter', 'eckseifenhalter', 'drahtseifenhalter', 'duschkorb'];
+            
+            Object.keys(allApps).forEach(appKey => {
+                const a = allApps[appKey];
+                if (a.trays) {
+                    a.trays.forEach(t => {
+                        const lbl = (t.label || t.name || '').toLowerCase();
+                        if (keywords.some(kw => lbl.includes(kw))) {
+                            candidates.push(t);
+                        }
+                    });
+                }
+            });
+            const seen = new Set();
+            candidates = candidates.filter(c => {
+                if (seen.has(c.artNr)) return false;
+                seen.add(c.artNr);
+                return true;
+            });
+
+            const extractAccessoireSerie = (t) => {
+                if (t.serie) return t.serie;
+                let label = (t.label || '').toLowerCase();
+                if (t.manufacturer) {
+                    const m = t.manufacturer.toLowerCase();
+                    if (label.startsWith(m)) label = label.slice(m.length).trim();
+                }
+                for (const kw of keywords) {
+                    if (label.startsWith(kw)) {
+                        label = label.slice(kw.length).trim();
+                        break;
+                    }
+                }
+                if (t.manufacturer) {
+                    const m = t.manufacturer.toLowerCase();
+                    if (label.startsWith(m)) label = label.slice(m.length).trim();
+                }
+                const match = label.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/);
+                let serie = match && match[1] ? match[1].trim() : label.trim();
+                if (serie.includes(' ')) serie = serie.split(' ')[0];
+                return serie ? serie.charAt(0).toUpperCase() + serie.slice(1) : 'Andere';
+            };
+
+            // Filters
+            const seriesList = ['Alle'];
+            candidates.forEach(c => {
+                const s = extractAccessoireSerie(c);
+                if (!seriesList.includes(s)) seriesList.push(s);
+            });
+            
+            serieListEl.innerHTML = seriesList.map(sx => 
+                `<button class="pill-btn ${this.currentAccessoireSerie === sx ? 'active' : ''}" data-val="${sx}">${sx}</button>`
+            ).join('');
+            
+            serieListEl.querySelectorAll('.pill-btn').forEach(b => {
+                b.addEventListener('click', () => {
+                    this.currentAccessoireSerie = b.dataset.val;
+                    this.populateAccessoires();
+                });
+            });
+
+            let filtered = candidates;
+            if (this.currentAccessoireSerie !== 'Alle') {
+                filtered = filtered.filter(c => extractAccessoireSerie(c) === this.currentAccessoireSerie);
+            }
+
+            listEl.innerHTML = '';
+            if (filtered.length === 0) {
+                listEl.innerHTML = '<div class="finder-empty-state" style="font-size:0.8rem;">Keine Accessoires gefunden.</div>';
+                return;
+            }
+
+            filtered.forEach(c => {
+                const btn = document.createElement('div');
+                const isSelected = this.selectedAddonAccessoires.some(x => x.artNr === c.artNr);
+                btn.className = `finder-item ${isSelected ? 'active' : ''}`;
+                btn.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        ${c.imgUrl ? `<img src="${c.imgUrl}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
+                        <div>
+                            <div style="font-size:0.8rem; font-weight:500; line-height:1.3;">${c.label || c.name}</div>
+                            <div style="font-size:0.7rem; color:var(--st-gray); margin-top:0.25rem;">
+                                ${c.manufacturer || ''} ${extractAccessoireSerie(c) !== 'Andere' ? '· ' + extractAccessoireSerie(c) : ''}
+                            </div>
                         </div>
-                        <span class="finish-artnr">${a.artNr}</span>
                     </div>
-                </div>
-                `}).join(""),r.querySelectorAll(".result-item-card").forEach(a=>{a.addEventListener("click",()=>{this.selectItem(a.dataset.tid)})})},selectItem:function(r){this.selectedTray=this.trays.find(e=>e.id===r),this.mischerOptionsState={},this.selectedTray&&this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((e,t)=>{e.options&&e.options.length>0&&(this.mischerOptionsState[t]=0)}),this.filterResults(),this.renderConfigurator(),this.updateBOM()},isMatVisible:function(r,e){if(!this.selectedTray||!this.selectedTray.mountingMaterials)return!0
-if((r.name||"").toLowerCase().includes("duschengleitstange")){const n=this.selectedTray.mountingMaterials.findIndex(i=>(i.name||"").toLowerCase().includes("brausehalter"))
-if(n>=0){const i=this.mischerOptionsState[n]
-if(i!==void 0){const a=this.selectedTray.mountingMaterials[n].options[i]
-return!!(a&&a.label&&a.label.toLowerCase().startsWith("ohne"))}}}return!0},renderConfigurator:function(){const r=document.getElementById(`trayConfigurator_${s}`),e=document.getElementById(`trayConfiguratorInner_${s}`)
-if(!this.selectedTray){r&&(r.style.display="none")
-return}if(r&&(r.style.display="block"),!e)return
-e.innerHTML=""
-const t=this.selectedTray.mountingMaterials||[]
-if(t.length===0){e.innerHTML='<p class="section-desc">Kein spezifisches Zubehör verfügbar.</p>'
-return}t.forEach((n,i)=>{if(!this.isMatVisible(n,i))return
-const a=document.createElement("div")
-a.className="filter-group",a.style.marginBottom="1.25rem"
-const l=this.mischerOptionsState[i],o=l!==void 0?n.options[l]:null,y=(o==null?void 0:o.imgUrl)||"",M=n.options.length>1
-a.innerHTML=`
-                    <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">${n.name||"Zubehör"}</label>
+                    <div style="font-size:0.75rem; color:var(--st-gray); font-family:var(--st-font-mono); margin-top:0.5rem; text-align:right;">${c.artNr}</div>
+                `;
+                btn.addEventListener('click', () => {
+                    if (isSelected) {
+                        this.selectedAddonAccessoires = this.selectedAddonAccessoires.filter(x => x.artNr !== c.artNr);
+                    } else {
+                        this.selectedAddonAccessoires.push({ ...c, qty: 1, origin: 'Zusatzoptionen' });
+                    }
+                    this.populateAccessoires();
+                    this.updateBOM();
+                });
+                listEl.appendChild(btn);
+            });
+      },
+      
+      renderGridInMainPanel: function (filtered) {
+            const bomTableBody = document.getElementById("bomTableBody");
+            const bomCountCounter = document.getElementById("bomCount");
+            if (bomCountCounter) bomCountCounter.textContent = filtered.length + ' Produkte gefunden';
+            if (filtered.length === 0) {
+                bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#9da3ad; padding:2rem;">Keine Produkte gefunden. Bitte passen Sie die Filter an.</td></tr>';
+                return;
+            }
+
+            const sortedFiltered = [...filtered].sort((a, b) => String(a.artNr || '').localeCompare(String(b.artNr || '')));
+            const cappedFiltered = sortedFiltered.slice(0, 150);
+
+            let cards = cappedFiltered.map(t => {
+                return `
+                    <div class="result-item-card catalog-preview-card" onclick="window.currentActiveApp.selectItem('${t.id}')" style="display:flex; flex-direction:row; align-items:center; gap:1rem; border:1px solid var(--border); border-radius:8px; padding:1rem; background:var(--bg-surface); cursor:pointer; transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                        <div class="card-img-wrapper" style="width:70px; height:90px; display:flex; align-items:center; justify-content:center; border-radius:6px; overflow:hidden; background:var(--bg-subtle); flex-shrink:0;">
+                            ${(t.imgUrl || getSanitasImgUrl(t.artNr)) ? `<img src="${t.imgUrl || getSanitasImgUrl(t.artNr)}" loading="lazy" style="max-height:100%; max-width:100%; object-fit:contain;">` : '<i class="ri-image-line placeholder-icon" style="font-size:2rem; color:var(--text-secondary);"></i>'}
+                        </div>
+                        <div class="result-info" style="display:flex; flex-direction:column; flex:1; min-width:0;">
+                            <span style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">${t.manufacturer || "Marke unbekannt"}</span>
+                            <strong style="font-size:0.85rem; line-height:1.3; margin-bottom:4px; color:var(--text-primary); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${t.label || t.name || ""}</strong>
+                            <span class="finish-artnr" style="margin-top:6px; font-size:0.8rem;">${t.artNr}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (sortedFiltered.length > 150) {
+                cards += `<div style="grid-column:1/-1; padding:2rem; text-align:center; color:var(--text-secondary); font-size:0.95rem;">Es gibt ${sortedFiltered.length - 150} weitere Ergebnisse. Bitte passen Sie Ihre Filter an, um diese zu sehen.</div>`;
+            }
+
+            bomTableBody.innerHTML = '<tr><td colspan="5" style="padding:0; border:none; background:transparent;"><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px; padding:12px; background:var(--bg-body); border-radius:8px;">' + cards + '</div></td></tr>';
+      },
+      filterResults: function () {
+        var i;
+        const r = document.getElementById(`searchResults_${s}`),
+          e = document.getElementById(`resultCount_${s}`),
+          t = (
+            ((i = document.getElementById(`input_search_${s}`)) == null
+              ? void 0
+              : i.value) || ""
+          ).toLowerCase();
+        if (!r) return;
+        let n = this.trays;
+        if (
+          (this.currentHersteller !== "all" &&
+            (n = n.filter((a) => a.manufacturer === this.currentHersteller)),
+          this.currentSerie !== "all" &&
+            (n = n.filter((a) => this.extractSerie(a) === this.currentSerie)),
+          this.currentMontage !== "all" &&
+            (n = n.filter(
+              (a) => this.extractMontage(a) === this.currentMontage,
+            )),
+          t &&
+            (n = n.filter(
+              (a) =>
+                (a.label || "").toLowerCase().includes(t) ||
+                (a.artNr || "")
+                  .toLowerCase()
+                  .replace(/[\s\.]/g, "")
+                  .includes(t.replace(/[\s\.]/g, "")),
+            )),
+          (e.textContent = n.length),
+          n.length === 0)
+        ) {
+          r.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--text-secondary);">Keine Produkte gefunden. Bitte passen Sie die Filter an.</div>';
+          if (config.enableGalleryUX) {
+              if (this.selectedTray) {
+                  this.renderConfigurator();
+                  this.updateBOM();
+              } else {
+                  this.renderGridInMainPanel([]);
+              }
+          }
+          return;
+        }
+        if (this.selectedTray) {
+            this.renderConfigurator();
+            this.updateBOM();
+        } else {
+            if (config.enableGalleryUX) {
+                this.renderGridInMainPanel(n);
+                r.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--text-secondary);">Bitte wählen Sie ein Produkt aus der Hauptansicht.</div>';
+                return;
+            } else {
+                ((r.innerHTML = n
+                  .map((a) => {
+                    const l = this.selectedTray && this.selectedTray.id === a.id;
+                    return `
+                        <div class="result-item-card ${l ? "active" : ""}" onclick="window.currentActiveApp.selectItem('${a.id}')" data-tid="${a.id}">
+                            <div class="card-img-wrapper">
+                                ${a.imgUrl ? `<img src="${a.imgUrl}">` : '<i class="ri-image-line placeholder-icon"></i>'}
+                            </div>
+                            <div class="result-info">
+                                <strong>${this.extractSerie(a)}</strong>
+                                <div class="result-meta">
+                                    <span>${a.manufacturer || "Andere"}</span> | <span>${this.extractMontage(a)}</span>
+                                </div>
+                                <span class="finish-artnr">${a.artNr}</span>
+                            </div>
+                        </div>
+                        `;
+                  })
+                  .join("")),
+                  r.querySelectorAll(".result-item-card").forEach((a) => {
+                    a.addEventListener("click", () => {
+                      this.selectItem(a.dataset.tid);
+                    });
+                  }));
+            }
+        }
+      },
+      selectItem: function (r) {
+          if (!r) {
+              this.selectedTray = null;
+              this.mischerOptionsState = {};
+              this.showAccessoires = false;
+              this.selectedAddonAccessoires = [];
+              if (config.enableGalleryUX) {
+                  this.updateBOM();
+                  this.filterResults();
+                  this.renderConfigurator();
+                  this.updateAccessoiresToggles();
+              } else {
+                  this.clearBOM();
+              }
+              return;
+          }
+          if (!r) {
+              this.selectedTray = null;
+              this.mischerOptionsState = {};
+              this.showAccessoires = false;
+              this.selectedAddonAccessoires = [];
+              if (config.enableGalleryUX) {
+                  this.updateBOM();
+                  this.filterResults();
+                  this.renderConfigurator();
+                  this.updateAccessoiresToggles();
+              } else {
+                  this.clearBOM();
+              }
+              return;
+          }
+        ((this.selectedTray = this.trays.find((e) => e.id === r)),
+          (this.mischerOptionsState = {}),
+          this.selectedTray &&
+            this.selectedTray.mountingMaterials &&
+            this.selectedTray.mountingMaterials.forEach((e, t) => {
+              e.options &&
+                e.options.length > 0 &&
+                (this.mischerOptionsState[t] = 0);
+            }),
+          this.filterResults(),
+          (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.populateAccessoires(), this.renderConfigurator(), this.updateBOM());
+      },
+      isMatVisible: function (r, e) {
+        if (!this.selectedTray || !this.selectedTray.mountingMaterials)
+          return !0;
+        if ((r.name || "").toLowerCase().includes("duschengleitstange")) {
+          const n = this.selectedTray.mountingMaterials.findIndex((i) =>
+            (i.name || "").toLowerCase().includes("brausehalter"),
+          );
+          if (n >= 0) {
+            const i = this.mischerOptionsState[n];
+            if (i !== void 0) {
+              const a = this.selectedTray.mountingMaterials[n].options[i];
+              return !!(
+                a &&
+                a.label &&
+                a.label.toLowerCase().startsWith("ohne")
+              );
+            }
+          }
+        }
+        return !0;
+      },
+      renderConfigurator: function () {
+        const r = document.getElementById(`trayConfigurator_${s}`),
+          e = document.getElementById(`trayConfiguratorInner_${s}`);
+        if (!this.selectedTray) {
+          r && (r.style.display = "none");
+          return;
+        }
+        if ((r && (r.style.display = "block"), !e)) return;
+        if (config.enableGalleryUX) {
+            r.style.display = "none";
+            return;
+        }
+        e.innerHTML = "";
+        const t = this.selectedTray.mountingMaterials || [];
+        if (t.length === 0) {
+          e.innerHTML =
+            '<p class="section-desc">Kein spezifisches Zubehör verfügbar.</p>';
+          return;
+        }
+        (t.forEach((n, i) => {
+          if (!this.isMatVisible(n, i)) return;
+          const a = document.createElement("div");
+          ((a.className = "filter-group"), (a.style.marginBottom = "1.25rem"));
+          const l = this.mischerOptionsState[i],
+            o = l !== void 0 ? n.options[l] : null,
+            y = (o == null ? void 0 : o.imgUrl) || "",
+            M = n.options.length > 1;
+          ((a.innerHTML = `
+                    <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">${n.name || "Zubehör"}</label>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
                         <div style="width:40px; height:40px; background:#fff; border-radius:4px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; padding:2px; flex-shrink:0;">
-                            ${y?`<img src="${y}" style="max-width:100%; max-height:100%; object-fit:contain;">`:'<i class="ri-image-line" style="color:#ddd;"></i>'}
+                            ${y ? `<img src="${y}" style="max-width:100%; max-height:100%; object-fit:contain;">` : '<i class="ri-image-line" style="color:#ddd;"></i>'}
                         </div>
                         <div style="flex:1; position:relative;">
-                            <select class="filter-select mischer-acc-select" data-midx="${i}" style="width:100%; padding-right:2rem; ${M?"":"pointer-events:none; background-image:none !important;"}">
-                                ${n.options.map((v,S)=>`
-                                    <option value="${S}" ${l==S?"selected":""}>${v.label} (${v.artNr})</option>
-                                `).join("")}
+                            <select class="filter-select mischer-acc-select" data-midx="${i}" style="width:100%; padding-right:2rem; ${M ? "" : "pointer-events:none; background-image:none !important;"}">
+                                ${n.options
+                                  .map(
+                                    (v, S) => `
+                                    <option value="${S}" ${l == S ? "selected" : ""}>${v.label} (${v.artNr})</option>
+                                `,
+                                  )
+                                  .join("")}
                             </select>
-                            ${M?'<i class="ri-arrow-down-s-line" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--text-secondary); font-size:1.2rem;"></i>':""}
+                            ${M ? '<i class="ri-arrow-down-s-line" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--text-secondary); font-size:1.2rem;"></i>' : ""}
                         </div>
                     </div>
-                `,e.appendChild(a)}),e.querySelectorAll(".mischer-acc-select").forEach(n=>{n.addEventListener("change",i=>{const a=parseInt(n.dataset.midx),l=parseInt(n.value)
-this.mischerOptionsState[a]=l,this.renderConfigurator(),this.updateBOM()})})},updateBOM:function(){const r=document.getElementById("bomTableBody"),e=document.getElementById("bomCount")
-if(!r)return
-if(r.innerHTML="",!this.selectedTray){e&&(e.textContent="0 Artikel")
-return}let t=1
-r.innerHTML+=`
+                `),
+            e.appendChild(a));
+        }),
+          e.querySelectorAll(".mischer-acc-select").forEach((n) => {
+            n.addEventListener("change", (i) => {
+              const a = parseInt(n.dataset.midx),
+                l = parseInt(n.value);
+              ((this.mischerOptionsState[a] = l),
+                (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.populateAccessoires(), this.renderConfigurator(), this.updateBOM());
+            });
+          }));
+      },
+      updateBOM: function () {
+        let backBtn = document.getElementById("backToCatalogBtn");
+        if (config.enableGalleryUX) {
+            if (!this.selectedTray) {
+                if (backBtn) backBtn.style.display = "none";
+            } else {
+                if (!backBtn) {
+                    const h = document.querySelector(".bom-header");
+                    if (h) {
+                        backBtn = document.createElement("button");
+                        backBtn.id = "backToCatalogBtn";
+                        backBtn.className = "icon-btn highlight-btn";
+                        backBtn.style.marginRight = "auto";
+                        backBtn.innerHTML = '<i class="ri-arrow-left-s-line" aria-hidden="true"></i> Zurück zur Übersicht';
+                        h.insertBefore(backBtn, h.firstChild);
+                    }
+                }
+                if (backBtn) {
+                    backBtn.onclick = () => {
+                        if (window.currentActiveApp) {
+                            if (typeof window.currentActiveApp.selectItem === 'function') {
+                                window.currentActiveApp.selectItem(null);
+                            } else if (typeof window.currentActiveApp.selectTray === 'function') {
+                                window.currentActiveApp.selectTray(null);
+                            }
+                        }
+                    };
+                    backBtn.style.display = "inline-flex";
+                }
+            }
+        }
+        const r = document.getElementById("bomTableBody"),
+          e = document.getElementById("bomCount");
+        if (!r) return;
+        if (((r.innerHTML = ""), !this.selectedTray)) {
+          e && (e.textContent = "0 Artikel");
+          return;
+        }
+        let t = 1;
+        ((r.innerHTML += `
                 <tr class="bom-main-item">
-                    <td><div class="img-cell"><img src="${this.selectedTray.imgUrl||""}"></div></td>
+                    <td><div class="img-cell"><img src="${this.selectedTray.imgUrl || ""}"></div></td>
                     <td><span class="bom-code">${this.selectedTray.artNr}</span></td>
                     <td><div class="bom-desc">${this.selectedTray.label}</div></td>
                     
                     <td><strong>1</strong></td>
                 </tr>
-            `,this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((n,i)=>{if(!this.isMatVisible(n,i))return
-const a=this.mischerOptionsState[i]
-if(a!==void 0){const l=n.options[a]
-if(l&&!l.label.toLowerCase().startsWith("ohne")){const o=l.menge||1
-t+=o,r.innerHTML+=`
-                                <tr>
-                                    <td><div class="img-cell"><img src="${l.imgUrl||""}"></div></td>
-                                    <td><span class="bom-code">${l.artNr}</span></td>
-                                    <td><div class="bom-desc">${l.label}</div></td>
-                                    
-                                    <td><strong>${o}</strong></td>
-                                </tr>
-                            `}}}),e&&(e.textContent=`${t} Artikel gewählt`)},clearBOM:function(){this.mischerOptionsState={},this.updateBOM()},copyToClipboard:function(){if(!this.selectedTray)return
-let r=[`${this.selectedTray.artNr}	1`]
-this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((e,t)=>{if(!this.isMatVisible(e,t))return
-const n=this.mischerOptionsState[t]
-if(n!==void 0){const i=e.options[n]
-i&&!i.label.toLowerCase().startsWith("ohne")&&r.push(`${i.artNr}	${i.menge||1}`)}}),navigator.clipboard.writeText(r.join(`
-`)).then(()=>alert("Stückliste kopiert!"))}}}
-    return ut(title, desc, mainImgUrl, config);
-}
+            `),
+          this.selectedTray.mountingMaterials &&
+            this.selectedTray.mountingMaterials.forEach((n, i) => {
+              if (!this.isMatVisible(n, i)) return;
+              const a = this.mischerOptionsState[i];
+              if (a !== void 0) {
+                const l = n.options[a];
+                const isOhne = l && l.label.toLowerCase().startsWith("ohne");
+                
+                let isInlineDropdown = config.enableGalleryUX && n.options.length > 1;
+                
+                if (!isInlineDropdown && isOhne) return;
 
+                let descHTML = `<div class="bom-desc">${l ? l.label : ''}</div>`;
+                if (isInlineDropdown) {
+                    const optionsHTML = n.options.map((opt, idx) => {
+                        const selected = (a === idx) ? 'selected' : '';
+                        return `<option value="${idx}" ${selected}>${opt.label} (${opt.artNr})</option>`;
+                    }).join('');
+                    
+                    descHTML = `
+                        <div class="bom-desc" style="margin-bottom:0.25rem; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">${n.name || 'Zubehör'}</div>
+                        <select class="inline-bom-select" data-midx="${i}" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.9rem; margin-bottom: 0.25rem; font-family: inherit; font-weight: 500; cursor: pointer; outline: none; transition: border-color 0.2s ease;">
+                            ${optionsHTML}
+                        </select>
+                    `;
+                }
+
+                const o = l ? (l.menge || 1) : 1;
+                if (!isOhne) t += o;
+
+                const rowOpacity = isOhne ? 'opacity: 0.6; background: rgba(0,0,0,0.02);' : '';
+                const artNrDisplay = isOhne ? '-' : (l ? l.artNr : '');
+                const imgDisplay = (l && l.imgUrl) ? `<img src="${l.imgUrl}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>';
+
+                r.innerHTML += `
+                    <tr style="${rowOpacity}">
+                        <td><div class="img-cell" ${!(l && l.imgUrl) ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>${imgDisplay}</div></td>
+                        <td><span class="bom-code">${artNrDisplay}</span></td>
+                        <td>${descHTML}</td>
+                        <td><strong>${isOhne ? '-' : o}</strong></td>
+                    </tr>
+                `;
+              }
+            }),
+          (function() {
+            if (this.showAccessoires && this.selectedAddonAccessoires && this.selectedAddonAccessoires.length > 0) {
+                this.selectedAddonAccessoires.forEach(acc => {
+                    t += 1;
+                    r.innerHTML += `
+                        <tr>
+                            <td><div class="img-cell"><img src="${acc.imgUrl || ''}"></div></td>
+                            <td><span class="bom-code">${acc.artNr}</span></td>
+                            <td><div class="bom-desc">${acc.label || acc.name}</div></td>
+                            
+                            <td><strong>1</strong></td>
+                        </tr>
+                    `;
+                });
+            }
+        }).call(this), e && (e.textContent = `${t} Artikel gewählt`));
+        if (config.enableGalleryUX) {
+            r.querySelectorAll('.inline-bom-select').forEach(sel => {
+                sel.addEventListener('change', (ev) => {
+                    const midx = parseInt(ev.target.dataset.midx);
+                    const newVal = parseInt(ev.target.value);
+                    this.mischerOptionsState[midx] = newVal;
+                    
+                    this.showAccessoires = false;
+                    this.selectedAddonAccessoires = [];
+                    this.updateAccessoiresToggles();
+                    this.populateAccessoires();
+                    this.renderConfigurator();
+                    this.updateBOM();
+                });
+            });
+        }
+      },
+
+      clearBOM: function () {
+        ((this.mischerOptionsState = {}), (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.updateBOM());
+      },
+      copyToClipboard: window.copyBOMToClipboard,
+    };
+  }
+  return ut(title, desc, mainImgUrl, config);
+}
 export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
-    function gt(B,F,R,N={}){const m=N.isBath||!1,s=B.replace(/\s/g,"")
-return{trays:[],mainImgUrl:R,selectedTray:null,mischerOptionsState:{},currentHersteller:"all",currentMontage:"all",currentSerie:"all",init:function(){this.selectedTray=null,this.mischerOptionsState={},this.currentHersteller="all",this.currentMontage="all",this.currentSerie="all",this.renderSidebar(),this.bindFilters(),this.filterResults(),this.clearBOM()},normalizeBademischerSerie:function(r,e=""){let t=String(r||"").toLowerCase().trim()
-const n=String(e||"").toLowerCase()
-return t=t.replace(/^[-\s/]+/,"").replace(/^-?\s*endmontageset\b/,"").replace(/^-?\s*fertigmontageset\b/,"").replace(/^[-\s/]+/,""),n&&t.startsWith(n)&&(t=t.slice(n.length).trim()),n&&(t=t.replace(new RegExp(`\\b${n.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}\\b`,"gi"),"").trim()),t=t.replace(/^[-\s/]+/,"").replace(/\babdeckplatte\b.*$/i,"").replace(/\bdurchflussleistung\b.*$/i,"").replace(/\bohne einbaukörper\b.*$/i,"").replace(/\benergieeffizienzklasse\b.*$/i,"").replace(/\bgeräuschgruppe\b.*$/i,"").replace(/\barmhebel\b.*$/i,"").replace(/\bselbstschliessend\b.*$/i,"").replace(/\btemperaturgriff\b.*$/i,"").replace(/^thermostat\s+/i,"").replace(/\s+½[\"”]?\s+thermostat\b.*$/i,"").replace(/\s+thermostat\b.*$/i,"").replace(/\bmit sicherheitstaste\b.*$/i,"").replace(/\b1-weg\b.*$/i,"").replace(/\s+½[\"”]?$/i,"").replace(/\bav\.0\b/g,"ava 2.0").replace(/\bvit\.0\b/g,"vita 2.0").replace(/\s*,\s*$/g,"").replace(/\s+/g," ").trim(),t?t.split(" ").map(i=>/^kwc$/i.test(i)?"KWC":/^\d/.test(i)?i:i.charAt(0).toUpperCase()+i.slice(1)).join(" "):"Andere"},extractSerie:function(r){if(r.serie)return this.normalizeBademischerSerie(r.serie,r.manufacturer)
-const e=["aufputz-duschenmischer","unterputz-duschenmischer","duschenmischer","duschmischer","aufputz-bademischer","unterputz-bademischer","bademischer","waschtischmischer","thermostatmischer","thermostat-duschenmischer","einhebelmischer","einlochmischer","mischer"]
-let t=(r.label||"").toLowerCase()
-if(r.manufacturer){const a=r.manufacturer.toLowerCase()
-t.startsWith(a)&&(t=t.slice(a.length).trim())}for(const a of e)if(t.startsWith(a)){t=t.slice(a.length).trim()
-break}if(t=t.replace(/-?endmontageset/g,"").trim(),t=t.replace(/-?fertigmontageset/g,"").trim(),r.manufacturer){const a=r.manufacturer.toLowerCase()
-t.startsWith(a)&&(t=t.slice(a.length).trim())}const n=t.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/)
-let i=n&&n[1]?n[1].trim():t.trim()
-return this.normalizeBademischerSerie(i,r.manufacturer)},extractMontage:function(r){const e=(r.label||"").toLowerCase()
-return m&&(e.includes("standmodell")||e.includes("freistehend"))?"Standmodell":e.includes("unterputz")||e.includes(" up ")||e.includes("einbau")||e.includes("endmontageset")||e.includes("grundkörper")||e.includes("grundkoerper")?"Unterputz":(e.includes("aufputz")||e.includes(" ap ")||e.includes("wandbatterie")||e.includes("wandmischer")||e.includes("ad 153 mm")||e.includes("aufputz-duschenmischer")||e.includes("thermostat-duschenmischer"),"Aufputz")},getUniqueValues:function(r,e){const t=e||this.trays
-if(r==="hersteller"){const n=this.trays.map(i=>i.manufacturer||"Andere")
-return[...new Set(n)].filter(Boolean).sort()}return r==="montage"?[...new Set(t.map(n=>this.extractMontage(n)))].sort():r==="serie"?[...new Set(t.map(n=>this.extractSerie(n)))].sort():[]},renderSidebar:function(){const r=document.getElementById("configSidebar")
-if(!r)return
-const e=this.currentHersteller==="all"?this.trays:this.trays.filter(o=>o.manufacturer===this.currentHersteller),t=e.filter(o=>this.currentMontage==="all"?!0:this.extractMontage(o)===this.currentMontage),n=this.getUniqueValues("hersteller"),i=this.getUniqueValues("serie",t),a=this.getUniqueValues("montage",e)
-r.innerHTML=`
+  function gt(B, F, R, N = {}) {
+    const m = N.isBath || !1,
+      s = B.replace(/\s/g, "");
+    return {
+      trays: [],
+      mainImgUrl: R,
+      selectedTray: null,
+      mischerOptionsState: {},
+      currentHersteller: "all",
+      currentMontage: "all",
+      currentSerie: "all",
+      showAccessoires: false,
+      selectedAddonAccessoires: [],
+      currentAccessoireSerie: 'Alle',
+      init: function () {
+        ((this.selectedTray = null),
+          (this.mischerOptionsState = {}),
+          (this.currentHersteller = "all"),
+          (this.currentMontage = "all"),
+          (this.currentSerie = "all"),
+          (this.showAccessoires = false),
+          (this.selectedAddonAccessoires = []),
+          (this.currentAccessoireSerie = 'Alle'),
+          this.renderSidebar(),
+          this.bindFilters(), this.filterResults());
+          if (!config.enableGalleryUX) { this.clearBOM(); }
+      },
+      normalizeBademischerSerie: function (r, e = "") {
+        let t = String(r || "")
+          .toLowerCase()
+          .trim();
+        const n = String(e || "").toLowerCase();
+        return (
+          (t = t
+            .replace(/^[-\s/]+/, "")
+            .replace(/^-?\s*endmontageset\b/, "")
+            .replace(/^-?\s*fertigmontageset\b/, "")
+            .replace(/^[-\s/]+/, "")),
+          n && t.startsWith(n) && (t = t.slice(n.length).trim()),
+          n &&
+            (t = t
+              .replace(
+                new RegExp(
+                  `\\b${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+                  "gi",
+                ),
+                "",
+              )
+              .trim()),
+          (t = t
+            .replace(/^[-\s/]+/, "")
+            .replace(/\babdeckplatte\b.*$/i, "")
+            .replace(/\bdurchflussleistung\b.*$/i, "")
+            .replace(/\bohne einbaukörper\b.*$/i, "")
+            .replace(/\benergieeffizienzklasse\b.*$/i, "")
+            .replace(/\bgeräuschgruppe\b.*$/i, "")
+            .replace(/\barmhebel\b.*$/i, "")
+            .replace(/\bselbstschliessend\b.*$/i, "")
+            .replace(/\btemperaturgriff\b.*$/i, "")
+            .replace(/^thermostat\s+/i, "")
+            .replace(/\s+½[\"”]?\s+thermostat\b.*$/i, "")
+            .replace(/\s+thermostat\b.*$/i, "")
+            .replace(/\bmit sicherheitstaste\b.*$/i, "")
+            .replace(/\b1-weg\b.*$/i, "")
+            .replace(/\s+½[\"”]?$/i, "")
+            .replace(/\bav\.0\b/g, "ava 2.0")
+            .replace(/\bvit\.0\b/g, "vita 2.0")
+            .replace(/\s*,\s*$/g, "")
+            .replace(/\s+/g, " ")
+            .trim()),
+          t
+            ? t
+                .split(" ")
+                .map((i) =>
+                  /^kwc$/i.test(i)
+                    ? "KWC"
+                    : /^\d/.test(i)
+                      ? i
+                      : i.charAt(0).toUpperCase() + i.slice(1),
+                )
+                .join(" ")
+            : "Andere"
+        );
+      },
+      extractSerie: function (r) {
+        if (r.serie)
+          return this.normalizeBademischerSerie(r.serie, r.manufacturer);
+        const e = [
+          "aufputz-duschenmischer",
+          "unterputz-duschenmischer",
+          "duschenmischer",
+          "duschmischer",
+          "aufputz-bademischer",
+          "unterputz-bademischer",
+          "bademischer",
+          "waschtischmischer",
+          "thermostatmischer",
+          "thermostat-duschenmischer",
+          "einhebelmischer",
+          "einlochmischer",
+          "mischer",
+        ];
+        let t = (r.label || "").toLowerCase();
+        if (r.manufacturer) {
+          const a = r.manufacturer.toLowerCase();
+          t.startsWith(a) && (t = t.slice(a.length).trim());
+        }
+        for (const a of e)
+          if (t.startsWith(a)) {
+            t = t.slice(a.length).trim();
+            break;
+          }
+        if (
+          ((t = t.replace(/-?endmontageset/g, "").trim()),
+          (t = t.replace(/-?fertigmontageset/g, "").trim()),
+          r.manufacturer)
+        ) {
+          const a = r.manufacturer.toLowerCase();
+          t.startsWith(a) && (t = t.slice(a.length).trim());
+        }
+        const n = t.match(
+          /^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/,
+        );
+        let i = n && n[1] ? n[1].trim() : t.trim();
+        return this.normalizeBademischerSerie(i, r.manufacturer);
+      },
+      extractMontage: function (r) {
+        const e = (r.label || "").toLowerCase();
+        return m && (e.includes("standmodell") || e.includes("freistehend"))
+          ? "Standmodell"
+          : e.includes("unterputz") ||
+              e.includes(" up ") ||
+              e.includes("einbau") ||
+              e.includes("endmontageset") ||
+              e.includes("grundkörper") ||
+              e.includes("grundkoerper")
+            ? "Unterputz"
+            : (e.includes("aufputz") ||
+                e.includes(" ap ") ||
+                e.includes("wandbatterie") ||
+                e.includes("wandmischer") ||
+                e.includes("ad 153 mm") ||
+                e.includes("aufputz-duschenmischer") ||
+                e.includes("thermostat-duschenmischer"),
+              "Aufputz");
+      },
+      getUniqueValues: function (r, e) {
+        const t = e || this.trays;
+        if (r === "hersteller") {
+          const n = this.trays.map((i) => i.manufacturer || "Andere");
+          return [...new Set(n)].filter(Boolean).sort();
+        }
+        return r === "montage"
+          ? [...new Set(t.map((n) => this.extractMontage(n)))].sort()
+          : r === "serie"
+            ? [...new Set(t.map((n) => this.extractSerie(n)))].sort()
+            : [];
+      },
+      renderSidebar: function () {
+        const r = document.getElementById("configSidebar");
+        if (!r) return;
+        const e =
+            this.currentHersteller === "all"
+              ? this.trays
+              : this.trays.filter(
+                  (o) => o.manufacturer === this.currentHersteller,
+                ),
+          t = e.filter((o) =>
+            this.currentMontage === "all"
+              ? !0
+              : this.extractMontage(o) === this.currentMontage,
+          ),
+          n = this.getUniqueValues("hersteller"),
+          i = this.getUniqueValues("serie", t),
+          a = this.getUniqueValues("montage", e);
+        ((r.innerHTML = `
                 <div class="sidebar-section">
                     <h2 style="margin-bottom: 1.5rem
  display: flex
@@ -5299,24 +6975,24 @@ r.innerHTML=`
                     <div class="filter-group">
                         <label id="head_hersteller_${s}" class="filter-label">Hersteller</label>
                         <div class="pill-group" id="list_hersteller_${s}">
-                            <button class="pill-btn ${this.currentHersteller==="all"?"active":""}" data-key="Hersteller" data-val="all">Alle</button>
-                            ${n.map(o=>`<button class="pill-btn ${this.currentHersteller===o?"active":""}" data-key="Hersteller" data-val="${o}">${o}</button>`).join("")}
+                            <button class="pill-btn ${this.currentHersteller === "all" ? "active" : ""}" data-key="Hersteller" data-val="all">Alle</button>
+                            ${n.map((o) => `<button class="pill-btn ${this.currentHersteller === o ? "active" : ""}" data-key="Hersteller" data-val="${o}">${o}</button>`).join("")}
                         </div>
                     </div>
 
                     <div class="filter-group">
                         <label id="head_montage_${s}" class="filter-label">Montageart</label>
                         <div class="pill-group" id="list_montage_${s}">
-                            <button class="pill-btn ${this.currentMontage==="all"?"active":""}" data-key="Montage" data-val="all">Alle</button>
-                            ${a.map(o=>`<button class="pill-btn ${this.currentMontage===o?"active":""}" data-key="Montage" data-val="${o}">${o}</button>`).join("")}
+                            <button class="pill-btn ${this.currentMontage === "all" ? "active" : ""}" data-key="Montage" data-val="all">Alle</button>
+                            ${a.map((o) => `<button class="pill-btn ${this.currentMontage === o ? "active" : ""}" data-key="Montage" data-val="${o}">${o}</button>`).join("")}
                         </div>
                     </div>
 
                     <div class="filter-group">
                         <label id="head_serie_${s}" class="filter-label">Serie</label>
                         <div class="pill-group" id="list_serie_${s}">
-                            <button class="pill-btn ${this.currentSerie==="all"?"active":""}" data-key="Serie" data-val="all">Alle</button>
-                            ${i.map(o=>`<button class="pill-btn ${this.currentSerie===o?"active":""}" data-key="Serie" data-val="${o}">${o}</button>`).join("")}
+                            <button class="pill-btn ${this.currentSerie === "all" ? "active" : ""}" data-key="Serie" data-val="all">Alle</button>
+                            ${i.map((o) => `<button class="pill-btn ${this.currentSerie === o ? "active" : ""}" data-key="Serie" data-val="${o}">${o}</button>`).join("")}
                         </div>
                     </div>
 
@@ -5329,11 +7005,25 @@ r.innerHTML=`
                     </div>
                 </div>
                 
-                <div class="sidebar-section">
+                <div class="sidebar-section" ${config.enableGalleryUX ? 'style="display:none;"' : ''}>
                     <h2>Suchergebnisse <span id="resultCount_${s}" class="badge">0</span></h2>
                     <div class="search-results-container" id="searchResults_${s}"></div>
                 </div>
 
+                
+                <div class="sidebar-section addon-toggles-section" id="addon_toggles_section_${s}" style="display:none; margin-top:2rem;">
+                    <div class="finder-sub-header">Zusatzoptionen</div>
+                    <div class="addon-toggle-row" id="toggle_accessoires_${s}">
+                        <span class="addon-toggle-label"><i class="ri-archive-line"></i> Accessoires</span>
+                        <button class="ios-toggle" data-target="accessoires_mischer_${s}" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
+                    </div>
+                    <div id="addon_accessoires_mischer_panel_${s}" class="addon-panel" style="display:none;">
+                        <div class="finder-sub-header">Serie</div>
+                        <div class="pill-group" id="list_addon_accessoires_serie_${s}" style="margin-bottom: 0.75rem;"></div>
+                        <div class="finder-sub-header">Accessoires wählen</div>
+                        <div class="finder-list" id="list_addon_accessoires_${s}"></div>
+                    </div>
+                </div>
                 <div class="sidebar-section" id="trayConfigurator_${s}" style="display:none
  margin-top:2rem
 ">
@@ -5341,99 +7031,588 @@ r.innerHTML=`
                     <p class="section-desc">Bestimmen Sie das benötigte Zubehör.</p>
                     <div id="trayConfiguratorInner_${s}"></div>
                 </div>
-            `,r.querySelectorAll(".pill-btn[data-key]").forEach(o=>{o.addEventListener("click",()=>{this.setFilter(o.dataset.key,o.dataset.val)})}),X(`head_hersteller_${s}`,`list_hersteller_${s}`,this.currentHersteller,"Hersteller",()=>this.setFilter("Hersteller","all")),X(`head_montage_${s}`,`list_montage_${s}`,this.currentMontage,"Montageart",()=>this.setFilter("Montage","all")),X(`head_serie_${s}`,`list_serie_${s}`,this.currentSerie,"Serie",()=>this.setFilter("Serie","all"))
-const l=document.getElementById(`input_search_${s}`)
-l&&l.addEventListener("input",()=>this.filterResults()),this.filterResults()},setFilter:function(r,e){this[`current${r}`]=e,this.renderSidebar()},bindFilters:function(){},filterResults:function(){var i
-const r=document.getElementById(`searchResults_${s}`),e=document.getElementById(`resultCount_${s}`),t=(((i=document.getElementById(`input_search_${s}`))==null?void 0:i.value)||"").toLowerCase()
-if(!r)return
-let n=this.trays
-if(this.currentHersteller!=="all"&&(n=n.filter(a=>a.manufacturer===this.currentHersteller)),this.currentSerie!=="all"&&(n=n.filter(a=>this.extractSerie(a)===this.currentSerie)),this.currentMontage!=="all"&&(n=n.filter(a=>this.extractMontage(a)===this.currentMontage)),t&&(n=n.filter(a=>(a.label||"").toLowerCase().includes(t)||(a.artNr||"").toLowerCase().includes(t))),e.textContent=n.length,n.length===0){r.innerHTML='<div style="padding:2rem  text-align:center  color:var(--text-secondary) ">Keine Produkte gefunden. Bitte passen Sie die Filter an.</div>'
-return}            r.innerHTML=n.map(a=>{
-                const l=this.selectedTray&&this.selectedTray.id===a.id;
-                return `
-                <div class="result-item-card ${l?"active":""}" onclick="window.currentActiveApp.selectItem('${a.id}')" data-tid="${a.id}">
-                    <div class="card-img-wrapper">
-                        ${a.imgUrl ? `<img src="${a.imgUrl}">` : '<i class="ri-image-line placeholder-icon"></i>'}
-                    </div>
-                    <div class="result-info">
-                        <strong>${this.extractSerie(a)}</strong>
-                        <div class="result-meta">
-                            <span>${a.manufacturer||"Andere"}</span> | <span>${this.extractMontage(a)}</span>
+            `),
+          r.querySelectorAll(".pill-btn[data-key]").forEach((o) => {
+            o.addEventListener("click", () => {
+              this.setFilter(o.dataset.key, o.dataset.val);
+            });
+          }),
+          X(
+            `head_hersteller_${s}`,
+            `list_hersteller_${s}`,
+            this.currentHersteller,
+            "Hersteller",
+            () => this.setFilter("Hersteller", "all"),
+          ),
+          X(
+            `head_montage_${s}`,
+            `list_montage_${s}`,
+            this.currentMontage,
+            "Montageart",
+            () => this.setFilter("Montage", "all"),
+          ),
+          X(
+            `head_serie_${s}`,
+            `list_serie_${s}`,
+            this.currentSerie,
+            "Serie",
+            () => this.setFilter("Serie", "all"),
+          ));
+        
+          this.updateAccessoiresToggles();
+          this.populateAccessoires();
+          const l = document.getElementById(`input_search_${s}`);
+        (l && l.addEventListener("input", () => this.filterResults()),
+          this.filterResults());
+      },
+      setFilter: function (r, e) {
+        ((this[`current${r}`] = e), this.renderSidebar());
+      },
+      bindFilters: function () {},
+      
+      updateAccessoiresToggles: function () {
+            const btn = document.querySelector(`#toggle_accessoires_${s} .ios-toggle`);
+            const panel = document.getElementById(`addon_accessoires_mischer_panel_${s}`);
+            if (btn) btn.classList.toggle('active', this.showAccessoires);
+            if (panel) panel.style.display = this.showAccessoires ? 'block' : 'none';
+            
+            const section = document.getElementById(`addon_toggles_section_${s}`);
+            if (section) {
+                if (this.selectedTray) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                    this.showAccessoires = false;
+                }
+                const toggleBtn = section.querySelector('.ios-toggle');
+                if (toggleBtn && !toggleBtn.dataset.bound) {
+                    toggleBtn.dataset.bound = "true";
+                    toggleBtn.addEventListener('click', () => {
+                        this.showAccessoires = !this.showAccessoires;
+                        this.updateAccessoiresToggles();
+                        this.updateBOM();
+                    });
+                }
+            }
+      },
+      populateAccessoires: function () {
+            const listId = `list_addon_accessoires_${s}`;
+            const serieListId = `list_addon_accessoires_serie_${s}`;
+            const listEl = document.getElementById(listId);
+            const serieListEl = document.getElementById(serieListId);
+            if (!listEl || !serieListEl) return;
+            
+            let candidates = [];
+            const allApps = window.productApps || {};
+            const keywords = ['badetuchstange', 'schwammhalter', 'eckseifenhalter', 'drahtseifenhalter', 'duschkorb'];
+            
+            Object.keys(allApps).forEach(appKey => {
+                const a = allApps[appKey];
+                if (a.trays) {
+                    a.trays.forEach(t => {
+                        const lbl = (t.label || t.name || '').toLowerCase();
+                        if (keywords.some(kw => lbl.includes(kw))) {
+                            candidates.push(t);
+                        }
+                    });
+                }
+            });
+            const seen = new Set();
+            candidates = candidates.filter(c => {
+                if (seen.has(c.artNr)) return false;
+                seen.add(c.artNr);
+                return true;
+            });
+
+            const extractAccessoireSerie = (t) => {
+                if (t.serie) return t.serie;
+                let label = (t.label || '').toLowerCase();
+                if (t.manufacturer) {
+                    const m = t.manufacturer.toLowerCase();
+                    if (label.startsWith(m)) label = label.slice(m.length).trim();
+                }
+                for (const kw of keywords) {
+                    if (label.startsWith(kw)) {
+                        label = label.slice(kw.length).trim();
+                        break;
+                    }
+                }
+                if (t.manufacturer) {
+                    const m = t.manufacturer.toLowerCase();
+                    if (label.startsWith(m)) label = label.slice(m.length).trim();
+                }
+                const match = label.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/);
+                let serie = match && match[1] ? match[1].trim() : label.trim();
+                if (serie.includes(' ')) serie = serie.split(' ')[0];
+                return serie ? serie.charAt(0).toUpperCase() + serie.slice(1) : 'Andere';
+            };
+
+            // Filters
+            const seriesList = ['Alle'];
+            candidates.forEach(c => {
+                const s = extractAccessoireSerie(c);
+                if (!seriesList.includes(s)) seriesList.push(s);
+            });
+            
+            serieListEl.innerHTML = seriesList.map(sx => 
+                `<button class="pill-btn ${this.currentAccessoireSerie === sx ? 'active' : ''}" data-val="${sx}">${sx}</button>`
+            ).join('');
+            
+            serieListEl.querySelectorAll('.pill-btn').forEach(b => {
+                b.addEventListener('click', () => {
+                    this.currentAccessoireSerie = b.dataset.val;
+                    this.populateAccessoires();
+                });
+            });
+
+            let filtered = candidates;
+            if (this.currentAccessoireSerie !== 'Alle') {
+                filtered = filtered.filter(c => extractAccessoireSerie(c) === this.currentAccessoireSerie);
+            }
+
+            listEl.innerHTML = '';
+            if (filtered.length === 0) {
+                listEl.innerHTML = '<div class="finder-empty-state" style="font-size:0.8rem;">Keine Accessoires gefunden.</div>';
+                return;
+            }
+
+            filtered.forEach(c => {
+                const btn = document.createElement('div');
+                const isSelected = this.selectedAddonAccessoires.some(x => x.artNr === c.artNr);
+                btn.className = `finder-item ${isSelected ? 'active' : ''}`;
+                btn.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        ${c.imgUrl ? `<img src="${c.imgUrl}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
+                        <div>
+                            <div style="font-size:0.8rem; font-weight:500; line-height:1.3;">${c.label || c.name}</div>
+                            <div style="font-size:0.7rem; color:var(--st-gray); margin-top:0.25rem;">
+                                ${c.manufacturer || ''} ${extractAccessoireSerie(c) !== 'Andere' ? '· ' + extractAccessoireSerie(c) : ''}
+                            </div>
                         </div>
-                        <span class="finish-artnr">${a.artNr}</span>
                     </div>
-                </div>
-                `}).join(""),r.querySelectorAll(".result-item-card").forEach(a=>{a.addEventListener("click",()=>{this.selectItem(a.dataset.tid)})})},selectItem:function(r){this.selectedTray=this.trays.find(e=>e.id===r),this.mischerOptionsState={},this.selectedTray&&this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((e,t)=>{e.options&&e.options.length>0&&(this.mischerOptionsState[t]=0)}),this.filterResults(),this.renderConfigurator(),this.updateBOM()},isMatVisible:function(r,e){if(!this.selectedTray||!this.selectedTray.mountingMaterials)return!0
-if((r.name||"").toLowerCase().includes("brausehalter")){const n=this.selectedTray.mountingMaterials.findIndex(a=>(a.name||"").toLowerCase().includes("duschgleitstange")||(a.name||"").toLowerCase().includes("gleitstange"))
-if(n>=0&&this.mischerOptionsState[n]!==void 0){const a=this.selectedTray.mountingMaterials[n].options[this.mischerOptionsState[n]]
-if(a&&!a.label.toLowerCase().startsWith("ohne"))return!1}const i=this.selectedTray.mountingMaterials.findIndex(a=>(a.name||"").toLowerCase().includes("anschlussbogen"))
-if(i>=0&&this.mischerOptionsState[i]!==void 0){const a=this.selectedTray.mountingMaterials[i].options[this.mischerOptionsState[i]]
-if(a&&a.label.toLowerCase().includes("mit integriertem brausehalter")||a&&a.label.toLowerCase().includes("mit brausehalter")||a&&a.artNr==="bitte_waehlen")return!1}}return!0},renderConfigurator:function(){const r=document.getElementById(`trayConfigurator_${s}`),e=document.getElementById(`trayConfiguratorInner_${s}`)
-if(!this.selectedTray){r&&(r.style.display="none")
-return}if(r&&(r.style.display="block"),!e)return
-e.innerHTML=""
-const t=this.selectedTray.mountingMaterials||[]
-if(t.length===0){e.innerHTML='<p class="section-desc">Kein spezifisches Zubehör verfügbar.</p>'
-return}t.forEach((n,i)=>{if(!this.isMatVisible(n,i))return
-const a=document.createElement("div")
-a.className="filter-group",a.style.marginBottom="1.25rem"
-const l=this.mischerOptionsState[i],o=l!==void 0?n.options[l]:null,y=(o==null?void 0:o.imgUrl)||"",M=n.options.length>1
-a.innerHTML=`
-                    <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">${n.name||"Zubehör"}</label>
+                    <div style="font-size:0.75rem; color:var(--st-gray); font-family:var(--st-font-mono); margin-top:0.5rem; text-align:right;">${c.artNr}</div>
+                `;
+                btn.addEventListener('click', () => {
+                    if (isSelected) {
+                        this.selectedAddonAccessoires = this.selectedAddonAccessoires.filter(x => x.artNr !== c.artNr);
+                    } else {
+                        this.selectedAddonAccessoires.push({ ...c, qty: 1, origin: 'Zusatzoptionen' });
+                    }
+                    this.populateAccessoires();
+                    this.updateBOM();
+                });
+                listEl.appendChild(btn);
+            });
+      },
+      
+      renderGridInMainPanel: function (filtered) {
+            const bomTableBody = document.getElementById("bomTableBody");
+            const bomCountCounter = document.getElementById("bomCount");
+            if (bomCountCounter) bomCountCounter.textContent = filtered.length + ' Produkte gefunden';
+            if (filtered.length === 0) {
+                bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#9da3ad; padding:2rem;">Keine Produkte gefunden. Bitte passen Sie die Filter an.</td></tr>';
+                return;
+            }
+
+            const sortedFiltered = [...filtered].sort((a, b) => String(a.artNr || '').localeCompare(String(b.artNr || '')));
+            const cappedFiltered = sortedFiltered.slice(0, 150);
+
+            let cards = cappedFiltered.map(t => {
+                return `
+                    <div class="result-item-card catalog-preview-card" onclick="window.currentActiveApp.selectItem('${t.id}')" style="display:flex; flex-direction:row; align-items:center; gap:1rem; border:1px solid var(--border); border-radius:8px; padding:1rem; background:var(--bg-surface); cursor:pointer; transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                        <div class="card-img-wrapper" style="width:70px; height:90px; display:flex; align-items:center; justify-content:center; border-radius:6px; overflow:hidden; background:var(--bg-subtle); flex-shrink:0;">
+                            ${(t.imgUrl || getSanitasImgUrl(t.artNr)) ? `<img src="${t.imgUrl || getSanitasImgUrl(t.artNr)}" loading="lazy" style="max-height:100%; max-width:100%; object-fit:contain;">` : '<i class="ri-image-line placeholder-icon" style="font-size:2rem; color:var(--text-secondary);"></i>'}
+                        </div>
+                        <div class="result-info" style="display:flex; flex-direction:column; flex:1; min-width:0;">
+                            <span style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">${t.manufacturer || "Marke unbekannt"}</span>
+                            <strong style="font-size:0.85rem; line-height:1.3; margin-bottom:4px; color:var(--text-primary); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${t.label || t.name || ""}</strong>
+                            <span class="finish-artnr" style="margin-top:6px; font-size:0.8rem;">${t.artNr}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (sortedFiltered.length > 150) {
+                cards += `<div style="grid-column:1/-1; padding:2rem; text-align:center; color:var(--text-secondary); font-size:0.95rem;">Es gibt ${sortedFiltered.length - 150} weitere Ergebnisse. Bitte passen Sie Ihre Filter an, um diese zu sehen.</div>`;
+            }
+
+            bomTableBody.innerHTML = '<tr><td colspan="5" style="padding:0; border:none; background:transparent;"><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px; padding:12px; background:var(--bg-body); border-radius:8px;">' + cards + '</div></td></tr>';
+      },
+      filterResults: function () {
+        var i;
+        const r = document.getElementById(`searchResults_${s}`),
+          e = document.getElementById(`resultCount_${s}`),
+          t = (
+            ((i = document.getElementById(`input_search_${s}`)) == null
+              ? void 0
+              : i.value) || ""
+          ).toLowerCase();
+        if (!r) return;
+        let n = this.trays;
+        
+        if (
+          (this.currentHersteller !== "all" &&
+            (n = n.filter((a) => a.manufacturer === this.currentHersteller)),
+          this.currentSerie !== "all" &&
+            (n = n.filter((a) => this.extractSerie(a) === this.currentSerie)),
+          this.currentMontage !== "all" &&
+            (n = n.filter(
+              (a) => this.extractMontage(a) === this.currentMontage,
+            )),
+          t &&
+            (n = n.filter(
+              (a) =>
+                (a.label || "").toLowerCase().includes(t) ||
+                (a.artNr || "")
+                  .toLowerCase()
+                  .replace(/[\s\.]/g, "")
+                  .includes(t.replace(/[\s\.]/g, "")),
+            )),
+          (e.textContent = n.length),
+          n.length === 0)
+        ) {
+          r.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--text-secondary);">Keine Produkte gefunden. Bitte passen Sie die Filter an.</div>';
+          if (config.enableGalleryUX) {
+              if (this.selectedTray) {
+                  this.renderConfigurator();
+                  this.updateBOM();
+              } else {
+                  this.renderGridInMainPanel([]);
+              }
+          }
+          return;
+        }
+        if (this.selectedTray) {
+            this.renderConfigurator();
+            this.updateBOM();
+        } else {
+            if (config.enableGalleryUX) {
+                this.renderGridInMainPanel(n);
+                r.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--text-secondary);">Bitte wählen Sie ein Produkt aus der Hauptansicht.</div>';
+                return;
+            } else {
+                ((r.innerHTML = n
+                  .map((a) => {
+                    const l = this.selectedTray && this.selectedTray.id === a.id;
+                    return `
+                        <div class="result-item-card ${l ? "active" : ""}" onclick="window.currentActiveApp.selectItem('${a.id}')" data-tid="${a.id}">
+                            <div class="card-img-wrapper">
+                                ${a.imgUrl ? `<img src="${a.imgUrl}">` : '<i class="ri-image-line placeholder-icon"></i>'}
+                            </div>
+                            <div class="result-info">
+                                <strong>${this.extractSerie(a)}</strong>
+                                <div class="result-meta">
+                                    <span>${a.manufacturer || "Andere"}</span> | <span>${this.extractMontage(a)}</span>
+                                </div>
+                                <span class="finish-artnr">${a.artNr}</span>
+                            </div>
+                        </div>
+                        `;
+                  })
+                  .join("")),
+                  r.querySelectorAll(".result-item-card").forEach((a) => {
+                    a.addEventListener("click", () => {
+                      this.selectItem(a.dataset.tid);
+                    });
+                  }));
+            }
+        }
+      },
+      selectItem: function (r) {
+          if (!r) {
+              this.selectedTray = null;
+              this.mischerOptionsState = {};
+              this.showAccessoires = false;
+              this.selectedAddonAccessoires = [];
+              if (config.enableGalleryUX) {
+                  this.updateBOM();
+                  this.filterResults();
+                  this.renderConfigurator();
+                  this.updateAccessoiresToggles();
+              } else {
+                  this.clearBOM();
+              }
+              return;
+          }
+          if (!r) {
+              this.selectedTray = null;
+              this.mischerOptionsState = {};
+              this.showAccessoires = false;
+              this.selectedAddonAccessoires = [];
+              if (config.enableGalleryUX) {
+                  this.updateBOM();
+                  this.filterResults();
+                  this.renderConfigurator();
+                  this.updateAccessoiresToggles();
+              } else {
+                  this.clearBOM();
+              }
+              return;
+          }
+        ((this.selectedTray = this.trays.find((e) => e.id === r)),
+          (this.mischerOptionsState = {}),
+          this.selectedTray &&
+            this.selectedTray.mountingMaterials &&
+            this.selectedTray.mountingMaterials.forEach((e, t) => {
+              e.options &&
+                e.options.length > 0 &&
+                (this.mischerOptionsState[t] = 0);
+            }),
+          this.filterResults(),
+          (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.populateAccessoires(), this.renderConfigurator(), this.updateBOM());
+      },
+      isMatVisible: function (r, e) {
+        if (!this.selectedTray || !this.selectedTray.mountingMaterials)
+          return !0;
+        if ((r.name || "").toLowerCase().includes("brausehalter")) {
+          const n = this.selectedTray.mountingMaterials.findIndex(
+            (a) =>
+              (a.name || "").toLowerCase().includes("duschgleitstange") ||
+              (a.name || "").toLowerCase().includes("gleitstange"),
+          );
+          if (n >= 0 && this.mischerOptionsState[n] !== void 0) {
+            const a =
+              this.selectedTray.mountingMaterials[n].options[
+                this.mischerOptionsState[n]
+              ];
+            if (a && !a.label.toLowerCase().startsWith("ohne")) return !1;
+          }
+          const i = this.selectedTray.mountingMaterials.findIndex((a) =>
+            (a.name || "").toLowerCase().includes("anschlussbogen"),
+          );
+          if (i >= 0 && this.mischerOptionsState[i] !== void 0) {
+            const a =
+              this.selectedTray.mountingMaterials[i].options[
+                this.mischerOptionsState[i]
+              ];
+            if (
+              (a &&
+                a.label
+                  .toLowerCase()
+                  .includes("mit integriertem brausehalter")) ||
+              (a && a.label.toLowerCase().includes("mit brausehalter")) ||
+              (a && a.artNr === "bitte_waehlen")
+            )
+              return !1;
+          }
+        }
+        return !0;
+      },
+      renderConfigurator: function () {
+        const r = document.getElementById(`trayConfigurator_${s}`),
+          e = document.getElementById(`trayConfiguratorInner_${s}`);
+        if (!this.selectedTray) {
+          r && (r.style.display = "none");
+          return;
+        }
+        if ((r && (r.style.display = "block"), !e)) return;
+        if (config.enableGalleryUX) {
+            r.style.display = "none";
+            return;
+        }
+        e.innerHTML = "";
+        const t = this.selectedTray.mountingMaterials || [];
+        if (t.length === 0) {
+          e.innerHTML =
+            '<p class="section-desc">Kein spezifisches Zubehör verfügbar.</p>';
+          return;
+        }
+        (t.forEach((n, i) => {
+          if (!this.isMatVisible(n, i)) return;
+          const a = document.createElement("div");
+          ((a.className = "filter-group"), (a.style.marginBottom = "1.25rem"));
+          const l = this.mischerOptionsState[i],
+            o = l !== void 0 ? n.options[l] : null,
+            y = (o == null ? void 0 : o.imgUrl) || "",
+            M = n.options.length > 1;
+          ((a.innerHTML = `
+                    <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">${n.name || "Zubehör"}</label>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
                         <div style="width:40px; height:40px; background:#fff; border-radius:4px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; padding:2px; flex-shrink:0;">
-                            ${y?`<img src="${y}" style="max-width:100%; max-height:100%; object-fit:contain;">`:'<i class="ri-image-line" style="color:#ddd;"></i>'}
+                            ${y ? `<img src="${y}" style="max-width:100%; max-height:100%; object-fit:contain;">` : '<i class="ri-image-line" style="color:#ddd;"></i>'}
                         </div>
                         <div style="flex:1; position:relative;">
-                            <select class="filter-select mischer-acc-select" data-midx="${i}" style="width:100%; padding-right:2rem; ${M?"":"pointer-events:none; background-image:none !important;"}">
-                                ${n.options.map((v,S)=>`
-                                    <option value="${S}" ${l==S?"selected":""}>${v.label} (${v.artNr})</option>
-                                `).join("")}
+                            <select class="filter-select mischer-acc-select" data-midx="${i}" style="width:100%; padding-right:2rem; ${M ? "" : "pointer-events:none; background-image:none !important;"}">
+                                ${n.options
+                                  .map(
+                                    (v, S) => `
+                                    <option value="${S}" ${l == S ? "selected" : ""}>${v.label} (${v.artNr})</option>
+                                `,
+                                  )
+                                  .join("")}
                             </select>
-                            ${M?'<i class="ri-arrow-down-s-line" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--text-secondary); font-size:1.2rem;"></i>':""}
+                            ${M ? '<i class="ri-arrow-down-s-line" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--text-secondary); font-size:1.2rem;"></i>' : ""}
                         </div>
                     </div>
-                `,e.appendChild(a)}),e.querySelectorAll(".mischer-acc-select").forEach(n=>{n.addEventListener("change",i=>{const a=parseInt(n.dataset.midx),l=parseInt(n.value)
-this.mischerOptionsState[a]=l
-const o=this.selectedTray.mountingMaterials[a],y=(o.name||"").toLowerCase(),M=o.options[l]
-if(y.includes("gleitstange")||y.includes("duschgleitstange")){const v=this.selectedTray.mountingMaterials.findIndex(S=>(S.name||"").toLowerCase().includes("brauseschlauch"))
-if(v>=0){const S=this.selectedTray.mountingMaterials[v]
-if(M.label.toLowerCase().startsWith("ohne")){const _=S.options.findIndex(u=>u.label.includes("1250")||u.label.includes("1.25"))
-_>=0&&(this.mischerOptionsState[v]=_)}else{const _=S.options.findIndex(u=>u.label.includes("1800"))
-_>=0&&(this.mischerOptionsState[v]=_)}}}this.renderConfigurator(),this.updateBOM()})})},updateBOM:function(){const r=document.getElementById("bomTableBody"),e=document.getElementById("bomCount")
-if(!r)return
-if(r.innerHTML="",!this.selectedTray){e&&(e.textContent="0 Artikel")
-return}let t=1
-r.innerHTML+=`
+                `),
+            e.appendChild(a));
+        }),
+          e.querySelectorAll(".mischer-acc-select").forEach((n) => {
+            n.addEventListener("change", (i) => {
+              const a = parseInt(n.dataset.midx),
+                l = parseInt(n.value);
+              this.mischerOptionsState[a] = l;
+              const o = this.selectedTray.mountingMaterials[a],
+                y = (o.name || "").toLowerCase(),
+                M = o.options[l];
+              if (y.includes("gleitstange") || y.includes("duschgleitstange")) {
+                const v = this.selectedTray.mountingMaterials.findIndex((S) =>
+                  (S.name || "").toLowerCase().includes("brauseschlauch"),
+                );
+                if (v >= 0) {
+                  const S = this.selectedTray.mountingMaterials[v];
+                  if (M.label.toLowerCase().startsWith("ohne")) {
+                    const _ = S.options.findIndex(
+                      (u) =>
+                        u.label.includes("1250") || u.label.includes("1.25"),
+                    );
+                    _ >= 0 && (this.mischerOptionsState[v] = _);
+                  } else {
+                    const _ = S.options.findIndex((u) =>
+                      u.label.includes("1800"),
+                    );
+                    _ >= 0 && (this.mischerOptionsState[v] = _);
+                  }
+                }
+              }
+              ((this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.populateAccessoires(), this.renderConfigurator(), this.updateBOM());
+            });
+          }));
+      },
+      updateBOM: function () {
+        let backBtn = document.getElementById("backToCatalogBtn");
+        if (config.enableGalleryUX) {
+            if (!this.selectedTray) {
+                if (backBtn) backBtn.style.display = "none";
+            } else {
+                if (!backBtn) {
+                    const h = document.querySelector(".bom-header");
+                    if (h) {
+                        backBtn = document.createElement("button");
+                        backBtn.id = "backToCatalogBtn";
+                        backBtn.className = "icon-btn highlight-btn";
+                        backBtn.style.marginRight = "auto";
+                        backBtn.innerHTML = '<i class="ri-arrow-left-s-line" aria-hidden="true"></i> Zurück zur Übersicht';
+                        h.insertBefore(backBtn, h.firstChild);
+                    }
+                }
+                if (backBtn) {
+                    backBtn.onclick = () => {
+                        if (window.currentActiveApp) {
+                            if (typeof window.currentActiveApp.selectItem === 'function') {
+                                window.currentActiveApp.selectItem(null);
+                            } else if (typeof window.currentActiveApp.selectTray === 'function') {
+                                window.currentActiveApp.selectTray(null);
+                            }
+                        }
+                    };
+                    backBtn.style.display = "inline-flex";
+                }
+            }
+        }
+        const r = document.getElementById("bomTableBody"),
+          e = document.getElementById("bomCount");
+        if (!r) return;
+        if (((r.innerHTML = ""), !this.selectedTray)) {
+          e && (e.textContent = "0 Artikel");
+          return;
+        }
+        let t = 1;
+        ((r.innerHTML += `
                 <tr class="bom-main-item">
-                    <td><div class="img-cell"><img src="${this.selectedTray.imgUrl||""}"></div></td>
+                    <td><div class="img-cell"><img src="${this.selectedTray.imgUrl || ""}"></div></td>
                     <td><span class="bom-code">${this.selectedTray.artNr}</span></td>
                     <td><div class="bom-desc">${this.selectedTray.label}</div></td>
                     
                     <td><strong>1</strong></td>
                 </tr>
-            `,this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((n,i)=>{if(!this.isMatVisible(n,i))return
-const a=this.mischerOptionsState[i]
-if(a!==void 0){const l=n.options[a]
-if(l&&!l.label.toLowerCase().startsWith("ohne")){const o=l.menge||1
-t+=o,r.innerHTML+=`
-                                <tr>
-                                    <td><div class="img-cell"><img src="${l.imgUrl||""}"></div></td>
-                                    <td><span class="bom-code">${l.artNr}</span></td>
-                                    <td><div class="bom-desc">${l.label}</div></td>
-                                    
-                                    <td><strong>${o}</strong></td>
-                                </tr>
-                            `}}}),e&&(e.textContent=`${t} Artikel gewählt`)},clearBOM:function(){this.mischerOptionsState={},this.updateBOM()},copyToClipboard:function(){if(!this.selectedTray)return
-let r=[`${this.selectedTray.artNr}	1`]
-this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((e,t)=>{if(!this.isMatVisible(e,t))return
-const n=this.mischerOptionsState[t]
-if(n!==void 0){const i=e.options[n]
-i&&!i.label.toLowerCase().startsWith("ohne")&&r.push(`${i.artNr}	${i.menge||1}`)}}),navigator.clipboard.writeText(r.join(`
-`)).then(()=>alert("Stückliste kopiert!"))}}}
-    return gt(title, desc, mainImgUrl, config);
-}
+            `),
+          this.selectedTray.mountingMaterials &&
+            this.selectedTray.mountingMaterials.forEach((n, i) => {
+              if (!this.isMatVisible(n, i)) return;
+              const a = this.mischerOptionsState[i];
+              if (a !== void 0) {
+                const l = n.options[a];
+                const isOhne = l && l.label.toLowerCase().startsWith("ohne");
+                
+                let isInlineDropdown = config.enableGalleryUX && n.options.length > 1;
+                
+                if (!isInlineDropdown && isOhne) return;
 
+                let descHTML = `<div class="bom-desc">${l ? l.label : ''}</div>`;
+                if (isInlineDropdown) {
+                    const optionsHTML = n.options.map((opt, idx) => {
+                        const selected = (a === idx) ? 'selected' : '';
+                        return `<option value="${idx}" ${selected}>${opt.label} (${opt.artNr})</option>`;
+                    }).join('');
+                    
+                    descHTML = `
+                        <div class="bom-desc" style="margin-bottom:0.25rem; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">${n.name || 'Zubehör'}</div>
+                        <select class="inline-bom-select" data-midx="${i}" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.9rem; margin-bottom: 0.25rem; font-family: inherit; font-weight: 500; cursor: pointer; outline: none; transition: border-color 0.2s ease;">
+                            ${optionsHTML}
+                        </select>
+                    `;
+                }
+
+                const o = l ? (l.menge || 1) : 1;
+                if (!isOhne) t += o;
+
+                const rowOpacity = isOhne ? 'opacity: 0.6; background: rgba(0,0,0,0.02);' : '';
+                const artNrDisplay = isOhne ? '-' : (l ? l.artNr : '');
+                const imgDisplay = (l && l.imgUrl) ? `<img src="${l.imgUrl}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>';
+
+                r.innerHTML += `
+                    <tr style="${rowOpacity}">
+                        <td><div class="img-cell" ${!(l && l.imgUrl) ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>${imgDisplay}</div></td>
+                        <td><span class="bom-code">${artNrDisplay}</span></td>
+                        <td>${descHTML}</td>
+                        <td><strong>${isOhne ? '-' : o}</strong></td>
+                    </tr>
+                `;
+              }
+            }),
+          (function() {
+            if (this.showAccessoires && this.selectedAddonAccessoires && this.selectedAddonAccessoires.length > 0) {
+                this.selectedAddonAccessoires.forEach(acc => {
+                    t += 1;
+                    r.innerHTML += `
+                        <tr>
+                            <td><div class="img-cell"><img src="${acc.imgUrl || ''}"></div></td>
+                            <td><span class="bom-code">${acc.artNr}</span></td>
+                            <td><div class="bom-desc">${acc.label || acc.name}</div></td>
+                            
+                            <td><strong>1</strong></td>
+                        </tr>
+                    `;
+                });
+            }
+        }).call(this), e && (e.textContent = `${t} Artikel gewählt`));
+        if (config.enableGalleryUX) {
+            r.querySelectorAll('.inline-bom-select').forEach(sel => {
+                sel.addEventListener('change', (ev) => {
+                    const midx = parseInt(ev.target.dataset.midx);
+                    const newVal = parseInt(ev.target.value);
+                    this.mischerOptionsState[midx] = newVal;
+                    
+                    this.showAccessoires = false;
+                    this.selectedAddonAccessoires = [];
+                    this.updateAccessoiresToggles();
+                    this.populateAccessoires();
+                    this.renderConfigurator();
+                    this.updateBOM();
+                });
+            });
+        }
+      },
+
+      clearBOM: function () {
+        ((this.mischerOptionsState = {}), (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.updateBOM());
+      },
+      copyToClipboard: window.copyBOMToClipboard,
+    };
+  }
+  return gt(title, desc, mainImgUrl, config);
+}
 export function createStandardApp(title, desc, mainImgUrl) {
     const suffix = title.replace(/\s/g, '');
     return {
@@ -5478,7 +7657,7 @@ export function createStandardApp(title, desc, mainImgUrl) {
             container.innerHTML = filtered.map(t => `
                 <div class="result-item-card ${this.selectedTray?.id === t.id ? 'active' : ''}" onclick="window.currentActiveApp.selectItem('${t.id}')">
                     <div class="card-img-wrapper">
-                        ${t.imgUrl ? `<img src="${t.imgUrl}">` : '<i class="ri-image-line placeholder-icon"></i>'}
+                        ${(t.imgUrl || getSanitasImgUrl(t.artNr)) ? `<img src="${t.imgUrl || getSanitasImgUrl(t.artNr)}">` : '<i class="ri-image-line placeholder-icon"></i>'}
                     </div>
                     <div class="result-info">
                         <strong>${t.label}</strong>
@@ -5504,515 +7683,1310 @@ export function createStandardApp(title, desc, mainImgUrl) {
                     <td><div class="img-cell"><img src="${this.selectedTray.imgUrl || this.mainImgUrl}"></div></td>
                     <td><span class="bom-code">${this.selectedTray.artNr}</span></td>
                     <td><div class="bom-desc">${this.selectedTray.label}</div></td>
-                    
+                    <td><span class="bom-type">Basis</span></td>
                     <td><strong>1</strong></td>
                 </tr>
             `;
             bomCountCounter.textContent = "1 Artikel";
         },
         copyToClipboard: function () {
-            if (!this.selectedTray) return;
-            navigator.clipboard.writeText(`${this.selectedTray.artNr}\t1`).then(() => alert('Kopiert!'));
+            if (!this.selectedTray) {
+                alert('Bitte wählen Sie zuerst ein Produkt aus.');
+                return;
+            }
+            window.copyTextToClipboard(`${this.selectedTray.artNr}\t1`).then(() => alert('Kopiert:\n\n' + `${this.selectedTray.artNr}    1`)).catch(e => alert("Kopieren fehlgeschlagen."));
         }
     };
 }
 
-/**
- * Glass Enclosure App (Master App)
- */
-export function createGlassApp(title, desc, mainImgUrl) {
-    function pt(B,F,R){const N=B.replace(/\s/g,"")
-return{trays:[],mainImgUrl:R,selectedTray:null,currentType:"all",currentSituation:"all",currentColor:"all",currentBand:"all",currentManufacturer:"all",currentBreite:"",currentLaenge:"",init:function(){this.selectedTray=null,this.currentType="all",this.currentSituation="all",this.currentColor="all",this.currentBand="all",this.currentManufacturer="all",this.currentBreite="",this.currentLaenge="",this.renderSidebar(),this.updateBOM()},extractType:function(m){const s=(m.label||"").toLowerCase()
-return s.includes("massaufnahme")||s.includes("anfahrtspauschale")||s.includes("montagepauschale")||s.includes("demontage")||s.includes("nettobetrag")?null:s.startsWith("freistehende seitenwand")||s.includes("freistehend")&&s.includes("seitenwand")?"Seitenwand (freistehend)":s.startsWith("seitenwand")&&(s.includes("gleittür")||s.includes("pendeltür")||s.includes("kombination"))?"Seitenwand (Zusatz)":s.includes("pendeltür")?"Pendeltür":s.includes("flügeltür")||s.includes("flügelig")?"Flügeltür":s.includes("gleittür")||s.includes("schiebetür")?"Gleittür/Schiebetür":s.includes("drehfalttür")||s.includes("falttür")?"Drehfalttür":s.includes("seitenwand")?"Seitenwand (freistehend)":s.includes("nische")?"Nischentür":null},extractSituation:function(m){const s=(m.label||"").toLowerCase()
-return s.includes("walk-in")||s.includes("walkin")||s.includes("freistehend")?"Walk-In/Freistehende Seitenwand":s.includes("nische")?"Nische":(s.includes("eckeinstieg")||s.includes("eck")||s.includes("seitenwand"),"Eckeinstieg")},extractBand:function(m){const s=(m.label||"").toLowerCase()
-return s.includes("band links")?"links":s.includes("band rechts")?"rechts":(s.includes("eckeinstieg"),"Universal")},extractColor:function(m){const s=(m.label||"").toLowerCase()
-return s.includes("chrom")||s.includes("silber")?"Chrom":s.includes("schwarz")?"Schwarz":s.includes("weiss")||s.includes("weiß")?"Weiss":s.includes("matt")?"Matt":"Standard"},extractSizeScore:function(m){return((m.label||"").toLowerCase().replace((m.artNr||"").toLowerCase(),"").trim().match(/\d+([\.,]\d+)?/g)||[]).map(n=>Number(n.replace(",","."))).filter(n=>n>20).map(n=>n>250?n/10:n).filter(n=>n<195)[0]||9999},checkCompatibility:function(m,s,r){const e=(m.label||"").toLowerCase(),i=(e.replace((m.artNr||"").toLowerCase(),"").trim().match(/\d+([\.,]\d+)?/g)||[]).map(l=>Number(l.replace(",","."))).filter(l=>l>20).map(l=>l>250?l/10:l).filter(l=>l<195)
-if(i.length===0)return!0
-const a=[]
-return s&&a.push(s>250?s/10:s),r&&a.push(r>250?r/10:r),a.every((l,o)=>{const y=i[o]||i[0]
-if(i.length>=2&&!e.includes(" x ")){const S=Math.min(...i),_=Math.max(...i)
-return l>=S&&l<=_}return e.includes(" x ")&&i.length>=2?l<=(i[o]||i[0]):e.includes("breite bis")||e.includes("bis")&&!e.includes("höhe bis")?l<=y:e.includes("breite ab")||e.includes("ab")&&!e.includes("höhe ab")?l>=y:Math.abs(l-y)<5})},renderSidebar:function(){const m=[...new Set(this.trays.map(n=>this.extractSituation(n)))].sort(),s=[...new Set(this.trays.map(n=>this.extractType(n)).filter(Boolean))].sort(),r=[...new Set(this.trays.map(n=>this.extractColor(n)))].sort(),e=[...new Set(this.trays.map(n=>this.extractBand(n)))].sort(),t=[...new Set(this.trays.map(n=>n.manufacturer).filter(n=>n&&n!=="Andere"))].sort()
-Ae.innerHTML=`
-                <div class="sidebar-section">
-                    <h2>Filter: ${B}</h2>
+export function createGlassApp(title, desc, mainImgUrl, config = {}) {
+    const appConfig = { enableGalleryUX: true, ...config };
+    return {
+        title,
+        desc,
+        mainImgUrl,
+        trays: [],
+        selectedTray: null,
+        includeServices: false,
+        currentType: "all",
+        currentSituation: "all",
+        currentColor: "all",
+        currentBand: "all",
+        currentGlasart: "all",
+        currentOption: "all",
+        currentManufacturer: "all",
+        currentSeries: "all",
+        currentHeight: "all",
+        currentWidthBucket: "all",
+        currentBreite: "",
+        currentLaenge: "",
+        
+        init: function() {
+            this.selectedTray = null;
+            this.currentType = "all";
+            this.currentSituation = "all";
+            this.currentColor = "all";
+            this.currentBand = "all";
+            this.currentGlasart = "all";
+            this.currentOption = "all";
+            this.currentManufacturer = "all";
+            this.currentSeries = "all";
+            this.currentHeight = "all";
+            this.currentWidthBucket = "all";
+            this.currentBreite = "";
+            this.currentLaenge = "";
+            this.renderSidebar();
+            this.updateBOM();
+            if (!appConfig.enableGalleryUX) { this.clearBOM(); }
+        },
+        
+        extractOption: function(m) {
+            const s = ((m.label||"")+" "+(m.description||"")).toLowerCase().replace(/\n/g, " ");
+            if ((s.includes("zur kombination") && s.includes("seitenwand")) || s.includes("mit seitenwand/in nische")) return "zur Kombination mit Seitenwand";
+            if (s.includes("unterputz") || s.match(/\bup\b/) || s.match(/\bup1\b/) || s.match(/\bup2\b/) || s.includes("up-profil") || s.includes("up-wandprofil") || s.includes("up profil")) return "mit Wandprofil Unterputz";
+            if (s.includes("aufputz") || s.match(/\bap\b/) || s.match(/\bap1\b/) || s.match(/\bap2\b/) || s.match(/\bap1b\b/) || s.includes("ap-profil") || s.includes("ap-wandprofil") || s.includes("ap profil")) return "mit Wandprofil Aufputz";
+            return null;
+        },
+        
+        isAlternaCostaEckeinstieg: function(tray) {
+            if (!tray) return false;
+            const l = (tray.label || '').toLowerCase();
+            if (l.includes('klebeset') || l.includes('montagepauschale') || l.includes('massaufnahme') || l.includes('anfahrtspauschale')) {
+                return false;
+            }
+            return l.includes('alterna') && l.includes('costa') && (l.includes('gleittüre') || l.includes('gleittür')) && l.includes('eckeinstieg');
+        },
+        
+        getParent: function(m) {
+            if (!m) return null;
+            if (!this.parentMap) {
+                this.parentMap = new Map();
+                if (this.trays) {
+                    for (const parent of this.trays) {
+                        if (parent.variants) {
+                            for (const variant of parent.variants) {
+                                this.parentMap.set(variant.artNr, parent);
+                            }
+                        }
+                    }
+                }
+            }
+            return this.parentMap.get(m.artNr) || null;
+        },
+        
+        getSpec: function(m, cleanKeyPrefix) {
+            if (!m || !m.specs) return "";
+            const target = cleanKeyPrefix.toLowerCase().replace(/[^a-z]/g, '');
+            const foundKey = Object.keys(m.specs).find(k => {
+                return k.toLowerCase().replace(/[^a-z]/g, '').includes(target);
+            });
+            return foundKey ? m.specs[foundKey] || "" : "";
+        },
 
-                    <div class="filter-group">
+        extractGlasart: function(m) {
+            if (m.glasart && m.glasart !== 'Andere') return m.glasart;
+            const specAusfuehrung = this.getSpec(m, "ausführung");
+            if (specAusfuehrung) return specAusfuehrung;
+            const specGlasart = this.getSpec(m, "glasart");
+            if (specGlasart) return specGlasart;
+            const specMaterial = this.getSpec(m, "material");
+            if (specMaterial) return specMaterial;
+            return 'Andere';
+        },
+        
+        getVirtualGlasart: function(actual) {
+            if (!actual) return 'Standard';
+            const norm = actual.trim();
+            if (norm === 'Echtglas klar Duschguard') {
+                return 'Korrosionsgeschützt';
+            }
+            if ([
+                'Echtglas klar Glasplus',
+                'Echtglas klar Plus',
+                'Echtglas klar CareTec Pro',
+                'Echtglas klar CareTec',
+                'Echtglas klar ProCare',
+                'Echtglas klar Aquaperl'
+            ].includes(norm)) {
+                return 'Pflegeleicht (Easy-Clean)';
+            }
+            return 'Standard';
+        },
+        
+        extractType: function(m) {
+            if (m.türvariante && m.türvariante !== 'Andere') return m.türvariante;
+            
+            const parent = this.getParent(m);
+            const labelObj = parent ? parent : m;
+            
+            const s = (m.label || "").toLowerCase();
+            const ps = parent ? (parent.label || "").toLowerCase() : "";
+            const desc = (m.description || labelObj.description || "").toLowerCase();
+            const specSerie = (this.getSpec(m, "serie") || this.getSpec(labelObj, "serie") || "").toLowerCase();
+
+            const text = `${s} ${ps}`;
+
+            if (text.includes("massaufnahme") || text.includes("anfahrt") || text.includes("montage") || text.includes("demontage") || text.includes("nettobetrag") || (text.includes("für wannenmontage") && !text.includes("bodenmontage"))) return null;
+            
+            // Robust encoding-independent door checks (supporting replacements/umlauts)
+            const isPivotOrDreh = text.includes("pivot") || text.includes("drehtür") || text.includes("dreht") || text.includes("dreh-t");
+            const isFalt = text.includes("falttür") || text.includes("drehfalttür") || text.includes("faltt") || text.includes("falt-t");
+            const isFluegel = text.includes("flügeltür") || text.includes("flügelig") || text.includes("flügel") || text.includes("fluegel");
+            const isPendel = text.includes("pendeltür") || text.includes("pendelt") || text.includes("pendel-t");
+            const isGleitOrSchiebe = text.includes("gleittür") || text.includes("schiebetür") || text.includes("gleitt") || text.includes("gleit-t") || text.includes("schiebet") || text.includes("schiebe-t");
+
+            // 1. Check if it's a side wall (form is seitenwand or label contains seitenwand)
+            const hasSeitenwand = (m.form || labelObj.form || "").toLowerCase() === 'seitenwand' || s.startsWith('seitenwand') || s.includes('seitenwand') || ps.startsWith('seitenwand') || ps.includes('seitenwand');
+            if (hasSeitenwand &&
+                !s.startsWith('gleit') && !ps.startsWith('gleit') &&
+                !s.startsWith('pendel') && !ps.startsWith('pendel') &&
+                !s.startsWith('dreh') && !ps.startsWith('dreh') &&
+                !s.startsWith('falt') && !ps.startsWith('falt') &&
+                !s.startsWith('flügel') && !ps.startsWith('flügel') &&
+                !s.startsWith('schiebe') && !ps.startsWith('schiebe') &&
+                !s.startsWith('pivot') && !ps.startsWith('pivot') &&
+                !s.startsWith('eckeinstieg') && !ps.startsWith('eckeinstieg')) {
+                
+                // Identify freistehende / walk-in side walls (which are main products)
+                const isFreistehend = text.includes("freistehend") || desc.includes("freistehend") || specSerie.includes("freistehend") ||
+                                      text.includes("walk-in") || desc.includes("walk-in") || specSerie.includes("walk-in") ||
+                                      text.includes("walkin") || desc.includes("walkin") || specSerie.includes("walkin");
+                if (isFreistehend) {
+                    return "Freistehende Seitenwand";
+                }
+                // Optional side wall (meant only to be combined) returns null to be hidden from catalog
+                return null;
+            }
+
+            // 2. Identify doors using robust keywords
+            if (isPivotOrDreh) return "Pivot/Drehtüre";
+            if (isFalt) return "Falttür";
+            if (isFluegel) return "Flügeltür";
+            if (isPendel) return "Pendeltür";
+            if (isGleitOrSchiebe) return "Schiebetür";
+
+            return null;
+        },
+        
+        extractSituation: function(m) {
+            if (!m) return "Eckeinstieg";
+            const parent = this.getParent(m);
+            const artNr = m.artNr || (parent && parent.artNr) || "";
+            const cleanArt = artNr.replace(/\s+/g, "");
+            if (/^154322[2-9]/.test(cleanArt)) return "Nische";
+
+            if (m.einbausituation && m.einbausituation !== 'Andere') return m.einbausituation;
+            
+            const parentObj = parent;
+            const labelObj = parent ? parent : m;
+            const s = (m.label || "").toLowerCase().replace(/\s+/g, ' ');
+            const ps = parent ? (parent.label || "").toLowerCase().replace(/\s+/g, ' ') : "";
+            const desc = (m.description || labelObj.description || "").toLowerCase().replace(/\s+/g, ' ');
+            const specSerie = (this.getSpec(m, "serie") || this.getSpec(labelObj, "serie") || "").toLowerCase().replace(/\s+/g, ' ');
+            
+            const text = `${s} ${ps} ${desc} ${specSerie}`;
+            if (text.includes("viertelkreis")) return "Viertelkreis";
+            if (text.includes("walk-in") || text.includes("walkin") || text.includes("freistehend")) {
+                return "Freistehend / Walk-in";
+            }
+            if (text.includes("nische") || text.includes("in flucht")) return "Nische";
+            if (text.includes("eckeinstieg") || text.includes("eck")) return "Eckeinstieg";
+            return "Eckeinstieg";
+        },
+        
+        extractBand: function(m) {
+            if (!m) return "Universal";
+            
+            const parent = this.getParent(m);
+            const labelObj = parent ? parent : m;
+            
+            const l = (m.label || "").toLowerCase();
+            const pl = parent ? (parent.label || "").toLowerCase() : "";
+            const d = (m.description || labelObj.description || "").toLowerCase();
+            const specAuspraegung = (this.getSpec(m, "ausprägung") || this.getSpec(labelObj, "ausprägung") || "").toLowerCase();
+            
+            const text = `${l} ${pl} ${d} ${specAuspraegung}`;
+
+            // Check if explicitly universal
+            if (text.includes("links oder rechts") || text.includes("rechts oder links") || text.includes("links/rechts") || text.includes("rechts/links") || text.includes("universal")) {
+                return "Universal";
+            }
+
+            // 1. Explicit hinge/position checks
+            if (text.includes("band links") || text.includes("linksband") || text.includes("anschlag links") || text.includes("linksanschlag") || text.includes("anschlag l")) return "links";
+            if (text.includes("band rechts") || text.includes("rechtsband") || text.includes("anschlag rechts") || text.includes("rechtsanschlag") || text.includes("anschlag r")) return "rechts";
+
+            // Check variant consensus if parent text is neutral
+            if (!parent && m.variants && m.variants.length > 0) {
+                let linksCount = 0;
+                let rechtsCount = 0;
+                for (let v of m.variants) {
+                    const vl = (v.label || "").toLowerCase();
+                    if (vl.includes("band links") || vl.includes("linksband") || vl.includes("anschlag links") || vl.includes("linksanschlag") || vl.includes("anschlag l") || vl.includes("seitenwand links") || vl.includes("festteil links") || vl.includes(" links") || vl.includes(", links") || vl.includes("/links")) linksCount++;
+                    if (vl.includes("band rechts") || vl.includes("rechtsband") || vl.includes("anschlag rechts") || vl.includes("rechtsanschlag") || vl.includes("anschlag r") || vl.includes("seitenwand rechts") || vl.includes("festteil rechts") || vl.includes(" rechts") || vl.includes(", rechts") || vl.includes("/rechts")) rechtsCount++;
+                }
+                if (linksCount > 0 && rechtsCount === 0) return "links";
+                if (rechtsCount > 0 && linksCount === 0) return "rechts";
+            }
+
+            // 2. Specific side wall positions or fixed element positions
+            if (text.includes("seitenwand links") || text.includes("festteil links")) return "links";
+            if (text.includes("seitenwand rechts") || text.includes("festteil rechts")) return "rechts";
+
+            // 3. Fallback on specs Ausprägung
+            if (specAuspraegung.includes("links") || specAuspraegung === "l") return "links";
+            if (specAuspraegung.includes("rechts") || specAuspraegung === "r") return "rechts";
+
+            // 4. Simple fallback keywords in label
+            if (l.includes(" links") || l.includes(", links") || l.includes("/links") || pl.includes(" links") || pl.includes(", links") || pl.includes("/links")) return "links";
+            if (l.includes(" rechts") || l.includes(", rechts") || l.includes("/rechts") || pl.includes(" rechts") || pl.includes(", rechts") || pl.includes("/rechts")) return "rechts";
+
+            return "Universal";
+        },
+        
+        extractColor: function(m) {
+            if (m.farbe && m.farbe !== 'Andere' && m.farbe !== 'Standard') return m.farbe;
+            const s = (m.label || "").toLowerCase();
+            const art = (m.artNr || "").toLowerCase();
+            if (art.includes(".350.") || s.includes("schwarz")) return "Schwarz";
+            if (art.includes(".100.") || s.includes("weiss") || s.includes("weiß")) return "Weiss";
+            if (art.includes(".501.") || s.includes("chrom") || s.includes("silber")) return "Chrom";
+            if (s.includes("finox")) return "Finox";
+            if (s.includes("matt")) return "Matt";
+            
+            // fallback to parent color
+            const parent = this.getParent(m);
+            if (parent && parent.artNr !== m.artNr) {
+                const parentColor = this.extractColor(parent);
+                if (parentColor && parentColor !== 'Standard') return parentColor;
+            }
+            
+            return "Standard";
+        },
+        
+        extractSizeScore: function(m) {
+            const cleanLabel = (m.label || "").toLowerCase().replace((m.artNr || "").toLowerCase(), "").replace(/\b[a-zA-Z]-?\d+\b/g, "").trim();
+            const nums = (cleanLabel.match(/\d+([\.,]\d+)?/g) || []).map(n => Number(n.replace(",", "."))).filter(n => n > 20).map(n => n > 250 ? n / 10 : n).filter(n => n < 195);
+            return nums[0] || 9999;
+        },
+        
+        checkCompatibility: function(m, s, r) {
+            const e = (m.label || "").toLowerCase().replace(/\b[a-zA-Z]-?\d+\b/g, "");
+            const i = (e.replace((m.artNr || "").toLowerCase(), "").trim().match(/\d+([\.,]\d+)?/g) || []).map(l => Number(l.replace(",", "."))).filter(l => l > 20).map(l => l > 250 ? l / 10 : l).filter(l => l < 195);
+            if (i.length === 0) return true;
+            const a = [];
+            if (s) a.push(s > 250 ? s / 10 : s);
+            if (r) a.push(r > 250 ? r / 10 : r);
+            return a.every((l, o) => {
+                const y = i[o] || i[0];
+                if (i.length >= 2 && !e.includes(" x ")) {
+                    const S = Math.min(...i), _ = Math.max(...i);
+                    return l >= S && l <= _;
+                }
+                if (e.includes(" x ") && i.length >= 2) return l <= (i[o] || i[0]);
+                if (e.includes("breite bis") || (e.includes("bis") && !e.includes("höhe bis"))) return l <= y;
+                if (e.includes("breite ab") || (e.includes("ab") && !e.includes("höhe ab"))) return l >= y;
+                return Math.abs(l - y) < 5;
+            });
+        },
+        
+        renderSidebar: function() {
+            const N = this.title.replace(/\s+/g, "").toLowerCase();
+            const B = this.title.toUpperCase();
+            const Ae = document.getElementById("configSidebar");
+            if (!Ae) return;
+            
+            const m = [...new Set(this.trays.map(n => this.extractSituation(n)))].filter(Boolean).sort();
+            const s = [...new Set(this.trays.map(n => this.extractType(n)))].filter(Boolean).sort();
+            const r = [...new Set(this.trays.flatMap(n => [this.extractColor(n), ...(n.variants || []).map(v => this.extractColor(v))]))].filter(Boolean).sort();
+            const e = [...new Set(this.trays.map(n => this.extractBand(n)))].filter(Boolean).sort();
+            const opts = [...new Set(this.trays.map(n => this.extractOption(n)))].filter(Boolean).sort();
+            const rawGlassTypes = [...new Set(this.trays.flatMap(n => [this.extractGlasart(n), ...(n.variants || []).map(v => this.extractGlasart(v))]))].filter(Boolean);
+            const availableVirtual = new Set(rawGlassTypes.map(g => this.getVirtualGlasart(g)));
+            const glassTypes = ['Standard', 'Pflegeleicht (Easy-Clean)', 'Korrosionsgeschützt'].filter(g => availableVirtual.has(g));
+            const manufacturers = [...new Set(this.trays.map(n => n.manufacturer).filter(n => n && n !== 'Andere'))].sort();
+            
+            const seriesList = [...new Set(this.trays.map(n => this.extractSeries(n)))].filter(Boolean);
+            seriesList.sort((a, b) => a === 'Andere' ? 1 : b === 'Andere' ? -1 : a.localeCompare(b));
+
+            const widthList = ["75 cm", "80 cm", "90 cm", "100 cm", "120 cm", "140 cm", "160 cm", "180+ cm"];
+            const heightList = ["190 cm", "200 cm", "210 cm", "220 cm", "Andere"];
+
+            const searchResultsHTML = appConfig.enableGalleryUX ? '' : `
+                <div class="sidebar-section">
+                    <h2>Ergebnisse <span id="resultCount_${N}" class="badge">0</span></h2>
+                    <div id="searchResults_${N}" class="search-results-container"></div>
+                </div>
+            `;
+            
+            Ae.innerHTML = `
+                <div class="sidebar-section">
+                    <div style="border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1rem;">
+                        <button class="pill-btn highlight-btn" onclick="window.currentActiveApp.resetAllFilters();" style="width:100%; display:flex; justify-content:center; gap:0.5rem; align-items:center; background:var(--accent); color:#fff; border:none; padding:0.65rem; border-radius:6px; font-weight:600; cursor:pointer; font-family:inherit; transition:opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                            <i class="ri-refresh-line"></i> Alle Filter zurücksetzen
+                        </button>
+                    </div>
+
+                    <h2>Filter: ${B}</h2>
+                    
+                    <div class="filter-group" style="margin-top:0.75rem; ${manufacturers.length === 0 ? 'display:none;' : ''}">
                         <label>Hersteller</label>
                         <div class="pill-group">
-                            <button class="pill-btn ${this.currentManufacturer==="all"?"active":""}" onclick="window.currentActiveApp.setFilter('Manufacturer', 'all')">Alle</button>
-                            ${t.map(n=>`<button class="pill-btn ${this.currentManufacturer===n?"active":""}" onclick="window.currentActiveApp.setFilter('Manufacturer', '${n}')">${n}</button>`).join("")}
+                            <button class="pill-btn ${this.currentManufacturer === "all" ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Manufacturer', 'all')">Alle <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Manufacturer', 'all')}</span></button>
+                            ${manufacturers.map(n => `<button class="pill-btn ${this.currentManufacturer === n ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Manufacturer', '${n}')">${n} <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Manufacturer', n)}</span></button>`).join("")}
                         </div>
                     </div>
 
-                    <div class="filter-group" style="margin-top:0.75rem
-">
+                    <div class="filter-group" style="margin-top:0.75rem; ${seriesList.length === 0 ? 'display:none;' : ''}">
+                        <label>Modellreihe</label>
+                        <div class="pill-group">
+                            <button class="pill-btn ${this.currentSeries === "all" ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Series', 'all')">Alle <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Series', 'all')}</span></button>
+                            ${seriesList.map(n => `<button class="pill-btn ${this.currentSeries === n ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Series', '${n}')">${n} <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Series', n)}</span></button>`).join("")}
+                        </div>
+                    </div>
+
+                    <div class="filter-group" style="margin-top:0.75rem;">
                         <label>Einbausituation</label>
-                        <div class="pill-group">
-                            <button class="pill-btn ${this.currentSituation==="all"?"active":""}" onclick="window.currentActiveApp.setFilter('Situation', 'all')">Alle</button>
-                            ${m.map(n=>`<button class="pill-btn ${this.currentSituation===n?"active":""}" onclick="window.currentActiveApp.setFilter('Situation', '${n}')">${n}</button>`).join("")}
+                        <div class="pill-group" id="pill_situation_${N}">
+                            <button class="pill-btn ${this.currentSituation === "all" ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Situation', 'all')">Alle <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Situation', 'all')}</span></button>
+                            ${m.map(n => `<button class="pill-btn ${this.currentSituation === n ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Situation', '${n}')">${n} <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Situation', n)}</span></button>`).join("")}
                         </div>
                     </div>
 
-                    <div class="filter-group" style="margin-top:0.75rem
-">
-                        <label>Türart / Typ</label>
-                        <div class="pill-group">
-                            <button class="pill-btn ${this.currentType==="all"?"active":""}" onclick="window.currentActiveApp.setFilter('Type', 'all')">Alle</button>
-                            ${s.map(n=>`<button class="pill-btn ${this.currentType===n?"active":""}" onclick="window.currentActiveApp.setFilter('Type', '${n}')">${n}</button>`).join("")}
+                    <div class="filter-group" style="margin-top:0.75rem;">
+                        <label>Türvariante</label>
+                        <div class="pill-group" id="pill_type_${N}">
+                            <button class="pill-btn ${this.currentType === "all" ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Type', 'all')">Alle <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Type', 'all')}</span></button>
+                            ${s.map(n => `<button class="pill-btn ${this.currentType === n ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Type', '${n}')">${n} <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Type', n)}</span></button>`).join("")}
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group" style="margin-top:0.75rem; ${opts.length === 0 ? 'display:none;' : ''}">
+                        <label>Optionen</label>
+                        <div class="pill-group" id="pill_option_${N}">
+                            <button class="pill-btn ${this.currentOption === "all" ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Option', 'all')">Alle <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Option', 'all')}</span></button>
+                            ${opts.map(n => `<button class="pill-btn ${this.currentOption === n ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Option', '${n}')">${n} <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Option', n)}</span></button>`).join("")}
                         </div>
                     </div>
 
-                    <div class="filter-group" style="margin-top:0.75rem
-">
+                    <div class="filter-group" style="margin-top:0.75rem;">
+                        <label>Breite (Standard)</label>
+                        <div class="pill-group">
+                            <button class="pill-btn ${this.currentWidthBucket === "all" ? "active" : ""}" onclick="window.currentActiveApp.setFilter('WidthBucket', 'all')">Alle <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('WidthBucket', 'all')}</span></button>
+                            ${widthList.map(n => `<button class="pill-btn ${this.currentWidthBucket === n ? "active" : ""}" onclick="window.currentActiveApp.setFilter('WidthBucket', '${n}')">${n} <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('WidthBucket', n)}</span></button>`).join("")}
+                        </div>
+                    </div>
+
+                    <div class="filter-group" style="margin-top:0.75rem;">
+                        <label>Höhe</label>
+                        <div class="pill-group">
+                            <button class="pill-btn ${this.currentHeight === "all" ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Height', 'all')">Alle <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Height', 'all')}</span></button>
+                            ${heightList.map(n => `<button class="pill-btn ${this.currentHeight === n ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Height', '${n}')">${n} <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Height', n)}</span></button>`).join("")}
+                        </div>
+                    </div>
+
+                    <div class="filter-group" style="margin-top:0.75rem;">
                         <label>Farbe</label>
                         <div class="pill-group">
-                            <button class="pill-btn ${this.currentColor==="all"?"active":""}" onclick="window.currentActiveApp.setFilter('Color', 'all')">Alle</button>
-                            ${r.map(n=>`<button class="pill-btn ${this.currentColor===n?"active":""}" onclick="window.currentActiveApp.setFilter('Color', '${n}')">${n}</button>`).join("")}
+                            <button class="pill-btn ${this.currentColor === "all" ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Color', 'all')">Alle <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Color', 'all')}</span></button>
+                            ${r.map(n => `<button class="pill-btn ${this.currentColor === n ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Color', '${n}')">${n} <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Color', n)}</span></button>`).join("")}
                         </div>
                     </div>
 
-                    <div class="filter-group" style="margin-top:0.75rem
-">
+                    <div class="filter-group" style="margin-top:0.75rem;">
                         <label>Band</label>
                         <div class="pill-group">
-                            <button class="pill-btn ${this.currentBand==="all"?"active":""}" onclick="window.currentActiveApp.setFilter('Band', 'all')">Alle</button>
-                            ${e.map(n=>`<button class="pill-btn ${this.currentBand===n?"active":""}" onclick="window.currentActiveApp.setFilter('Band', '${n}')">${n}</button>`).join("")}
+                            <button class="pill-btn ${this.currentBand === "all" ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Band', 'all')">Alle <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Band', 'all')}</span></button>
+                            ${e.map(n => `<button class="pill-btn ${this.currentBand === n ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Band', '${n}')">${n} <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Band', n)}</span></button>`).join("")}
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group" style="margin-top:0.75rem; ${glassTypes.length === 0 ? 'display:none;' : ''}">
+                        <label>Glasart</label>
+                        <div class="pill-group">
+                            <button class="pill-btn ${this.currentGlasart === "all" ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Glasart', 'all')">Alle <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Glasart', 'all')}</span></button>
+                            ${glassTypes.map(n => `<button class="pill-btn ${this.currentGlasart === n ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Glasart', '${n}')">${n} <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Glasart', n)}</span></button>`).join("")}
                         </div>
                     </div>
 
-                    <div class="filter-group" style="margin-top:1rem
-">
+                    <div class="filter-group" style="margin-top:1rem;">
                         <label>Manuelle Grösse (mm)</label>
-                        <div style="display:flex
- gap:0.5rem
-">
+                        <div style="display:flex; gap:0.5rem;">
                             <input type="number" id="input_breite_${N}" class="filter-select" placeholder="Breite" value="${this.currentBreite}">
                             <input type="number" id="input_laenge_${N}" class="filter-select" placeholder="Länge" value="${this.currentLaenge}">
                         </div>
                     </div>
 
-                    <div class="filter-group" style="margin-top:1rem
-">
+                    <div class="filter-group" style="margin-top:1rem;">
                         <label>Suche</label>
                         <input type="text" id="input_search_${N}" class="filter-select" placeholder="Art.Nr. oder Name...">
                     </div>
                 </div>
-                <div class="sidebar-section">
-                    <h2>Ergebnisse <span id="resultCount_${N}" class="badge">0</span></h2>
-                    <div id="searchResults_${N}" class="search-results-container"></div>
+                <div class="sidebar-section" id="trayConfigurator_${N}" style="display:none; margin-top:2rem;">
+                    <h2>Konfiguration</h2>
+                    <p class="section-desc">Wählen Sie das passende Zubehör.</p>
+                    <div id="trayConfiguratorInner_${N}"></div>
                 </div>
-            `,document.getElementById(`input_search_${N}`).addEventListener("input",()=>this.filterResults()),document.getElementById(`input_breite_${N}`).addEventListener("input",n=>{this.currentBreite=n.target.value,this.filterResults()}),document.getElementById(`input_laenge_${N}`).addEventListener("input",n=>{this.currentLaenge=n.target.value,this.filterResults()}),this.filterResults()},setFilter:function(m,s){this[`current${m}`]=s,this.renderSidebar()},filterResults:function(){var a
-const m=(((a=document.getElementById(`input_search_${N}`))==null?void 0:a.value)||"").toLowerCase(),s=parseFloat(this.currentBreite),r=parseFloat(this.currentLaenge),e=this.trays.filter(l=>{const o=(l.label||"").toLowerCase()
-return!(o.includes("massaufnahme")||o.includes("anfahrt")||this.extractType(l)===null||this.currentManufacturer!=="all"&&(l.manufacturer||"")!==this.currentManufacturer||this.currentType!=="all"&&this.extractType(l)!==this.currentType||this.currentSituation!=="all"&&this.extractSituation(l)!==this.currentSituation||this.currentColor!=="all"&&this.extractColor(l)!==this.currentColor||this.currentBand!=="all"&&this.extractBand(l)!==this.currentBand||(this.currentBreite||this.currentLaenge)&&!this.checkCompatibility(l,s,r)||m&&!(l.label.toLowerCase().includes(m)||l.artNr.toLowerCase().includes(m)))})
-let t=e
-if(this.currentBreite||this.currentLaenge){const l={}
-e.forEach(o=>{const y=`${this.extractType(o)}|${this.extractSituation(o)}|${this.extractColor(o)}|${this.extractBand(o)}`
-l[y]||(l[y]=[]),l[y].push(o)}),t=[],Object.values(l).forEach(o=>{const y=Math.min(...o.map(M=>this.extractSizeScore(M)))
-o.filter(M=>this.extractSizeScore(M)===y).forEach(M=>t.push(M))})}const n=document.getElementById(`resultCount_${N}`)
-n&&(n.textContent=t.length)
-const i=document.getElementById(`searchResults_${N}`)
-i&&(i.innerHTML=t.map(l=>{var o
-return`
-                <div class="result-item-card ${((o=this.selectedTray)==null?void 0:o.id)===l.id?"active":""}" onclick="window.currentActiveApp.selectItem('${l.id}')">
-                    <div class="card-img-wrapper">
-                        ${l.imgUrl ? `<img src="${l.imgUrl}">` : '<i class="ri-image-line placeholder-icon"></i>'}
-                    </div>
-                    <div class="result-info">
-                        <strong>${l.label}</strong>
-                        <div class="result-meta"><span>${l.manufacturer||""}</span> | <span>${l.size||""}</span></div>
-                        <span class="finish-artnr">${l.artNr}</span>
-                    </div>
-                </div>
-            `}).join(""))},selectItem:function(m){this.selectedTray=this.trays.find(s=>s.id===m),this.filterResults(),this.updateBOM()},updateBOM:function(){if(!this.selectedTray){re.innerHTML='<tr><td colspan="5" style="text-align:center  padding:2rem ">Bitte wählen Sie ein Produkt.</td></tr>',me.textContent="0 Artikel"
-return}let m=1,s=`
-                <tr class="bom-main-item">
-                    <td><div class="img-cell"><img src="${this.selectedTray.imgUrl||this.mainImgUrl}"></div></td>
-                    <td><span class="bom-code">${this.selectedTray.artNr}</span></td>
-                    <td><div class="bom-desc">${this.selectedTray.label}</div></td>
-                    
-                    <td><strong>1</strong></td>
-                </tr>
-            `
-const r=this.extractSizeScore(this.selectedTray);
-(this.selectedTray.services||[]).filter(n=>{const i=n.label.toLowerCase()
-return!(i.includes("montagepauschale")&&(i.includes("bis 125")&&r>125||i.includes("ab 125")&&r<=125))}).forEach(n=>{m+=n.qty||1,s+=`
-                        <tr class="service-row">
-                            <td><div class="img-cell"><i class="ri-customer-service-2-line" style="font-size:1.5rem
- color:var(--accent)
-"></i></div></td>
-                            <td><span class="bom-code">${n.artNr}</span></td>
-                            <td><div class="bom-desc">${n.label}</div></td>
-                            
-                            <td><strong>${n.qty||1}</strong></td>
-                        </tr>
-                    `}),re.innerHTML=s,me.textContent=`${m} Artikel`},copyToClipboard:function(){if(!this.selectedTray)return
-let m=[`${this.selectedTray.artNr}	1`]
-if(this.selectedTray.services){const s=this.extractSizeScore(this.selectedTray);
-(this.selectedTray.services||[]).filter(t=>{const n=t.label.toLowerCase()
-return!(n.includes("montagepauschale")&&(n.includes("bis 125")&&s>125||n.includes("ab 125")&&s<=125))}).forEach(t=>{t.artNr&&t.artNr!=="none"&&!t.label.toLowerCase().startsWith("ohne")&&m.push(`${t.artNr}	${t.qty||1}`)})}navigator.clipboard.writeText(m.join(`
-`)).then(()=>alert("Kopiert!"))}}}function He(B,F,R,N={}){const m=N.isMixer||B.toLowerCase().includes("mischer")||B.toLowerCase().includes("armatur")
-N.montageLabel1,N.montageLabel2,N.montageLabel3
-const s=N.hideSizeForm||m,r=B.replace(/\s/g,"")
-return{trays:[],mainImgUrl:R,selectedTray:null,extractSerie:function(e){if(e.serie)return e.serie
-let t=e.label||""
-e.manufacturer&&t.toLowerCase().startsWith(e.manufacturer.toLowerCase())&&(t=t.substring(e.manufacturer.length).trim())
-const n=t.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-| \d+)/)
-let i=n&&n[1]?n[1].trim():t.trim()
-const a=["Doppelwaschtisch","Möbelwaschtisch","Aufsatzwaschtisch","Waschtisch","Handwaschbecken","Einbaubecken","Wandbecken","Waschtischanlage","Aufsatzbecken","Waschbecken","Duschenwanne","Duschwanne","Badewanne","Duschfläche","Wanne"]
-for(const l of a)if(i.toLowerCase().startsWith(l.toLowerCase())){i=i.substring(l.length).trim(),(i.startsWith("-")||i.startsWith("/"))&&(i=i.substring(1).trim()),e.manufacturer&&i.toLowerCase().startsWith(e.manufacturer.toLowerCase())&&(i=i.substring(e.manufacturer.length).trim())
-break}return e.manufacturer&&i.toLowerCase().startsWith(e.manufacturer.toLowerCase())&&(i=i.substring(e.manufacturer.length).trim()),i||"Andere"},getUniqueValues:function(e){return e==="serie"?[...new Set(this.trays.map(t=>this.extractSerie(t)))].sort():[...new Set(this.trays.map(t=>t[e]))].sort()},classifyAccessory:function(e){if(!e)return"common"
-if(e.overrideMontageart&&e.overrideMontageart!=="auto")return e.overrideMontageart.toLowerCase()
-const t=(e.label||e.name||"").toLowerCase(),n=(e.artNr||"").replace(/\s/g,"")
-if(n==="1445782.000.000"||n==="1441782.000.000")return"wannenträger"
-if(n==="1431191.000.000"||n==="1431190.000.000"||n==="1435435.000.000")return"montagerahmen"
-if(t.includes("schallschutzset")||t.includes("schallschutz"))return m?"unterputz":"montagerahmen"
-const i=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc")
-if(m){const a=t.toLowerCase()
-if(a.includes("standmodell")||a.includes("freien stand"))return"standmodell"
-if(a.includes("einbaukörper")||a.includes("grundkörper")||a.includes("ibox")||a.includes("up-gehäuse"))return"common"
-if(a.includes("endmontage")||a.includes("einbau")||a.includes("anschlussbogen")||a.includes("unterputz")||a.includes(" up "))return"unterputz"
-if(a.includes("aufputz")||a.includes(" ap ")||a.includes("ausserhalb")||a.includes("mischer")||a.includes("batterie"))return"aufputz"}else if(i){const a=t.toLowerCase()
-return a.includes("sitz")||a.includes("deckel")||a.includes("betätigungsplatte")||a.includes("drückerplatte")||a.includes("manschette")||a.includes("garnitur")?"common":a.includes("einbauspülkasten")||a.includes("einbauspulkasten")||a.includes("duofix")||a.includes("unterputz")||a.includes(" up ")?"unterputz":a.includes("aufputz")||a.includes(" ap ")?"aufputz":"common"}else{if(t.includes("träger")||t.includes("wannenträger")||t.includes("montageschaum"))return"wannenträger"
-if(t.includes("rahmen")||t.includes("füsse")||t.includes("fussset")||t.includes("schallschutzset")||t.includes("schallschutz"))return"montagerahmen"
-if(t.includes("stelzfüss")||t.includes("stelzfuss"))return"stelzfüsse"}return"common"},init:function(){this.isToiletApp=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc"),this.selectedTray=null,this.currentMontageart="alle",this.currentManufacturer="all",this.currentSerie="all",this.currentForm="all",this.currentSize="all",this.renderSidebar(),this.bindFilters(),this.filterResults(),this.clearBOM()},renderSidebar:function(){const e=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc")
-console.log(`[Configurator] Rendering Sidebar for ${B}. isToiletApp: ${e}`),this.getUniqueValues("manufacturer"),this.getUniqueValues("form"),this.getUniqueValues("size")
-const t=e?"Montage":"Form",n=e?"System":"Montageart"
-Ae.innerHTML=`
-                    <div class="sidebar-section">
-                        <h2>Filter: ${B}</h2>
-                        
-                        <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_mfr_${r}">Hersteller</div>
-                            <div class="pill-group" id="list_rel_mfr_${r}"></div>
-                        </div>
-
-                        <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_serie_${r}">Serie</div>
-                            <div class="pill-group" id="list_rel_serie_${r}"></div>
-                        </div>
-                        
-                        ${s?"":`
-                        <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_form_${r}">${t}</div>
-                            <div class="pill-group" id="list_rel_form_${r}"></div>
-                        </div>
-                        
-                        <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_size_${r}">Grösse</div>
-                            <div class="pill-group" id="list_rel_size_${r}"></div>
-                        </div>
-                        `}
-                        
-                        <div class="filter-group">
-                            <div class="finder-sub-header" id="head_rel_montage_${r}">${n}</div>
-                            <div class="pill-group" id="list_rel_montage_${r}"></div>
-                        </div>
-
-                        ${s||e?"":`
-                        <div style="display:flex
- gap:1rem
- margin-top: 1rem
-">
-                            <div class="filter-group" style="flex:1
-">
-                                <label>Länge (cm)</label>
-                                <input type="number" id="filterLength_${r}" class="filter-select" placeholder="z.B. 120" style="background:var(--bg-surface)
- color:var(--text-primary)
- border:1px solid var(--border)
-" />
-                            </div>
-                            <div class="filter-group" style="flex:1
-">
-                                <label>Breite (cm)</label>
-                                <input type="number" id="filterWidth_${r}" class="filter-select" placeholder="z.B. 80" style="background:var(--bg-surface)
- color:var(--text-primary)
- border:1px solid var(--border)
-" />
-                            </div>
-                        </div>
-                        `}
-                    </div>
-                    
-                    <div class="sidebar-section">
-                        <h2>Suchergebnisse <span id="resultCount_${r}" class="badge">0</span></h2>
-                        <div class="search-results-container" id="searchResults_${r}"></div>
-                    </div>
-
-                    <div class="sidebar-section" id="trayConfigurator_${r}" style="display:none
- margin-top:2rem
-">
-                        <h2>Konfiguration</h2>
-                        <p class="section-desc">Wählen Sie das passende Zubehör.</p>
-                        <div id="trayConfiguratorInner_${B.replace(/\s/g,"")}"></div>
-                    </div>
-                `,this.updatePillFilters()},updatePillFilters:function(){const e=B.replace(/\s/g,""),t=document.getElementById(`list_rel_mfr_${e}`),n=document.getElementById(`list_rel_serie_${e}`),i=document.getElementById(`list_rel_form_${e}`),a=document.getElementById(`list_rel_size_${e}`),l=document.getElementById(`list_rel_montage_${e}`)
-if(!t)return
-const o=B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc"),y=m||o,M=o?"Montage":"Form",v=o?"System":"Montageart",S=y?"Aufputz":N.montageLabel1||"Wannenträger",_=y?"Unterputz":N.montageLabel2||"Montagerahmen",u=N.montageLabel3||"",x=this.getUniqueValues("manufacturer")
-t.innerHTML=`<button class="pill-btn ${this.currentManufacturer==="all"?"active":""}" data-val="all">Alle</button>`+x.map(g=>`
-                    <button class="pill-btn ${this.currentManufacturer===g?"active":""}" data-val="${g}">${g}</button>
-                `).join(""),X(`head_rel_mfr_${e}`,`list_rel_mfr_${e}`,this.currentManufacturer,"Hersteller",()=>{this.currentManufacturer="all",this.currentSerie="all",this.currentForm="all",this.currentSize="all",this.updatePillFilters(),this.filterResults()}),t.querySelectorAll(".pill-btn").forEach(g=>g.addEventListener("click",()=>{this.currentManufacturer=g.dataset.val,this.updatePillFilters(),this.filterResults()}))
-let A=this.trays
-this.currentManufacturer!=="all"&&(A=A.filter(g=>g.manufacturer===this.currentManufacturer))
-const H=[...new Set(A.map(g=>this.extractSerie(g)))].sort()
-if(n.innerHTML=`<button class="pill-btn ${this.currentSerie==="all"?"active":""}" data-val="all">Alle</button>`+H.map(g=>`
-                    <button class="pill-btn ${this.currentSerie===g?"active":""}" data-val="${g}">${g}</button>
-                `).join(""),X(`head_rel_serie_${e}`,`list_rel_serie_${e}`,this.currentSerie,"Serie",()=>{this.currentSerie="all",this.currentSize="all",this.updatePillFilters(),this.filterResults()}),n.querySelectorAll(".pill-btn").forEach(g=>g.addEventListener("click",()=>{this.currentSerie=g.dataset.val,this.updatePillFilters(),this.filterResults()})),i){let g=A
-this.currentSerie!=="all"&&(g=g.filter(d=>this.extractSerie(d)===this.currentSerie))
-const c=[...new Set(g.map(d=>d.form))].filter(Boolean).sort()
-i.innerHTML=`<button class="pill-btn ${this.currentForm==="all"?"active":""}" data-val="all">Alle</button>`+c.map(d=>`
-                        <button class="pill-btn ${this.currentForm===d?"active":""}" data-val="${d}">${d}</button>
-                    `).join(""),X(`head_rel_form_${e}`,`list_rel_form_${e}`,this.currentForm,M,()=>{this.currentForm="all",this.currentSize="all",this.updatePillFilters(),this.filterResults()}),i.querySelectorAll(".pill-btn").forEach(d=>d.addEventListener("click",()=>{this.currentForm=d.dataset.val,this.updatePillFilters(),this.filterResults()}))}if(a){let g=A
-this.currentSerie!=="all"&&(g=g.filter(d=>this.extractSerie(d)===this.currentSerie)),this.currentForm!=="all"&&(g=g.filter(d=>d.form===this.currentForm))
-const c=[...new Set(g.map(d=>d.size))].sort()
-a.innerHTML=`<button class="pill-btn ${this.currentSize==="all"?"active":""}" data-val="all">Alle</button>`+c.map(d=>`
-                        <button class="pill-btn ${this.currentSize===d?"active":""}" data-val="${d}">${d}</button>
-                    `).join(""),X(`head_rel_size_${e}`,`list_rel_size_${e}`,this.currentSize,"Grösse",()=>{this.currentSize="all",this.updatePillFilters(),this.filterResults()}),a.querySelectorAll(".pill-btn").forEach(d=>d.addEventListener("click",()=>{this.currentSize=d.dataset.val,this.updatePillFilters(),this.filterResults()}))}const p=S.toLowerCase(),k=_.toLowerCase(),f=u?u.toLowerCase():""
-l.innerHTML=`
-                    <button class="pill-btn ${this.currentMontageart==="alle"?"active":""}" data-val="alle">Alle</button>
-                    <button class="pill-btn ${this.currentMontageart===p?"active":""}" data-val="${p}">${S}</button>
-                    <button class="pill-btn ${this.currentMontageart===k?"active":""}" data-val="${k}">${_}</button>
-                    ${u?`<button class="pill-btn ${this.currentMontageart===f?"active":""}" data-val="${f}">${u}</button>`:""}
-                `,X(`head_rel_montage_${e}`,`list_rel_montage_${e}`,this.currentMontageart,v,()=>{this.currentMontageart="alle",this.updatePillFilters(),this.filterResults()}),l.querySelectorAll(".pill-btn").forEach(g=>g.addEventListener("click",()=>{this.currentMontageart=g.dataset.val,this.updatePillFilters(),this.filterResults()})),s||this.updateManualInputs()},bindFilters:function(){if(!s){const e=document.getElementById(`filterLength_${r}`),t=document.getElementById(`filterWidth_${r}`),n=()=>{this.updateSizeDropdownFromManual(),this.filterResults()}
-e&&e.addEventListener("input",n),t&&t.addEventListener("input",n)}},updateManualInputs:function(){const e=this.currentSize,t=document.getElementById(`filterLength_${r}`),n=document.getElementById(`filterWidth_${r}`)
-if(!(!t||!n))if(e==="all")t.value="",n.value=""
-else{const i=e.split(/[xX]/).map(a=>a.trim())
-i.length===2&&(t.value=i[0],n.value=i[1])}},updateSizeDropdownFromManual:function(){const e=document.getElementById(`filterLength_${r}`),t=document.getElementById(`filterWidth_${r}`)
-if(!e||!t)return
-const n=e.value,i=t.value
-if(n&&i){const a=`${n} x ${i}`,l=`${i} x ${n}`,o=this.trays.find(y=>y.size===a||y.size===l)
-o?this.currentSize=o.size:this.currentSize="all"}else this.currentSize="all"
-this.updatePillFilters()},filterResults:function(){var v,S
-const e=this.currentManufacturer||"all",t=this.currentSerie||"all",n=this.currentForm||"all",i=this.currentSize||"all",a=((v=document.getElementById(`filterLength_${r}`))==null?void 0:v.value)||"",l=((S=document.getElementById(`filterWidth_${r}`))==null?void 0:S.value)||"",o=this.isToiletApp||B.toLowerCase().includes("klosett")||B.toLowerCase().includes("wc"),y=this.trays.filter(_=>{if(e!=="all"&&e!=="alle"&&_.manufacturer!==e||t!=="all"&&t!=="alle"&&this.extractSerie(_)!==t)return!1
-if(!s){const u=n.toLowerCase(),x=(_.form||"").toLowerCase()
-if(u!=="all"&&u!=="alle"&&!x.includes(u)&&!u.includes(x))return!1
-if(i!=="all"&&i!=="alle"){if(_.size!==i)return!1}else if(!o&&(a||l)&&_.size&&_.size.includes("x")){const A=_.size.toLowerCase().split("x").map(H=>H.trim())
-if(A.length===2){let[H,p]=A.map(c=>parseFloat(c)),k=parseFloat(a),f=parseFloat(l)
-const g=c=>c<400?c*10:c
-if(a&&l){if(!(g(H)==g(k)&&g(p)==g(f)||g(H)==g(f)&&g(p)==g(k)))return!1}else if(a){if(g(H)!=g(k)&&g(p)!=g(k))return!1}else if(l&&g(H)!=g(f)&&g(p)!=g(f))return!1}}}if(this.currentMontageart!=="alle"&&this.currentMontageart!=="all"){const u=this.classifyAccessory(_)
-if(u!=="common"&&u!==this.currentMontageart)return!1
-if(u==="common"){let hasMatch=false;if(_.mountingMaterials){_.mountingMaterials.forEach(mat=>{const mc=this.classifyAccessory(mat);if(mc===this.currentMontageart){hasMatch=true}else if(mc==="common"&&mat.options&&mat.options[0]){if(this.classifyAccessory(mat.options[0])===this.currentMontageart){hasMatch=true}}})};if(!hasMatch&&_.mountingMaterials&&_.mountingMaterials.length>0)return!1}}return!0})
-console.log(`[Configurator] ${B} Filter Results: ${y.length} of ${this.trays.length} visible. (M:${e}, S:${t}, F:${n})`),document.getElementById(`resultCount_${r}`).textContent=y.length
-const M=document.getElementById(`searchResults_${r}`)
-if(M.innerHTML="",y.length===0){M.innerHTML='<div class="no-results">Keine Produkte gefunden. Bitte Filter anpassen.</div>'
-return}y.forEach(_=>{const u=document.createElement("button")
-u.className=`result-item-card ${this.selectedTray&&this.selectedTray.id===_.id?"active":""}`,u.innerHTML=`
-                        <div class="card-img-wrapper">
-                            ${_.imgUrl ? `<img src="${_.imgUrl}">` : '<i class="ri-image-line placeholder-icon"></i>'}
-                        </div>
-                        <div class="result-info">
-                            <strong>${_.label}</strong>
-                            <div class="result-meta">
-                                <span>${_.manufacturer}</span> ${s?"":`| <span>${_.size}</span>`}
-                            </div>
-                            <span class="finish-artnr">${_.artNr}</span>
-                        </div>
-                    `,u.addEventListener("click",()=>this.selectTray(_.id)),M.appendChild(u)}),this.selectedTray&&(this.renderConfigurator(),this.updateBOM())},selectTray:function(e){this.selectedTray=this.trays.find(t=>t.id===e)
-// Do not auto-change currentMontageart on tray select — user controls the filter
-this.updatePillFilters()
-this.selectedTray.selections={},this.selectedTray.variants&&this.selectedTray.variants.length>0&&(this.selectedTray.selections.__variant__=this.selectedTray.artNr),this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.forEach((t,n)=>{t.options||(t={id:t.id||"mat_"+Math.random().toString(36).substr(2,5),name:t.label?t.label.split(" ")[0]:"Zubehör",options:[{artNr:t.artNr||"",label:t.label||"",type:t.type||"Zubehör"}]},this.selectedTray.mountingMaterials[n]=t),t.options.length>0&&(this.selectedTray.selections[t.id]=t.options[0].artNr)}),this.filterResults(),this.renderConfigurator(),this.updateBOM()},renderConfigurator:function(){const e=document.getElementById(`trayConfigurator_${r}`),t=document.getElementById(`trayConfiguratorInner_${r}`)
-t.innerHTML=""
-let n=!1
-if(this.selectedTray&&this.selectedTray.variants&&this.selectedTray.variants.length>0){n=!0
-const a=document.createElement("div")
-a.className="filter-group",a.style.marginBottom="1.5rem"
-const l=document.createElement("label")
-l.textContent="Ausführung / Variante / Farbe"
-const o=document.createElement("div")
-o.className="finish-buttons-grid",o.style.marginTop="0.5rem"
-const y=(v,S)=>{const _=document.createElement("button"),u=this.selectedTray.selections.__variant__===v
-_.className=`finish-row-btn ${u?"active":""}`,_.style.width="100%",_.style.display="flex",_.style.alignItems="center"
-const x=Be(v),A=ke(S,v)
-return _.innerHTML=`
-                            <div class="finish-swatch" style="position: relative
- overflow: hidden
- background-color: ${A}
- box-shadow: inset 0 1px 3px rgba(0,0,0,0.15)
- width: 28px
- height: 28px
- border-radius: 50%
- margin-right: 12px
- border: 1px solid rgba(0,0,0,0.2)
-">
-                                ${x?`<img src="${x}" style="position: absolute
- width: 100%
- height: 100%
- object-fit: cover
- background: #fff
- top: 0
- left: 0
-" onerror="this.style.display='none'
-">`:""}
-                            </div>
-                            <div style="flex:1
- text-align:left
-">
-                                <span style="display:block
- font-weight: 500
-">${S}</span>
-                                <span class="finish-artnr" style="margin-left: 0
-">${v}</span>
-                            </div>
-                        `,_.addEventListener("click",H=>{this.selectedTray.selections.__variant__=v
-const p=S.toLowerCase(),f=["schwarz","black","matt","chrom","weiss","white","gold","bronze","nickel","edelstahl","inox","pvd","messing","brushed","poliert","gebürstet","copper","kupfer"].filter(d=>p.includes(d)),g=v&&String(v).match(/\.(\d{3})(?:\.|$)/),c=g?g[1]:null
-this.selectedTray.mountingMaterials.forEach(d=>{if(d.options&&d.options.length>1){let z=null,L=0
-d.options.forEach(C=>{let K=0
-if(c){const E=C.artNr&&String(C.artNr).match(/\.(\d{3})(?:\.|$)/)
-E&&E[1]===c&&(K+=100)}const D=C.label.toLowerCase()
-f.forEach(E=>{D.includes(E)&&K++}),K>L&&(L=K,z=C)})
-const G=f.some(C=>!["chrom","weiss","white"].includes(C))||c&&!["000","100"].includes(c)
-!z&&!G&&(z=d.options[0]),z&&(L>0||!G)&&(this.selectedTray.selections[d.id]=z.artNr)}}),this.updateBOM(),this.renderConfigurator()}),_},M=`Standard ${this.selectedTray.label.split(",").pop().trim()}`
-o.appendChild(y(this.selectedTray.artNr,M)),this.selectedTray.variants.forEach(v=>{o.appendChild(y(v.artNr,v.label))}),a.appendChild(l),a.appendChild(o),t.appendChild(a)}if(this.selectedTray&&this.selectedTray.mountingMaterials&&this.selectedTray.mountingMaterials.length>0&&(n=!0),!n){e.style.display="none"
-return}if(e.style.display="block",this.currentMontageart==="wannenträger"&&!this.selectedTray.mountingMaterials.some(l=>{var y
-const o=(y=l.options)==null?void 0:y[0]
-return o&&this.classifyAccessory(o)==="wannenträger"})){const l=document.createElement("div")
-l.className="compatibility-warning",l.innerHTML=`
-                            <div style="background: rgba(255, 152, 0, 0.1)
- border: 1px solid rgba(255, 152, 0, 0.3)
- color: #e65100
- padding: 1rem
- border-radius: 8px
- font-size: 0.9rem
- margin-bottom: 1.5rem
- display: flex
- align-items: start
- gap: 0.75rem
-">
-                                <span style="font-size: 1.2rem
-">⚠️</span>
-                                <div>
-                                    <strong style="display: block
- margin-bottom: 0.25rem
-">Kein Wannenträger verfügbar</strong>
-                                    Diese Duschwanne ist nicht carrier-kompatibel oder es wurde kein passender Träger im Pool gefunden. Bitte nutzen Sie das <strong>Montagerahmen-System</strong>.
+                ${searchResultsHTML}
+            `;
+            
+            document.getElementById(`input_search_${N}`).addEventListener("input", () => this.filterResults());
+            document.getElementById(`input_breite_${N}`).addEventListener("input", n => { this.currentBreite = n.target.value; this.filterResults() });
+            document.getElementById(`input_laenge_${N}`).addEventListener("input", n => { this.currentLaenge = n.target.value; this.filterResults() });
+            this.filterResults();
+        },
+        
+        setFilter: function(m, s) {
+            this[`current${m}`] = s;
+            this.renderSidebar();
+            this.filterResults();
+        },
+        
+        filterResults: function() {
+            const N = this.title.replace(/\s+/g, "").toLowerCase();
+            var a;
+            const m = (((a = document.getElementById(`input_search_${N}`)) == null ? void 0 : a.value) || "").toLowerCase();
+            const s = parseFloat(this.currentBreite);
+            const r = parseFloat(this.currentLaenge);
+            const e = this.trays.filter(l => {
+                const o = (l.label || "").toLowerCase();
+                return !(
+                    o.includes("massaufnahme") || o.includes("anfahrt") || (o.includes("badewanne") && !o.includes("duschwanne")) || 
+                    this.extractType(l) === null || 
+                    (this.currentManufacturer !== "all" && (l.manufacturer || "") !== this.currentManufacturer) ||
+                    (this.currentType !== "all" && this.extractType(l) !== this.currentType) || 
+                    (this.currentSituation !== "all" && this.extractSituation(l) !== this.currentSituation) || 
+                    (this.currentColor !== "all" && this.extractColor(l) !== this.currentColor && !(l.variants || []).some(v => this.extractColor(v) === this.currentColor)) || 
+                    (this.currentBand !== "all" && this.extractBand(l) !== this.currentBand) || 
+                    (this.currentOption !== "all" && this.extractOption(l) !== this.currentOption) || 
+                    (this.currentGlasart !== "all" && this.getVirtualGlasart(this.extractGlasart(l)) !== this.currentGlasart && !(l.variants || []).some(v => this.getVirtualGlasart(this.extractGlasart(v)) === this.currentGlasart)) || 
+                    (this.currentSeries !== "all" && this.extractSeries(l) !== this.currentSeries) ||
+                    (this.currentHeight !== "all" && this.extractHeightCm(l) !== this.currentHeight) ||
+                    (this.currentWidthBucket !== "all" && this.getWidthBucket(l) !== this.currentWidthBucket) ||
+                    ((this.currentBreite || this.currentLaenge) && !this.checkCompatibility(l, s, r)) || 
+                    (m && !(l.label.toLowerCase().includes(m) || l.artNr.toLowerCase().includes(m)))
+                );
+            });
+            let t = e;
+            if (this.currentBreite || this.currentLaenge) {
+                t = e.sort((a, b) => this.extractSizeScore(a) - this.extractSizeScore(b));
+            }
+            const n = document.getElementById(`resultCount_${N}`);
+            if (n) n.textContent = t.length;
+ 
+            if (this.selectedTray) {
+                this.updateBOM();
+            } else {
+                if (appConfig.enableGalleryUX) {
+                    this.renderGridInMainPanel(t);
+                } else {
+                    const i = document.getElementById(`searchResults_${N}`);
+                    if (i) {
+                        i.innerHTML = t.map(l => {
+                            const variant = this.getMatchedVariant(l);
+                            const cleanLabel = this.reconstructDescription(l, variant);
+                            return `
+                            <div class="result-card ${this.selectedTray && this.selectedTray.artNr === l.artNr ? "selected" : ""}" onclick="window.currentActiveApp.selectTray('${l.artNr}')">
+                                <img src="${variant.imgUrl || this.mainImgUrl}" alt="${cleanLabel}">
+                                <div class="result-info">
+                                    <div class="result-brand">${variant.manufacturer || ""}</div>
+                                    <div class="result-title">${cleanLabel}</div>
+                                    <div class="result-meta">
+                                        ${variant.artNr ? `<span>${variant.artNr}</span>` : ""}
+                                    </div>
                                 </div>
                             </div>
-                        `,t.appendChild(l)}[...this.selectedTray.mountingMaterials].sort((a,l)=>{const o=y=>{const M=(y.name||"").toLowerCase()
-return M.includes("sitz")||M.includes("deckel")?2:M.includes("platte")||M.includes("betätigung")?3:M.includes("schall")||M.includes("isolation")?4:M.includes("manschette")||M.includes("garnitur")?5:99}
-return o(a)-o(l)}).forEach(a=>{if(!a.options||a.options.length===0)return
-const l=this.classifyAccessory(a.options[0])!=="common"?this.classifyAccessory(a.options[0]):this.classifyAccessory(a)
-if(this.currentMontageart!=="alle"&&l!=="common"&&l!==this.currentMontageart)return
-const o=document.createElement("div")
-o.className="filter-group"
-const y=document.createElement("label")
-y.textContent=a.name||"Zubehör"
-const M=window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]
-if(a.options.length===1){const v=a.options[0],S=M.find(u=>u.artNr===v.artNr),_=S?S.label:v.label
-o.innerHTML=`<label>${a.name}</label>
-                            <div style="background:var(--bg-surface)
- padding:0.75rem
- border-radius:6px
- font-size:0.85rem
- color:var(--text-primary)
- border:1px solid var(--border)
-">
-                                <strong style="display:block
- margin-bottom:0.25rem
-">${_}</strong>
-                                <span style="color:var(--text-secondary)
- font-family:monospace
-">${v.artNr}</span>
-                            </div>`}else{const v=document.createElement("select")
-v.className="filter-select",a.options.forEach(S=>{const _=M.find(A=>A.artNr===S.artNr),u=_?_.label:S.label,x=document.createElement("option")
-x.value=S.artNr,x.textContent=S.dropdownLabel?S.dropdownLabel:`${u} (${S.artNr})`,this.selectedTray.selections[a.id]===S.artNr&&(x.selected=!0),v.appendChild(x)}),v.addEventListener("change",S=>{this.selectedTray.selections[a.id]=S.target.value,this.updateBOM()}),o.appendChild(y),o.appendChild(v)}t.appendChild(o)})},clearBOM:function(){me.textContent="0 Artikel ausgewählt",re.innerHTML='<tr><td colspan="5" style="text-align: center  color: #9da3ad  padding: 2rem ">Bitte wählen Sie ein Produkt aus den Suchergebnissen.</td></tr>'},updateBOM:function(){if(!this.selectedTray)return
-const e=this.selectedTray.mountingMaterials||[]
-re.innerHTML=""
-const t=[],n=B.toLowerCase(),i=n.includes("wandklosett"),a=n.includes("standklosett"),l=n.includes("wanne")||n.includes("duschfläche")
-let o=this.selectedTray.artNr,y=this.selectedTray.label,M=this.selectedTray.menge||1
-if(this.selectedTray.selections.__variant__&&this.selectedTray.selections.__variant__!==this.selectedTray.artNr){const p=(this.selectedTray.variants||[]).find(k=>k.artNr===this.selectedTray.selections.__variant__)
-p&&(o=p.artNr,y=p.label,M=p.menge||1)}const v=o==="2111 845.100.000"||o==="3231 113.100.000",S=v?2:1
-if(t.push({artNr:o,label:y,typ:B,menge:M,img:this.selectedTray.imgUrl||this.mainImgUrl,note:"Hauptartikel",priority:S}),a){const p=y.toLowerCase(),k=p.includes("einbauspülkasten")||p.includes("einbauspulkasten"),f=k?1:2
-t[t.length-1].priority=f
-const g=window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]
-e.forEach(c=>{const d=this.selectedTray.selections[c.id],z=(c.options||[]).find(b=>b.artNr===d)||c.options&&c.options[0]
-if(!z)return
-const L=this.classifyAccessory(z)!=="common"?this.classifyAccessory(z):this.classifyAccessory(c)
-if(this.currentMontageart!=="alle"&&L!=="common"&&L!==this.currentMontageart)return
-const G=g.find(b=>b.artNr===z.artNr),C=G?G.label:z.label,K=G&&G.imgUrl?G.imgUrl:z.imgUrl
-C.toLowerCase()
-const D=c.name.toLowerCase()
-let E=99
-const h=c.name||"Zubehör"
-k?D==="wc-sitz"||D==="klosettsitz"?E=2:D==="betätigungsplatte"?E=3:D==="schallschutz"?E=4:D==="befestigungsschrauben"?E=5:D==="ablaufmanschette"?E=6:D==="duofix element"||z.artNr==="3612 348.000.000"?E=7:D==="rückwandbefestigungssatz"||z.artNr==="3612 500.000.000"?E=8:(D==="ablaufbogen"||z.artNr==="3612 374.000.000")&&(E=9):D==="spülkasten"?E=1:D==="wc-sitz"||D==="klosettsitz"?E=3:D==="schallschutz"?E=4:D==="befestigungsschrauben"?E=5:D==="ablaufanschluss"&&(E=6),t.push({artNr:z.artNr,label:C,typ:z.type||c.name||"Zubehör",menge:z.menge||1,img:K,note:h,priority:E})})}else l?e.forEach(p=>{const k=this.selectedTray.selections[p.id],f=(p.options||[]).find(h=>h.artNr===k)||p.options&&p.options[0]
-if(!f)return
-const g=this.classifyAccessory(f)!=="common"?this.classifyAccessory(f):this.classifyAccessory(p)
-if(this.currentMontageart!=="alle"&&g!=="common"&&g!==this.currentMontageart)return
-const d=(window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]).find(h=>h.artNr===f.artNr),z=d?d.label:f.label,L=d&&d.imgUrl?d.imgUrl:f.imgUrl,G=(z+" "+(f.type||p.name||"")).toLowerCase()
-let C=99
-const K=p.name||"Zubehör"
-const matNameL=(p.name||"").toLowerCase()
-matNameL.includes("ablaufdeckel")||matNameL.includes("ablaufabdeckung")?C=2:matNameL.includes("ablaufgarnitur")||matNameL.includes("siphon")||matNameL.includes("sifon")?C=3:matNameL.includes("dichtband")||matNameL.includes("wannenband")||matNameL.includes("zargen")?C=4:(G.includes("deckel")&&!G.includes("ohne ablaufdeckel")&&!G.includes("ohne deckel"))?C=2:G.includes("ablauf")||G.includes("siphon")||G.includes("garnitur")||G.includes("sifon")?C=3:G.includes("dichtband")||G.includes("wannenband")||G.includes("zargen")||G.includes("dichtset")?C=4:G.includes("träger")||G.includes("rahmen")||G.includes("wannenträger")||G.includes("montagerahmen")?C=5:G.includes("schaum")||G.includes("fuss")||G.includes("füsse")||G.includes("mittenabstütz")||G.includes("wannenanker")||G.includes("stütz")?C=6:G.includes("schall")||G.includes("isolation")?C=7:C=8
-let D=f.menge||1
-const E=(this.selectedTray.label||"").toLowerCase()
-if(E.includes("calima")&&G.includes("stelz")){const h=E.match(/(\d{3,4})\s*x\s*(\d{3,4})/)
-if(h){const b=Math.max(parseInt(h[1]),parseInt(h[2])),U=Math.min(parseInt(h[1]),parseInt(h[2]))
-let W=16
-U<=700?b<=1e3?W=12:b<=1300?W=15:b<=1600?W=18:W=21:b<=1e3?W=16:b<=1300?W=20:b<=1600?W=24:W=28,D=Math.ceil(W/4)}}
-t.push({artNr:f.artNr,label:z,typ:f.type||p.name||"Zubehör",menge:D,img:L,note:K,priority:C})
-if(p.bundle&&p.bundle.length>0){const bundlePool=window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]
-p.bundle.forEach(bItem=>{const bPoolItem=bundlePool.find(x=>x.artNr===bItem.artNr),bLabel=bPoolItem?bPoolItem.label:bItem.label,bImg=bPoolItem&&bPoolItem.imgUrl?bPoolItem.imgUrl:bItem.imgUrl,bG=(bLabel+" "+(bItem.type||"")).toLowerCase()
-let bPriority=99
-bG.includes("schaum")||bG.includes("kleber")?bPriority=6:bG.includes("schall")||bG.includes("isolation")?bPriority=7:bPriority=8
-t.push({artNr:bItem.artNr,label:bLabel,typ:bItem.type||"Zubehör",menge:bItem.menge||1,img:bImg,note:K,priority:bPriority})})}}):e.forEach(p=>{const k=this.selectedTray.selections[p.id],f=(p.options||[]).find(h=>h.artNr===k)||p.options&&p.options[0]
-if(!f)return
-const g=this.classifyAccessory(f)!=="common"?this.classifyAccessory(f):this.classifyAccessory(p)
-if(this.currentMontageart!=="alle"&&g!=="common"&&g!==this.currentMontageart)return
-const d=(window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[]).find(h=>h.artNr===f.artNr),z=d?d.label:f.label,L=d&&d.imgUrl?d.imgUrl:f.imgUrl,G=z.toLowerCase(),C=(f.type||p.name||"").toLowerCase(),K=G+" "+C
-let D=99,E=p.name||"Zubehör"
-K.includes("sitz")||K.includes("deckel")?D=v?3:2:K.includes("platte")||K.includes("betätigung")?D=3:K.includes("schall")||K.includes("isolation")?D=v?5:4:K.includes("reservoir")||K.includes("spülkasten")||K.includes("ap128")||K.includes("ap116")?D=1:(K.includes("manschette")||K.includes("garnitur")||K.includes("ablaufanschluss")||f.artNr.includes("3241 116")||f.artNr.includes("3241 101")||f.artNr.includes("3241 102"))&&(D=5),t.push({artNr:f.artNr,label:z,typ:f.type||p.name||"Zubehör",menge:f.menge||1,img:L,note:E,priority:D})})
-if(i){const p=y.toLowerCase(),k=window.productApps&&window.productApps.zubehoer_pool?window.productApps.zubehoer_pool.trays:[],f=g=>{const c=k.find(d=>d.artNr===g)
-return c?{artNr:c.artNr,label:c.label,img:c.imgUrl}:null}
-if(v){const g=f("8211 114.000.000")||{artNr:"8211 114.000.000",label:"Befestigungsschrauben"}
-t.push({...g,typ:"Technik",menge:2,priority:4,note:"Aufputz-Technik"})}else{const g=p.includes("manschette")||p.includes("garnitur"),c=t.some(G=>G.priority===5)
-if(!g&&!c){const G=f("3241 101.000.000")||{artNr:"3241 101.000.000",label:"Manschettengarnitur"}
-t.push({...G,typ:"Technik",menge:1,priority:5,note:"Standard-Technik"})}const d=f("3612 348.000.000")||{artNr:"3612 348.000.000",label:"Wandklosettelement Geberit Duofix"}
-t.push({...d,typ:"Technik",menge:1,priority:6,note:"Standard-Technik"})
-const z=f("3612 500.000.000")||{artNr:"3612 500.000.000",label:"Rückwandbefestigungssatz Geberit Duofix"}
-t.push({...z,typ:"Technik",menge:1,priority:7,note:"Standard-Technik"})
-const L=f("3612 374.000.000")||{artNr:"3612 374.000.000",label:"Ablaufbogen Geberit- Silent"}
-t.push({...L,typ:"Technik",menge:1,priority:8,note:"Standard-Technik"})}}const _=y.toLowerCase(),u=_.includes("pack")||/m\.\s*(klosett|wc-)?sitz/.test(_)||/inkl\.\s*(klosett|wc-)?sitz/.test(_)||/\bset\b/.test(_)&&!_.includes("schallschutz"),x=_.includes("inkl. schall")||_.includes("m. schall")||_.includes("schallschutz-set")||_.includes("schallschutzset")||_.includes("inkl. isolation")
-let A=t.sort((p,k)=>p.priority-k.priority)
-u&&(A=A.filter(p=>p.priority!==2)),x&&(A=A.filter(p=>p.priority!==4))
-A=A.filter(p=>p.artNr!=='none'&&p.menge!==0)
-let H=0
-A.forEach(p=>{
-if(!p.artNr||p.artNr==='none'||p.menge===0||p.label.toLowerCase().startsWith("ohne"))return;
-const k=document.createElement("tr")
-k.innerHTML=`
-                        <td><div class="img-cell" ${p.img?"":'style="background: transparent  border: 1px dashed var(--border) "'}>
-                            ${p.img?`<img src="${p.img}" alt="${p.label}">`:'<i class="ri-settings-3-line" style="font-size:1.2rem opacity:0.3 "></i>'}
-                        </div></td>
-                        <td><span class="bom-code">${p.artNr}</span></td>
-                        <td>
-                            <div class="bom-desc">${p.label}</div>
-                            <div style="font-size: 0.8rem
- color: #9e9e9e
- margin-top: 0.25rem
-">${p.note}</div>
-                        </td>
-                        
-                        <td><strong>${p.menge}</strong></td>
-                    `,re.appendChild(k),H+=p.menge}),me.textContent=`${H} Artikel benötigt`},copyToClipboard:function(){if(!this.selectedTray){alert("Bitte wählen Sie zuerst ein Produkt aus.")
-return}const e=B.toLowerCase(),t=e.includes("wandklosett"),n=e.includes("standklosett")
-let i=[]
-if(t||n){const l=document.getElementById("bomTableBody")
-if(l)l.querySelectorAll("tr").forEach(y=>{const M=y.querySelector(".bom-code"),v=y.querySelector("strong")
-if(M&&v){const S=M.textContent.replace(/\t/g,"").trim(),_=v.textContent.replace(/\t/g,"").trim()
-if(S&&S!=="none"&&_!=="0")i.push(`${S}	${_}`)}})
-else{alert("Tabelle konnte nicht gefunden werden.")
-return}}else{let l=this.selectedTray.selections&&this.selectedTray.selections.__variant__?this.selectedTray.selections.__variant__:this.selectedTray.artNr,o=1
-if(this.selectedTray.selections&&this.selectedTray.selections.__variant__&&this.selectedTray.selections.__variant__!==this.selectedTray.artNr){const M=(this.selectedTray.variants||[]).find(v=>v.artNr===this.selectedTray.selections.__variant__)
-M&&(o=M.menge||1)}else o=this.selectedTray.menge||1
-i=[`${(l||"").toString().replace(/\t/g,"").trim()}	${o}`],(this.selectedTray.mountingMaterials||[]).forEach(M=>{if(!M.options||M.options.length===0)return
-const v=this.classifyAccessory(M.options[0])!=="common"?this.classifyAccessory(M.options[0]):this.classifyAccessory(M)
-if(this.currentMontageart!=="alle"&&v!=="common"&&v!==this.currentMontageart)return
-const S=this.selectedTray.selections[M.id],_=(M.options||[]).find(u=>u.artNr===S)||M.options&&M.options[0]
-if(_&&_.artNr&&_.artNr!=="none"&&!_.label.toLowerCase().startsWith("ohne")){let u=(_.artNr||"").toString().replace(/\t/g,"").trim()
-i.push(`${u}	${_.menge||1}`)}})}const a=i.join(`
-`)
-navigator.clipboard.writeText(a).then(()=>{alert(`Artikel und Menge kopiert für SAP:
+                        `}).join("");
+                    }
+                }
+            }
+        },
 
-`+a.replace(/\t/g,"    "))}).catch(l=>alert("Kopieren fehlgeschlagen."))}}}
-    return pt(title, desc, mainImgUrl);
+        renderGridInMainPanel: function (filtered) {
+            bomCountCounter.textContent = filtered.length + ' Produkte gefunden';
+            if (filtered.length === 0) {
+                bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#9da3ad; padding:2rem;">Keine Produkte gefunden. Bitte passen Sie die Filter an.</td></tr>';
+                return;
+            }
+            const capped = filtered.slice(0, 150);
+            let cards = capped.map(t => {
+                const variant = this.getMatchedVariant(t);
+                
+                let suffixParts = [];
+                if (variant) {
+                    if (variant.farbe && variant.farbe !== "Standard" && variant.farbe !== "Andere") {
+                        suffixParts.push(variant.farbe);
+                    }
+                    if (variant.glasart && variant.glasart !== "Standard" && variant.glasart !== "Andere") {
+                        suffixParts.push(variant.glasart);
+                    }
+                }
+                let displayLabel = t.label || "";
+                if (suffixParts.length > 0) {
+                    displayLabel += ", " + suffixParts.join(", ");
+                }
+
+                return `
+                    <div class="result-item-card catalog-preview-card" onclick="window.currentActiveApp.selectTray('${t.artNr}')" style="display:flex; flex-direction:row; align-items:center; gap:1rem; border:1px solid var(--border); border-radius:8px; padding:1rem; background:var(--bg-surface); cursor:pointer; transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                        <div class="card-img-wrapper" style="width:70px; height:90px; display:flex; align-items:center; justify-content:center; border-radius:6px; overflow:hidden; background:var(--bg-subtle); flex-shrink:0;">
+                            ${(variant.imgUrl || this.mainImgUrl) ? `<img src="${variant.imgUrl || this.mainImgUrl}" loading="lazy" style="max-height:100%; max-width:100%; object-fit:contain;">` : '<i class="ri-image-line placeholder-icon" style="font-size:2rem; color:var(--text-secondary);"></i>'}
+                        </div>
+                        <div class="result-info" style="display:flex; flex-direction:column; flex:1; min-width:0;">
+                            <span style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">${variant.manufacturer || "Marke unbekannt"}</span>
+                            <strong style="font-size:0.85rem; line-height:1.3; margin-bottom:4px; color:var(--text-primary); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${displayLabel}</strong>
+                            <div style="font-size:0.75rem; color:var(--text-secondary);">${variant.size || ""}</div>
+                            <span class="finish-artnr" style="margin-top:6px; font-size:0.8rem;">${variant.artNr}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            if (filtered.length > 150) {
+                cards += `<div style="grid-column:1/-1; padding:2rem; text-align:center; color:var(--text-secondary); font-size:0.95rem;">Es gibt ${filtered.length - 150} weitere Ergebnisse. Bitte passen Sie Ihre Filter an, um diese zu sehen.</div>`;
+            }
+            bomTableBody.innerHTML = '<tr><td colspan="5" style="padding:0; border:none; background:transparent;"><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px; padding:12px; background:var(--bg-body); border-radius:8px;">' + cards + '</div></td></tr>';
+        },
+        
+        getMatchedVariant: function(tray) {
+            if (!tray || !tray.variants || tray.variants.length === 0) return tray;
+            const matched = tray.variants.find(v => {
+                const matchesColor = this.currentColor === "all" || this.extractColor(v) === this.currentColor;
+                const matchesGlas = this.currentGlasart === "all" || this.getVirtualGlasart(this.extractGlasart(v)) === this.currentGlasart;
+                return matchesColor && matchesGlas;
+            });
+            if (matched) return { ...tray, ...matched };
+            
+            const matchedGlas = tray.variants.find(v => this.currentGlasart === "all" || this.getVirtualGlasart(this.extractGlasart(v)) === this.currentGlasart);
+            if (matchedGlas) return { ...tray, ...matchedGlas };
+            
+            const matchedColor = tray.variants.find(v => this.currentColor === "all" || this.extractColor(v) === this.currentColor);
+            if (matchedColor) return { ...tray, ...matchedColor };
+            
+            return tray;
+        },
+
+        selectTray: function(m) {
+            if (!m) {
+                this.selectedTray = null;
+                this.filterResults();
+                const N = this.title.replace(/\s+/g, "").toLowerCase();
+                const configBlock = document.getElementById(`trayConfigurator_${N}`);
+                if (configBlock) configBlock.style.display = "none";
+                return;
+            }
+            this.selectedTray = this.trays.find(s => s.artNr === m);
+            this.selectedTray.selections = this.selectedTray.selections || {};
+            
+            const hasSideWall = this.checkSideWallSupport(this.selectedTray);
+            if (hasSideWall) {
+                const sameSeriesSideWalls = this.getMatchingSideWalls(this.selectedTray);
+                if (sameSeriesSideWalls.length > 0) {
+                    const isMust = this.checkIsMustSideWall(this.selectedTray);
+                    if (isMust) {
+                        this.selectedTray.selections.__seitenwand__ = sameSeriesSideWalls[0].artNr;
+                    } else {
+                        this.selectedTray.selections.__seitenwand__ = "none";
+                    }
+                }
+            }
+            
+            this.renderSidebar();
+            this.updateBOM();
+        },
+
+        checkSideWallSupport: function(tray) {
+            if (!tray) return false;
+            if (this.isAlternaCostaEckeinstieg(tray)) return true;
+            const cleanArt = (tray.artNr || "").replace(/\s+/g, "");
+            if (/^154322[2-9]/.test(cleanArt)) return false;
+            if (this.extractSituation(tray) === "Freistehend / Walk-in") return false;
+            const l = (tray.label || '').trim();
+            const lower = l.toLowerCase().replace(/\s+/g, ' ');
+            const d = (tray.description || '').toLowerCase().replace(/\s+/g, ' ');
+            
+            // Exclude services, accessories, and side walls themselves
+            const isMainProduct = !lower.includes('massaufnahme') && !lower.includes('montagepauschale') && !lower.includes('anfahrtspauschale') &&
+                                  !lower.includes('klebeset') && !lower.includes('stabilisationsstrebe') && !lower.includes('wandanschlussprofil') &&
+                                  !lower.includes('handtuchhalter') && !lower.includes('verbreiterungsprofil') &&
+                                  !lower.startsWith('seitenwand') && !lower.startsWith('freistehende seitenwand') && !lower.startsWith('freistehend');
+            if (!isMainProduct) return false;
+
+            const isLivaNischeExclusion = this.extractSeries(tray) === "Liva" && (lower.includes("in nische") || d.includes("in nische"));
+            if (isLivaNischeExclusion) return false;
+
+            // Complete corner entry enclosures and other specific layouts do not get side walls
+            const isCornerEntry = lower.startsWith('eckeinstieg') || lower.startsWith('viertelkreis') || lower.startsWith('fünfeck') || lower.startsWith('fuenfeck');
+            if (isCornerEntry) return false;
+
+            // Niche-only doors do not support side walls
+            const isS606PlusSideWallInFluchtOverride = 
+                /^15283(1[5-9]|2[0-2])/.test(cleanArt) || 
+                /^152833[1-2]/.test(cleanArt) || 
+                /^152834[7-8]/.test(cleanArt) || 
+                /^1528351/.test(cleanArt);
+
+            const hasNischeExclusion = lower.includes('nur für nische') || lower.includes('nur für eine nische') || lower.includes('nur nische') || d.includes('nur für nische') ||
+                lower.includes('vormauerung') || d.includes('vormauerung');
+            
+            const hasInFluchtExclusion = (lower.includes('in flucht') || d.includes('in flucht')) && !isS606PlusSideWallInFluchtOverride;
+            
+            if (hasNischeExclusion || hasInFluchtExclusion) {
+                return false;
+            }
+
+            // Products starting with door keywords can be combined with side walls if they have matching side wall products
+            const startsWithDoorKeyword = l.startsWith('Pendeltüre') || l.startsWith('Schiebetüre') || l.startsWith('Drehtüre') || 
+                                          l.startsWith('Drehfalttür') || l.startsWith('Drehfalttüre') || l.startsWith('Gleittüre') || 
+                                          l.startsWith('Falttüre') || l.startsWith('Faltwand') || l.startsWith('Pendeltür') || 
+                                          l.startsWith('Drehtür') || l.startsWith('Schiebetür') || l.startsWith('Gleittür') ||
+                                          l.startsWith('Gleitfalttüre') || l.startsWith('Flügeltüre') || l.startsWith('Flügeltür');
+
+            if (startsWithDoorKeyword) {
+                return this.getMatchingSideWalls(tray).length > 0;
+            }
+
+            // Fallback for any other custom door styles if matching side walls exist
+            return this.getMatchingSideWalls(tray).length > 0;
+        },
+        
+        checkIsMustSideWall: function(tray) {
+            if (!tray) return false;
+            if (this.isAlternaCostaEckeinstieg(tray)) return true;
+            const l = (tray.label || '').toLowerCase();
+            const d = (tray.description || '').toLowerCase();
+            const text = l + ' ' + d;
+            const hasNische = text.includes('nische') || text.includes('wandanschlag');
+            const hasSeitenwand = text.includes('mit seitenwand') || text.includes('für seitenwand') || text.includes('fuer seitenwand') || text.includes('zur kombination mit seitenwand') || text.includes('zur kombination mit einer seitenwand');
+            return (
+                (!hasNische && hasSeitenwand) ||
+                tray.form === 'mit Seitenwand' ||
+                (tray.manufacturer === 'Duscholux' && tray.form === 'Quadratisch' && text.includes('mit seitenwand')) ||
+                (tray.manufacturer === 'Koralle' && text.includes('für kombination mit seitenwand'))
+            );
+        },
+
+        extractSeries: function(r) {
+            const s = (r.label || "").toLowerCase();
+            if (
+              s.includes("massaufnahme") ||
+              s.includes("anfahrtspauschale") ||
+              s.includes("montagepauschale") ||
+              s.includes("demontage") ||
+              s.includes("nettobetrag")
+            )
+              return null;
+            if (s.includes("alterna ")) {
+              const n = s.match(/alterna\s+([a-z0-9\.]+)/);
+              if (n && n[1]) {
+                let m = n[1];
+                m = m.charAt(0).toUpperCase() + m.slice(1);
+                return (m === "Lin3" || m === "Lin.3" ? "Lin.3" : m);
+              }
+            }
+            return s.includes("viva")
+              ? "Viva"
+              : s.includes("collection")
+                ? "Collection"
+                : s.includes("air")
+                  ? "Air"
+                  : s.includes("bella vita")
+                    ? "Bella Vita"
+                    : s.includes("optima")
+                      ? "Optima"
+                      : s.includes("step-in")
+                        ? "Step-in"
+                        : s.includes("twiggytop")
+                          ? "Twiggytop"
+                          : s.includes("x77")
+                            ? "X77"
+                            : s.includes("x88")
+                              ? "X88"
+                              : s.match(/libero \d+/)
+                                ? "Libero"
+                                : s.match(/acqua \d+/)
+                                  ? "Acqua"
+                                  : s.match(/multi-s \d+/)
+                                    ? "Multi-S"
+                                    : s.match(/stila \d+/)
+                                      ? "Stila"
+                                      : s.match(/natura \d+/)
+                                        ? "Natura"
+                                        : s.match(/s\d{3}/)
+                                          ? s.match(/s\d{3}/)[0].toUpperCase()
+                                          : "Andere";
+        },
+
+        getExactColor: function(m) {
+            if (m.specs && m.specs.Farbe) return m.specs.Farbe;
+            if (m.farbe && m.farbe !== 'Andere' && m.farbe !== 'Standard') return m.farbe;
+            const s = (m.label || '').toLowerCase();
+            if (s.includes('silber hochglanzeloxiert')) return 'Silber hochglanzeloxiert';
+            if (s.includes('silbereloxiert') || s.includes('silberexoliert')) return 'Silbereloxiert';
+            if (s.includes('silber hochglanz')) return 'Silber hochglanz';
+            if (s.includes('schwarz matt') || s.includes('schwarz')) return 'Schwarz matt';
+            if (s.includes('weiss matt')) return 'Weiss matt';
+            if (s.includes('finox')) return 'Finox';
+            if (s.includes('weiss') || s.includes('weiß')) return 'Weiss';
+            if (s.includes('verchromt')) return 'Verchromt';
+            if (s.includes('edelstahloptik')) return 'Edelstahloptik';
+            if (s.includes('silver polish')) return 'Silver polish';
+            if (s.includes('silberfarbig')) return 'Silberfarbig';
+            if (s.includes('edelstahl glanz')) return 'Edelstahl glanz';
+            return '';
+        },
+
+        getExactGlasart: function(m) {
+            if (m.specs) {
+                if (m.specs['Ausführung']) return m.specs['Ausführung'];
+                if (m.specs['Glasart']) return m.specs['Glasart'];
+            }
+            if (m.glasart && m.glasart !== 'Andere' && m.glasart !== 'Standard') return m.glasart;
+            const s = (m.label || '').toLowerCase();
+            if (s.includes('caretec pro') || s.includes('caretecpro')) return 'Echtglas klar CareTec Pro';
+            if (s.includes('procare') || s.includes('pro-care')) return 'Echtglas klar ProCare';
+            if (s.includes('aquaperl')) return 'Echtglas klar Aquaperl';
+            if (s.includes('caretec')) return 'Echtglas klar CareTec';
+            if (s.includes('glas klar plus') || s.includes('klar plus')) return 'Echtglas klar Plus';
+            if (s.includes('echtglas klar') || s.includes('glas klar') || s.includes('klarglas')) return 'Echtglas klar';
+            return '';
+        },
+
+        extractHeight: function(m) {
+            const h = this.getSpec(m, "höhe");
+            if (h) return h;
+            const s = (m.label || '').toLowerCase();
+            const hMatch = s.match(/(?:h|h.|höhe|hoehe)\s*(?:bis)?\s*(\d+)\s*cm/);
+            if (hMatch) return hMatch[1] + '0 mm';
+            return '';
+        },
+
+        extractDoorTypes: function(text) {
+            const s = (text || '').toLowerCase();
+            const types = [];
+            if (s.includes('pivot')) types.push('pivot');
+            if (s.includes('gleit')) types.push('gleittür');
+            if (s.includes('drehfaltt')) types.push('drehfalttür');
+            if (s.includes('pendel')) {
+                if (!s.includes('pivot')) types.push('pendeltür');
+            }
+            if (s.includes('schiebe')) types.push('schiebetür');
+            if (s.includes('dreh') && !s.includes('drehfaltt')) {
+                types.push('drehtür');
+            }
+            if (s.includes('flügel') || s.includes('fluegel')) types.push('flügeltür');
+            return types;
+        },
+
+        extractWidthCm: function(m) {
+            const specBreite = this.getSpec(m, "breite");
+            if (specBreite) {
+                const w = parseFloat(specBreite);
+                if (w > 0) return w / 10;
+            }
+            const s = (m.label || "").toLowerCase().replace(/\b[a-zA-Z]-?\d+\b/g, "");
+            const bMatch = s.match(/breite\s*(?:bis|tür)?\s*(\d+(?:[\.,]\d+)?)\s*cm/);
+            if (bMatch) return parseFloat(bMatch[1].replace(",", "."));
+            const mmMatch = s.match(/breite\s*(?:bis|tür)?\s*(\d+(?:[\.,]\d+)?)\s*(?:-\s*\d+(?:[\.,]\d+)?\s*)?mm/);
+            if (mmMatch) return parseFloat(mmMatch[1].replace(",", ".")) / 10;
+            const pMatch = s.match(/produktmass\s*(\d+(?:[\.,]\d+)?)/);
+            if (pMatch) return parseFloat(pMatch[1].replace(",", "."));
+            const nums = (s.replace((m.artNr || "").toLowerCase(), "").match(/\d+([\.,]\d+)?/g) || [])
+                .map(n => parseFloat(n.replace(",", ".")))
+                .map(n => n > 250 ? n / 10 : n)
+                .filter(n => n >= 50 && n <= 220);
+            if (nums.length > 0) return nums[0];
+            return 999;
+        },
+
+        getWidthBucket: function(m) {
+            const w = this.extractWidthCm(m);
+            if (!w || w > 220 || w < 40) return null;
+            if (w <= 75) return "75 cm";
+            if (w <= 80) return "80 cm";
+            if (w <= 90) return "90 cm";
+            if (w <= 100) return "100 cm";
+            if (w <= 120) return "120 cm";
+            if (w <= 140) return "140 cm";
+            if (w <= 160) return "160 cm";
+            return "180+ cm";
+        },
+
+        extractHeightCm: function(m) {
+            const h = this.extractHeight(m);
+            if (!h) return null;
+            const mm = parseFloat(h);
+            if (isNaN(mm)) return null;
+            const cm = Math.round(mm / 10);
+            if (cm === 190 || cm === 200 || cm === 210 || cm === 220) {
+                return cm + " cm";
+            }
+            return "Andere";
+        },
+
+        resetAllFilters: function() {
+            this.currentType = "all";
+            this.currentSituation = "all";
+            this.currentColor = "all";
+            this.currentBand = "all";
+            this.currentGlasart = "all";
+            this.currentOption = "all";
+            this.currentManufacturer = "all";
+            this.currentSeries = "all";
+            this.currentHeight = "all";
+            this.currentWidthBucket = "all";
+            this.currentBreite = "";
+            this.currentLaenge = "";
+            const N = this.title.replace(/\s+/g, "").toLowerCase();
+            const sInput = document.getElementById(`input_search_${N}`);
+            if (sInput) sInput.value = "";
+            const bInput = document.getElementById(`input_breite_${N}`);
+            if (bInput) bInput.value = "";
+            const lInput = document.getElementById(`input_laenge_${N}`);
+            if (lInput) lInput.value = "";
+            this.renderSidebar();
+            this.filterResults();
+        },
+
+        getFilteredCount: function(category, value) {
+            const originalVal = this[`current${category}`];
+            this[`current${category}`] = value;
+            
+            const N = this.title.replace(/\s+/g, "").toLowerCase();
+            var a;
+            const searchVal = (((a = document.getElementById(`input_search_${N}`)) == null ? void 0 : a.value) || "").toLowerCase();
+            const s = parseFloat(this.currentBreite);
+            const r = parseFloat(this.currentLaenge);
+
+            const count = this.trays.filter(l => {
+                const o = (l.label || "").toLowerCase();
+                if (o.includes("massaufnahme") || o.includes("anfahrt") || (o.includes("badewanne") && !o.includes("duschwanne"))) return false;
+                if (this.extractType(l) === null) return false;
+                
+                if (this.currentManufacturer !== "all" && (l.manufacturer || "") !== this.currentManufacturer) return false;
+                if (this.currentType !== "all" && this.extractType(l) !== this.currentType) return false;
+                if (this.currentSituation !== "all" && this.extractSituation(l) !== this.currentSituation) return false;
+                if (this.currentColor !== "all" && this.extractColor(l) !== this.currentColor && !(l.variants || []).some(v => this.extractColor(v) === this.currentColor)) return false;
+                if (this.currentBand !== "all" && this.extractBand(l) !== this.currentBand) return false;
+                if (this.currentOption !== "all" && this.extractOption(l) !== this.currentOption) return false;
+                if (this.currentGlasart !== "all" && this.getVirtualGlasart(this.extractGlasart(l)) !== this.currentGlasart && !(l.variants || []).some(v => this.getVirtualGlasart(this.extractGlasart(v)) === this.currentGlasart)) return false;
+                
+                if (this.currentSeries !== "all" && this.extractSeries(l) !== this.currentSeries) return false;
+                if (this.currentHeight !== "all" && this.extractHeightCm(l) !== this.currentHeight) return false;
+                if (this.currentWidthBucket !== "all" && this.getWidthBucket(l) !== this.currentWidthBucket) return false;
+                
+                if ((this.currentBreite || this.currentLaenge) && !this.checkCompatibility(l, s, r)) return false;
+                if (searchVal && !(l.label.toLowerCase().includes(searchVal) || l.artNr.toLowerCase().includes(searchVal))) return false;
+                
+                return true;
+            }).length;
+
+            this[`current${category}`] = originalVal;
+            return count;
+        },
+
+        getMatchingSideWalls: function(tray) {
+            if (!tray) return [];
+            if (this.isAlternaCostaEckeinstieg(tray)) {
+                const band = this.extractBand(tray);
+                if (band !== 'links' && band !== 'rechts') return [];
+                
+                const oppositeBand = band === 'links' ? 'rechts' : 'links';
+                const color = this.getExactColor(tray);
+                const glass = this.getExactGlasart(tray);
+                const height = this.extractHeight(tray);
+                
+                // First pass: find all candidates matching opposite band, color, height, and series
+                let candidates = this.trays.filter(t => {
+                    if (!this.isAlternaCostaEckeinstieg(t)) return false;
+                    if (this.extractBand(t) !== oppositeBand) return false;
+                    
+                    if (color && this.getExactColor(t) !== color) return false;
+                    if (height && this.extractHeight(t) !== height) return false;
+                    
+                    return true;
+                });
+                
+                // Try to match exact glass type
+                let matches = candidates.filter(t => {
+                    if (glass && this.getExactGlasart(t) !== glass) return false;
+                    return true;
+                });
+                
+                // Fallback if no exact glass match
+                if (matches.length === 0) {
+                    matches = candidates;
+                }
+                
+                return matches.sort((a, b) => this.extractSizeScore(a) - this.extractSizeScore(b));
+            }
+            const series = this.extractSeries(tray);
+            const mfg = tray.manufacturer;
+            if (!series || !mfg) return [];
+
+            const doorColor = this.getExactColor(tray);
+            const doorGlas = this.getExactGlasart(tray);
+            const doorHeight = this.extractHeight(tray);
+            const doorTypes = this.extractDoorTypes(tray.label + ' ' + (tray.description || ''));
+
+            const walls = this.trays.filter(t => {
+                if (t.manufacturer !== mfg || this.extractSeries(t) !== series) return false;
+                if (this.extractSituation(t) === "Freistehend / Walk-in") return false;
+                const l = (t.label || '').toLowerCase();
+                const form = (t.form || '').toLowerCase();
+                
+                // Side wall detection
+                const isSeitenwand = (form === 'seitenwand' || l.startsWith('seitenwand') || l.includes('seitenwand')) &&
+                                     !l.startsWith('gleit') &&
+                                     !l.startsWith('pendel') &&
+                                     !l.startsWith('dreh') &&
+                                     !l.startsWith('falt') &&
+                                     !l.startsWith('flügel') &&
+                                     !l.startsWith('schiebe') &&
+                                     !l.startsWith('pivot') &&
+                                     !l.startsWith('eckeinstieg') &&
+                                     !l.includes('walk-in') &&
+                                     !l.includes('walkin') &&
+                                     !l.includes('freistehend') &&
+                                     !l.startsWith('montage') &&
+                                     !l.startsWith('anfahrt') &&
+                                     !l.startsWith('massaufnahme');
+                if (!isSeitenwand) return false;
+
+                // Door type matching
+                const wallDoorTypes = this.extractDoorTypes(l + ' ' + (t.description || ''));
+                if (doorTypes.length > 0 && wallDoorTypes.length > 0) {
+                    if (!wallDoorTypes.some(type => doorTypes.includes(type))) {
+                        return false;
+                    }
+                }
+                
+                // Color & Glass & Height matching
+                if (doorColor && this.getExactColor(t) !== doorColor) return false;
+                if (doorGlas && this.getExactGlasart(t) !== doorGlas) return false;
+                if (doorHeight && this.extractHeight(t) !== doorHeight) return false;
+
+                // Band (hinge) direction matching (must be opposite if specified)
+                const doorBand = this.extractBand(tray);
+                const wallBand = this.extractBand(t);
+                if (doorBand === 'links' && wallBand !== 'rechts' && wallBand !== 'Universal') return false;
+                if (doorBand === 'rechts' && wallBand !== 'links' && wallBand !== 'Universal') return false;
+
+                return true;
+            });
+            return walls.sort((a, b) => this.extractSizeScore(a) - this.extractSizeScore(b));
+        },
+
+        renderConfigurator: function() {
+            const N = this.title.replace(/\s+/g, "").toLowerCase();
+            const configBlock = document.getElementById(`trayConfigurator_${N}`);
+            if (configBlock) configBlock.style.display = "none";
+        },
+
+        clearBOM: function() {
+            bomCountCounter.textContent = "0 Artikel ausgewählt";
+            bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9da3ad; padding: 2rem;">Bitte wählen Sie ein Produkt aus den Suchergebnissen.</td></tr>';
+        },
+
+        reconstructDescription: function(parent, variant) {
+            if (!parent) return "";
+            let desc = parent.description || parent.label || "";
+            desc = desc.replace(/[\r\n\t]+/g, " ").replace(/\s+/g, " ").trim();
+            
+            // Clean up parent's color and glass suffixes from desc to prevent duplication
+            if (parent) {
+                const parentColor = this.extractColor(parent);
+                const parentGlas = this.extractGlasart(parent);
+                
+                if (parentColor && parentColor !== 'Standard' && parentColor !== 'Andere') {
+                    const regex = new RegExp(`[,\\s\\/]*` + parentColor.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + `\\b`, 'gi');
+                    desc = desc.replace(regex, '');
+                }
+                if (parentGlas && parentGlas !== 'Standard' && parentGlas !== 'Andere') {
+                    const regex = new RegExp(`[,\\s\\/]*` + parentGlas.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + `\\b`, 'gi');
+                    desc = desc.replace(regex, '');
+                }
+                
+                // Remove generic trailing color/glass names in German if they remain
+                desc = desc.replace(/[,;\s\/]+(chrom|schwarz|weiss|weiß|matt|silber|silberfarbig|silver polish|finox|edelstahl glanz|edelstahl matt|edelstahloptik)\b/gi, '');
+                desc = desc.replace(/[,;\s\/]+(echtglas klar|glasplus|caretec pro|duschguard|procare|aquaperl|satiniert|chinchilla|glas)\b/gi, '');
+            }
+
+            let suffixParts = [];
+            if (variant) {
+                if (variant.farbe && variant.farbe !== "Standard" && variant.farbe !== "Andere") {
+                    suffixParts.push(variant.farbe);
+                }
+                if (variant.glasart && variant.glasart !== "Standard" && variant.glasart !== "Andere") {
+                    suffixParts.push(variant.glasart);
+                }
+            }
+            desc = desc.replace(/[,;\.\s]+$/, "").trim();
+            if (suffixParts.length > 0) {
+                desc += ", " + suffixParts.join(", ");
+            }
+            return desc;
+        },
+        
+        updateBOM: function() {
+            this.renderConfigurator();
+            let backBtn = document.getElementById("backToCatalogBtn");
+            if (!this.selectedTray) {
+                if (backBtn) backBtn.style.display = "none";
+                if (appConfig.enableGalleryUX) {
+                    this.filterResults();
+                } else {
+                    this.clearBOM();
+                }
+                return;
+            }
+
+            if (appConfig.enableGalleryUX) {
+                if (!backBtn) {
+                    const h = document.querySelector(".bom-header");
+                    if (h) {
+                        backBtn = document.createElement("button");
+                        backBtn.id = "backToCatalogBtn";
+                        backBtn.className = "icon-btn highlight-btn";
+                        backBtn.style.marginRight = "auto";
+                        backBtn.innerHTML = '<i class="ri-arrow-left-s-line" aria-hidden="true"></i> Zurück zur Übersicht';
+                        h.insertBefore(backBtn, h.firstChild);
+                    }
+                }
+                if (backBtn) {
+                    backBtn.onclick = () => {
+                        if (window.currentActiveApp) {
+                            if (typeof window.currentActiveApp.selectTray === 'function') {
+                                window.currentActiveApp.selectTray(null);
+                            } else if (typeof window.currentActiveApp.selectItem === 'function') {
+                                window.currentActiveApp.selectItem(null);
+                            }
+                        }
+                    };
+                    backBtn.style.display = "inline-flex";
+                }
+            }
+        
+            const trayToRender = this.getMatchedVariant(this.selectedTray);
+            let html = `
+                <tr class="bom-main-item">
+                    <td><div class="img-cell"><img src="${trayToRender.imgUrl || this.mainImgUrl}" alt="Preview"></div></td>
+                    <td><span class="bom-code">${trayToRender.artNr}</span></td>
+                    <td><div class="bom-desc">${this.reconstructDescription(this.selectedTray, trayToRender)}</div></td>
+                    <td><strong>1</strong></td>
+                </tr>
+            `;
+            
+            let count = 1;
+            let hasSideWallActive = false;
+            let activeSideWall = null;
+            
+            if (this.checkSideWallSupport(this.selectedTray)) {
+                const walls = this.getMatchingSideWalls(this.selectedTray);
+                if (walls.length > 0) {
+                    const isMust = this.checkIsMustSideWall(this.selectedTray);
+                    const selectedVal = this.selectedTray.selections.__seitenwand__ || (isMust ? walls[0].artNr : "none");
+                    
+                    if (!this.selectedTray.selections.__seitenwand__) {
+                        this.selectedTray.selections.__seitenwand__ = selectedVal;
+                    }
+                    
+                    hasSideWallActive = selectedVal !== "none";
+                    activeSideWall = walls.find(w => w.artNr === selectedVal);
+                    const sideWallToRender = activeSideWall ? this.getMatchedVariant(activeSideWall) : null;
+                    
+                    let optionsHTML = '';
+                    if (!isMust) {
+                        optionsHTML += `<option value="none" ${selectedVal === "none" ? "selected" : ""}>Ohne Seitenwand (Einbau in Nische)</option>`;
+                    }
+                    optionsHTML += walls.map(w => `<option value="${w.artNr}" ${selectedVal === w.artNr ? "selected" : ""}>${w.label} (${w.artNr})</option>`).join('');
+                    
+                    const previewImg = sideWallToRender ? (sideWallToRender.imgUrl || this.mainImgUrl) : this.mainImgUrl;
+                    const artNrText = sideWallToRender ? sideWallToRender.artNr : "none";
+                    const qtyText = sideWallToRender ? "1" : "0";
+                    
+                    const labelText = this.isAlternaCostaEckeinstieg(this.selectedTray) ? "Zweite Hälfte (Eckeinstieg)" : "Passende Seitenwand";
+                    
+                    html += `
+                         <tr class="accessory-row seitenwand-bom-row" style="background:var(--bg-subtle);">
+                            <td><div class="img-cell"><img src="${previewImg}" alt="Preview" style="max-height:100%; max-width:100%; object-fit:contain;"></div></td>
+                            <td><span class="bom-code">${artNrText}</span></td>
+                            <td>
+                                <div class="bom-desc">
+                                    <strong style="color:var(--accent); font-size:0.75rem; text-transform:uppercase; display:block; margin-bottom:4px;">${labelText}</strong>
+                                    <select class="inline-bom-select config-select-seitenwand" style="width:100%; padding:0.4rem; border-radius:6px; border:1px solid var(--border); background:var(--bg-surface); color:var(--text-primary); font-size:0.85rem; font-family:inherit; cursor:pointer; outline:none; transition:border-color 0.2s ease;">
+                                        ${optionsHTML}
+                                    </select>
+                                </div>
+                            </td>
+                            <td><strong>${qtyText}</strong></td>
+                        </tr>
+                    `;
+                    
+                    if (sideWallToRender) {
+                        count += 1;
+                    }
+                }
+            }
+            
+            const r = this.extractSizeScore(this.selectedTray);
+            let checkWidth = this.extractWidthCm(this.selectedTray);
+
+            (this.selectedTray.services || []).filter(n => {
+                const i = n.label.toLowerCase();
+                
+                // Original size filter
+                if (i.includes("montagepauschale") && ((i.includes("bis 125") && r > 125) || (i.includes("ab 125") && r <= 125))) {
+                    return false;
+                }
+                
+                // Dynamic mounting service filtering based on side wall selection
+                if (hasSideWallActive) {
+                    if (i.includes("in nische") || i.includes("für nische") || i.includes("fuer nische")) {
+                        return false;
+                    }
+                    if (n.artNr === '1521 964.000.000') {
+                        const hasSpecificService = (this.selectedTray.services || []).some(s => 
+                            s.artNr === '1521 969.000.000' || s.artNr === '1521 970.000.000' || 
+                            s.artNr === '1521 971.000.000' || s.artNr === '1521 896.000.000'
+                        );
+                        if (hasSpecificService) return false;
+                    }
+                } else {
+                    if (i.includes("mit seitenwand") || i.includes("für seitenwand") || i.includes("fuer seitenwand") || i.includes("eckeinstieg") || 
+                        (i.includes(" mit") && !i.includes("nische") && !i.includes("festelement") && !i.includes("pendelelement") && !i.includes("glasteil"))) {
+                        return false;
+                    }
+                }
+
+                // Dynamic width-based mounting service filtering (for 100 cm, 120 cm, 160 cm, and 120-160 cm ranges)
+                if (checkWidth !== null && i.includes("montagepauschale")) {
+                    // Check 100 cm threshold
+                    if (i.includes("bis 100") && checkWidth > 100) return false;
+                    if ((i.includes("ab 100") || i.includes("100,1") || i.includes("100.1")) && checkWidth <= 100) return false;
+                    
+                    // Check 120 cm threshold
+                    if (i.includes("bis 120") && checkWidth > 120) return false;
+                    if ((i.includes("ab 120") || i.includes("120,1") || i.includes("120.1")) && !i.includes("160") && checkWidth <= 120) return false;
+                    
+                    // Check 160 cm threshold
+                    if (i.includes("bis 160") && checkWidth > 160) return false;
+                    if ((i.includes("ab 160") || i.includes("160,1") || i.includes("160.1")) && checkWidth <= 160) return false;
+                    
+                    // Check 120 to 160 range
+                    if ((i.includes("120,1") || i.includes("120")) && i.includes("160")) {
+                        if (checkWidth <= 120 || checkWidth > 160) return false;
+                    }
+                }
+                
+                return true;
+            }).forEach(n => {
+                count += n.qty || 1;
+                html += `
+                    <tr class="service-row">
+                        <td><div class="img-cell"><i class="ri-customer-service-2-line" style="font-size:1.5rem; color:var(--accent);"></i></div></td>
+                        <td><span class="bom-code">${n.artNr}</span></td>
+                        <td><div class="bom-desc">${n.label}${n.description ? '<div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;">' + n.description + '</div>' : ''}</div></td>
+                        <td><strong>${n.qty || 1}</strong></td>
+                    </tr>
+                `;
+            });
+
+            bomTableBody.innerHTML = html;
+
+            // Bind InlineBOM Seitenwand selection listener
+            const selectEl = bomTableBody.querySelector('.config-select-seitenwand');
+            if (selectEl) {
+                selectEl.addEventListener('change', (e) => {
+                    this.selectedTray.selections = this.selectedTray.selections || {};
+                    this.selectedTray.selections.__seitenwand__ = e.target.value;
+                    this.updateBOM();
+                });
+            }
+
+            bomCountCounter.textContent = `${count} Artikel benötigt`;
+        },
+
+        copyToClipboard: function() {
+            if (!this.selectedTray) {
+                alert('Bitte wählen Sie zuerst ein Produkt aus.');
+                return;
+            }
+            const trayToCopy = this.getMatchedVariant(this.selectedTray);
+            let m = [`${trayToCopy.artNr}\t1\t\t\t\tYMAS`];
+            
+            const selectedSideWallArtNr = this.selectedTray.selections && this.selectedTray.selections.__seitenwand__;
+            const hasSideWallActive = selectedSideWallArtNr && selectedSideWallArtNr !== "none";
+            let activeSideWall = null;
+            if (hasSideWallActive) {
+                activeSideWall = this.trays.find(t => t.artNr === selectedSideWallArtNr);
+                if (activeSideWall) {
+                    const sideWallToCopy = this.getMatchedVariant(activeSideWall);
+                    m.push(`${sideWallToCopy.artNr}\t1\t\t\t\tYMAS`);
+                }
+            }
+            
+            if (this.selectedTray.services) {
+                const s = this.extractSizeScore(this.selectedTray);
+                let checkWidth = this.extractWidthCm(this.selectedTray);
+
+                (this.selectedTray.services || []).filter(t => {
+                    const n = t.label.toLowerCase();
+                    
+                    if (n.includes("montagepauschale") && ((n.includes("bis 125") && s > 125) || (n.includes("ab 125") && s <= 125))) {
+                        return false;
+                    }
+                    
+                    if (hasSideWallActive) {
+                        if (n.includes("in nische") || n.includes("für nische") || n.includes("fuer nische")) {
+                            return false;
+                        }
+                        if (t.artNr === '1521 964.000.000') {
+                            const hasSpecificService = (this.selectedTray.services || []).some(s => 
+                                s.artNr === '1521 969.000.000' || s.artNr === '1521 970.000.000' || 
+                                s.artNr === '1521 971.000.000' || s.artNr === '1521 896.000.000'
+                            );
+                            if (hasSpecificService) return false;
+                        }
+                    } else {
+                        if (n.includes("mit seitenwand") || n.includes("für seitenwand") || n.includes("fuer seitenwand") || n.includes("eckeinstieg") ||
+                            (n.includes(" mit") && !n.includes("nische") && !n.includes("festelement") && !n.includes("pendelelement") && !n.includes("glasteil"))) {
+                            return false;
+                        }
+                    }
+
+                    // Dynamic width-based mounting service filtering (for 100 cm, 120 cm, 160 cm, and 120-160 cm ranges)
+                    if (checkWidth !== null && n.includes("montagepauschale")) {
+                        // Check 100 cm threshold
+                        if (n.includes("bis 100") && checkWidth > 100) return false;
+                        if ((n.includes("ab 100") || n.includes("100,1") || n.includes("100.1")) && checkWidth <= 100) return false;
+                        
+                        // Check 120 cm threshold
+                        if (n.includes("bis 120") && checkWidth > 120) return false;
+                        if ((n.includes("ab 120") || n.includes("120,1") || n.includes("120.1")) && !n.includes("160") && checkWidth <= 120) return false;
+                        
+                        // Check 160 cm threshold
+                        if (n.includes("bis 160") && checkWidth > 160) return false;
+                        if ((n.includes("ab 160") || n.includes("160,1") || n.includes("160.1")) && checkWidth <= 160) return false;
+                        
+                        // Check 120 to 160 range
+                        if ((n.includes("120,1") || n.includes("120")) && n.includes("160")) {
+                            if (checkWidth <= 120 || checkWidth > 160) return false;
+                        }
+                    }
+                    
+                    return true;
+                }).forEach(t => {
+                    if (t.artNr && t.artNr !== "none" && !t.label.toLowerCase().startsWith("ohne")) {
+                        m.push(`${t.artNr}\t${t.qty || 1}\t\t\t\tYNOK`);
+                    }
+                });
+            }
+            window.copyTextToClipboard(m.join('\n')).then(() => {
+                alert("Stückliste kopiert:\n\n" + m.join('\n').replace(/\t/g, "    "));
+            }).catch(err => {
+                alert("Kopieren fehlgeschlagen.");
+            });
+        }
+    };
 }
 
 export function createWCApp(title, desc, mainImgUrl, config = {}) {
@@ -6084,93 +9058,114 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             return [...new Set(this.trays.map(t => t[key]))].sort();
         },
         classifyAccessory: function (obj) {
-            if (!obj) return 'common';
-            // Detect main tray object using mountingMaterials. For toilets, extract explicit montage info from description.
-            if (obj.mountingMaterials !== undefined) {
+            const getRawClass = (obj) => {
+                if (!obj) return 'common';
+                // Detect main tray object using mountingMaterials. For toilets, extract explicit montage info from description.
+                if (obj.mountingMaterials !== undefined) {
+                    const label = (obj.label || obj.name || '').toLowerCase();
+                    const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
+                    if (isToilet) {
+                        if (label.includes('für einbauspülkasten') || label.includes('fuer einbauspuelkasten')) return 'unterputz';
+                        if (label.includes('für spülkastenmontage') || label.includes('fuer spuelkastenmontage') || label.includes('für aufputzspülkasten')) return 'aufputz';
+                    }
+                    return 'common';
+                }
+
+                // 1. Check for manual admin override first
+                if (obj.overrideMontageart && obj.overrideMontageart !== 'auto') {
+                    return obj.overrideMontageart.toLowerCase();
+                }
+
+                // 2. Clean input data
                 const label = (obj.label || obj.name || '').toLowerCase();
-                const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
-                if (isToilet) {
-                    if (label.includes('für einbauspülkasten') || label.includes('fuer einbauspuelkasten')) return 'unterputz';
-                    if (label.includes('für spülkastenmontage') || label.includes('fuer spuelkastenmontage') || label.includes('für aufputzspülkasten')) return 'aufputz';
-                }
-                return 'common';
-            }
+                const artNr = (obj.artNr || '').replace(/\s/g, '');
 
-            // 1. Check for manual admin override first
-            if (obj.overrideMontageart && obj.overrideMontageart !== 'auto') {
-                return obj.overrideMontageart.toLowerCase();
-            }
-
-            // 2. Clean input data
-            const label = (obj.label || obj.name || '').toLowerCase();
-            const artNr = (obj.artNr || '').replace(/\s/g, '');
-
-            // 3. HARD EXCEPTIONS (Firm IDs)
-            if (artNr === '1431191.000.000' || artNr === '1431190.000.000') {
-                return 'montagerahmen';
-            }
-
-            // 4. KEYWORD LOGIC
-            // Special Rule: If it mentions schallschutz, it's its own category
-            if (label.includes('schallschutzset') || label.includes('schallschutz')) {
-                return isMixer ? 'unterputz' : 'schallschutz';
-            }
-
-            const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
-
-            if (isMixer) {
-                const lblLower = label.toLowerCase();
-                if (lblLower.includes('standmodell') || lblLower.includes('freien stand')) {
-                    return 'standmodell';
-                }
-                if (lblLower.includes('einbaukörper') || lblLower.includes('grundkörper') || lblLower.includes('ibox') || lblLower.includes('up-gehäuse')) {
-                    return 'common';
-                }
-                if (lblLower.includes('endmontage') || lblLower.includes('einbau') || lblLower.includes('anschlussbogen') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
-                    return 'unterputz';
-                }
-                if (lblLower.includes('aufputz') || lblLower.includes(' ap ') || lblLower.includes('ausserhalb') || lblLower.includes('mischer') || lblLower.includes('batterie')) {
-                    return 'aufputz';
-                }
-            } else if (isToilet) {
-                const lblLower = label.toLowerCase();
-
-                // Toilet seats, flush plates, and connection sets are ALWAYS common (independent of montageart)
-                if (lblLower.includes('sitz') || lblLower.includes('deckel') || lblLower.includes('betätigungsplatte') || lblLower.includes('drückerplatte') || lblLower.includes('manschette') || lblLower.includes('garnitur')) {
-                    return 'common';
-                }
-
-                // Classify the reservoir/element
-                if (lblLower.includes('einbauspülkasten') || lblLower.includes('einbauspulkasten') || lblLower.includes('duofix') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
-                    return 'unterputz';
-                }
-                if (lblLower.includes('aufputz') || lblLower.includes(' ap ')) {
-                    return 'aufputz';
-                }
-
-                return 'common';
-            } else {
-                if (label.includes('mittenabstütz') || label.includes(' mas ')) {
-                    return 'mas';
-                }
-                // Carrier Logic First (Higher Priority than Schallschutz)
-                if (label.includes('träger') || label.includes('wannenträger') || label.includes('montageschaum')) {
-                    return 'wannenträger';
-                }
-                // Frame Logic
-                if (label.includes('rahmen') || label.includes('füsse') || label.includes('fussset')) {
+                // 3. HARD EXCEPTIONS (Firm IDs)
+                if (artNr === '1431191.000.000' || artNr === '1431190.000.000') {
                     return 'montagerahmen';
                 }
-                // Schallschutz as Fallback for Frames
-                if (label.includes('schallschutzset') || label.includes('schallschutz')) {
-                    return 'schallschutz';
-                }
-                if (label.includes('stelzfüss') || label.includes('stelzfuss')) {
-                    return 'stelzfüsse';
-                }
-            }
 
-            return 'common';
+                // 4. KEYWORD LOGIC
+                // Special Rule: If it mentions schallschutz, it's its own category
+                if (label.includes('schallschutzset') || label.includes('schallschutz')) {
+                    return isMixer ? 'unterputz' : 'common';
+                }
+
+                const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
+
+                if (isMixer) {
+                    const lblLower = label.toLowerCase();
+                    if (lblLower.includes('standmodell') || lblLower.includes('freien stand')) {
+                        return 'standmodell';
+                    }
+                    if (lblLower.includes('einbaukörper') || lblLower.includes('grundkörper') || lblLower.includes('ibox') || lblLower.includes('up-gehäuse')) {
+                        return 'common';
+                    }
+                    if (lblLower.includes('endmontage') || lblLower.includes('einbau') || lblLower.includes('anschlussbogen') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
+                        return 'unterputz';
+                    }
+                    if (lblLower.includes('aufputz') || lblLower.includes(' ap ') || lblLower.includes('ausserhalb') || lblLower.includes('mischer') || lblLower.includes('batterie')) {
+                        return 'aufputz';
+                    }
+                } else if (isToilet) {
+                    const lblLower = label.toLowerCase();
+
+                    // Toilet seats, flush plates, and connection sets are ALWAYS common (independent of montageart)
+                    if (lblLower.includes('sitz') || lblLower.includes('deckel') || lblLower.includes('betätigungsplatte') || lblLower.includes('drückerplatte') || lblLower.includes('manschette') || lblLower.includes('garnitur')) {
+                        return 'common';
+                    }
+
+                    // Classify the reservoir/element
+                    if (lblLower.includes('einbauspülkasten') || lblLower.includes('einbauspulkasten') || lblLower.includes('duofix') || lblLower.includes('unterputz') || lblLower.includes(' up ')) {
+                        return 'unterputz';
+                    }
+                    if (lblLower.includes('aufputz') || lblLower.includes(' ap ')) {
+                        return 'aufputz';
+                    }
+
+                    return 'common';
+                } else {
+                    if (label.includes('mittenabstütz') || label.includes(' mas ')) {
+                        return 'mas';
+                    }
+                    // Carrier Logic First (Higher Priority than Schallschutz)
+                    if (label.includes('träger') || label.includes('wannenträger') || label.includes('montageschaum')) {
+                        return 'wannenträger';
+                    }
+                    // Frame Logic
+                    if (label.includes('rahmen') || label.includes('füsse') || label.includes('fussset')) {
+                        return 'montagerahmen';
+                    }
+                    // Schallschutz as Fallback for Frames
+                    if (label.includes('schallschutzset') || label.includes('schallschutz')) {
+                        return 'common';
+                    }
+                    if (label.includes('stelzfüss') || label.includes('stelzfuss')) {
+                        return 'stelzfüsse';
+                    }
+                }
+
+                return 'common';
+            };
+
+            const rawClass = getRawClass.call(this, obj);
+            
+            const validCategories = [
+                'common',
+                'alle',
+                'all',
+                (config.montageLabel1 || (isMixer ? "Aufputz" : "Wannenträger")).toLowerCase(),
+                (config.montageLabel2 || (isMixer ? "Unterputz" : "Montagerahmen")).toLowerCase(),
+                (config.montageLabel3 || "").toLowerCase(),
+                (config.montageLabel4 || "").toLowerCase(),
+                (config.montageLabel5 || "").toLowerCase()
+            ].filter(Boolean);
+
+            if (!validCategories.includes(rawClass)) {
+                console.warn(`[Configurator] Invalid WCApp mounting category "${rawClass}" detected for ${obj.artNr || obj.name}. Falling back to "common" to prevent silent exclusion.`);
+                return 'common';
+            }
+            return rawClass;
         },
         init: function () {
             this.isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
@@ -6186,7 +9181,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             this.renderSidebar();
             this.bindFilters();
             this.filterResults(); // initial run
-            this.clearBOM();
+            if (!config.enableGalleryUX) { this.clearBOM(); }
         },
         renderSidebar: function () {
             const isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
@@ -6244,8 +9239,8 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         `}
                     </div>
                     
-                    <div class="sidebar-section">
-                        <h2>Suchergebnisse <span id="resultCount_${suffix}" class="badge">0</span></h2>
+                    <div class="sidebar-section" ${config.enableGalleryUX ? 'style="display:none;"' : ''}>
+                    <h2>Suchergebnisse <span id="resultCount_${suffix}" class="badge">0</span></h2>
                         <div class="search-results-container" id="searchResults_${suffix}"></div>
                     </div>
 
@@ -6561,7 +9556,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 btn.className = `result-item-card ${this.selectedTray && this.selectedTray.id === t.id ? 'active' : ''}`;
                 btn.innerHTML = `
                         <div class="card-img-wrapper">
-                            ${t.imgUrl ? `<img src="${t.imgUrl}">` : '<i class="ri-image-line placeholder-icon"></i>'}
+                            ${(t.imgUrl || getSanitasImgUrl(t.artNr)) ? `<img src="${t.imgUrl || getSanitasImgUrl(t.artNr)}">` : '<i class="ri-image-line placeholder-icon"></i>'}
                         </div>
                         <div class="result-info">
                             <strong>${t.label}</strong>
@@ -6606,6 +9601,16 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             bomTableBody.innerHTML = '<tr><td colspan="5" style="padding:0; border:none;"><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:1.25rem; padding:1.25rem;">' + cards + '</div></td></tr>';
         },
         selectTray: function (id) {
+            if (!id) {
+                this.selectedTray = null;
+                if (config.enableGalleryUX) {
+                    this.filterResults();
+                } else {
+                    this.clearBOM();
+                    this.renderConfigurator();
+                }
+                return;
+            }
             this.selectedTray = this.trays.find(t => t.id === id);
 
             if (this.currentMontageart === 'alle') {
@@ -6645,7 +9650,12 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         this.selectedTray.mountingMaterials[mIdx] = mat;
                     }
                     if (mat.options.length > 0) {
-                        this.selectedTray.selections[mat.id] = mat.options[0].artNr;
+                        let defaultOpt = mat.options[0];
+                        if (title && title.toLowerCase().includes('badewanne') && (mat.id === 'mat_tape' || (mat.name && mat.name.includes('Dichtband')))) {
+                            const nischeOpt = mat.options.find(o => (o.label && o.label.includes('3-seitig')) || (o.dropdownLabel && o.dropdownLabel.includes('3-seitig')));
+                            if (nischeOpt) defaultOpt = nischeOpt;
+                        }
+                        this.selectedTray.selections[mat.id] = defaultOpt.artNr;
                     }
                 });
             }
@@ -6769,106 +9779,12 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 inner.appendChild(variantDiv);
             }
 
-            // 2. Render Accessories
-            if (this.selectedTray && this.selectedTray.mountingMaterials && this.selectedTray.mountingMaterials.length > 0) {
-                hasConfig = true;
-            }
-
             if (!hasConfig) {
                 configBlock.style.display = 'none';
                 return;
             }
 
             configBlock.style.display = 'block';
-
-            // --- Technical Compatibility Warning ---
-            if (this.currentMontageart === 'wannenträger') {
-                const hasCarrier = this.selectedTray.mountingMaterials.some(m => {
-                    const firstOpt = m.options?.[0];
-                    return firstOpt && this.classifyAccessory(firstOpt) === 'wannenträger';
-                });
-
-                if (!hasCarrier) {
-                    const warnDiv = document.createElement('div');
-                    warnDiv.className = 'compatibility-warning';
-                    warnDiv.innerHTML = `
-                            <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); color: #e65100; padding: 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1.5rem; display: flex; align-items: start; gap: 0.75rem;">
-                                <span style="font-size: 1.2rem;">⚠️</span>
-                                <div>
-                                    <strong style="display: block; margin-bottom: 0.25rem;">Kein Wannenträger verfügbar</strong>
-                                    Diese Duschwanne ist nicht carrier-kompatibel oder es wurde kein passender Träger im Pool gefunden. Bitte nutzen Sie das <strong>Montagerahmen-System</strong>.
-                                </div>
-                            </div>
-                        `;
-                    inner.appendChild(warnDiv);
-                }
-            }
-
-            // Create a sorted copy of mountingMaterials for UI rendering
-            const sortedMaterials = [...this.selectedTray.mountingMaterials].sort((a, b) => {
-                const getPri = (mat) => {
-                    const lbl = (mat.name || '').toLowerCase();
-                    if (lbl.includes('deckel') || lbl.includes('haube') || lbl.includes('sitz')) return 2;
-                    if (lbl.includes('ablauf') || lbl.includes('garnitur') || lbl.includes('siphon') || lbl.includes('sifon')) return 3;
-                    if (lbl.includes('band') || lbl.includes('dicht')) return 4;
-                    if (lbl.includes('rahmen') || lbl.includes('träger')) return 5;
-                    if (lbl.includes('platte') || lbl.includes('betätigung')) return 6;
-                    if (lbl.includes('schaum') || lbl.includes('fuss') || lbl.includes('füsse') || lbl.includes('stütz')) return 7;
-                    if (lbl.includes('schall') || lbl.includes('isolation')) return 8;
-                    if (lbl.includes('manschette')) return 9;
-                    return 99;
-                };
-                return getPri(a) - getPri(b);
-            });
-
-            sortedMaterials.forEach(mat => {
-                if (!mat.options || mat.options.length === 0) return;
-
-                const matClass = this.classifyAccessory(mat.options[0]) !== 'common' ? this.classifyAccessory(mat.options[0]) : this.classifyAccessory(mat);
-
-                if (this.currentMontageart !== 'alle') {
-                    if (matClass !== 'common' && matClass !== this.currentMontageart) return;
-                }
-
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'filter-group';
-                const label = document.createElement('label');
-                label.textContent = mat.name || "Zubehör";
-
-                const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
-
-                if (mat.options.length === 1) {
-                    const opt = mat.options[0];
-                    const foundZub = zubPool.find(z => z.artNr === opt.artNr);
-                    const finalLabel = foundZub ? foundZub.label : opt.label;
-
-                    groupDiv.innerHTML = `<label>${mat.name}</label>
-                            <div style="background:var(--bg-surface); padding:0.75rem; border-radius:6px; font-size:0.85rem; color:var(--text-primary); border:1px solid var(--border);">
-                                <strong style="display:block; margin-bottom:0.25rem;">${finalLabel}</strong>
-                                <span style="color:var(--text-secondary); font-family:monospace;">${opt.artNr}</span>
-                            </div>`;
-                } else {
-                    const select = document.createElement('select');
-                    select.className = 'filter-select';
-                    mat.options.forEach(opt => {
-                        const foundZub = zubPool.find(z => z.artNr === opt.artNr);
-                        const finalLabel = foundZub ? foundZub.label : opt.label;
-
-                        const option = document.createElement('option');
-                        option.value = opt.artNr;
-                        option.textContent = opt.dropdownLabel ? opt.dropdownLabel : `${finalLabel} (${opt.artNr})`;
-                        if (this.selectedTray.selections[mat.id] === opt.artNr) option.selected = true;
-                        select.appendChild(option);
-                    });
-                    select.addEventListener('change', (e) => {
-                        this.selectedTray.selections[mat.id] = e.target.value;
-                        this.updateBOM();
-                    });
-                    groupDiv.appendChild(label);
-                    groupDiv.appendChild(select);
-                }
-                inner.appendChild(groupDiv);
-            });
         },
         
         updateAccessoiresToggles: function () {
@@ -6975,6 +9891,36 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             bomTableBody.innerHTML = '';
         },
         updateBOM: function () {
+        let backBtn = document.getElementById("backToCatalogBtn");
+        if (config.enableGalleryUX) {
+            if (!this.selectedTray) {
+                if (backBtn) backBtn.style.display = "none";
+            } else {
+                if (!backBtn) {
+                    const h = document.querySelector(".bom-header");
+                    if (h) {
+                        backBtn = document.createElement("button");
+                        backBtn.id = "backToCatalogBtn";
+                        backBtn.className = "icon-btn highlight-btn";
+                        backBtn.style.marginRight = "auto";
+                        backBtn.innerHTML = '<i class="ri-arrow-left-s-line" aria-hidden="true"></i> Zurück zur Übersicht';
+                        h.insertBefore(backBtn, h.firstChild);
+                    }
+                }
+                if (backBtn) {
+                    backBtn.onclick = () => {
+                        if (window.currentActiveApp) {
+                            if (typeof window.currentActiveApp.selectTray === 'function') {
+                                window.currentActiveApp.selectTray(null);
+                            } else if (typeof window.currentActiveApp.selectItem === 'function') {
+                                window.currentActiveApp.selectItem(null);
+                            }
+                        }
+                    };
+                    backBtn.style.display = "inline-flex";
+                }
+            }
+        }
             if (!this.selectedTray) return;
 
             const materials = this.selectedTray.mountingMaterials || [];
@@ -7056,6 +10002,8 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         else if (matName === 'ablaufanschluss') priority = 7;
                     }
 
+                    const isInlineDropdown = config.enableGalleryUX && mat.options && mat.options.length > 1;
+
                     finalBOM.push({
                         artNr: selectedOption.artNr,
                         label: enrichedLabel,
@@ -7063,7 +10011,10 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         menge: selectedOption.menge || 1,
                         img: enrichedImg,
                         note: note,
-                        priority: priority
+                        priority: priority,
+                        isInlineDropdown: isInlineDropdown,
+                        matId: mat.id,
+                        options: isInlineDropdown ? mat.options : null
                     });
                 });
 
@@ -7202,6 +10153,8 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     else if (combinedLbl.includes('reservoir') || combinedLbl.includes('spülkasten') || combinedLbl.includes('ap128') || combinedLbl.includes('ap116')) priority = 1;
                     else if (combinedLbl.includes('manschette') || combinedLbl.includes('garnitur') || combinedLbl.includes('ablaufanschluss') || selectedOption.artNr.includes('3241 116') || selectedOption.artNr.includes('3241 101') || selectedOption.artNr.includes('3241 102')) priority = 6;
 
+                    const isInlineDropdown = config.enableGalleryUX && mat.options && mat.options.length > 1;
+
                     finalBOM.push({
                         artNr: selectedOption.artNr,
                         label: enrichedLabel,
@@ -7209,7 +10162,10 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         menge: selectedOption.menge || 1,
                         img: enrichedImg,
                         note: note,
-                        priority: priority
+                        priority: priority,
+                        isInlineDropdown: isInlineDropdown,
+                        matId: mat.id,
+                        options: isInlineDropdown ? mat.options : null
                     });
                 });
             }
@@ -7304,8 +10260,44 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
 
             // Render
             let totalCount = 0;
+            const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
+
             sortedBOM.forEach(item => {
                 if (!item.artNr || item.artNr === 'none' || item.menge === 0 || (item.label && item.label.toLowerCase().startsWith('ohne'))) return;
+                
+                let descHTML = `<div class="bom-desc">${item.label}</div>`;
+                if (item.isInlineDropdown && item.options) {
+                    const optionsHTML = item.options.map(opt => {
+                        const foundZub = zubPool.find(z => z.artNr === opt.artNr);
+                        const finalLabel = foundZub ? foundZub.label : opt.label;
+                        const selected = (this.selectedTray.selections[item.matId] === opt.artNr) ? 'selected' : '';
+                        const dropdownLbl = opt.dropdownLabel ? opt.dropdownLabel : `${finalLabel} (${opt.artNr})`;
+                        return `<option value="${opt.artNr}" ${selected}>${dropdownLbl}</option>`;
+                    }).join('');
+
+                    const selectedArtNr = this.selectedTray.selections[item.matId] || (item.options[0] && item.options[0].artNr);
+                    const selectedOpt = item.options.find(opt => opt.artNr === selectedArtNr);
+                    const foundZub = selectedOpt ? zubPool.find(z => z.artNr === selectedOpt.artNr) : null;
+                    const selectedDesc = foundZub ? foundZub.label : (selectedOpt ? selectedOpt.label : '');
+
+                    const isTape = item.matId === 'mat_tape' || 
+                                   (item.label && item.label.toLowerCase().includes('dichtband')) ||
+                                   (item.artNr && item.artNr.replace(/\s/g, '').startsWith('1461')) ||
+                                   (item.options && item.options.some(o => o.artNr && o.artNr.replace(/\s/g, '').startsWith('1461')));
+
+                    let tapeDescHTML = '';
+                    if (isTape && selectedDesc) {
+                        tapeDescHTML = `<div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.35; background: rgba(0,0,0,0.15); padding: 0.5rem; border-radius: 4px; border-left: 3px solid var(--accent); font-weight: normal; text-align: left;">${selectedDesc}</div>`;
+                    }
+
+                    descHTML = `
+                        <select class="inline-bom-select" data-matid="${item.matId}" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.9rem; margin-bottom: 0.25rem; font-family: inherit; font-weight: 500; cursor: pointer; outline: none; transition: border-color 0.2s ease;">
+                            ${optionsHTML}
+                        </select>
+                        ${tapeDescHTML}
+                    `;
+                }
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
                         <td><div class="img-cell" ${!item.img ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>
@@ -7313,13 +10305,61 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         </div></td>
                         <td><span class="bom-code">${item.artNr}</span></td>
                         <td>
-                            <div class="bom-desc">${item.label}</div>
+                            ${descHTML}
                             <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">${item.note}</div>
                         </td>
                         
                         <td><strong>${item.menge}</strong></td>
                     `;
                 bomTableBody.appendChild(row);
+
+                if (item.isInlineDropdown) {
+                    const selectEl = row.querySelector('.inline-bom-select');
+                    if (selectEl) {
+                        selectEl.addEventListener('change', (e) => {
+                            const newVal = e.target.value;
+                            this.selectedTray.selections[item.matId] = newVal;
+                            
+                            // Forward Dependency Check (Bidirectional Auto-switching)
+                            if (this.selectedTray && this.selectedTray.mountingMaterials) {
+                                this.selectedTray.mountingMaterials.forEach(mat => {
+                                    if (mat.dependsOn === item.matId && mat.optionRules) {
+                                        const rule = mat.optionRules.find(r => r.whenArtNr === newVal);
+                                        if (rule) {
+                                            const validOpt = mat.options.find(o => rule.optionArtNrs.includes(o.artNr));
+                                            if (validOpt) {
+                                                this.selectedTray.selections[mat.id] = validOpt.artNr;
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+
+                            // Reverse Dependency Check (Bidirectional Auto-switching)
+                            if (this.selectedTray && this.selectedTray.mountingMaterials) {
+                                this.selectedTray.mountingMaterials.forEach(mat => {
+                                    if (mat.options && mat.options.length > 0) {
+                                        mat.options.forEach(opt => {
+                                            if (opt.artNr === newVal && mat.dependsOn) {
+                                                const dependedMat = this.selectedTray.mountingMaterials.find(m => m.id === mat.dependsOn);
+                                                if (dependedMat && dependedMat.optionRules) {
+                                                    const matchingRule = dependedMat.optionRules.find(r => r.optionArtNrs.includes(newVal));
+                                                    if (matchingRule) {
+                                                        this.selectedTray.selections[dependedMat.id] = matchingRule.whenArtNr;
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+
+                            this.updateBOM();
+                            this.renderConfigurator();
+                        });
+                    }
+                }
+
                 totalCount += item.menge;
             });
 
@@ -7342,12 +10382,17 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 if (bomTableBody) {
                     const rows = bomTableBody.querySelectorAll('tr');
                     rows.forEach(row => {
+                        if (row.style.display === "none" || row.style.opacity === "0.5" || window.getComputedStyle(row).display === "none") return;
+                        if (row.querySelector("td[colspan]")) return;
+
                         const codeSpan = row.querySelector('.bom-code');
                         const qtyStrong = row.querySelector('strong');
                         if (codeSpan && qtyStrong) {
                             const code = codeSpan.textContent.replace(/\t/g, '').trim();
                             const menge = qtyStrong.textContent.replace(/\t/g, '').trim();
-                            textLines.push(`${code}\t${menge}`);
+                            if (code !== "none" && code !== "" && !code.toLowerCase().startsWith("ohne") && code !== "Ausstehend") {
+                                textLines.push(`${code}\t${menge}`);
+                            }
                         }
                     });
                 } else {
@@ -7383,7 +10428,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             }
 
             const text = textLines.join('\n');
-            navigator.clipboard.writeText(text).then(() => {
+            window.copyTextToClipboard(text).then(() => {
                 alert("Artikel und Menge kopiert für SAP:\n\n" + text.replace(/\t/g, "    "));
             }).catch(e => alert("Kopieren fehlgeschlagen."));
         }
@@ -7394,7 +10439,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
 
 
 export function createDuschenwanneApp(title, desc, mainImgUrl, config = {}) {
-    return createRelationalApp(title, desc, mainImgUrl, config);
+    return createRelationalApp(title, desc, mainImgUrl, { enableGalleryUX: true, ...config });
 }
 
 export function createDuschenrinneApp(title, desc, mainImgUrl, config = {}) {
@@ -7404,10 +10449,11 @@ export function createDuschenrinneApp(title, desc, mainImgUrl, config = {}) {
         sizeLabel: 'Breite',
         hideForm: true,
         hideManualSizeInputs: true,
+        enableGalleryUX: true,
         ...config
     });
 }
 
 export function createBadewanneApp(title, desc, mainImgUrl, config = {}) {
-    return createRelationalApp(title, desc, mainImgUrl, config);
+    return createRelationalApp(title, desc, mainImgUrl, { enableGalleryUX: true, ...config });
 }

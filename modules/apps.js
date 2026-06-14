@@ -1,4 +1,4 @@
-import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp } from './factories.js?v=2.6.3';
+import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp } from './factories.js?v=2.6.27';
 
 const configSidebar = document.getElementById('configSidebar');
 const bomTableBody = document.getElementById('bomTableBody');
@@ -9,7 +9,7 @@ const bomCountCounter = document.getElementById('bomCount');
         // ------------------------------------------
         //  App 1: Axor Uno Configurator (Bademischer)
         // ------------------------------------------
-        "bademischer": createBademischerApp("Bademischer", "Wannenfüllkombination und Mischsysteme", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06410221_463_000.png", { isBath: true }),
+        "bademischer": createBademischerApp("Bademischer", "Wannenfüllkombination und Mischsysteme", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06410221_463_000.png", { isBath: true, enableGalleryUX: true }),
 
         // ------------------------------------------
         //  Einlochmischer App -> Waschtischmischer
@@ -103,14 +103,7 @@ const bomCountCounter = document.getElementById('bomCount');
                 bomCountCounter.textContent = `${totalMenge} Artikel benötigt`;
             },
 
-            copyToClipboard: function () {
-                const textLines = this.parts.map(p => `${p.artNr}\t${p.menge || 1}`);
-                const text = textLines.join('\n');
-
-                navigator.clipboard.writeText(text).then(() => {
-                    alert("Artikel und Menge kopiert für SAP:\n\n" + text.replace(/\t/g, "    "));
-                }).catch(e => alert("Kopieren fehlgeschlagen."));
-            }
+            copyToClipboard: window.copyBOMToClipboard
         },
 
         // ------------------------------------------
@@ -194,14 +187,7 @@ const bomCountCounter = document.getElementById('bomCount');
                 bomCountCounter.textContent = `${totalMenge} Artikel benötigt`;
             },
 
-            copyToClipboard: function () {
-                const textLines = this.parts.map(p => `${p.artNr}\t${p.menge || 1}`);
-                const text = textLines.join('\n');
-
-                navigator.clipboard.writeText(text).then(() => {
-                    alert("Artikel und Menge kopiert für SAP:\n\n" + text.replace(/\t/g, "    "));
-                }).catch(e => alert("Kopieren fehlgeschlagen."));
-            }
+            copyToClipboard: window.copyBOMToClipboard
         },
 
         // ------------------------------------------
@@ -280,12 +266,7 @@ const bomCountCounter = document.getElementById('bomCount');
                 bomCountCounter.textContent = `${totalMenge} Artikel benötigt`;
             },
 
-            copyToClipboard: function () {
-                const text = this.parts.map(p => `${p.artNr}\t${p.menge || 1}`).join('\n');
-                navigator.clipboard.writeText(text).then(() => {
-                    alert("Artikel und Menge kopiert für SAP:\n\n" + text.replace(/\t/g, "    "));
-                });
-            }
+            copyToClipboard: window.copyBOMToClipboard
         },
 
         // ------------------------------------------
@@ -347,10 +328,7 @@ const bomCountCounter = document.getElementById('bomCount');
                 bomCountCounter.textContent = `${totalMenge} Artikel benötigt`;
             },
 
-            copyToClipboard: function () {
-                const text = this.parts.map(p => `${p.artNr}\t${p.menge || 1}`).join('\n');
-                navigator.clipboard.writeText(text).then(() => alert("Artikel und Menge kopiert für SAP:\n\n" + text.replace(/\t/g, "    ")));
-            }
+            copyToClipboard: window.copyBOMToClipboard
         },
 
         // ------------------------------------------
@@ -412,20 +390,18 @@ const bomCountCounter = document.getElementById('bomCount');
                 bomCountCounter.textContent = `${totalMenge} Artikel benötigt`;
             },
 
-            copyToClipboard: function () {
-                const text = this.parts.map(p => `${p.artNr}\t${p.menge || 1}`).join('\n');
-                navigator.clipboard.writeText(text).then(() => alert("Artikel und Menge kopiert für SAP:\n\n" + text.replace(/\t/g, "    ")));
-            }
+            copyToClipboard: window.copyBOMToClipboard
         },
 
         // ==========================================
         //  DYNAMIC GENERATED TEMPLATES
         // ==========================================
 
-        "duschenmischer": createDuschenmischerApp("Duschenmischer", "Duscharmaturen und Sets", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06113661_501_000.png"),
+        "duschenmischer": createDuschenmischerApp("Duschenmischer", "Duscharmaturen und Sets", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06113661_501_000.png", { enableGalleryUX: true }),
         "duschtrennwand": createGlassApp("Duschtrennwand", "Duschwände und Kabinen", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01510403_000_000.png"),
+        "badeabtrennung": createGlassApp("Badeabtrennung", "Glastrennwand für Badewanne", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311872_100_181.png"),
 
-        "badewanne": Object.assign(createBadewanneApp("Badewanne", "Wannensystem mit passendem Zubehör", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01113324.png", { montageLabel1: "Mit Wannenträger", montageLabel2: "Mit Wannenfüssen" }), {
+        "badewanne": Object.assign(createBadewanneApp("Badewanne", "Wannensystem mit passendem Zubehör", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01113324.png", { montageLabel1: "Mit Wannenträger", montageLabel2: "Mit Wannenfüssen", }), {
             trays: [
                 { id: "bw1", manufacturer: "Schmidlin", form: "Rechteckig", size: "170x75", artNr: "1111 222.100.000", label: "Schmidlin DUO 170x75cm, Weiss", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01113324.png", mountingMaterials: [{ artNr: "0000 111.000.000", label: "Wannenfüsse Badewanne", type: "Zubehör" }, { artNr: "0000 444.000.000", label: "Ab- und Überlaufgarnitur", type: "Zubehör" }] },
                 { id: "bw2", manufacturer: "Kaldewei", form: "Rechteckig", size: "180x80", artNr: "1111 333.100.000", label: "Kaldewei Puro 180x80cm, Weiss", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01113324.png", mountingMaterials: [{ artNr: "0000 222.000.000", label: "Spezial-Füsse Kaldewei", type: "Zubehör" }, { artNr: "0000 444.000.000", label: "Ab- und Überlaufgarnitur", type: "Zubehör" }] }
@@ -435,8 +411,8 @@ const bomCountCounter = document.getElementById('bomCount');
         "waschtisch": Object.assign(createWashbasinApp("Waschtisch", "Waschtisch mit Siphon und Montagezubehör", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/02112736_100_000.png"), {
             trays: [] // Data loaded dynamically via custom-data.json
         }),
-        "wandklosett": createWCApp("Wandklosett System", "Wand-WC inkl. passendem WC-Sitz", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/02111845_100_000.png", { sizeLabel: 'Ausladung' }),
-        "standklosett": createWCApp("Standklosett System", "Bodenstehendes WC System", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/02111845_100_000.png", { sizeLabel: 'Ausladung' }),
+        "wandklosett": createWCApp("Wandklosett System", "Wand-WC inkl. passendem WC-Sitz", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/02111845_100_000.png", { sizeLabel: 'Ausladung', enableGalleryUX: true }),
+        "standklosett": createWCApp("Standklosett System", "Bodenstehendes WC System", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/02111845_100_000.png", { sizeLabel: 'Ausladung', enableGalleryUX: true }),
 
         // ------------------------------------------
         //  App 7: Duschenwanne (Dynamic Filter)
