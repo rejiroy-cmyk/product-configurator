@@ -33,8 +33,8 @@ function checkUrl(url) {
     let data = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
     const trays = data.duschtrennwand.trays;
 
-    // Target: liva, costa, primo only
-    const targets = trays.filter(t => ['liva','costa','primo'].includes(t.serie));
+    // Target: liva, costa, primo, and lin.3
+    const targets = trays.filter(t => ['liva','costa','primo','lin.3'].includes(t.serie));
     console.log(`\n🔍 Checking images for ${targets.length} Duschtrennwand products...\n`);
 
     // Step 1: Quick HTTP check for all URLs

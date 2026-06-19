@@ -50,6 +50,12 @@ export const catalog = [
                 "name": "Bademischer",
                 "appId": "bademischer",
                 "hasApp": true
+            },
+            {
+                "id": "badeabtrennung",
+                "name": "Badeabtrennung",
+                "appId": "badeabtrennung",
+                "hasApp": true
             }
         ]
     },

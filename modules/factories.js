@@ -670,7 +670,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         `}
                     </div>
                     
-                    <div class="sidebar-section">
+                    <div class="sidebar-section" ${config.enableGalleryUX ? 'style="display:none;"' : ''}>
                         <h2>Suchergebnisse <span id="resultCount_${suffix}" class="badge">0</span></h2>
                         <div class="search-results-container" id="searchResults_${suffix}"></div>
                     </div>
@@ -1256,6 +1256,8 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         if (title && title.toLowerCase().includes('badewanne') && (mat.id === 'mat_tape' || (mat.name && mat.name.includes('Dichtband')))) {
                             const nischeOpt = mat.options.find(o => (o.label && o.label.includes('3-seitig')) || (o.dropdownLabel && o.dropdownLabel.includes('3-seitig')));
                             if (nischeOpt) defaultOpt = nischeOpt;
+                        } else if (mat.id === 'mat_deckel' && mat.options.length > 1 && defaultOpt.artNr === 'none') {
+                            defaultOpt = mat.options[1];
                         }
                         this.selectedTray.selections[mat.id] = defaultOpt.artNr;
                     }
@@ -1357,7 +1359,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                                 // Fallback: If no match and variant is standard, fall back to option 0
                                 const hasExotic = activeColors.some(c => !['chrom', 'weiss', 'white'].includes(c)) || (variantColorCode && !['000', '100'].includes(variantColorCode));
                                 if (!bestMatchOpt && !hasExotic) {
-                                    bestMatchOpt = mat.options[0];
+                                    bestMatchOpt = (mat.id === 'mat_deckel' && mat.options.length > 1 && mat.options[0].artNr === 'none') ? mat.options[1] : mat.options[0];
                                 }
 
                                 if (bestMatchOpt && (bestMatchScore > 0 || !hasExotic)) {
@@ -1393,11 +1395,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             const isRinne = titleLower.includes('rinne');
 
             if (this.selectedTray && this.selectedTray.mountingMaterials && this.selectedTray.mountingMaterials.length > 0) {
-                if (!isDuschenwanne) {
-                    hasConfig = true;
-                } else if (this.selectedTray.mountingMaterials.some(g => g.id === 'mat_montageset')) {
-                    hasConfig = true;
-                }
+                hasConfig = true;
             }
 
             // Technical Compatibility Warning might also need configBlock
@@ -2092,8 +2090,14 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         if (mat.name === 'Wannenzargenband' && this.selectedTray.mountingMaterials.some(m => m.name === 'Zargen-Wannendichtband')) {
                             skipPush = true; // Remove duplicate tape
                         }
-                    } else if (this.title === 'Duschenwanne') {
-                        // Reverted Ablaufdeckel skip rules
+                    }
+                    if (this.title === 'Duschenwanne') {
+                        if (mat.id === 'mat_deckel') {
+                            const selSiphon = this.selectedTray.selections['mat_siphon'];
+                            if (selSiphon === '1435 435.000.000' || selSiphon === '1435 433.000.000' || selSiphon === '1435435.000.000' || selSiphon === '1435433.000.000') {
+                                skipPush = true; // KA 90 already has an Ablaufdeckel
+                            }
+                        }
                     }
 
                     if (!skipPush) {
@@ -2403,7 +2407,10 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
 
             dedupedBOM.forEach(item => {
-                if (!item.artNr || item.artNr === 'none' || item.menge === 0 || (item.label && item.label.toLowerCase().startsWith('ohne'))) return;
+                // If it's a dropdown, we MUST render it so the user can change it, even if the current selection is "none" or menge is 0.
+                if (!item.isInlineDropdown) {
+                    if (!item.artNr || item.artNr === 'none' || item.menge === 0 || (item.label && item.label.toLowerCase().startsWith('ohne'))) return;
+                }
                 
                 let descHTML = `<div class="bom-desc">${item.label}</div>`;
                 if (item.isInlineDropdown && item.options) {
@@ -2598,7 +2605,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
 
                 const row = document.createElement('tr');
                 const isPlaceholder = item.artNr === 'bitte_waehlen';
-                const artNrDisplay = isPlaceholder ? '<span style="color:var(--accent); font-weight:bold;">Ausstehend</span>' : item.artNr;
+                const artNrDisplay = isPlaceholder ? '<span style="color:var(--accent); font-weight:bold;">Ausstehend</span>' : (item.artNr === 'none' ? '-' : item.artNr);
                 const rowOpacity = isPlaceholder ? 'opacity: 0.8; background: rgba(255,152,0,0.05);' : '';
 
                 row.innerHTML = `
@@ -7826,7 +7833,7 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
 
             const text = `${s} ${ps}`;
 
-            if (text.includes("massaufnahme") || text.includes("anfahrt") || text.includes("montage") || text.includes("demontage") || text.includes("nettobetrag") || (text.includes("für wannenmontage") && !text.includes("bodenmontage"))) return null;
+            if (text.includes("massaufnahme") || text.includes("anfahrt") || (text.includes("montage") && !text.includes("montage ausschliesslich") && !text.includes("bodenmontage") && !text.includes("wannenmontage")) || text.includes("demontage") || text.includes("nettobetrag") || (text.includes("für wannenmontage") && !text.includes("bodenmontage"))) return null;
             
             // Robust encoding-independent door checks (supporting replacements/umlauts)
             const isPivotOrDreh = text.includes("pivot") || text.includes("drehtür") || text.includes("dreht") || text.includes("dreh-t");
@@ -8293,6 +8300,57 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             this.updateBOM();
         },
 
+        isAlternaOrDuscholuxCombination: function(tray) {
+            if (!tray) return false;
+            const m = (tray.manufacturer || '').toLowerCase();
+            if (m !== 'alterna' && m !== 'duscholux') return false;
+
+            const l = (tray.label || '').toLowerCase();
+            const d = (tray.description || '').toLowerCase();
+            const text = (l + ' ' + d).replace(/\s+/g, ' ');
+            const normalizedText = text.replace(/\s*\/\s*/g, '/');
+
+            return (
+                normalizedText.includes('zur kombination') || 
+                normalizedText.includes('kombination mit') || 
+                normalizedText.includes('für seitenwand') || 
+                normalizedText.includes('fuer seitenwand') || 
+                normalizedText.includes('zu seitenwände') || 
+                normalizedText.includes('zu seitenwand') || 
+                normalizedText.includes('zu seitenwänden') ||
+                normalizedText.includes('oder mit seitenwand') ||
+                normalizedText.includes('oder seitenwand') ||
+                normalizedText.includes('in nische/mit seitenwand') || 
+                normalizedText.includes('mit seitenwand/in nische') ||
+                normalizedText.includes('in nische/mit einer seitenwand') ||
+                normalizedText.includes('mit einer seitenwand/in nische') ||
+                normalizedText.includes('nische/seitenwand') ||
+                normalizedText.includes('seitenwand/nische')
+            );
+        },
+
+        isAlternaOrDuscholuxSideWallIncluded: function(tray) {
+            if (!tray) return false;
+            const m = (tray.manufacturer || '').toLowerCase();
+            if (m !== 'alterna' && m !== 'duscholux') return false;
+
+            const l = (tray.label || '').toLowerCase();
+            const d = (tray.description || '').toLowerCase();
+            const text = (l + ' ' + d).replace(/\s+/g, ' ');
+            const normalizedText = text.replace(/\s*\/\s*/g, '/');
+
+            if (!normalizedText.includes('seitenwand')) return false;
+            if (this.isAlternaOrDuscholuxCombination(tray)) return false;
+
+            return (
+                normalizedText.includes('mit seitenwand') || 
+                normalizedText.includes('mit einer seitenwand') || 
+                normalizedText.includes('und seitenwand') || 
+                normalizedText.includes('seitenwand und') ||
+                normalizedText.includes('seitenwand,')
+            );
+        },
+
         checkSideWallSupport: function(tray) {
             if (!tray) return false;
             if (this.isAlternaCostaEckeinstieg(tray)) return true;
@@ -8310,6 +8368,11 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                                   !lower.startsWith('seitenwand') && !lower.startsWith('freistehende seitenwand') && !lower.startsWith('freistehend');
             if (!isMainProduct) return false;
 
+            const m = (tray.manufacturer || '').toLowerCase();
+            if (m === 'alterna' || m === 'duscholux') {
+                return this.isAlternaOrDuscholuxCombination(tray);
+            }
+
             const isLivaNischeExclusion = this.extractSeries(tray) === "Liva" && (lower.includes("in nische") || d.includes("in nische"));
             if (isLivaNischeExclusion) return false;
 
@@ -8318,18 +8381,21 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             if (isCornerEntry) return false;
 
             // Niche-only doors do not support side walls
-            const isS606PlusSideWallInFluchtOverride = 
-                /^15283(1[5-9]|2[0-2])/.test(cleanArt) || 
-                /^152833[1-2]/.test(cleanArt) || 
-                /^152834[7-8]/.test(cleanArt) || 
-                /^1528351/.test(cleanArt);
-
-            const hasNischeExclusion = lower.includes('nur für nische') || lower.includes('nur für eine nische') || lower.includes('nur nische') || d.includes('nur für nische') ||
+            let hasNischeExclusion = lower.includes('nur für nische') || lower.includes('nur für eine nische') || lower.includes('nur nische') || d.includes('nur für nische') ||
                 lower.includes('vormauerung') || d.includes('vormauerung');
+
+            if (lower.includes('in flucht') || d.includes('in flucht')) {
+                // If it contains "in flucht", it is niche-only unless a side-wall mounting cost is available in its services
+                const hasSideWallService = (tray.services || []).some(s => {
+                    const sText = ((s.label || "") + " " + (s.description || "")).toLowerCase();
+                    return sText.includes("seitenwand") && (sText.includes("bis") || sText.includes("ab"));
+                });
+                if (!hasSideWallService) {
+                    hasNischeExclusion = true;
+                }
+            }
             
-            const hasInFluchtExclusion = (lower.includes('in flucht') || d.includes('in flucht')) && !isS606PlusSideWallInFluchtOverride;
-            
-            if (hasNischeExclusion || hasInFluchtExclusion) {
+            if (hasNischeExclusion) {
                 return false;
             }
 
@@ -8830,17 +8896,30 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             const r = this.extractSizeScore(this.selectedTray);
             let checkWidth = this.extractWidthCm(this.selectedTray);
 
-            (this.selectedTray.services || []).filter(n => {
-                const i = n.label.toLowerCase();
+            const isSideWallIncluded = this.isAlternaOrDuscholuxSideWallIncluded(this.selectedTray);
+            const isMainProductSeitenwand = this.extractType(this.selectedTray) === "Freistehende Seitenwand";
+            const hasSideWallActiveOrIncluded = hasSideWallActive || isSideWallIncluded || isMainProductSeitenwand;
+
+            const filteredServices = (this.selectedTray.services || []).filter(n => {
+                const labelAndDesc = (n.label + " " + (n.description || "")).toLowerCase();
+                const isEckeinstiegProduct = 
+                    (this.selectedTray.label || "").toLowerCase().includes("eckeinstieg") || 
+                    (this.selectedTray.form || "").toLowerCase().includes("eckeinstieg") ||
+                    isSideWallIncluded;
                 
                 // Original size filter
-                if (i.includes("montagepauschale") && ((i.includes("bis 125") && r > 125) || (i.includes("ab 125") && r <= 125))) {
+                if (labelAndDesc.includes("montagepauschale") && ((labelAndDesc.includes("bis 125") && r > 125) || (labelAndDesc.includes("ab 125") && r <= 125))) {
                     return false;
+                }
+
+                // If it's an Eckeinstieg product and this is an Eckeinstieg service, include it
+                if (isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg")) {
+                    return true;
                 }
                 
                 // Dynamic mounting service filtering based on side wall selection
-                if (hasSideWallActive) {
-                    if (i.includes("in nische") || i.includes("für nische") || i.includes("fuer nische")) {
+                if (hasSideWallActiveOrIncluded) {
+                    if (!isMainProductSeitenwand && (labelAndDesc.includes("in nische") || labelAndDesc.includes("für nische") || labelAndDesc.includes("fuer nische"))) {
                         return false;
                     }
                     if (n.artNr === '1521 964.000.000') {
@@ -8850,41 +8929,75 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                         );
                         if (hasSpecificService) return false;
                     }
+                    // If not an Eckeinstieg product, exclude Eckeinstieg services
+                    if (!isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg")) {
+                        return false;
+                    }
+                    // If it is an Eckeinstieg product, exclude standard side wall services (only for Koralle)
+                    const isKoralle = (this.selectedTray.manufacturer || "").toLowerCase() === "koralle";
+                    if (isKoralle && isEckeinstiegProduct && labelAndDesc.includes("seitenwand") && !labelAndDesc.includes("eckeinstieg")) {
+                        return false;
+                    }
                 } else {
-                    if (i.includes("mit seitenwand") || i.includes("für seitenwand") || i.includes("fuer seitenwand") || i.includes("eckeinstieg") || 
-                        (i.includes(" mit") && !i.includes("nische") && !i.includes("festelement") && !i.includes("pendelelement") && !i.includes("glasteil"))) {
+                    const cleanLabel = n.label.toLowerCase();
+                    if (cleanLabel.includes("nische") || cleanLabel.includes("nischen")) {
+                        // Keep it!
+                    } else if (labelAndDesc.includes("mit seitenwand") || labelAndDesc.includes("für seitenwand") || labelAndDesc.includes("fuer seitenwand") || labelAndDesc.includes("seitenwand") || (!isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg")) || 
+                        (labelAndDesc.includes(" mit") && !labelAndDesc.includes("nische") && !labelAndDesc.includes("festelement") && !labelAndDesc.includes("pendelelement") && !labelAndDesc.includes("glasteil"))) {
                         return false;
                     }
                 }
 
                 // Dynamic width-based mounting service filtering (for 100 cm, 120 cm, 160 cm, and 120-160 cm ranges)
-                if (checkWidth !== null && i.includes("montagepauschale")) {
+                if (checkWidth !== null && labelAndDesc.includes("montagepauschale")) {
                     // Check 100 cm threshold
-                    if (i.includes("bis 100") && checkWidth > 100) return false;
-                    if ((i.includes("ab 100") || i.includes("100,1") || i.includes("100.1")) && checkWidth <= 100) return false;
+                    if (labelAndDesc.includes("bis 100") && checkWidth > 100) return false;
+                    if ((labelAndDesc.includes("ab 100") || labelAndDesc.includes("100,1") || labelAndDesc.includes("100.1")) && checkWidth <= 100) return false;
                     
                     // Check 120 cm threshold
-                    if (i.includes("bis 120") && checkWidth > 120) return false;
-                    if ((i.includes("ab 120") || i.includes("120,1") || i.includes("120.1")) && !i.includes("160") && checkWidth <= 120) return false;
+                    if (labelAndDesc.includes("bis 120") && checkWidth > 120) return false;
+                    if ((labelAndDesc.includes("ab 120") || labelAndDesc.includes("120,1") || labelAndDesc.includes("120.1")) && !labelAndDesc.includes("160") && checkWidth <= 120) return false;
                     
                     // Check 160 cm threshold
-                    if (i.includes("bis 160") && checkWidth > 160) return false;
-                    if ((i.includes("ab 160") || i.includes("160,1") || i.includes("160.1")) && checkWidth <= 160) return false;
+                    if (labelAndDesc.includes("bis 160") && checkWidth > 160) return false;
+                    if ((labelAndDesc.includes("ab 160") || labelAndDesc.includes("160,1") || labelAndDesc.includes("160.1")) && checkWidth <= 160) return false;
                     
                     // Check 120 to 160 range
-                    if ((i.includes("120,1") || i.includes("120")) && i.includes("160")) {
+                    if ((labelAndDesc.includes("120,1") || labelAndDesc.includes("120")) && labelAndDesc.includes("160")) {
                         if (checkWidth <= 120 || checkWidth > 160) return false;
                     }
                 }
                 
                 return true;
-            }).forEach(n => {
+            });
+
+            // Sort services: 1. Massaufnahme/Ausmass, 2. Anfahrtspauschale, 3. Montagepauschale, 4. Others
+            filteredServices.sort((a, b) => {
+                const getPriority = (item) => {
+                    const text = ((item.label || "") + " " + (item.description || "")).toLowerCase();
+                    if (text.includes("massaufnahme") || text.includes("ausmass") || text.includes("ausmaß")) return 1;
+                    if (text.includes("anfahrt")) return 2;
+                    if (text.includes("montage")) return 3;
+                    return 4;
+                };
+                return getPriority(a) - getPriority(b);
+            });
+
+            filteredServices.forEach(n => {
                 count += n.qty || 1;
+                let showDescription = false;
+                if (n.description) {
+                    const cleanLabel = n.label.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const cleanDesc = n.description.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (!cleanLabel.includes(cleanDesc) && !cleanDesc.includes(cleanLabel)) {
+                        showDescription = true;
+                    }
+                }
                 html += `
                     <tr class="service-row">
                         <td><div class="img-cell"><i class="ri-customer-service-2-line" style="font-size:1.5rem; color:var(--accent);"></i></div></td>
                         <td><span class="bom-code">${n.artNr}</span></td>
-                        <td><div class="bom-desc">${n.label}${n.description ? '<div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;">' + n.description + '</div>' : ''}</div></td>
+                        <td><div class="bom-desc">${n.label}${showDescription ? '<div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;">' + n.description + '</div>' : ''}</div></td>
                         <td><strong>${n.qty || 1}</strong></td>
                     </tr>
                 `;
@@ -8910,78 +9023,38 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 alert('Bitte wählen Sie zuerst ein Produkt aus.');
                 return;
             }
-            const trayToCopy = this.getMatchedVariant(this.selectedTray);
-            let m = [`${trayToCopy.artNr}\t1\t\t\t\tYMAS`];
-            
-            const selectedSideWallArtNr = this.selectedTray.selections && this.selectedTray.selections.__seitenwand__;
-            const hasSideWallActive = selectedSideWallArtNr && selectedSideWallArtNr !== "none";
-            let activeSideWall = null;
-            if (hasSideWallActive) {
-                activeSideWall = this.trays.find(t => t.artNr === selectedSideWallArtNr);
-                if (activeSideWall) {
-                    const sideWallToCopy = this.getMatchedVariant(activeSideWall);
-                    m.push(`${sideWallToCopy.artNr}\t1\t\t\t\tYMAS`);
+            const bomTableBody = document.getElementById("bomTableBody");
+            if (!bomTableBody) {
+                alert("Keine Produkte gefunden.");
+                return;
+            }
+            let m = [];
+            bomTableBody.querySelectorAll("tr").forEach(row => {
+                if (row.style.display === "none" || row.style.opacity === "0.5" || window.getComputedStyle(row).display === "none") return;
+                if (row.querySelector("td[colspan]")) return;
+                
+                const codeSpan = row.querySelector(".bom-code");
+                const qtyStrong = row.querySelector("strong");
+                if (codeSpan && codeSpan.textContent.trim()) {
+                    let code = codeSpan.textContent.replace(/\t/g, "").trim();
+                    let menge = qtyStrong ? qtyStrong.textContent.replace(/\t/g, "").trim() : "1";
+                    if (!/^\d+$/.test(menge)) menge = "1";
+                    if (code !== "-" && code !== "none" && code !== "" && !code.toLowerCase().startsWith("ohne") && code !== "Ausstehend") {
+                        if (row.classList.contains("service-row")) {
+                            m.push(`${code}\t${menge}\t\t\t\tYNOK`);
+                        } else {
+                            m.push(`${code}\t${menge}\t\t\t\tYMAS`);
+                        }
+                    }
                 }
+            });
+            if (m.length === 0) {
+                alert("Keine kopierbaren Produkte gefunden.");
+                return;
             }
-            
-            if (this.selectedTray.services) {
-                const s = this.extractSizeScore(this.selectedTray);
-                let checkWidth = this.extractWidthCm(this.selectedTray);
-
-                (this.selectedTray.services || []).filter(t => {
-                    const n = t.label.toLowerCase();
-                    
-                    if (n.includes("montagepauschale") && ((n.includes("bis 125") && s > 125) || (n.includes("ab 125") && s <= 125))) {
-                        return false;
-                    }
-                    
-                    if (hasSideWallActive) {
-                        if (n.includes("in nische") || n.includes("für nische") || n.includes("fuer nische")) {
-                            return false;
-                        }
-                        if (t.artNr === '1521 964.000.000') {
-                            const hasSpecificService = (this.selectedTray.services || []).some(s => 
-                                s.artNr === '1521 969.000.000' || s.artNr === '1521 970.000.000' || 
-                                s.artNr === '1521 971.000.000' || s.artNr === '1521 896.000.000'
-                            );
-                            if (hasSpecificService) return false;
-                        }
-                    } else {
-                        if (n.includes("mit seitenwand") || n.includes("für seitenwand") || n.includes("fuer seitenwand") || n.includes("eckeinstieg") ||
-                            (n.includes(" mit") && !n.includes("nische") && !n.includes("festelement") && !n.includes("pendelelement") && !n.includes("glasteil"))) {
-                            return false;
-                        }
-                    }
-
-                    // Dynamic width-based mounting service filtering (for 100 cm, 120 cm, 160 cm, and 120-160 cm ranges)
-                    if (checkWidth !== null && n.includes("montagepauschale")) {
-                        // Check 100 cm threshold
-                        if (n.includes("bis 100") && checkWidth > 100) return false;
-                        if ((n.includes("ab 100") || n.includes("100,1") || n.includes("100.1")) && checkWidth <= 100) return false;
-                        
-                        // Check 120 cm threshold
-                        if (n.includes("bis 120") && checkWidth > 120) return false;
-                        if ((n.includes("ab 120") || n.includes("120,1") || n.includes("120.1")) && !n.includes("160") && checkWidth <= 120) return false;
-                        
-                        // Check 160 cm threshold
-                        if (n.includes("bis 160") && checkWidth > 160) return false;
-                        if ((n.includes("ab 160") || n.includes("160,1") || n.includes("160.1")) && checkWidth <= 160) return false;
-                        
-                        // Check 120 to 160 range
-                        if ((n.includes("120,1") || n.includes("120")) && n.includes("160")) {
-                            if (checkWidth <= 120 || checkWidth > 160) return false;
-                        }
-                    }
-                    
-                    return true;
-                }).forEach(t => {
-                    if (t.artNr && t.artNr !== "none" && !t.label.toLowerCase().startsWith("ohne")) {
-                        m.push(`${t.artNr}\t${t.qty || 1}\t\t\t\tYNOK`);
-                    }
-                });
-            }
-            window.copyTextToClipboard(m.join('\n')).then(() => {
-                alert("Stückliste kopiert:\n\n" + m.join('\n').replace(/\t/g, "    "));
+            const text = m.join('\n');
+            window.copyTextToClipboard(text).then(() => {
+                alert("Stückliste kopiert:\n\n" + text.replace(/\t/g, "    "));
             }).catch(err => {
                 alert("Kopieren fehlgeschlagen.");
             });
@@ -10109,6 +10182,8 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         }
                     }
 
+                    const isInlineDropdown = config.enableGalleryUX && mat.options && mat.options.length > 1;
+
                     finalBOM.push({
                         artNr: selectedOption.artNr,
                         label: enrichedLabel,
@@ -10116,7 +10191,10 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         menge: calculatedMenge,
                         img: enrichedImg,
                         note: note,
-                        priority: priority
+                        priority: priority,
+                        isInlineDropdown: isInlineDropdown,
+                        matId: mat.id,
+                        options: isInlineDropdown ? mat.options : null
                     });
                 });
 
@@ -10263,7 +10341,10 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
 
             sortedBOM.forEach(item => {
-                if (!item.artNr || item.artNr === 'none' || item.menge === 0 || (item.label && item.label.toLowerCase().startsWith('ohne'))) return;
+                // If it's a dropdown, we MUST render it so the user can change it, even if the current selection is "none" or menge is 0.
+                if (!item.isInlineDropdown) {
+                    if (!item.artNr || item.artNr === 'none' || item.menge === 0 || (item.label && item.label.toLowerCase().startsWith('ohne'))) return;
+                }
                 
                 let descHTML = `<div class="bom-desc">${item.label}</div>`;
                 if (item.isInlineDropdown && item.options) {

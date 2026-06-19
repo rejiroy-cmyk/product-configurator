@@ -90,6 +90,47 @@ const categoryProfiles = {
         }
 
         return { size, material, form };
+    },
+
+    duschtrennwand: (fullDesc) => {
+        const descLower = fullDesc.toLowerCase();
+        
+        let size = extractSize(fullDesc);
+        
+        let form = 'Standard';
+        if (descLower.includes('eckeinstieg')) form = 'Eckeinstieg';
+        else if (descLower.includes('freistehend')) form = 'Freistehend';
+        else if (descLower.includes('nische')) form = 'Nische';
+        else if (descLower.includes('mit seitenwand') || descLower.includes('seitenwand')) form = 'mit Seitenwand';
+        else if (descLower.includes('viertelkreis')) form = 'Viertelkreis';
+        
+        let glasart = 'Echtglas klar';
+        if (descLower.includes('teilflächig mattiert') || descLower.includes('teilflächig matt') || descLower.includes('sichtschutz')) glasart = 'Echtglas mit Sichtschutz';
+        else if (descLower.includes('matt') || descLower.includes('satiniert')) glasart = 'Echtglas satiniert';
+        else if (descLower.includes('duschguard')) glasart = 'Echtglas klar Duschguard';
+        else if (descLower.includes('glasplus')) glasart = 'Echtglas klar Glasplus';
+        else if (descLower.includes('caretec pro')) glasart = 'Echtglas klar CareTec Pro';
+        else if (descLower.includes('caretec')) glasart = 'Echtglas klar CareTec';
+        else if (descLower.includes('procare')) glasart = 'Echtglas klar ProCare';
+        else if (descLower.includes('aquaperl')) glasart = 'Echtglas klar Aquaperl';
+        else if (descLower.includes(' plus')) glasart = 'Echtglas klar Plus';
+        
+        let farbe = 'Verchromt';
+        if (descLower.includes('schwarz matt') || descLower.includes('schwarz') || descLower.includes('nero')) farbe = 'Schwarz';
+        else if (descLower.includes('silber matt') || descLower.includes('silber')) farbe = 'Silber';
+        else if (descLower.includes('weiss matt') || descLower.includes('weiss')) farbe = 'Weiss';
+        else if (descLower.includes('edelstahl')) farbe = 'Edelstahloptik';
+
+        let band = 'Universal';
+        if (descLower.includes('band links') || descLower.includes('anschlag links') || descLower.includes('linksanschlag') || descLower.includes('linksband') || descLower.includes(' links')) band = 'links';
+        else if (descLower.includes('band rechts') || descLower.includes('anschlag rechts') || descLower.includes('rechtsanschlag') || descLower.includes('rechtsband') || descLower.includes(' rechts')) band = 'rechts';
+
+        let isService = false;
+        if (descLower.includes('montagepauschale') || descLower.includes('massaufnahme') || descLower.includes('anfahrt') || descLower.includes('demontage')) {
+            isService = true;
+            form = ''; size = ''; glasart = ''; farbe = ''; band = '';
+        }
+        return { isService, form, size, glasart, farbe, band };
     }
 };
 
@@ -117,7 +158,7 @@ function extractSize(fullDesc) {
 // Universal brand extractor across all categories
 function extractBrand(fullDesc) {
     let brand = 'Andere';
-    const brands = ['Laufen', 'Catalano', 'Alterna', 'Keramag', 'Geberit', 'Duravit', 'Villeroy & Boch', 'Toto', 'Ideal Standard', 'Burgbad', 'Alape', 'Kaldewei', 'Keuco', 'KWC', 'Similor', 'Hansgrohe', 'Gessi', 'Bette'];
+    const brands = ['Laufen', 'Catalano', 'Alterna', 'Keramag', 'Geberit', 'Duravit', 'Villeroy & Boch', 'Toto', 'Ideal Standard', 'Burgbad', 'Alape', 'Kaldewei', 'Keuco', 'KWC', 'Similor', 'Hansgrohe', 'Gessi', 'Bette', 'Koralle', 'Duscholux', 'Duka'];
     
     for (const b of brands) {
         if (fullDesc.toLowerCase().includes(b.toLowerCase())) {
@@ -127,7 +168,7 @@ function extractBrand(fullDesc) {
     }
 
     if (brand === 'Andere') {
-        const brandMatch = fullDesc.match(/(?:Waschtisch|Mischer|Batterie|Wanne|Duschwanne|Badewanne)\s+(\w+)/i);
+        const brandMatch = fullDesc.match(/(?:Waschtisch|Mischer|Batterie|Wanne|Duschwanne|Badewanne|Duschtrennwand|Pendeltür|Gleittür|Schiebetür|Seitenwand|Eckeinstieg)\s+(\w+)/i);
         if (brandMatch) brand = brandMatch[1];
     }
     return brand;
@@ -177,6 +218,9 @@ function parseProducts(text, type) {
             
             // MAGIC: Use the modular profile to extract custom attributes
             const customAttributes = extractor(fullDesc);
+            if (customAttributes.isService !== undefined) {
+                // allow it to be included
+            }
 
             products.push({
                 artNr,

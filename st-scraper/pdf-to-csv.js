@@ -50,11 +50,16 @@ function parseProducts(text) {
                 if (ART_NR_LINE_RE.test(dl)) break;
                 if (PAGE_HEADER_RE.test(dl)) break;
                 if (['Position', 'Menge', 'Artikelnummer'].includes(dl)) break;
+                if (dl.includes('Preisübersicht') || dl.includes('Unverbindliche Richtpreise')) break;
                 descLines.push(dl);
                 i++;
             }
 
-            const fullDesc = descLines.join(' ').trim();
+            let fullDesc = descLines.join(' ').trim();
+            const splitIndex = fullDesc.indexOf('Preisübersicht');
+            if (splitIndex !== -1) {
+                fullDesc = fullDesc.substring(0, splitIndex).trim();
+            }
 
             // --- Extract structured fields from description ---
             const descLower = fullDesc.toLowerCase();

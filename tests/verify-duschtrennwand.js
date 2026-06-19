@@ -6,9 +6,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 1. Mock Browser Environment for Node.js (Must be set before importing factories.js)
+let lastCopiedText = "";
+global.alert = () => {};
 global.window = {
-    copyTextToClipboard: () => {},
-    copyBOMToClipboard: () => {}
+    copyTextToClipboard: (text) => {
+        lastCopiedText = text;
+        return Promise.resolve();
+    },
+    copyBOMToClipboard: () => {},
+    getComputedStyle: () => ({ display: "block" })
 };
 const globalMockElements = {
     bomTableBody: { 
@@ -508,8 +514,9 @@ const tests = [
         }
     },
     {
-        name: "S606 Plus in-line 'in Flucht' doors support side walls for specified overrides and return Nische",
+        name: "S606 Plus / S505 Plus in-line 'in Flucht' doors side wall support check",
         fn: () => {
+            // S606 Plus in Flucht has both niche and side wall mounting costs available -> supports side-wall dropdown
             const inlineDoor = trays.find(t => t.artNr === "1528 347.501.118");
             if (!inlineDoor) throw new Error("Could not find door 1528 347.501.118");
 
@@ -519,14 +526,22 @@ const tests = [
             }
 
             if (!app.checkSideWallSupport(inlineDoor)) {
-                throw new Error("Expected in-line door 1528 347.501.118 to support side walls!");
+                throw new Error("Expected in-line door 1528 347.501.118 to support side walls because side wall services are available!");
             }
 
             const otherInlineDoor = trays.find(t => t.artNr === "1528 333.501.118");
             if (!otherInlineDoor) throw new Error("Could not find door 1528 333.501.118");
 
-            if (app.checkSideWallSupport(otherInlineDoor)) {
-                throw new Error("Expected in-line door 1528 333.501.118 NOT to support side walls!");
+            if (!app.checkSideWallSupport(otherInlineDoor)) {
+                throw new Error("Expected in-line door 1528 333.501.118 to support side walls because side wall services are available!");
+            }
+
+            // S505 Plus in Flucht only has niche mounting costs available -> does NOT support side-wall dropdown (niche-only)
+            const s505InlineDoor = trays.find(t => t.artNr === "1543 206.501.118");
+            if (!s505InlineDoor) throw new Error("Could not find door 1543 206.501.118");
+
+            if (app.checkSideWallSupport(s505InlineDoor)) {
+                throw new Error("Expected S505 Plus in-line door 1543 206.501.118 NOT to support side walls because only niche services are available!");
             }
         }
     },
@@ -552,7 +567,9 @@ const tests = [
                                 if (hasSpecificService) return false;
                             }
                         } else {
-                            if (label.includes("mit seitenwand") || label.includes("für seitenwand") || label.includes("fuer seitenwand") || label.includes("eckeinstieg") ||
+                            if (label.includes("nische") || label.includes("nischen")) {
+                                // Keep it
+                            } else if (label.includes("mit seitenwand") || label.includes("für seitenwand") || label.includes("fuer seitenwand") || label.includes("eckeinstieg") ||
                                 (label.includes(" mit") && !label.includes("nische") && !label.includes("festelement") && !label.includes("pendelelement") && !label.includes("glasteil"))) {
                                 return false;
                             }
@@ -739,6 +756,369 @@ const tests = [
             const comboSupportsSideWall = app.checkSideWallSupport(comboDoor);
             if (!comboSupportsSideWall) {
                 throw new Error("Alterna Liva combination door 1541 756.591.118 SHOULD support side walls");
+            }
+        }
+    },
+    {
+        name: "Koralle S808 doors receive exactly one mounting service depending on side wall presence",
+        fn: () => {
+            const door1 = trays.find(t => t.artNr === "1173 945.490.118");
+            const door2 = trays.find(t => t.artNr === "1524 409.490.118");
+            
+            if (!door1) throw new Error("Could not find door 1173 945.490.118");
+            if (!door2) throw new Error("Could not find door 1524 409.490.118");
+
+            // Helper to get selected service IDs
+            const getServicesForState = (door, hasSideWall) => {
+                const r = app.extractSizeScore(door);
+                const checkWidth = app.extractWidthCm(door);
+                
+                return (door.services || []).filter(n => {
+                    const labelAndDesc = (n.label + " " + (n.description || "")).toLowerCase();
+                    const isEckeinstiegProduct = (door.label || "").toLowerCase().includes("eckeinstieg") || (door.form || "").toLowerCase().includes("eckeinstieg");
+                    
+                    if (labelAndDesc.includes("montagepauschale") && ((labelAndDesc.includes("bis 125") && r > 125) || (labelAndDesc.includes("ab 125") && r <= 125))) {
+                        return false;
+                    }
+
+                    if (isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg")) {
+                        return true;
+                    }
+                    
+                    if (hasSideWall) {
+                        if (labelAndDesc.includes("in nische") || labelAndDesc.includes("für nische") || labelAndDesc.includes("fuer nische")) {
+                            return false;
+                        }
+                        if (!isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg")) {
+                            return false;
+                        }
+                        if (isEckeinstiegProduct && labelAndDesc.includes("seitenwand") && !labelAndDesc.includes("eckeinstieg")) {
+                            return false;
+                        }
+                    } else {
+                        const cleanLabel = n.label.toLowerCase();
+                        if (cleanLabel.includes("nische") || cleanLabel.includes("nischen")) {
+                            // Keep it
+                        } else if (labelAndDesc.includes("mit seitenwand") || labelAndDesc.includes("für seitenwand") || labelAndDesc.includes("fuer seitenwand") || labelAndDesc.includes("seitenwand") || labelAndDesc.includes("eckeinstieg") ||
+                            (labelAndDesc.includes(" mit") && !labelAndDesc.includes("nische") && !labelAndDesc.includes("festelement") && !labelAndDesc.includes("pendelelement") && !labelAndDesc.includes("glasteil"))) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }).filter(n => n.label.toLowerCase().includes("montagepauschale"));
+            };
+
+            // 1. Nische installation (no side wall)
+            const nicheServices1 = getServicesForState(door1, false);
+            if (nicheServices1.length !== 1 || nicheServices1[0].artNr !== "1521 458.000.000") {
+                throw new Error(`Expected exactly niche service 1521 458.000.000 for door 1173 945 in Nische, got: ${nicheServices1.map(s => s.artNr).join(', ')}`);
+            }
+
+            const nicheServices2 = getServicesForState(door2, false);
+            if (nicheServices2.length !== 1 || nicheServices2[0].artNr !== "1521 458.000.000") {
+                throw new Error(`Expected exactly niche service 1521 458.000.000 for door 1524 409 in Nische, got: ${nicheServices2.map(s => s.artNr).join(', ')}`);
+            }
+
+            // 2. Seitenwand installation (with side wall)
+            const wallServices1 = getServicesForState(door1, true);
+            if (wallServices1.length !== 1 || wallServices1[0].artNr !== "1521 463.000.000") {
+                throw new Error(`Expected exactly side wall service 1521 463.000.000 for door 1173 945 with side wall, got: ${wallServices1.map(s => s.artNr).join(', ')}`);
+            }
+
+            const wallServices2 = getServicesForState(door2, true);
+            if (wallServices2.length !== 1 || wallServices2[0].artNr !== "1521 463.000.000") {
+                throw new Error(`Expected exactly side wall service 1521 463.000.000 for door 1524 409 with side wall, got: ${wallServices2.map(s => s.artNr).join(', ')}`);
+            }
+        }
+    },
+    {
+        name: "Koralle S808 Eckeinstieg products receive correct Eckeinstieg mounting service",
+        fn: () => {
+            const ecke1 = trays.find(t => t.artNr === "1173 938.490.118");
+            const ecke2 = trays.find(t => t.artNr === "1524 439.490.118");
+            
+            if (!ecke1) throw new Error("Could not find door 1173 938.490.118");
+            if (!ecke2) throw new Error("Could not find door 1524 439.490.118");
+
+            const getServicesForState = (door, hasSideWall) => {
+                const r = app.extractSizeScore(door);
+                const checkWidth = app.extractWidthCm(door);
+                
+                return (door.services || []).filter(n => {
+                    const labelAndDesc = (n.label + " " + (n.description || "")).toLowerCase();
+                    const isEckeinstiegProduct = (door.label || "").toLowerCase().includes("eckeinstieg") || (door.form || "").toLowerCase().includes("eckeinstieg");
+                    
+                    if (labelAndDesc.includes("montagepauschale") && ((labelAndDesc.includes("bis 125") && r > 125) || (labelAndDesc.includes("ab 125") && r <= 125))) {
+                        return false;
+                    }
+
+                    if (isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg")) {
+                        return true;
+                    }
+                    
+                    if (hasSideWall) {
+                        if (labelAndDesc.includes("in nische") || labelAndDesc.includes("für nische") || labelAndDesc.includes("fuer nische")) {
+                            return false;
+                        }
+                        if (!isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg")) {
+                            return false;
+                        }
+                        if (isEckeinstiegProduct && labelAndDesc.includes("seitenwand") && !labelAndDesc.includes("eckeinstieg")) {
+                            return false;
+                        }
+                    } else {
+                        const cleanLabel = n.label.toLowerCase();
+                        if (cleanLabel.includes("nische") || cleanLabel.includes("nischen")) {
+                            // Keep it
+                        } else if (labelAndDesc.includes("mit seitenwand") || labelAndDesc.includes("für seitenwand") || labelAndDesc.includes("fuer seitenwand") || labelAndDesc.includes("seitenwand") || (!isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg")) ||
+                            (labelAndDesc.includes(" mit") && !labelAndDesc.includes("nische") && !labelAndDesc.includes("festelement") && !labelAndDesc.includes("pendelelement") && !labelAndDesc.includes("glasteil"))) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }).filter(n => n.label.toLowerCase().includes("montagepauschale"));
+            };
+
+            // Eckeinstieg products do not have side wall active in configurator, so hasSideWall = false
+            const services1 = getServicesForState(ecke1, false);
+            if (services1.length !== 1 || services1[0].artNr !== "1521 457.000.000") {
+                throw new Error(`Expected exactly Eckeinstieg service 1521 457.000.000 for eckeinstieg 1173 938, got: ${services1.map(s => s.artNr).join(', ')}`);
+            }
+
+            const services2 = getServicesForState(ecke2, false);
+            if (services2.length !== 1 || services2[0].artNr !== "1521 457.000.000") {
+                throw new Error(`Expected exactly Eckeinstieg service 1521 457.000.000 for eckeinstieg 1524 439, got: ${services2.map(s => s.artNr).join(', ')}`);
+            }
+        }
+    },
+    {
+        name: "Service cost description deduplication suppresses redundant descriptions",
+        fn: () => {
+            const checkDeduplication = (label, description) => {
+                const cleanLabel = label.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const cleanDesc = description.toLowerCase().replace(/[^a-z0-9]/g, '');
+                return cleanLabel.includes(cleanDesc) || cleanDesc.includes(cleanLabel);
+            };
+
+            if (!checkDeduplication(
+                "Montagepauschale Koralle, in Nische, für S505, S808, Türe in Nische,",
+                "Montagepauschale Koralle, in Nische, für S505, S808, Türe in Nische, Nettobetrag"
+            )) {
+                throw new Error("Redundant description (one includes the other) should be detected");
+            }
+
+            if (!checkDeduplication(
+                "Massaufnahme Trennwände Koralle, für 1 - 3 Trennwände pro Objekt, Nettobetrag",
+                "Massaufnahme Trennwände Koralle, für 1 - 3 Trennwände pro Objekt, Nettobetrag"
+            )) {
+                throw new Error("Identical label and description should be detected as redundant");
+            }
+
+            if (checkDeduplication(
+                "Montagepauschale",
+                "Different description info here"
+            )) {
+                throw new Error("Distinct label and description should not be detected as redundant");
+            }
+        }
+    },
+    {
+        name: "Alterna and Duscholux side wall support rules and service filtering",
+        fn: () => {
+            // Test 1: Alterna lin.3 with included side wall (artNr: 1545 352.501.119)
+            // It should not support side wall dropdown (returns false) but is classified as side-wall-included (treated as Eckeinstieg)
+            const p1 = trays.find(t => t.artNr === "1545 352.501.119");
+            if (!p1) throw new Error("Could not find product 1545 352.501.119");
+
+            const support1 = app.checkSideWallSupport(p1);
+            if (support1 !== false) {
+                throw new Error("Product 1545 352.501.119 (mit Seitenwand included) should return false for checkSideWallSupport");
+            }
+
+            const isIncluded1 = app.isAlternaOrDuscholuxSideWallIncluded(p1);
+            if (isIncluded1 !== true) {
+                throw new Error("Product 1545 352.501.119 should be classified as side-wall-included");
+            }
+
+            // Test 2: Alterna liva combination (artNr: 1541 756.591.118)
+            // It should support side wall dropdown (returns true)
+            const p2 = trays.find(t => t.artNr === "1541 756.591.118");
+            if (!p2) throw new Error("Could not find product 1541 756.591.118");
+
+            const support2 = app.checkSideWallSupport(p2);
+            if (support2 !== true) {
+                throw new Error("Product 1541 756.591.118 (zur Kombination mit Seitenwand) should return true for checkSideWallSupport");
+            }
+
+            const isIncluded2 = app.isAlternaOrDuscholuxSideWallIncluded(p2);
+            if (isIncluded2 !== false) {
+                throw new Error("Product 1541 756.591.118 should not be classified as side-wall-included");
+            }
+
+            // Test 3: Alterna primo combination (artNr: 1541 792.595.120)
+            // It should support side wall dropdown (returns true)
+            const p3 = trays.find(t => t.artNr === "1541 792.595.120");
+            if (!p3) throw new Error("Could not find product 1541 792.595.120");
+
+            const support3 = app.checkSideWallSupport(p3);
+            if (support3 !== true) {
+                throw new Error("Product 1541 792.595.120 (für Nische oder mit Seitenwand) should return true for checkSideWallSupport");
+            }
+        }
+    },
+    {
+        name: "S606 Plus mit Seitenwand in Flucht in Nische receives correct niche mounting service",
+        fn: () => {
+            const door = trays.find(t => t.artNr === "1528 319.501.118");
+            if (!door) throw new Error("Could not find door 1528 319.501.118");
+
+            const getServicesForState = (door, hasSideWall) => {
+                const r = app.extractSizeScore(door);
+                const checkWidth = app.extractWidthCm(door);
+                
+                return (door.services || []).filter(n => {
+                    const labelAndDesc = (n.label + " " + (n.description || "")).toLowerCase();
+                    const isEckeinstiegProduct = (door.label || "").toLowerCase().includes("eckeinstieg") || (door.form || "").toLowerCase().includes("eckeinstieg");
+                    
+                    if (labelAndDesc.includes("montagepauschale") && ((labelAndDesc.includes("bis 125") && r > 125) || (labelAndDesc.includes("ab 125") && r <= 125))) {
+                        return false;
+                    }
+
+                    if (isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg")) {
+                        return true;
+                    }
+                    
+                    if (hasSideWall) {
+                        if (labelAndDesc.includes("in nische") || labelAndDesc.includes("für nische") || labelAndDesc.includes("fuer nische")) {
+                            return false;
+                        }
+                        if (!isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg")) {
+                            return false;
+                        }
+                        if (isEckeinstiegProduct && labelAndDesc.includes("seitenwand") && !labelAndDesc.includes("eckeinstieg")) {
+                            return false;
+                        }
+                    } else {
+                        const cleanLabel = n.label.toLowerCase();
+                        if (cleanLabel.includes("nische") || cleanLabel.includes("nischen")) {
+                            // Keep it
+                        } else if (labelAndDesc.includes("mit seitenwand") || labelAndDesc.includes("für seitenwand") || labelAndDesc.includes("fuer seitenwand") || labelAndDesc.includes("seitenwand") || labelAndDesc.includes("eckeinstieg") ||
+                            (labelAndDesc.includes(" mit") && !labelAndDesc.includes("nische") && !labelAndDesc.includes("festelement") && !labelAndDesc.includes("pendelelement") && !labelAndDesc.includes("glasteil"))) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }).filter(n => n.label.toLowerCase().includes("montagepauschale"));
+            };
+
+            const nicheServices = getServicesForState(door, false);
+            if (nicheServices.length !== 1 || nicheServices[0].artNr !== "1521 968.000.000") {
+                throw new Error(`Expected exactly niche service 1521 968.000.000 for door 1528 319 in Nische, got: ${nicheServices.map(s => s.artNr).join(', ')}`);
+            }
+        }
+    },
+    {
+        name: "Service sorting order in BOM and Clipboard Copy",
+        fn: () => {
+            const door = trays.find(t => t.artNr === "1528 319.501.118");
+            if (!door) throw new Error("Could not find door 1528 319.501.118");
+            
+            window.copyTextToClipboard = (text) => {
+                lastCopiedText = text;
+                return Promise.resolve();
+            };
+            
+            app.selectedTray = door;
+            app.selectedTray.selections = app.selectedTray.selections || {};
+            app.selectedTray.selections.__seitenwand__ = "1173 962.490.118"; 
+            
+            let bomRows = [];
+            globalMockElements.bomTableBody.innerHTML = "";
+            
+            let rows = [];
+            Object.defineProperty(globalMockElements.bomTableBody, "innerHTML", {
+                set: (val) => {
+                    bomRows = [];
+                    rows = [];
+                    const trRegex = /<tr class="([^"]+)"[^>]*>([\s\S]*?)<\/tr>/g;
+                    let trMatch;
+                    while ((trMatch = trRegex.exec(val)) !== null) {
+                        const trClass = trMatch[1];
+                        const trContent = trMatch[2];
+                        
+                        const codeMatch = /<span class="bom-code">([^<]+)<\/span>/.exec(trContent);
+                        const qtyMatch = /<strong>([^<]+)<\/strong>/.exec(trContent);
+                        
+                        const code = codeMatch ? codeMatch[1].trim() : "";
+                        const qty = qtyMatch ? qtyMatch[1].trim() : "1";
+                        
+                        bomRows.push(code);
+                        rows.push({
+                            style: {},
+                            classList: {
+                                contains: (cls) => trClass.split(' ').includes(cls)
+                            },
+                            querySelector: (selector) => {
+                                if (selector === ".bom-code") {
+                                    return { textContent: code };
+                                }
+                                if (selector === "strong") {
+                                    return { textContent: qty };
+                                }
+                                return null;
+                            }
+                        });
+                    }
+                },
+                configurable: true
+            });
+            globalMockElements.bomTableBody.querySelectorAll = (selector) => {
+                if (selector === "tr") {
+                    return rows;
+                }
+                return [];
+            };
+
+            app.updateBOM();
+            
+            const services = door.services || [];
+            const serviceArtNrs = services.map(s => s.artNr);
+            const renderedServiceArtNrs = bomRows.filter(code => serviceArtNrs.includes(code));
+            
+            const getPriority = (code) => {
+                const sItem = services.find(s => s.artNr === code);
+                if (!sItem) return 4;
+                const text = ((sItem.label || "") + " " + (sItem.description || "")).toLowerCase();
+                if (text.includes("massaufnahme") || text.includes("ausmass") || text.includes("ausmaß")) return 1;
+                if (text.includes("anfahrt")) return 2;
+                if (text.includes("montage")) return 3;
+                return 4;
+            };
+            
+            if (renderedServiceArtNrs.length === 0) {
+                throw new Error("Expected some services to be rendered in BOM");
+            }
+            
+            for (let i = 0; i < renderedServiceArtNrs.length - 1; i++) {
+                if (getPriority(renderedServiceArtNrs[i]) > getPriority(renderedServiceArtNrs[i+1])) {
+                    throw new Error(`BOM services out of order: ${renderedServiceArtNrs.join(', ')}`);
+                }
+            }
+            
+            lastCopiedText = "";
+            app.copyToClipboard();
+            
+            const copiedLines = lastCopiedText.split('\n').map(line => line.split('\t')[0]);
+            const copiedServiceArtNrs = copiedLines.filter(code => serviceArtNrs.includes(code));
+            
+            if (copiedServiceArtNrs.length === 0) {
+                throw new Error("Expected some services to be copied to clipboard");
+            }
+            
+            for (let i = 0; i < copiedServiceArtNrs.length - 1; i++) {
+                if (getPriority(copiedServiceArtNrs[i]) > getPriority(copiedServiceArtNrs[i+1])) {
+                    throw new Error(`Clipboard services out of order: ${copiedServiceArtNrs.join(', ')}`);
+                }
             }
         }
     }

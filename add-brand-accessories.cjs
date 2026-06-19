@@ -37,9 +37,9 @@ if (data.bademischer && data.bademischer.trays) {
           // If no brand specific Handbrause, use Alterna as fallback
           handbrauseOptions = alternaAccessories.find(m => m.name.toLowerCase().includes('handbrause')).options;
         } else {
-          // ensure 'Ohne Handbrause' is the first option
+          // ensure 'Ohne Handbrause' is at the end of options
           if (!handbrauseOptions.find(o => o.label.toLowerCase().includes('ohne handbrause'))) {
-             handbrauseOptions.unshift({
+             handbrauseOptions.push({
                artNr: 'ohne_handbrause',
                label: 'Ohne Handbrause',
                type: 'Option',

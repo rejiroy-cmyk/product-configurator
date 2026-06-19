@@ -133,10 +133,10 @@ function isDrainAssembly(item) {
 
 function isDrainCover(item) {
     const label = (item.label || '').toLowerCase();
+    if (label.includes('ohne ablaufhaube') || label.includes('ohne ablaufdeckel')) return false;
     if (startsWithAny(label, ['duschwannengarnitur', 'ablaufgarnitur', 'duschwannenablauf', 'duschwannen-ablauf'])) return false;
     return label.includes('ablaufdeckel') || label.includes('ablaufhaube') || label.includes('ablaufabdeckung');
 }
-
 function drainNeedsCover(item) {
     const label = (item.label || '').toLowerCase();
     return label.includes('ohne ablaufdeckel') || label.includes('ohne ablaufhaube') || label.includes('ohne ablaufabdeckung');
@@ -204,32 +204,27 @@ function buildDrainCoverRules(drains, covers) {
 
     return drains.map(drain => {
         let matched = covers.filter(cover => drainCoverMatches(drain, cover));
-        if (matched.length === 0 && drainNeedsCover(drain)) matched = covers;
-        // Do NOT clear matches if drain includes cover! The user might want an optional colored cover.
-        // if (drainIncludesCover(drain)) matched = [];
+        let optionArtNrs = matched.map(cover => cover.artNr);
+
+        // If the drain/tray includes a cover (e.g. KA 90, Laufen Pro), add 'none' as the first option
+        const drainBase = cleanBaseArtNr(drain.artNr);
+        const isKA90 = ['1313271', '1313272', '1313273'].includes(drainBase);
+        const isLaufenPro = drainBase === '1171405';
+
+        if (isKA90 || isLaufenPro) {
+            optionArtNrs.unshift('none');
+        }
 
         return {
             whenArtNr: drain.artNr,
-            optionArtNrs: matched.map(cover => cover.artNr)
+            optionArtNrs: optionArtNrs
         };
     });
 }
 
 function buildSiphonRules(covers, drains) {
-    if (drains.length === 0 || covers.length === 0) return [];
-
-    return covers.map(cover => {
-        let matched = drains.filter(drain => drainCoverMatches(drain, cover));
-        if (matched.length === 0) {
-            matched = drains.filter(drain => !drainIncludesCover(drain));
-            if (matched.length === 0) matched = drains;
-        }
-
-        return {
-            whenArtNr: cover.artNr,
-            optionArtNrs: matched.map(drain => drain.artNr)
-        };
-    });
+    // Siphon is the parent now, so this is unused, but kept for compatibility
+    return [];
 }
 
 function getTrayDimensions(tray) {
@@ -266,22 +261,60 @@ function findCarriersForTray(tray) {
             const lbl = (p.label || '').toLowerCase();
             if (!lbl.includes('träger') || lbl.includes('badewannenträger')) return;
 
-            // Check if it mentions the tray dimensions (e.g. 1600 x 1000)
+            // Parse carrier dimensions using regex (\d+) x (\d+)
+            const sizeMatch = lbl.match(/(\d+)\s*x\s*(\d+)/);
+            if (!sizeMatch) return;
+
+            const carrierL = parseInt(sizeMatch[1]);
+            const carrierW = parseInt(sizeMatch[2]);
+
             const mmL = l < 250 ? l * 10 : l;
             const mmW = w < 250 ? w * 10 : w;
 
-            const hasSize = lbl.includes(mmL.toString()) && lbl.includes(mmW.toString());
-            const hasMfr = lbl.includes(mfr);
+            // Strict dimension check (exact size matching, allowing rotation)
+            const sizeMatches = (carrierL === mmL && carrierW === mmW) || (carrierL === mmW && carrierW === mmL);
+            if (!sizeMatches) return;
 
-            // Add strict matching for model family
+            // Manufacturer / Brand compatibility (allow alterna/schedel as universal)
             const trayLbl = (tray.label || '').toLowerCase();
-            let hasModel = true;
-            if (trayLbl.includes('calima') && !lbl.includes('calima')) hasModel = false;
-            else if (trayLbl.includes('superplan') && !lbl.includes('superplan')) hasModel = false;
-            else if (trayLbl.includes('cayonoplan') && !lbl.includes('cayonoplan')) hasModel = false;
-            else if (trayLbl.includes('duschplan') && !lbl.includes('duschplan')) hasModel = false;
+            const hasMfr = lbl.includes(mfr) || lbl.includes('alterna') || lbl.includes('schedel') || 
+                           (trayLbl.includes('sanidusch') && lbl.includes('sanidusch')) ||
+                           (trayLbl.includes('superplan') && lbl.includes('superplan')) ||
+                           (trayLbl.includes('duschplan') && lbl.includes('duschplan'));
 
-            if (hasSize && hasMfr && hasModel) {
+            // Add strict matching for model family (including Superplan sub-families)
+            let hasModel = true;
+            if (trayLbl.includes('calima') && !lbl.includes('calima')) {
+                hasModel = false;
+            } else if (trayLbl.includes('superplan')) {
+                // Determine exact Superplan sub-family of the tray
+                const trayIsZero    = trayLbl.includes('superplan zero');
+                const trayIsClassic = trayLbl.includes('superplan classic');
+                const trayIsPlus    = trayLbl.includes('superplan plus');
+                const trayIsXXL     = trayLbl.includes('superplan xxl');
+                const trayIsPure    = !trayIsZero && !trayIsClassic && !trayIsPlus && !trayIsXXL;
+
+                if (!lbl.includes('superplan')) {
+                    hasModel = false;
+                } else if (trayIsPure) {
+                    // Pure Superplan tray must NOT get Zero / Classic / Plus / XXL carriers
+                    if (lbl.includes('superplan zero') || lbl.includes('superplan classic') ||
+                        lbl.includes('superplan plus') || lbl.includes('superplan xxl')) {
+                        hasModel = false;
+                    }
+                } else if (trayIsZero    && !lbl.includes('superplan zero'))    { hasModel = false; }
+                else if (trayIsClassic && !lbl.includes('superplan classic')) { hasModel = false; }
+                else if (trayIsPlus    && !lbl.includes('superplan plus'))    { hasModel = false; }
+                else if (trayIsXXL     && !lbl.includes('superplan xxl'))     { hasModel = false; }
+            } else if (trayLbl.includes('cayonoplan') && !lbl.includes('cayonoplan')) {
+                hasModel = false;
+            } else if (trayLbl.includes('duschplan') && !lbl.includes('duschplan')) {
+                hasModel = false;
+            } else if (trayLbl.includes('sanidusch') && !lbl.includes('sanidusch')) {
+                hasModel = false;
+            }
+
+            if (hasMfr && hasModel) {
                 results.push({
                     artNr: p.artNr,
                     label: p.label,
@@ -294,6 +327,51 @@ function findCarriersForTray(tray) {
     }
 
     return results;
+}
+
+/**
+ * Finds the exact Omnia Rahmen for a Schmidlin tray by matching pool label dimensions.
+ * Labels are like "Montagerahmen Schmidlin Omnia 120 x 80 cm ..."
+ * Tries exact match first, then allows 1 cm tolerance.
+ */
+function findOmniaFrameForSchmidlin(l, w) {
+    // Normalize to cm (tray sizes can be in cm already)
+    const trayL = l < 20 ? l * 100 : l; // shouldn't be needed, but safety
+    const trayW = w < 20 ? w * 100 : w;
+    const bestMatches = [];
+    const fallbacks = [];
+
+    FULL_POOL.forEach(p => {
+        const lbl = (p.label || '').toLowerCase();
+        // Must be Omnia AND Rahmen, but NOT a Swiss Line Montageset
+        if (!lbl.includes('omnia') || !lbl.includes('rahmen')) return;
+        if (lbl.includes('montageset')) return;
+
+        // Parse "... Omnia 120 x 80 cm ..." or "... Omnia 80 x 75 cm ..."
+        const sizeMatch = lbl.match(/(\d+)\s*x\s*(\d+)\s*cm/);
+        if (!sizeMatch) {
+            fallbacks.push(p);
+            return;
+        }
+
+        const frameL = parseInt(sizeMatch[1]);
+        const frameW = parseInt(sizeMatch[2]);
+
+        // Check both orientations
+        const exactMatch =
+            (frameL === trayL && frameW === trayW) ||
+            (frameL === trayW && frameW === trayL);
+        if (exactMatch) {
+            bestMatches.push(p);
+        }
+    });
+
+    if (bestMatches.length > 0) {
+        return bestMatches.map(m => ({ ...m, type: 'Zubehör', menge: 1 }));
+    }
+
+    // No exact match — return nothing (don't assign a wrong size frame)
+    return [];
 }
 
 function findIneoFramesForTray(l, w) {
@@ -399,29 +477,56 @@ data.duschenwanne.trays.forEach(tray => {
         ...allScraped.filter(isDrainAssembly)
     ]).map(s => ({ ...s, type: 'Zubehör', menge: 1 }));
 
-    // Sort to make Geberit the default option
+    // Ensure Alterna siphons & covers are present
+    if (mfr.includes('alterna') || lbl.includes('ecoplan')) {
+        if (!siphons.some(s => cleanArtNr(s.artNr) === cleanArtNr('1422 117.000.000'))) {
+            siphons.push(...byArtNr('1422 117.000.000')); // Geberit d90 Standard for Alterna
+        }
+    }
+
+    // Ensure Kaldewei siphons & covers are present
+    if (mfr.includes('kaldewei')) {
+        if (lbl.includes('calima') || lbl.includes('sanidusch')) {
+            // KA 300
+            if (!siphons.some(s => cleanArtNr(s.artNr) === cleanArtNr('1313 277.501.000'))) {
+                siphons.push(...byArtNr('1313 277.501.000'));
+            }
+        } else {
+            // KA 90
+            if (!siphons.some(s => cleanArtNr(s.artNr) === cleanArtNr('1313 271.501.000'))) {
+                siphons.push(...byArtNr('1313 271.501.000'));
+            }
+            if (!siphons.some(s => cleanArtNr(s.artNr) === cleanArtNr('1313 273.501.000'))) {
+                siphons.push(...byArtNr('1313 273.501.000'));
+            }
+        }
+    }
+
+    // Ensure Schmidlin siphons are present
+    if (mfr.includes('schmidlin') && !isSwissLine) {
+        if (!siphons.some(s => cleanArtNr(s.artNr) === cleanArtNr('1311 701.000.000'))) {
+            siphons.push(...byArtNr('1311 701.000.000')); // Schmidlin flow 50
+        }
+        if (!siphons.some(s => cleanArtNr(s.artNr) === cleanArtNr('1422 117.000.000'))) {
+            siphons.push(...byArtNr('1422 117.000.000')); // Geberit d90 Standard
+        }
+    }
+
+    // Ensure Schmidlin Swiss Line siphons are present
+    if (isSwissLine) {
+        if (!siphons.some(s => cleanArtNr(s.artNr) === cleanArtNr('1311 701.000.000'))) {
+            siphons.push(...byArtNr('1311 701.000.000')); // Schmidlin flow 50
+        }
+    }
+
+    // Sort siphons (manufacturer's brand first)
     siphons.sort((a, b) => {
-        const aGeberit = (a.label || '').toLowerCase().includes('geberit');
-        const bGeberit = (b.label || '').toLowerCase().includes('geberit');
-        if (aGeberit && !bGeberit) return -1;
-        if (!aGeberit && bGeberit) return 1;
+        const aMfr = (a.label || '').toLowerCase().includes(mfr);
+        const bMfr = (b.label || '').toLowerCase().includes(mfr);
+        if (aMfr && !bMfr) return -1;
+        if (!aMfr && bMfr) return 1;
         return 0;
     });
-
-    // Fallback for Alterna/ecoplan siphons if not in scraper
-    if (siphons.length === 0 && (mfr.includes('alterna') || lbl.includes('ecoplan'))) {
-        siphons.push(...byArtNr('1422 117.000.000')); // Geberit d90 Standard for Alterna
-    }
-
-    // Fallback for Kaldewei Calima siphons
-    if (siphons.length === 0 && mfr.includes('kaldewei') && lbl.includes('calima')) {
-        siphons.push(...byArtNr('1313 277.501.000')); // KA 300
-    }
-
-    // Fallback for Schmidlin Swiss Line siphons
-    if (siphons.length === 0 && isSwissLine) {
-        siphons.push(...byArtNr('1311 701.000.000')); // Schmidlin flow 50
-    }
 
     // --- 2. DECKEL ---
     const deckels = dedupeItems([
@@ -429,62 +534,116 @@ data.duschenwanne.trays.forEach(tray => {
         ...allScraped.filter(isDrainCover)
     ]).map(d => ({ ...d, type: 'Zubehör', menge: 1 }));
 
-    // Fallback for Schmidlin Swiss Line deckels
-    if (deckels.length === 0 && isSwissLine) {
-        deckels.push(...byArtNr('1311 699.100.000')); // Schmidlin Ablaufdeckel
+    // Ensure Alterna covers are present
+    if (mfr.includes('alterna') || lbl.includes('ecoplan')) {
+        const geberitCovers = ['1422 118.100.000', '1422 118.501.000'];
+        geberitCovers.forEach(art => {
+            if (!deckels.some(d => cleanArtNr(d.artNr) === cleanArtNr(art))) {
+                deckels.push(...byArtNr(art));
+            }
+        });
+    }
+
+    // Ensure Kaldewei covers are present
+    if (mfr.includes('kaldewei')) {
+        if (lbl.includes('calima') || lbl.includes('sanidusch')) {
+            const ka300Covers = ['1313 284.100.185', '1313 284.535.185', '1313 284.536.185'];
+            ka300Covers.forEach(art => {
+                if (!deckels.some(d => cleanArtNr(d.artNr) === cleanArtNr(art))) {
+                    deckels.push(...byArtNr(art));
+                }
+            });
+        } else {
+            const ka90Covers = ['1313 281.100.000', '1313 281.536.000', '1313 281.536.184'];
+            ka90Covers.forEach(art => {
+                if (!deckels.some(d => cleanArtNr(d.artNr) === cleanArtNr(art))) {
+                    deckels.push(...byArtNr(art));
+                }
+            });
+        }
+    }
+
+    // Ensure Schmidlin covers are present
+    if (mfr.includes('schmidlin') && !isSwissLine) {
+        const schmidlinCovers = ['1311 698.100.000', '1311 698.501.000', '1311 699.100.000'];
+        const geberitCovers = ['1422 118.100.000', '1422 118.501.000'];
+        [...schmidlinCovers, ...geberitCovers].forEach(art => {
+            if (!deckels.some(d => cleanArtNr(d.artNr) === cleanArtNr(art))) {
+                deckels.push(...byArtNr(art));
+            }
+        });
+    }
+
+    // Ensure Swiss Line covers are present
+    if (isSwissLine) {
+        if (!deckels.some(d => cleanArtNr(d.artNr) === cleanArtNr('1311 699.100.000'))) {
+            deckels.push(...byArtNr('1311 699.100.000'));
+        }
     }
     
-    // Sort deckels
+    // Sort deckels (manufacturer's brand first)
     deckels.sort((a, b) => {
-        const aGeberit = (a.label || '').toLowerCase().includes('geberit');
-        const bGeberit = (b.label || '').toLowerCase().includes('geberit');
-        if (aGeberit && !bGeberit) return -1;
-        if (!aGeberit && bGeberit) return 1;
+        const aMfr = (a.label || '').toLowerCase().includes(mfr);
+        const bMfr = (b.label || '').toLowerCase().includes(mfr);
+        if (aMfr && !bMfr) return -1;
+        if (!aMfr && bMfr) return 1;
         return 0;
     });
 
     // Build rules (Deckel depends on Siphon)
     const deckelRules = buildDrainCoverRules(siphons, deckels);
-    deckelRules.forEach(r => {
-        // ONLY KA 90 includes an Ablaufdeckel out of the box
-        if (r.whenArtNr === '1313 271.501.000') {
-            r.optionArtNrs.unshift('none');
-        }
-    });
-    
-    let finalDeckels = deckels;
-    
-    // If the tray description says the Ablaufabdeckung is included, don't inject another one
-    if (lbl.includes('ablaufabdeckung') || lbl.includes('inkl. ablaufdeckel') || lbl.includes('ablaufdeckel edelstahl lackiert in wannenfarbe')) {
-        finalDeckels = [];
-    }
 
-    // PUSH SIPHON FIRST! (Because it's mandatory and may include a basic cover)
-    if (siphons.length > 0) {
-        tray.mountingMaterials.push({
-            id: 'mat_siphon',
-            name: 'Ablaufgarnitur',
-            options: siphons
+    // Add a "None" option so the user isn't forced to buy an extra cover
+    const optionalDeckels = deckels.length > 0 ? [
+        { artNr: 'none', label: 'Ohne (Standardabdeckung der Ablaufgarnitur nutzen)', type: 'Zubehör', menge: 0 },
+        ...deckels
+    ] : [];
+
+    // Build reverse rules (Siphon depends on Deckel)
+    const siphonRules = [];
+    if (siphons.length > 0 && optionalDeckels.length > 0) {
+        optionalDeckels.forEach(cover => {
+            let matchedSiphons;
+            if (cover.artNr === 'none') {
+                matchedSiphons = siphons;
+            } else {
+                matchedSiphons = siphons.filter(s => drainCoverMatches(s, cover));
+                if (matchedSiphons.length === 0) {
+                    matchedSiphons = siphons;
+                }
+            }
+            siphonRules.push({
+                whenArtNr: cover.artNr,
+                optionArtNrs: matchedSiphons.map(s => s.artNr)
+            });
         });
     }
 
-    // PUSH DECKEL SECOND AS OPTIONAL ADD-ON!
-    if (finalDeckels.length > 0) {
-        // Add a "None" option so the user isn't forced to buy an extra cover
-        const optionalDeckels = [
-            { artNr: 'none', label: 'Ohne (Standardabdeckung der Ablaufgarnitur nutzen)', type: 'Zubehör', menge: 0 },
-            ...finalDeckels
-        ];
-        
+    // PUSH SIPHON FIRST!
+    if (siphons.length > 0) {
+        const hasDeckel = optionalDeckels.length > 0;
+        tray.mountingMaterials.push({
+            id: 'mat_siphon',
+            name: 'Ablaufgarnitur',
+            options: siphons,
+            dependsOn: hasDeckel ? 'mat_deckel' : undefined,
+            optionRules: hasDeckel ? siphonRules : [],
+            blockedMessage: 'Bitte zuerst Ablaufdeckel wählen.',
+            noOptionsMessage: 'Keine kompatible Ablaufgarnitur gefunden.'
+        });
+    }
+
+    // PUSH DECKEL SECOND!
+    if (optionalDeckels.length > 0) {
         const hasSiphon = siphons.length > 0;
         tray.mountingMaterials.push({
             id: 'mat_deckel',
-            name: 'Farbiger Ablaufdeckel (Optional)',
+            name: 'Ablaufdeckel',
             options: optionalDeckels,
             dependsOn: hasSiphon ? 'mat_siphon' : undefined,
             optionRules: hasSiphon ? deckelRules : [],
-            blockedMessage: 'Bitte zuerst eine Ablaufgarnitur wählen.',
-            noOptionsMessage: 'Keine passenden Deckel für diese Garnitur gefunden.'
+            blockedMessage: 'Bitte zuerst Ablaufgarnitur wählen.',
+            noOptionsMessage: 'Kein kompatibler Ablaufdeckel benötigt/verfügbar.'
         });
     }
 
@@ -643,8 +802,15 @@ data.duschenwanne.trays.forEach(tray => {
                 frames = byArtNr(frameArtNr);
             }
         } else if (mfr.includes('schmidlin') || isAlternaLoa) {
-            const omnia = getByKeyword(['omnia']).filter(o => o.label.toLowerCase().includes('rahmen'));
-            frames = omnia.length > 0 ? omnia : byArtNr('1435 105.000.000');
+            // Try to find a size-matched Omnia frame first
+            const sizedOmnia = findOmniaFrameForSchmidlin(l, w);
+            if (sizedOmnia.length > 0) {
+                frames = sizedOmnia;
+            } else {
+                // Fallback: check if scraper gave us any omnia rahmen
+                const omnia = getByKeyword(['omnia']).filter(o => (o.label || '').toLowerCase().includes('rahmen') && !(o.label || '').toLowerCase().includes('montageset'));
+                frames = omnia.length > 0 ? omnia : byArtNr('1435 105.000.000');
+            }
         } else if (mfr.includes('laufen') && (lbl.includes('pro') || lbl.includes('pro s'))) {
             frames = findIneoFramesForTray(l, w);
         }
@@ -700,6 +866,64 @@ data.duschenwanne.trays.forEach(tray => {
     }
 });
 
-// --- 5. Save ---
+// --- 5. Merge from backup and enforce bidirectional rules ---
+const backupHtmlPath = path.join(__dirname, '../backups/20260616_054611_dist/index.html');
+if (fs.existsSync(backupHtmlPath)) {
+    console.log('Loading backup to restore siphon/cover mapping...');
+    const html = fs.readFileSync(backupHtmlPath, 'utf8');
+    const artIdx = html.indexOf('1311 407.100.000');
+    if (artIdx !== -1) {
+        const traysIdx = html.lastIndexOf('trays:[', artIdx);
+        if (traysIdx !== -1) {
+            const startIdx = traysIdx - 1; // index of "{"
+            let braceCount = 0;
+            let endIdx = -1;
+            for (let i = startIdx; i < html.length; i++) {
+                const c = html[i];
+                if (c === '{') braceCount++;
+                else if (c === '}') {
+                    braceCount--;
+                    if (braceCount === 0) {
+                        endIdx = i;
+                        break;
+                    }
+                }
+            }
+            try {
+                const backupData = eval('(' + html.substring(startIdx, endIdx + 1) + ')');
+                const backupTrays = backupData.trays;
+                let mergedCount = 0;
+                
+                data.duschenwanne.trays.forEach(curTray => {
+                    const bakTray = backupTrays.find(t => t.artNr === curTray.artNr);
+                    if (bakTray && bakTray.mountingMaterials && bakTray.mountingMaterials.length > 0) {
+                        const bakSiphon = bakTray.mountingMaterials.find(m => m.id === 'mat_siphon');
+                        const bakDeckel = bakTray.mountingMaterials.find(m => m.id === 'mat_deckel');
+                        
+                        if (bakSiphon || bakDeckel) {
+                            // Replace in curTray.mountingMaterials
+                            curTray.mountingMaterials = curTray.mountingMaterials.filter(m => m.id !== 'mat_siphon' && m.id !== 'mat_deckel');
+                            
+                            const bakMaterials = [];
+                            bakTray.mountingMaterials.forEach(m => {
+                                if (m.id === 'mat_siphon' || m.id === 'mat_deckel') {
+                                    bakMaterials.push(JSON.parse(JSON.stringify(m)));
+                                }
+                            });
+                            
+                            curTray.mountingMaterials.unshift(...bakMaterials);
+                            mergedCount++;
+                        }
+                    }
+                });
+                console.log(`Merged siphons/covers from backup for ${mergedCount} trays.`);
+            } catch (e) {
+                console.error('Failed to parse backup html:', e);
+            }
+        }
+    }
+}
+
+// --- 6. Save ---
 fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
 console.log(`Success! Scraper-accurate mapping applied to ${data.duschenwanne.trays.length} shower trays.`);

@@ -43,11 +43,6 @@
     ],
     "montagerahmen": [
       {
-        "artNr": "1435 264.000.000",
-        "label": "montagerahmen schmidlin, 80 x 80 cm, für duschwannen quadratisch /",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01435264.jpg"
-      },
-      {
         "artNr": "1435 105.000.000",
         "label": "montagerahmen schmidlin omnia, 80 x 80 cm, für alle schmidlin duschenwannen,",
         "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01435105.png"
@@ -55,19 +50,30 @@
     ],
     "stelzfüsse": [],
     "montageset": [],
-    "dichtband": [],
+    "dichtband": [
+      {
+        "artNr": "1461 004.000.000",
+        "label": "zargen-wannendichtband alterna, länge 3,4 m, 2 wannen-eckdichtungen butyl,",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01461004.png"
+      }
+    ],
     "montageschaum": [],
     "schallschutz": [],
     "others": [
       {
-        "artNr": "1311 407.100.181",
-        "label": "Duschwanne Schmidlin, 80 x 80 x 3,5 cm, Stahl, Schallisolierung, Ablaufloch Ø",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311407_100_nV.png"
+        "artNr": "1311 407.100.186",
+        "label": "Duschenwanne Schmidlin, 80 x 80 x 3,5 cm, Stahl, Schallisolierung, Ablaufloch",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311407_100_000.png"
       },
       {
         "artNr": "1422 117.000.000",
         "label": "duschwannenablauf geberit ø 90, für duschenwannen mit ablaufloch ø 90 mm,",
         "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422117_000_000.png"
+      },
+      {
+        "artNr": "1461 015.000.000",
+        "label": "3 wannen-eckdichtungen 3d alterna, für bodenbündige montage, mit 1",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01461015.png"
       }
     ]
   },
@@ -111,7 +117,7 @@
     "schallschutz": [],
     "others": [
       {
-        "artNr": "1311 006.100.000",
+        "artNr": "1311 006.100.181",
         "label": "Duschwanne Schmidlin, 80 x 80 x 6,5 cm, Schallisolierung, Stahl, Ablaufloch Ø",
         "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311006.png"
       },
@@ -9856,19 +9862,19 @@
     ],
     "others": [
       {
-        "artNr": "1171 403.136.000",
+        "artNr": "1171 403.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen schlitzen, edelstahl",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_136_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_536_000.png"
       },
       {
-        "artNr": "1171 404.136.000",
+        "artNr": "1171 404.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen unterbrochenen",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_136_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_536_000.png"
       },
       {
-        "artNr": "1311 189.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 800 mm, 1400 - 1800 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311189_000_000.png"
+        "artNr": "1311 373.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 1500-1800 x 700-900 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311373_000_000.png"
       }
     ]
   },
@@ -9922,9 +9928,9 @@
         "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_535_000.png"
       },
       {
-        "artNr": "1311 191.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 900 mm, 1000 - 1400 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311191_000_000.png"
+        "artNr": "1311 371.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 900-1200 x 700-900 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311371_000_000.png"
       }
     ]
   },
@@ -9973,19 +9979,19 @@
     ],
     "others": [
       {
-        "artNr": "1171 403.841.000",
+        "artNr": "1171 403.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen schlitzen, edelstahl",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_841_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_536_000.png"
       },
       {
-        "artNr": "1171 404.841.000",
+        "artNr": "1171 404.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen unterbrochenen",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_841_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_536_000.png"
       },
       {
-        "artNr": "1311 189.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 800 mm, 1400 - 1800 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311189_000_000.png"
+        "artNr": "1311 373.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 1500-1800 x 700-900 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311373_000_000.png"
       }
     ]
   },
@@ -10039,9 +10045,9 @@
         "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_536_000.png"
       },
       {
-        "artNr": "1311 197.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 1200 mm, 1000 - 1400 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311197_000_000.png"
+        "artNr": "1311 379.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 900-1200 x 1100-1300 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311379_000_000.png"
       }
     ]
   },
@@ -10095,9 +10101,9 @@
         "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_536_000.png"
       },
       {
-        "artNr": "1311 190.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 900 mm, 600 - 1000 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311190_000_000.png"
+        "artNr": "1311 371.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 900-1200 x 700-900 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311371_000_000.png"
       }
     ]
   },
@@ -10146,19 +10152,19 @@
     ],
     "others": [
       {
-        "artNr": "1171 403.241.000",
+        "artNr": "1171 403.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen schlitzen, edelstahl",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_241_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_536_000.png"
       },
       {
-        "artNr": "1171 404.241.000",
+        "artNr": "1171 404.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen unterbrochenen",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_241_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_536_000.png"
       },
       {
-        "artNr": "1311 196.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 1000 mm, 1800 - 2000 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311196_000_000.png"
+        "artNr": "1311 378.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 1800-2100 x 900-1100 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311378_000_000.png"
       }
     ]
   },
@@ -10207,19 +10213,19 @@
     ],
     "others": [
       {
-        "artNr": "1171 403.241.000",
+        "artNr": "1171 403.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen schlitzen, edelstahl",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_241_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_536_000.png"
       },
       {
-        "artNr": "1171 404.241.000",
+        "artNr": "1171 404.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen unterbrochenen",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_241_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_536_000.png"
       },
       {
-        "artNr": "1311 186.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 750 mm, 1400 - 1800 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311186_000_000.png"
+        "artNr": "1311 373.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 1500-1800 x 700-900 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311373_000_000.png"
       }
     ]
   },
@@ -10273,9 +10279,9 @@
         "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_536_000.png"
       },
       {
-        "artNr": "1311 189.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 800 mm, 1400 - 1800 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311189_000_000.png"
+        "artNr": "1311 372.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 1200-1500 x 700-900 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311372_000_000.png"
       }
     ]
   },
@@ -10329,9 +10335,9 @@
         "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_536_000.png"
       },
       {
-        "artNr": "1311 194.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 1000 mm, 1000 - 1400 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311194_000_000.png"
+        "artNr": "1311 376.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 1200-1500 x 900-1100 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311376_000_000.png"
       }
     ]
   },
@@ -10385,9 +10391,9 @@
         "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_536_000.png"
       },
       {
-        "artNr": "1311 188.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 800 mm, 1000 - 1400 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311188_000_000.png"
+        "artNr": "1311 372.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 1200-1500 x 700-900 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311372_000_000.png"
       }
     ]
   },
@@ -10431,19 +10437,19 @@
     ],
     "others": [
       {
-        "artNr": "1171 403.136.000",
+        "artNr": "1171 403.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen schlitzen, edelstahl",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_136_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_536_000.png"
       },
       {
-        "artNr": "1171 404.136.000",
+        "artNr": "1171 404.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen unterbrochenen",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_136_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_536_000.png"
       },
       {
-        "artNr": "1311 183.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 700 mm, 600 - 1000 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311183_000_000.png"
+        "artNr": "1311 371.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 900-1200 x 700-900 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311371_000_000.png"
       }
     ]
   },
@@ -10497,9 +10503,9 @@
         "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_536_000.png"
       },
       {
-        "artNr": "1311 191.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 900 mm, 1000 - 1400 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311191_000_000.png"
+        "artNr": "1311 371.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 900-1200 x 700-900 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311371_000_000.png"
       }
     ]
   },
@@ -10548,24 +10554,24 @@
     ],
     "others": [
       {
-        "artNr": "1171 413.535.000",
+        "artNr": "1171 413.536.000",
         "label": "Duschwanne Laufen Pro Superflach, 200 x 100 x 4,6 cm, Ablauf Schmalseite Mitte,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01171413_535_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01171413_536_000.png"
       },
       {
-        "artNr": "1171 403.535.000",
+        "artNr": "1171 403.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen schlitzen, edelstahl",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_535_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_536_000.png"
       },
       {
-        "artNr": "1171 404.535.000",
+        "artNr": "1171 404.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen unterbrochenen",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_535_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_536_000.png"
       },
       {
-        "artNr": "1311 196.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 1000 mm, 1800 - 2000 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311196_000_000.png"
+        "artNr": "1311 378.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 1800-2100 x 900-1100 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311378_000_000.png"
       }
     ]
   },
@@ -10609,19 +10615,19 @@
     ],
     "others": [
       {
-        "artNr": "1171 403.136.000",
+        "artNr": "1171 403.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen schlitzen, edelstahl",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_136_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_536_000.png"
       },
       {
-        "artNr": "1171 404.136.000",
+        "artNr": "1171 404.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen unterbrochenen",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_136_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_536_000.png"
       },
       {
-        "artNr": "1311 184.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 700 mm, 1000 - 1400 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311184_000_000.png"
+        "artNr": "1311 372.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 1200-1500 x 700-900 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311372_000_000.png"
       }
     ]
   },
@@ -10670,19 +10676,19 @@
     ],
     "others": [
       {
-        "artNr": "1171 403.241.000",
+        "artNr": "1171 403.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen schlitzen, edelstahl",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_241_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171403_536_000.png"
       },
       {
-        "artNr": "1171 404.241.000",
+        "artNr": "1171 404.536.000",
         "label": "ablaufabdeckung laufen pro, mit linienförmigen unterbrochenen",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_241_000.png"
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01171404_536_000.png"
       },
       {
-        "artNr": "1311 195.000.000",
-        "label": "duschwanneninstallationsrahmen laufen ineo, breite 1000 mm, 1400 - 1800 mm,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311195_000_000.png"
+        "artNr": "1311 377.000.000",
+        "label": "duschwannen-installationsrahmen laufen ineo, 1500-1800 x 900-1100 mm, für",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311377_000_000.png"
       }
     ]
   },
@@ -27220,7 +27226,13 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 332.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1200 x 1000 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
@@ -27232,17 +27244,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 324.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1000 x 750 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 086.100.810",
-        "label": "Duschenwanne Schmidlin Swiss Line, 1000 x 750 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311086_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 082.100.810": {
     "ablaufdeckel": [],
@@ -27250,17 +27262,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 320.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 800 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 082.100.186",
-        "label": "Duschenwanne Schmidlin Swiss Line, 800 x 800 x 35 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311082_100_186.png"
-      }
-    ]
+    "others": []
   },
   "1311 091.100.810": {
     "ablaufdeckel": [],
@@ -27268,17 +27280,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 329.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1100 x 900 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 091.100.186",
-        "label": "Duschenwanne Schmidlin Swiss Line, 1100 x 900 x 35 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311091_100_186.png"
-      }
-    ]
+    "others": []
   },
   "1311 097.100.810": {
     "ablaufdeckel": [],
@@ -27286,17 +27298,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 335.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1400 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 097.100.810",
-        "label": "Duschenwanne Schmidlin Swiss Line, 1400 x 800 x 35 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311097_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 099.100.810": {
     "ablaufdeckel": [],
@@ -27304,7 +27316,13 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 337.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1400 x 1000 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
@@ -27316,17 +27334,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 322.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 900 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 085.100.810",
-        "label": "Duschenwanne Schmidlin Swiss Line, 900 x 800 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311085_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 365.100.810": {
     "ablaufdeckel": [
@@ -27396,17 +27414,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 325.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1000 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 087.100.186",
-        "label": "Duschenwanne Schmidlin Swiss Line, 1000 x 800 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311087_100_186.png"
-      }
-    ]
+    "others": []
   },
   "1311 081.100.810": {
     "ablaufdeckel": [],
@@ -27414,17 +27432,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 323.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 900 x 900 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 081.100.810",
-        "label": "Duschenwanne Schmidlin Swiss Line, 900 x 900 x 80 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311081_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 096.100.810": {
     "ablaufdeckel": [],
@@ -27432,17 +27450,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 334.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1300 x 900 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 096.100.810",
-        "label": "Duschenwanne Schmidlin Swiss Line, 1300 x 900 x 35 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311096_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 088.100.810": {
     "ablaufdeckel": [],
@@ -27450,17 +27468,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 326.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1000 x 900 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 088.100.810",
-        "label": "Duschenwanne Schmidlin Swiss Line, 1000 x 900 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311088_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 084.100.810": {
     "ablaufdeckel": [],
@@ -27468,17 +27486,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 321.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 900 x 750 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 084.100.810",
-        "label": "Duschenwanne Schmidlin Swiss Line, 900 x 750 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311084_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 095.100.810": {
     "ablaufdeckel": [],
@@ -27486,17 +27504,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 333.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1300 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 095.100.810",
-        "label": "Duschenwanne Schmidlin Swiss Line, 1300 x 800 x 35 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311095_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 098.100.810": {
     "ablaufdeckel": [],
@@ -27504,17 +27522,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 336.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1400 x 900 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 098.100.810",
-        "label": "Duschenwanne Schmidlin Swiss Line, 1400 x 900 x 35 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311098_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 083.100.810": {
     "ablaufdeckel": [],
@@ -27522,17 +27540,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 323.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 900 x 900 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 083.100.186",
-        "label": "Duschenwanne Schmidlin Swiss Line, 900 x 900 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311083_100_186.png"
-      }
-    ]
+    "others": []
   },
   "1311 090.100.810": {
     "ablaufdeckel": [],
@@ -27540,17 +27558,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 328.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1100 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 090.100.186",
-        "label": "Duschenwanne Schmidlin Swiss Line, 1100 x 800 x 35 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311090_100_186.png"
-      }
-    ]
+    "others": []
   },
   "1311 092.100.810": {
     "ablaufdeckel": [],
@@ -27558,17 +27576,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 330.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1200 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 092.100.186",
-        "label": "Duschenwanne Schmidlin Swiss Line, 1200 x 800 x 35 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311092_100_186.png"
-      }
-    ]
+    "others": []
   },
   "1311 364.100.810": {
     "ablaufdeckel": [
@@ -27638,7 +27656,13 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 327.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1000 x 1000 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
@@ -27650,17 +27674,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 331.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1200 x 900 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 093.100.810",
-        "label": "Duschenwanne Schmidlin Swiss Line, 1200 x 900 x 35 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311093_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 064.100.810": {
     "ablaufdeckel": [],
@@ -27668,17 +27692,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 336.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1400 x 900 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 064.100.810",
-        "label": "Duschfläche Schmidlin Swiss Line, 1400 x 900 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311064_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 057.100.810": {
     "ablaufdeckel": [],
@@ -27686,7 +27710,13 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 327.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1000 x 1000 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
@@ -27698,17 +27728,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 342.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1700 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 070.100.810",
-        "label": "Duschfläche Schmidlin Swiss Line, 1700 x 800 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311070_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 053.100.810": {
     "ablaufdeckel": [],
@@ -27716,17 +27746,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 322.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 900 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 053.100.186",
-        "label": "Duschfläche Schmidlin Swiss Line, 900 x 800 x 15 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311053_100_186.png"
-      }
-    ]
+    "others": []
   },
   "1311 058.100.810": {
     "ablaufdeckel": [],
@@ -27734,17 +27764,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 328.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1100 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 058.100.810",
-        "label": "Duschfläche Schmidlin Swiss Line, 1100 x 800 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311058_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 055.100.810": {
     "ablaufdeckel": [],
@@ -27752,17 +27782,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 325.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1000 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 055.100.810",
-        "label": "Duschfläche Schmidlin Swiss Line, 1000 x 800 x 15 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311055_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 060.100.810": {
     "ablaufdeckel": [],
@@ -27770,17 +27800,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 330.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1200 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 060.100.810",
-        "label": "Duschfläche Schmidlin Swiss Line, 1200 x 800 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311060_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 059.100.810": {
     "ablaufdeckel": [],
@@ -27788,17 +27818,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 329.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1100 x 900 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 059.100.810",
-        "label": "Duschfläche Schmidlin Swiss Line, 1100 x 900 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311059_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 067.100.810": {
     "ablaufdeckel": [],
@@ -27806,17 +27836,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 339.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1600 x 900 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 067.100.810",
-        "label": "Duschfläche Schmidlin Swiss Line, 1600 x 900 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311067_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 051.100.810": {
     "ablaufdeckel": [],
@@ -27824,17 +27854,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 320.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 800 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 051.100.810",
-        "label": "Duschfläche Schmidlin Swiss Line, 800 x 800 x 15 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311051_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 052.100.810": {
     "ablaufdeckel": [],
@@ -27842,17 +27872,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 321.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 900 x 750 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 052.100.810",
-        "label": "Duschfläche Schmidlin Swiss Line, 900 x 750 x 15 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311052_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 061.100.810": {
     "ablaufdeckel": [],
@@ -27860,17 +27890,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 331.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1200 x 900 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 061.100.810",
-        "label": "Duschfläche Schmidlin Swiss Line, 1200 x 900 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311061_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 068.100.810": {
     "ablaufdeckel": [],
@@ -27878,7 +27908,13 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 340.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1600 x 1000 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
@@ -27890,7 +27926,13 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 332.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1200 x 1000 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
@@ -27902,17 +27944,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 326.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1000 x 900 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 056.100.810",
-        "label": "Duschfläche Schmidlin Swiss Line, 1000 x 900 x 15 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311056_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 054.100.810": {
     "ablaufdeckel": [],
@@ -27920,17 +27962,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 323.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 900 x 900 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 054.100.810",
-        "label": "Duschfläche Schmidlin Swiss Line, 900 x 900 x 15 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311054_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 069.100.810": {
     "ablaufdeckel": [],
@@ -27938,17 +27980,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 341.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1700 x 750 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 069.100.810",
-        "label": "Duschfläche Schmidlin Swiss Line, 1700 x 750 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311069_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 065.100.810": {
     "ablaufdeckel": [],
@@ -27956,7 +27998,13 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 337.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1400 x 1000 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
@@ -27968,17 +28016,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 338.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1600 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 066.100.810",
-        "label": "Duschfläche Schmidlin Swiss Line, 1600 x 800 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311066_100_810.png"
-      }
-    ]
+    "others": []
   },
   "1311 063.100.810": {
     "ablaufdeckel": [],
@@ -27986,17 +28034,17 @@
     "wannentraeger": [],
     "montagerahmen": [],
     "stelzfüsse": [],
-    "montageset": [],
+    "montageset": [
+      {
+        "artNr": "1311 335.000.000",
+        "label": "duschen-montageset schmidlin swiss line, 1400 x 800 mm, für duschwannen /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/business/images/no-image.cb310.png"
+      }
+    ],
     "dichtband": [],
     "montageschaum": [],
     "schallschutz": [],
-    "others": [
-      {
-        "artNr": "1311 063.100.186",
-        "label": "Duschfläche Schmidlin Swiss Line, 1400 x 800 x 25 mm, Stahl, Schallisolierung,",
-        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311063_100_186.png"
-      }
-    ]
+    "others": []
   },
   "1313 135.100.000": {
     "ablaufdeckel": [
@@ -28062,6 +28110,361 @@
         "artNr": "1422 117.000.000",
         "label": "duschwannenablauf geberit ø 90, für duschenwannen mit ablaufloch ø 90 mm,",
         "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422117_000_000.png"
+      }
+    ]
+  },
+  "1311 207.100.000": {
+    "ablaufdeckel": [
+      {
+        "artNr": "1422 118.501.000",
+        "label": "ablaufdeckel geberit, zu duschwannenablauf ø 90 mm (1422 117),",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422118_501_000.png"
+      },
+      {
+        "artNr": "1422 225.501.000",
+        "label": "ablaufdeckel zu tempoplex / contura, zu duschenwannengarnitur tempoplex /-",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422225.png"
+      }
+    ],
+    "ablaufgarnitur": [
+      {
+        "artNr": "1422 221.000.000",
+        "label": "duschwannengarnitur tempoplex, ablaufbogen ø 40/50 mm, für duschwannen",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422221.png"
+      }
+    ],
+    "wannentraeger": [],
+    "montagerahmen": [
+      {
+        "artNr": "1435 267.000.000",
+        "label": "montagerahmen schmidlin, 90 x 75 cm, für duschwannen quadratisch /",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01435267.jpg"
+      },
+      {
+        "artNr": "1435 112.000.000",
+        "label": "montagerahmen schmidlin omnia, 90 x 75 cm, für alle schmidlin duschenwannen,",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01435112.png"
+      }
+    ],
+    "stelzfüsse": [],
+    "montageset": [],
+    "dichtband": [],
+    "montageschaum": [],
+    "schallschutz": [],
+    "others": [
+      {
+        "artNr": "1311 207.100.000",
+        "label": "Duschwanne Schmidlin, 90 x 75 x 6,5 cm, Stahl, Schallisolierung, Ablauf",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311207.png"
+      },
+      {
+        "artNr": "1422 117.000.000",
+        "label": "duschwannenablauf geberit ø 90, für duschenwannen mit ablaufloch ø 90 mm,",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422117_000_000.png"
+      }
+    ]
+  },
+  "1311 259.100.000": {
+    "ablaufdeckel": [
+      {
+        "artNr": "1422 118.501.000",
+        "label": "ablaufdeckel geberit, zu duschwannenablauf ø 90 mm (1422 117),",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422118_501_000.png"
+      },
+      {
+        "artNr": "1422 225.501.000",
+        "label": "ablaufdeckel zu tempoplex / contura, zu duschenwannengarnitur tempoplex /-",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422225.png"
+      }
+    ],
+    "ablaufgarnitur": [
+      {
+        "artNr": "1422 221.000.000",
+        "label": "duschwannengarnitur tempoplex, ablaufbogen ø 40/50 mm, für duschwannen",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422221.png"
+      }
+    ],
+    "wannentraeger": [],
+    "montagerahmen": [
+      {
+        "artNr": "1435 157.000.000",
+        "label": "montagerahmen schmidlin omnia, 120 x 100 cm, für alle schmidlin",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01435157.png"
+      }
+    ],
+    "stelzfüsse": [],
+    "montageset": [],
+    "dichtband": [],
+    "montageschaum": [],
+    "schallschutz": [],
+    "others": [
+      {
+        "artNr": "1311 259.100.181",
+        "label": "Duschwanne Schmidlin, 120 x 100 x 6,5 cm, Stahl, Schallisolierung, Ablauf",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311259.png"
+      },
+      {
+        "artNr": "1422 117.000.000",
+        "label": "duschwannenablauf geberit ø 90, für duschenwannen mit ablaufloch ø 90 mm,",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422117_000_000.png"
+      }
+    ]
+  },
+  "1311 369.100.000": {
+    "ablaufdeckel": [
+      {
+        "artNr": "1311 699.100.000",
+        "label": "ablaufdeckel schmidlin 90, ohne ablaufgarnitur, stahl, emailliert, zu",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311699_nV_000.png"
+      },
+      {
+        "artNr": "1422 225.501.000",
+        "label": "ablaufdeckel zu tempoplex / contura, zu duschenwannengarnitur tempoplex /-",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422225.png"
+      }
+    ],
+    "ablaufgarnitur": [
+      {
+        "artNr": "1311 701.000.000",
+        "label": "ablaufgarnitur schmidlin flow 50, ø 90 mm, ablaufleistung 0,55 l/s, ohne",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311701.png"
+      }
+    ],
+    "wannentraeger": [],
+    "montagerahmen": [
+      {
+        "artNr": "1435 157.000.000",
+        "label": "montagerahmen schmidlin omnia, 120 x 100 cm, für alle schmidlin",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01435157.png"
+      }
+    ],
+    "stelzfüsse": [],
+    "montageset": [],
+    "dichtband": [
+      {
+        "artNr": "1461 004.000.000",
+        "label": "zargen-wannendichtband alterna, länge 3,4 m, 2 wannen-eckdichtungen butyl,",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01461004.png"
+      }
+    ],
+    "montageschaum": [],
+    "schallschutz": [],
+    "others": [
+      {
+        "artNr": "1311 369.100.186",
+        "label": "Duschenwanne Schmidlin Contura, 120 x 100 x 2 cm, Stahl, Schallisolierung,",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311369.png"
+      },
+      {
+        "artNr": "1311 698.100.000",
+        "label": "ablaufhaube schmidlin zu tempoplex / floor / contura, zu",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311698.png"
+      },
+      {
+        "artNr": "1311 698.501.000",
+        "label": "ablaufhaube schmidlin zu tempoplex / floor/ contura, zu",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311698.png"
+      },
+      {
+        "artNr": "1461 015.000.000",
+        "label": "3 wannen-eckdichtungen 3d alterna, für bodenbündige montage, mit 1",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01461015.png"
+      }
+    ]
+  },
+  "1311 363.100.000": {
+    "ablaufdeckel": [
+      {
+        "artNr": "1422 225.501.000",
+        "label": "ablaufdeckel zu tempoplex / contura, zu duschenwannengarnitur tempoplex /-",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422225.png"
+      }
+    ],
+    "ablaufgarnitur": [],
+    "wannentraeger": [],
+    "montagerahmen": [],
+    "stelzfüsse": [],
+    "montageset": [],
+    "dichtband": [],
+    "montageschaum": [],
+    "schallschutz": [],
+    "others": [
+      {
+        "artNr": "1311 363.100.000",
+        "label": "Duschwanne Schmidlin Contura, 100 x 100 x 2 cm, Stahl, Schallisolierung, inkl.",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311363.png"
+      }
+    ]
+  },
+  "1311 366.100.000": {
+    "ablaufdeckel": [
+      {
+        "artNr": "1422 225.501.000",
+        "label": "ablaufdeckel zu tempoplex / contura, zu duschenwannengarnitur tempoplex /-",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422225.png"
+      }
+    ],
+    "ablaufgarnitur": [],
+    "wannentraeger": [],
+    "montagerahmen": [],
+    "stelzfüsse": [],
+    "montageset": [],
+    "dichtband": [],
+    "montageschaum": [],
+    "schallschutz": [],
+    "others": [
+      {
+        "artNr": "1311 366.100.000",
+        "label": "Duschwanne Schmidlin Contura, 100 x 90 x 2 cm, Stahl, Schallisolierung, Weiss",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311366.png"
+      }
+    ]
+  },
+  "1311 367.100.000": {
+    "ablaufdeckel": [
+      {
+        "artNr": "1311 699.100.000",
+        "label": "ablaufdeckel schmidlin 90, ohne ablaufgarnitur, stahl, emailliert, zu",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311699_nV_000.png"
+      },
+      {
+        "artNr": "1422 225.501.000",
+        "label": "ablaufdeckel zu tempoplex / contura, zu duschenwannengarnitur tempoplex /-",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422225.png"
+      }
+    ],
+    "ablaufgarnitur": [
+      {
+        "artNr": "1311 701.000.000",
+        "label": "ablaufgarnitur schmidlin flow 50, ø 90 mm, ablaufleistung 0,55 l/s, ohne",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311701.png"
+      }
+    ],
+    "wannentraeger": [],
+    "montagerahmen": [
+      {
+        "artNr": "1435 153.000.000",
+        "label": "montagerahmen schmidlin omnia, 120 x 80 cm, für alle schmidlin duschenwannen,",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01435153.png"
+      }
+    ],
+    "stelzfüsse": [],
+    "montageset": [],
+    "dichtband": [
+      {
+        "artNr": "1461 004.000.000",
+        "label": "zargen-wannendichtband alterna, länge 3,4 m, 2 wannen-eckdichtungen butyl,",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01461004.png"
+      }
+    ],
+    "montageschaum": [],
+    "schallschutz": [],
+    "others": [
+      {
+        "artNr": "1311 367.100.186",
+        "label": "Duschenwanne Schmidlin Contura, 120 x 80 x 2 cm, Stahl, Schallisolierung,",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311367.png"
+      },
+      {
+        "artNr": "1311 698.100.000",
+        "label": "ablaufhaube schmidlin zu tempoplex / floor / contura, zu",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311698.png"
+      },
+      {
+        "artNr": "1311 698.501.000",
+        "label": "ablaufhaube schmidlin zu tempoplex / floor/ contura, zu",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311698.png"
+      },
+      {
+        "artNr": "1461 015.000.000",
+        "label": "3 wannen-eckdichtungen 3d alterna, für bodenbündige montage, mit 1",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01461015.png"
+      }
+    ]
+  },
+  "1311 368.100.000": {
+    "ablaufdeckel": [
+      {
+        "artNr": "1422 225.501.000",
+        "label": "ablaufdeckel zu tempoplex / contura, zu duschenwannengarnitur tempoplex /-",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422225.png"
+      }
+    ],
+    "ablaufgarnitur": [],
+    "wannentraeger": [],
+    "montagerahmen": [],
+    "stelzfüsse": [],
+    "montageset": [],
+    "dichtband": [],
+    "montageschaum": [],
+    "schallschutz": [],
+    "others": [
+      {
+        "artNr": "1311 368.100.000",
+        "label": "Duschwanne Schmidlin Contura, 120 x 90 x 2 cm, Stahl, Schallisolierung, Weiss",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311368.png"
+      }
+    ]
+  },
+  "1311 362.100.000": {
+    "ablaufdeckel": [
+      {
+        "artNr": "1311 699.100.000",
+        "label": "ablaufdeckel schmidlin 90, ohne ablaufgarnitur, stahl, emailliert, zu",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311699_nV_000.png"
+      },
+      {
+        "artNr": "1422 225.501.000",
+        "label": "ablaufdeckel zu tempoplex / contura, zu duschenwannengarnitur tempoplex /-",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01422225.png"
+      }
+    ],
+    "ablaufgarnitur": [
+      {
+        "artNr": "1311 701.000.000",
+        "label": "ablaufgarnitur schmidlin flow 50, ø 90 mm, ablaufleistung 0,55 l/s, ohne",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311701.png"
+      }
+    ],
+    "wannentraeger": [],
+    "montagerahmen": [
+      {
+        "artNr": "1435 115.000.000",
+        "label": "montagerahmen schmidlin omnia, 90 x 90 cm, für alle schmidlin duschenwannen,",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01435115.png"
+      }
+    ],
+    "stelzfüsse": [],
+    "montageset": [],
+    "dichtband": [
+      {
+        "artNr": "1461 004.000.000",
+        "label": "zargen-wannendichtband alterna, länge 3,4 m, 2 wannen-eckdichtungen butyl,",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01461004.png"
+      }
+    ],
+    "montageschaum": [],
+    "schallschutz": [],
+    "others": [
+      {
+        "artNr": "1311 362.100.186",
+        "label": "Duschenwanne Schmidlin Contura, 90 x 90 x 2 cm, Stahl, Schallisolierung, Weiss,",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311362.png"
+      },
+      {
+        "artNr": "1311 698.100.000",
+        "label": "ablaufhaube schmidlin zu tempoplex / floor / contura, zu",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311698.png"
+      },
+      {
+        "artNr": "1311 698.501.000",
+        "label": "ablaufhaube schmidlin zu tempoplex / floor/ contura, zu",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01311698.png"
+      },
+      {
+        "artNr": "1461 015.000.000",
+        "label": "3 wannen-eckdichtungen 3d alterna, für bodenbündige montage, mit 1",
+        "imgUrl": "https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01461015.png"
       }
     ]
   }

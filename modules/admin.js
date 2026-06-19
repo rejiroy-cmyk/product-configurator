@@ -57,16 +57,17 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         // --- NAVIGATION & VIEW MANAGEMENT ---
         // Helper: re-detect manufacturer from label
         function detectManufacturer(tray) {
-            const l = (tray.label || '').toLowerCase();
+            const l = ((tray.label || '') + ' ' + (tray.description || '')).toLowerCase();
+            if (l.includes('alterna')) return 'Alterna';
+            if (l.includes('duscholux')) return 'Duscholux';
             if (l.includes('kaldewei')) return 'Kaldewei';
             if (l.includes('schmidlin')) return 'Schmidlin';
-            if (l.includes('laufen') || l.includes('moderna') || l.includes('pro') || l.includes('alessi')) return 'Laufen';
+            if (l.includes('laufen')) return 'Laufen';
             if (l.includes('catalano')) return 'Catalano';
             if (l.includes('hansgrohe') || l.includes('hg ') || l.includes(' hg')) return 'Hansgrohe';
             if (l.includes('axor')) return 'Axor';
             if (l.includes('geberit')) return 'Geberit';
             if (l.includes('kwc')) return 'KWC';
-            if (l.includes('alterna')) return 'Alterna';
             if (l.includes('villeroy') || l.includes('v&b') || l.includes('v+b') || l.includes('subway 2.0')) return 'Villeroy & Boch';
             if (l.includes('duravit') || l.includes('me by starck') || l.includes('philippe starck 1')) return 'Duravit';
             if (l.includes('similor')) return 'Similor';
@@ -302,6 +303,18 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                                         const lblLower = label.toLowerCase();
 
                                         // Auto-routing based on Label Keywords
+                                        
+                                        // Auto-detect service costs and bundle them instead of treating them as main products
+                                        const serviceKeywords = ['massaufnahme', 'anfahrtspauschale', 'montagepauschale', 'demontage', 'entsorgung', 'nettobetrag', 'richtpreise', 'pauschale', 'zuschlag'];
+                                        const isService = serviceKeywords.some(k => lblLower.includes(k)) && !lblLower.includes('seitenwand') && !lblLower.includes('türe') && !lblLower.includes('tür');
+                                        
+                                        if (isService && currentTray && targetAppId === 'duschtrennwand') {
+                                            if (!currentTray.services) currentTray.services = [];
+                                            currentTray.services.push({ artNr, label, qty: menge });
+                                            added++;
+                                            continue; // Skip creating a new tray
+                                        }
+
                                         const isAblauf = lblLower.includes('ablauf') || lblLower.includes('siebventil') || lblLower.includes('schaftventil') ||
                                             lblLower.includes('click') || lblLower.includes('clack') || lblLower.includes('clic') || lblLower.includes('clac');
 
@@ -1292,8 +1305,8 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         }));
     }
     function autoLinkMixerAccessories(tray, appId) {
-        if (!tray || !tray.label) return;
-        const l = tray.label.toLowerCase();
+        if (!tray) return;
+        const l = ((tray.label || '') + ' ' + (tray.description || '')).toLowerCase();
         const manufacturer = (tray.manufacturer || '').toLowerCase();
 
         // Brauseschlauch: Duschenmischer = 1600mm standard + 1800mm option only
@@ -1329,7 +1342,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                 {
                     id: "mat_5utlf",
                     name: "Handbrause",
-                    options: getBrandSpecificHandbrausen(manufacturer, tray.label, appId)
+                    options: getBrandSpecificHandbrausen(manufacturer, l, appId)
                 },
                 {
                     id: "mat_37d4w",
@@ -1357,7 +1370,8 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         }
 
         // --- 2. UNTERPUTZ LOGIC (Laufen / Alterna 8-Step Hierarchy) ---
-        else if ((manufacturer === 'laufen' || manufacturer === 'alterna') && (l.includes('endmontageset') || l.includes('unterputz'))) {
+        // --- 2. UNTERPUTZ LOGIC (Laufen 8-Step Hierarchy) ---
+        else if (manufacturer === 'laufen' && (l.includes('endmontageset') || l.includes('unterputz'))) {
             // Dynamically extract Einbaukörper IDs from label
             const gkMatches = l.match(/einbauk[öo]rper\s*([0-9\s.\/]+)/);
             let gkOptions = [];
@@ -1435,7 +1449,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                 {
                     id: "mat_handbrause",
                     name: "5. Handbrause",
-                    options: getBrandSpecificHandbrausen(manufacturer, tray.label, appId)
+                    options: getBrandSpecificHandbrausen(manufacturer, l, appId)
                 },
                 {
                     id: "mat_halter",
@@ -1480,6 +1494,192 @@ export function setupAdmin(modifiedApps, renderCatalog) {
             ];
         }
 
+        // --- 2b. ALTERNA UNTERPUTZ LOGIC ---
+        else if (manufacturer === 'alterna' && (l.includes('endmontageset') || l.includes('unterputz'))) {
+            const isArchitect = l.includes('architect');
+            const poolApp = (window.productApps || productApps)['zubehoer_pool'];
+            const pool = poolApp ? [
+                ...(poolApp.trays || []),
+                ...(poolApp.parts || []),
+                ...(poolApp.finishes || [])
+            ] : [];
+
+            // Helper to get labels from pool
+            function getPoolLabel(art, fallback) {
+                const cleanTarget = art.replace(/[\s.]/g, '');
+                const found = pool.find(item => item.artNr && item.artNr.replace(/[\s.]/g, '').startsWith(cleanTarget));
+                return found ? found.label : fallback;
+            }
+
+            // GK
+            const gkMatches = l.match(/einbauk[öo]rper\s*([0-9\s.\/]+)/);
+            let gkOptions = [];
+
+            if (gkMatches && gkMatches[1]) {
+                const parts = gkMatches[1].match(/\b\d{4}\s*\d{3}\b/g) || [];
+                parts.forEach(p => {
+                    const cleanP = p.replace(/\s+/g, ' ');
+                    const fullArt = cleanP + ".000.000";
+                    const fallbackLabel = isArchitect ? `Einbaukörper Simibox ${cleanP}` : `Einbaukörper Alterna più / niù ${cleanP}`;
+                    gkOptions.push({
+                        artNr: fullArt,
+                        label: getPoolLabel(fullArt, fallbackLabel),
+                        type: "Zubehör",
+                        imgUrl: `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/0${cleanP.replace(/\s+/g, '')}_000_000.png`,
+                        menge: 1
+                    });
+                });
+            }
+
+            if (gkOptions.length === 0) {
+                if (isArchitect) {
+                    const art = "6158 110.000.000";
+                    gkOptions.push({
+                        artNr: art,
+                        label: getPoolLabel(art, "Einbaukörper Laufen Simibox Light ½\", mit Vorabstellung"),
+                        type: "Zubehör",
+                        imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06158110_000_000.png",
+                        menge: 1
+                    });
+                } else {
+                    const isBade = appId === 'bademischer';
+                    const art = isBade ? "6252 891.000.000" : "6252 890.000.000";
+                    const defaultLbl = isBade 
+                        ? "Einbaukörper Alterna più / niù ½\", ohne Vorabsperrung, 2 Anschlüsse ½\", 2 Abgänge ½\""
+                        : "Einbaukörper Alterna più / niù ½\", ohne Vorabsperrung, ohne Rohrunterbrecher, 2 Anschlüsse ½\", 1 Abgang ½\"";
+                    const cleanImgNum = art.replace(/\s+/g, '').replace(/\./g, '_');
+                    gkOptions.push({
+                        artNr: art,
+                        label: getPoolLabel(art, defaultLbl),
+                        type: "Zubehör",
+                        imgUrl: `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/0${cleanImgNum}.png`,
+                        menge: 1
+                    });
+                }
+            }
+
+            // Rails
+            let railArt = "6158 120.000.000";
+            let railLbl = "Montageset Laufen Simibox 2 Montageschienen 560 mm Befestigungsmaterial";
+            if (!isArchitect) {
+                const isBade = appId === 'bademischer';
+                railArt = isBade ? "6252 898.000.000" : "6252 894.000.000";
+                railLbl = isBade 
+                    ? "Befestigungsset Gessi zu Einbaukörper 6252 859 6252 891"
+                    : "Befestigungsset Gessi zu Einbaukörper 6252 858 / 888 / 890";
+            }
+            const railImgNum = railArt.replace(/\s+/g, '').replace(/\./g, '_');
+            const railOptions = [
+                {
+                    artNr: railArt,
+                    label: getPoolLabel(railArt, railLbl),
+                    type: "Zubehör",
+                    imgUrl: `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/0${railImgNum}.png`,
+                    menge: 1
+                }
+            ];
+
+            // Bogen
+            const bogenOptions = [
+                {
+                    artNr: "6544 100.501.000",
+                    label: getPoolLabel("6544 100.501.000", "Anschlussbogen Alterna ½\", Rosette rund, für Handbrause Geräuschgruppe NT Verchromt"),
+                    type: "Zubehör",
+                    imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06544100_501_000.png",
+                    menge: 1
+                },
+                {
+                    artNr: "6544 102.501.000",
+                    label: getPoolLabel("6544 102.501.000", "Anschlussbogen Alterna ½\" mit integriertem Brausehalter Rosette rund Geräuschgruppe NT Verchromt"),
+                    type: "Option",
+                    imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06544102_501_000.png",
+                    menge: 1
+                },
+                {
+                    artNr: "6252 349.501.000",
+                    label: getPoolLabel("6252 349.501.000", "Anschlussbogen Alterna / Emporio ½\" mit integriertem Brausehalter Rosette eckig Geräuschgruppe NT Verchromt"),
+                    type: "Option",
+                    imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06252349_501_000.png",
+                    menge: 1
+                }
+            ];
+
+            tray.mountingMaterials = [
+                {
+                    id: "mat_grundkoerper",
+                    name: "1. Grundkörper",
+                    options: gkOptions
+                },
+                {
+                    id: "mat_schiene",
+                    name: "2. Montageschiene",
+                    options: railOptions
+                },
+                {
+                    id: "mat_bogen",
+                    name: "3. Anschlussbogen",
+                    options: bogenOptions
+                },
+                {
+                    id: "mat_schlauch",
+                    name: "4. Brauseschlauch",
+                    options: schlauchOptions
+                },
+                {
+                    id: "mat_handbrause",
+                    name: "5. Handbrause",
+                    options: getBrandSpecificHandbrausen(manufacturer, l, appId)
+                },
+                {
+                    id: "mat_halter",
+                    name: "6. Brausehalter",
+                    options: [
+                        {
+                            artNr: "6543 132.501.000",
+                            label: "Brausehalter Alterna, Rosette rund, Verchromt",
+                            type: "Zubehör",
+                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06543132_501_000.png",
+                            menge: 1
+                        },
+                        {
+                            artNr: "6543 131.501.000",
+                            label: "Brausehalter Alterna eco, Verchromt",
+                            type: "Option",
+                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06543131_501_000.png",
+                            menge: 1
+                        },
+                        {
+                            artNr: "OHNE",
+                            label: "Ohne Brausehalter (Stange verwenden oder Bogen mit Halter)",
+                            type: "Option",
+                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/00000000.png",
+                            menge: 0
+                        }
+                    ]
+                },
+                {
+                    id: "mat_stange",
+                    name: "7. Duschengleitstange",
+                    options: [
+                        {
+                            artNr: "OHNE",
+                            label: "Ohne Duschengleitstange (nur Halter)",
+                            type: "Option",
+                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/00000000.png",
+                            menge: 0
+                        },
+                        {
+                            artNr: "6531 404.501.000",
+                            label: "Duschengleitstange Alterna fit Gelenkhalter Arretierungshebel, 1100 mm",
+                            type: "Option",
+                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06531404_501_000.png",
+                            menge: 1
+                        }
+                    ]
+                }
+            ];
+        }
+
         // --- 3. KWC UNTERPUTZ LOGIC (Homebox / Bluebox / Bevo UP) ---
         else if (manufacturer === 'kwc' && (l.includes('endmontageset') || l.includes('unterputz') || l.includes('homebox') || l.includes('bluebox'))) {
             // Extract Grundkörper ArtNr from label if present (e.g. "ohne Einbaukörper 6118 132")
@@ -1489,62 +1689,137 @@ export function setupAdmin(modifiedApps, renderCatalog) {
 
             // Cleanup gkArtNr to standard format if it looks like a sequence of numbers
             if (gkArtNr.replace(/\s+/g, '').length === 7) {
-                gkArtNr = gkArtNr.replace(/(\d{4})\s*(\d{3})/, "$1 $2");
+                gkArtNr = gkArtNr.replace(/(\d{4})\s*(\d{3})/, "$1 $2") + ".000.000";
             }
 
             const isHomebox = l.includes('homebox');
 
-            tray.mountingMaterials = [
+            // Find description from pool if possible
+            const poolApp = (window.productApps || productApps)['zubehoer_pool'];
+            const pool = poolApp ? [
+                ...(poolApp.trays || []),
+                ...(poolApp.parts || []),
+                ...(poolApp.finishes || [])
+            ] : [];
+
+            const cleanGkTarget = gkArtNr.replace(/[\s.]/g, '');
+            const matchedPoolItem = pool.find(item => item.artNr && item.artNr.replace(/[\s.]/g, '').startsWith(cleanGkTarget));
+
+            let gkLabel = "";
+            if (matchedPoolItem) {
+                gkLabel = matchedPoolItem.label;
+            } else {
+                if (isHomebox) {
+                    gkLabel = "Einbaukörper KWC HOMEBOX ½\", zu Wandmischer KWC Zoe, mit Abdeckplatte, 1 Abgang, Einbautiefe 47 - 72 mm Geräuschgruppe I";
+                } else if (gkArtNr.includes('116')) {
+                    gkLabel = "Einbaukörper KWC Bluebox ½\", ohne Vorabstellung, ½\", ohne Vorabsperrung, inkl. Multifix, Die Montagehöhe des Einbaukörpers muss überprüft werden, wenn eine Wannengarnitur mit Einlauffunktion verbaut wird, (Bauart = HD), Einbautiefe 75 - 105 mm, Befestigungssystem Geräuschgruppe NT";
+                } else {
+                    gkLabel = "Einbaukörper KWC BLUEBOX 1/2\"";
+                }
+            }
+
+            const materials = [
                 {
                     id: "mat_kwc_gk",
                     name: "1. Grundkörper (KWC)",
                     options: [
                         {
                             artNr: gkArtNr,
-                            label: isHomebox ? "Einbaukörper KWC HOMEBOX 1/2\"" : "Einbaukörper KWC BLUEBOX 1/2\"",
+                            label: gkLabel,
                             type: "Zubehör",
-                            imgUrl: `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/0${gkArtNr.replace(/\s+/g, '')}.png`,
+                            imgUrl: `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/0${gkArtNr.replace(/\s+/g, '').replace(/\./g, '_')}.png`,
                             menge: 1
                         }
                     ]
-                },
-                {
-                    id: "mat_kwc_bogen",
-                    name: "2. Anschlussbogen",
+                }
+            ];
+
+            if (!isHomebox) {
+                materials.push({
+                    id: "mat_kwc_schiene",
+                    name: "2. Montageschiene",
                     options: [
                         {
-                            artNr: "6544 164.501.000",
-                            label: "Anschlussbogen Alterna/Laufen City, ½\", Verchromt",
+                            artNr: "6118 122.000.000",
+                            label: "Montageschiene KWC zu Einbaukörper KWC Bluebox",
                             type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06544164_501_000.png",
+                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06118122_000_000.png",
+                            menge: 1
+                        }
+                    ]
+                });
+            }
+
+            const stepOffset = !isHomebox ? 1 : 0;
+
+            materials.push(
+                {
+                    id: "mat_kwc_bogen",
+                    name: `${2 + stepOffset}. Anschlussbogen`,
+                    options: [
+                        {
+                            artNr: "6544 121.501.000",
+                            label: "Anschlussbogen KWC, für Handbrause Geräuschgruppe NT Verchromt",
+                            type: "Zubehör",
+                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06544121_501_000.png",
+                            menge: 1
+                        },
+                        {
+                            artNr: "6113 825.501.000",
+                            label: "Anschlussbogen KWC, Rosette rund, für Handbrause Geräuschgruppe I Verchromt",
+                            type: "Option",
+                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06113825_501_000.png",
+                            menge: 1
+                        },
+                        {
+                            artNr: "6544 126.501.000",
+                            label: "Anschlussbogen KWC, mit integriertem Brausehalter, Rosette eckig Geräuschgruppe I Verchromt",
+                            type: "Option",
+                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06544126_501_000.png",
+                            menge: 1
+                        },
+                        {
+                            artNr: "6113 413.501.000",
+                            label: "Anschlussbogen KWC ½\", 90°, Rosette eckig, für Handbrause Geräuschgruppe I Verchromt",
+                            type: "Option",
+                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06113413_501_000.png",
                             menge: 1
                         }
                     ]
                 },
                 {
                     id: "mat_kwc_schlauch",
-                    name: "3. Brauseschlauch",
+                    name: `${3 + stepOffset}. Brauseschlauch`,
                     options: schlauchOptions
                 },
                 {
                     id: "mat_kwc_handbrause",
-                    name: "4. Handbrause",
-                    options: getBrandSpecificHandbrausen(manufacturer, tray.label, appId)
+                    name: `${4 + stepOffset}. Handbrause`,
+                    options: getBrandSpecificHandbrausen(manufacturer, l, appId)
                 },
                 {
                     id: "mat_kwc_halter",
-                    name: "5. Brausehalter",
+                    name: `${5 + stepOffset}. Brausehalter`,
                     options: [
                         {
-                            artNr: "6543 131.501.000",
-                            label: "Brausehalter Alterna eco, Verchromt",
+                            artNr: "6113 432.501.000",
+                            label: "Steckhalter KWC Rosette eckig Verchromt",
                             type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06543131_501_000.png",
+                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06113432_501_000.png",
                             menge: 1
+                        },
+                        {
+                            artNr: "OHNE",
+                            label: "Ohne Brausehalter (Bogen mit Halter verwenden)",
+                            type: "Option",
+                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/00000000.png",
+                            menge: 0
                         }
                     ]
                 }
-            ];
+            );
+
+            tray.mountingMaterials = materials;
         }
 
         // --- 4. DYNAMIC POOL SCANNER (Fallback / Auto-Injector) ---

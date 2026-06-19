@@ -16,6 +16,7 @@ const SOURCES = [
     { file: path.resolve(__dirname, '../DT_liva.csv'),   serie: 'liva'  },
     { file: path.resolve(__dirname, '../DT_costa.csv'),  serie: 'costa' },
     { file: path.resolve(__dirname, '../DT_primo.csv'),  serie: 'primo' },
+    { file: path.resolve(__dirname, '../geklebt.csv'),  serie: 'lin.3' },
 ];
 
 // ─── SERVICE ARTNER PATTERNS (these are services, not products) ─────────────
