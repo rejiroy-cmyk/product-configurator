@@ -17,7 +17,8 @@ Specify which siphon model family is compatible with each shower tray family.
 | **Kaldewei Duschplan**        | `[1313 271.501.000]` | `[1313 273.501.000]` | `[ Yes]` |
 | **Kaldewei Calima**           | `[1313 277.501.000]` | `[none]` | `[ No]` |
 | **Kaldewei Sanidusch**        | `[1421 111.501.000]` | `[none]` | `[ Yes]` |
-| **Schmidlin Floor / Contura** | `[1311 701.000.000]` *(Schmidlin Flow)*  | `[1422 117.000.000]` *(Geberit d90)*    | `[ No ]` |
+| **Schmidlin Floor** | `[1311 701.000.000]` *(Schmidlin Flow)*  | `[None]`    | `[ No ]` |
+| **Schmidlin Contura** | `[1422 223.000.000]` *(Viega Tempoplex Plus)*| `[None]`    | `[ No ]` |
 | **Schmidlin Swiss Line**      | `[1422 117.000.000]`  | `[none]` | `[ No ]` |
 | **Schmidlin Sehr tief 15**      | `[1421 111.501.000]`  | `[none]` | `[ Yes]` |
 | **Schmidlin Superflach 2.5 / 3.5 / Tief 6.5 / Vario**      | `[1422 117.000.000]`  | `[1311 701.000.000]` | `[ No ]` |
@@ -40,6 +41,7 @@ When a siphon does *not* include an integrated cover, we must present the user w
 | **`1313 277.501.000`** *(Kaldewei KA 120)* | `1313 282.100.000` (Weiss)<br>`1313 282.536.000` (QWeiss matt)<br>`1313 282.536.184` (Weiss Matt)(Secure)<br>`[Other:                ]` | `[1313 282.100.000]*` |
 | **`1311 701.000.000`** *(Schmidlin Flow)* | `1311 699.100.000` (Weiss)<br>`1311 699.536.000` (Weiss matt)<br>`[Other:                ]` | `[1311 699.100.000]` |
 | **`1422 117.000.000`** *(Geberit d90)* | `1422 118.100.000` (Weiss)<br>`1422 118.501.000` (Chrom)<br>`[Other:                ]` | `[1422 118.501.000]` (Chrom)|
+| **`1422 223.000.000`** *(Viega Tempoplex Plus)* | `1311 698.501.000` (Chrom)<br>`1311 699.536.000` (Weiss matt)<br>`[Other:                ]` | `[1311 698.100.000]` |
 
 *\* "none" indicates that the siphon's own default chrome cover is used.*
 

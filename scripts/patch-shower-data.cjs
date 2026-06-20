@@ -75,6 +75,8 @@ function byArtNr(artNr) {
         const clean = cleanArtNr(artNr);
         if (clean === cleanArtNr('1313 281.100.184')) return [getTechnicalItem(artNr, "Ablaufdeckel KA 90, für 1313 271 / 272 / 273 Weiss Gleitschutz Secure Plus")];
         if (clean === cleanArtNr('1313 281.100.185')) return [getTechnicalItem(artNr, "Ablaufdeckel KA 90, für 1313 271 / 272 / 273 Weiss Gleitschutz Invisible Grip")];
+        if (clean === cleanArtNr('1422 223.000.000')) return [getTechnicalItem(artNr, "Duschwannengarnitur Viega Tempoplex Plus, Ablauf Ø 90 mm, waagrecht, ohne Ablaufhaube")];
+        if (clean === cleanArtNr('1422 221.000.000')) return [getTechnicalItem(artNr, "Duschwannengarnitur Viega Tempoplex, Ablauf Ø 90 mm, waagrecht, ohne Ablaufhaube")];
         return [];
     }
 
@@ -556,7 +558,8 @@ function resolveSchmidlinTemplate(tray, scraped) {
     const isSwissLine = lbl.includes('swiss line');
     const isSehrTief15 = lbl.includes('15 cm');
     const isViva = lbl.includes('viva');
-    const isFloorContura = lbl.includes('floor') || lbl.includes('contura');
+    const isFloor = lbl.includes('floor');
+    const isContura = lbl.includes('contura');
     
     if (isSehrTief15) {
         const siphons = byArtNr('1421 111.501.000');
@@ -569,43 +572,49 @@ function resolveSchmidlinTemplate(tray, scraped) {
         const siphons = byArtNr('1422 117.000.000');
         const deckels = ['1422 118.100.000', '1422 118.501.000'].flatMap(byArtNr);
         mountingMaterials.push(...makeBidirectionalSiphonCover(siphons, deckels, false));
-    } else {
-        const hasSchmidlinFlow = !isSwissLine;
-        const hasGeberitD90 = !isViva;
-        
-        const siphons = [];
-        const deckels = [];
-        
-        if (hasSchmidlinFlow) {
-            siphons.push(...byArtNr('1311 701.000.000'));
-            deckels.push(...[
-                '1311 699.100.000', '1311 699.536.000', '1311 698.100.000', 
-                '1311 698.501.000', '1311 699.100.186', '1311 699.100.181', 
-                '1311 699.105.000', '1311 699.536.181', '1311 699.536.202'
-            ].flatMap(byArtNr));
-        }
-        
-        if (hasGeberitD90) {
-            siphons.push(...byArtNr('1422 117.000.000'));
-            deckels.push(...['1422 118.100.000', '1422 118.501.000'].flatMap(byArtNr));
-        }
-        
-        siphons.sort((a, b) => {
+    } else if (isFloor) {
+        const siphons = byArtNr('1311 701.000.000');
+        const deckels = [
+            '1311 699.100.000', '1311 699.536.000', '1311 698.100.000', 
+            '1311 698.501.000', '1311 699.100.186', '1311 699.100.181', 
+            '1311 699.105.000', '1311 699.536.181', '1311 699.536.202'
+        ].flatMap(byArtNr);
+        deckels.sort((a, b) => (a.label || '').toLowerCase().includes(mfr) ? -1 : 1);
+        mountingMaterials.push(...makeBidirectionalSiphonCover(siphons, deckels, false));
+    } else if (isContura) {
+        const siphons = byArtNr('1422 223.000.000');
+        const deckels = [
+            '1311 698.100.000', '1311 698.501.000', '1311 699.536.000',
+            '1422 225.501.000'
+        ].flatMap(byArtNr);
+        deckels.sort((a, b) => {
             const cleanA = cleanArtNr(a.artNr);
             const cleanB = cleanArtNr(b.artNr);
-            const targetFlow = cleanArtNr('1311 701.000.000');
-            if (isFloorContura || isViva) {
-                if (cleanA === targetFlow && cleanB !== targetFlow) return -1;
-                if (cleanA !== targetFlow && cleanB === targetFlow) return 1;
-            } else {
-                if (cleanA === targetFlow && cleanB !== targetFlow) return 1;
-                if (cleanA !== targetFlow && cleanB === targetFlow) return -1;
-            }
+            const target = cleanArtNr('1311 698.100.000');
+            if (cleanA === target && cleanB !== target) return -1;
+            if (cleanA !== target && cleanB === target) return 1;
             return 0;
         });
+        mountingMaterials.push(...makeBidirectionalSiphonCover(siphons, deckels, false));
+    } else if (isViva) {
+        const siphons = byArtNr('1311 701.000.000');
+        const deckels = [
+            '1311 699.100.000', '1311 699.536.000', '1311 698.100.000', 
+            '1311 698.501.000', '1311 699.100.186', '1311 699.100.181', 
+            '1311 699.105.000', '1311 699.536.181', '1311 699.536.202'
+        ].flatMap(byArtNr);
+        deckels.sort((a, b) => (a.label || '').toLowerCase().includes(mfr) ? -1 : 1);
+        mountingMaterials.push(...makeBidirectionalSiphonCover(siphons, deckels, false));
+    } else {
+        const siphons = [...byArtNr('1422 117.000.000'), ...byArtNr('1311 701.000.000')];
+        const deckels = [
+            '1422 118.100.000', '1422 118.501.000',
+            '1311 699.100.000', '1311 699.536.000', '1311 698.100.000', 
+            '1311 698.501.000', '1311 699.100.186', '1311 699.100.181', 
+            '1311 699.105.000', '1311 699.536.181', '1311 699.536.202'
+        ].flatMap(byArtNr);
         
         deckels.sort((a, b) => (a.label || '').toLowerCase().includes(mfr) ? -1 : 1);
-        
         mountingMaterials.push(...makeBidirectionalSiphonCover(siphons, deckels, false));
     }
     
@@ -945,6 +954,14 @@ if (fs.existsSync(backupHtmlPath)) {
                 let mergedCount = 0;
                 
                 data.duschenwanne.trays.forEach(curTray => {
+                    const mfr = (curTray.manufacturer || '').toLowerCase();
+                    const lbl = (curTray.label || '').toLowerCase();
+                    const isSchmidlinFloorOrContura = mfr.includes('schmidlin') && (lbl.includes('floor') || lbl.includes('contura'));
+                    
+                    if (isSchmidlinFloorOrContura) {
+                        return;
+                    }
+                    
                     const bakTray = backupTrays.find(t => t.artNr === curTray.artNr);
                     if (bakTray && bakTray.mountingMaterials && bakTray.mountingMaterials.length > 0) {
                         const bakSiphon = bakTray.mountingMaterials.find(m => m.id === 'mat_siphon');
