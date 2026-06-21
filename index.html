@@ -40,6 +40,12 @@
             <div class="landing-hero">
                 <h1>Produktkategorien</h1>
                 <p>Wählen Sie eine Produktkategorie, um eine Stückliste zu konfigurieren.</p>
+                <div class="master-search-container" style="position: relative; width: 100%; max-width: 500px; margin: 1.5rem auto 0 auto;">
+                    <i class="ri-search-line" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1.1rem;"></i>
+                    <input type="text" id="landingSearchInput" class="admin-input" placeholder="Globale Suche (Art.Nr., Serie, Keyword...)" style="padding: 0.8rem 1rem 0.8rem 2.75rem; font-size: 1rem; border-radius: 30px; width: 100%; box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border); transition: border-color 0.2s ease;">
+                    <div id="landingSearchResults" class="search-results-dropdown" style="display: none; position: absolute; top: 100%; right: 0; left: 0; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; margin-top: 0.5rem; max-height: 400px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.5); text-align: left;">
+                    </div>
+                </div>
             </div>
 
             <div class="category-grid" id="categoryGrid">

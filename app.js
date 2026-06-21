@@ -343,18 +343,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // --- Master Search ---
-    const masterSearchInput = document.getElementById('masterSearchInput');
-    const masterSearchResults = document.getElementById('masterSearchResults');
-
-    if (masterSearchInput && masterSearchResults) {
+    // --- Master Search & Landing Search Setup ---
+    const setupSearchField = (inputEl, resultsEl) => {
+        if (!inputEl || !resultsEl) return;
         let hideTimeout;
 
         const handleSearchResultClick = (appId, trayId, catLabel) => {
             if (appId) {
                 window.openConfigurator(appId, catLabel);
-                masterSearchResults.style.display = 'none';
-                masterSearchInput.value = '';
+                resultsEl.style.display = 'none';
+                inputEl.value = '';
                 
                 // Allow UI to render then select item
                 setTimeout(() => {
@@ -367,7 +365,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         const renderSearchEmptyState = (query) => {
-            masterSearchResults.replaceChildren();
+            resultsEl.replaceChildren();
             const empty = document.createElement('div');
             empty.style.cssText = 'padding: 1.5rem; text-align: center; color: var(--text-secondary);';
             empty.append(`Keine Treffer für "${query}" `);
@@ -376,8 +374,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             hint.style.opacity = '0.5';
             hint.textContent = 'Verwenden Sie * für Platzhalter (z.B. 1234*)';
             empty.appendChild(hint);
-            masterSearchResults.appendChild(empty);
-            masterSearchResults.style.display = 'block';
+            resultsEl.appendChild(empty);
+            resultsEl.style.display = 'block';
         };
 
         const createSearchResultDropdownItem = (result) => {
@@ -481,12 +479,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         let searchTimeout = null;
-        masterSearchInput.addEventListener('input', (e) => {
+        inputEl.addEventListener('input', (e) => {
             const query = e.target.value.trim().toLowerCase();
             
             if (query.length < 2) {
                 if (searchTimeout) clearTimeout(searchTimeout);
-                masterSearchResults.style.display = 'none';
+                resultsEl.style.display = 'none';
                 return;
             }
 
@@ -575,18 +573,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             const limitedResults = uniqueResults.slice(0, 50); // limit for performance in dropdown
 
             if (limitedResults.length > 0) {
-                masterSearchResults.replaceChildren(...limitedResults.map(createSearchResultDropdownItem));
-                masterSearchResults.style.display = 'block';
+                resultsEl.replaceChildren(...limitedResults.map(createSearchResultDropdownItem));
+                resultsEl.style.display = 'block';
             } else {
                 renderSearchEmptyState(query);
             }
         };
 
         // Enter key handling: Open full search result view!
-        masterSearchInput.addEventListener('keydown', (e) => {
+        inputEl.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                masterSearchResults.style.display = 'none';
+                resultsEl.style.display = 'none';
 
                 if (!window.currentSearchUniqueResults || window.currentSearchUniqueResults.length === 0) return;
 
@@ -606,57 +604,68 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const grid = document.getElementById('searchResultsGrid');
                 grid.replaceChildren(...window.currentSearchUniqueResults.map(createFullSearchResultCard));
                 
-                masterSearchInput.value = '';
-                masterSearchInput.blur();
+                inputEl.value = '';
+                inputEl.blur();
             }
         });
 
-        masterSearchInput.addEventListener('blur', () => {
-            hideTimeout = setTimeout(() => { masterSearchResults.style.display = 'none'; }, 250);
+        inputEl.addEventListener('blur', () => {
+            hideTimeout = setTimeout(() => { resultsEl.style.display = 'none'; }, 250);
         });
-        masterSearchInput.addEventListener('focus', () => {
-            if (masterSearchInput.value.length >= 2) masterSearchResults.style.display = 'block';
+        inputEl.addEventListener('focus', () => {
+            if (inputEl.value.length >= 2) resultsEl.style.display = 'block';
         });
 
         window.handleSearchResultClick = handleSearchResultClick;
+    };
 
-        window.addMasterSearchResultToWishlist = (artNr, label, typ, imgUrl) => {
-            // Adds specifically to the Wishlist (Eigene Selektion)
-            const exists = window.customWishlist.find(i => i.artNr === artNr);
-            if (exists) {
-                exists.menge += 1;
-            } else {
-                window.customWishlist.push({
-                    artNr: artNr,
-                    label: label,
-                    typ: typ,
-                    imgUrl: imgUrl,
-                    menge: 1
-                });
-            }
-            saveWishlist();
+    window.addMasterSearchResultToWishlist = (artNr, label, typ, imgUrl) => {
+        // Adds specifically to the Wishlist (Eigene Selektion)
+        const exists = window.customWishlist.find(i => i.artNr === artNr);
+        if (exists) {
+            exists.menge += 1;
+        } else {
+            window.customWishlist.push({
+                artNr: artNr,
+                label: label,
+                typ: typ,
+                imgUrl: imgUrl,
+                menge: 1
+            });
+        }
+        saveWishlist();
 
-            masterSearchResults.style.display = 'none';
-            masterSearchInput.value = '';
-            
-            // Give user feedback safely via a small overlay toast
-            const feedback = document.createElement('div');
-            feedback.style.position = 'fixed';
-            feedback.style.bottom = '20px';
-            feedback.style.right = '20px';
-            feedback.style.background = 'var(--accent)';
-            feedback.style.color = '#000';
-            feedback.style.padding = '1rem 1.5rem';
-            feedback.style.borderRadius = '8px';
-            feedback.style.fontWeight = 'bold';
-            feedback.style.zIndex = '9999';
-            feedback.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
-            appendIcon(feedback, 'ri-check-line');
-            feedback.append(` Artikel "${artNr}" zur Eigenen Selektion hinzugefügt`);
-            document.body.appendChild(feedback);
-            setTimeout(() => feedback.remove(), 3000);
-        };
-    }
+        // Clear and hide all search components dynamically
+        ['masterSearchResults', 'landingSearchResults'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        ['masterSearchInput', 'landingSearchInput'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        
+        // Give user feedback safely via a small overlay toast
+        const feedback = document.createElement('div');
+        feedback.style.position = 'fixed';
+        feedback.style.bottom = '20px';
+        feedback.style.right = '20px';
+        feedback.style.background = 'var(--accent)';
+        feedback.style.color = '#000';
+        feedback.style.padding = '1rem 1.5rem';
+        feedback.style.borderRadius = '8px';
+        feedback.style.fontWeight = 'bold';
+        feedback.style.zIndex = '9999';
+        feedback.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+        appendIcon(feedback, 'ri-check-line');
+        feedback.append(` Artikel "${artNr}" zur Eigenen Selektion hinzugefügt`);
+        document.body.appendChild(feedback);
+        setTimeout(() => feedback.remove(), 3000);
+    };
+
+    // Initialize both search fields
+    setupSearchField(document.getElementById('masterSearchInput'), document.getElementById('masterSearchResults'));
+    setupSearchField(document.getElementById('landingSearchInput'), document.getElementById('landingSearchResults'));
 
     document.getElementById('copyBtn').addEventListener('click', () => {
         if (window.currentActiveApp && window.currentActiveApp.copyToClipboard) {
