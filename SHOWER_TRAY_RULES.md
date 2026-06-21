@@ -25,7 +25,7 @@ Specify which siphon model family is compatible with each shower tray family.
 | **Laufen Pro**        | `[1171 405.000.000]` *(Laufen Pro)*     | `[none]` | `[ Yes (Integrated) ]` |
 | **Laufen Pro S**        | `[1425 561.000.000]` *(Laufen Pro S)*     | `[none]` | `[ Yes (Integrated) ]` |
 | **Alterna Ecoplan**   | `[1422 117.000.000]` *(Geberit d90)*    | `[none]` | `[ No ]` |
-| **Alterna Loa**   | `[1422 117.000.000]` *(Geberit d90)*    | `[1311 701.000.000]` | `[ No ]` |
+| **Alterna Loa**   | `[1311 701.000.000]` *(Schmidlin Flow)*    | `[none]` | `[ No ]` |
 | **Schmidlin Viva**   | `[1311 701.000.000]`   | `[none]` | `[ No ]` |
 
 

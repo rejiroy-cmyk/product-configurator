@@ -1256,12 +1256,35 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         if (title && title.toLowerCase().includes('badewanne') && (mat.id === 'mat_tape' || (mat.name && mat.name.includes('Dichtband')))) {
                             const nischeOpt = mat.options.find(o => (o.label && o.label.includes('3-seitig')) || (o.dropdownLabel && o.dropdownLabel.includes('3-seitig')));
                             if (nischeOpt) defaultOpt = nischeOpt;
-                        } else if (mat.id === 'mat_deckel' && mat.options.length > 1 && defaultOpt.artNr === 'none') {
-                            defaultOpt = mat.options[1];
                         }
                         this.selectedTray.selections[mat.id] = defaultOpt.artNr;
                     }
                 });
+
+                // Enforce initial compatibility (ensure mat_deckel is compatible with mat_siphon)
+                if (this.selectedTray.selections && this.selectedTray.mountingMaterials) {
+                    const siphonSelection = this.selectedTray.selections['mat_siphon'];
+                    const deckelMat = this.selectedTray.mountingMaterials.find(m => m.id === 'mat_deckel');
+                    if (siphonSelection && deckelMat && deckelMat.optionRules) {
+                        if (siphonSelection === '1422 117.000.000' || siphonSelection === '1422117.000.000') {
+                            const currentDeckel = this.selectedTray.selections['mat_deckel'];
+                            if (currentDeckel !== '1422 118.100.000' && currentDeckel !== '1422 118.501.000') {
+                                this.selectedTray.selections['mat_deckel'] = '1422 118.501.000';
+                            }
+                        } else {
+                            const rule = deckelMat.optionRules.find(r => r.whenArtNr === siphonSelection);
+                            if (rule) {
+                                const currentDeckel = this.selectedTray.selections['mat_deckel'];
+                                if (!rule.optionArtNrs.includes(currentDeckel)) {
+                                    const validOpt = deckelMat.options.find(o => rule.optionArtNrs.includes(o.artNr));
+                                    if (validOpt) {
+                                        this.selectedTray.selections['mat_deckel'] = validOpt.artNr;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             this.filterResults(); // re-render to highlight active
@@ -1332,6 +1355,14 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
 
                         this.selectedTray.mountingMaterials.forEach(mat => {
                             if (mat.options && mat.options.length > 1) {
+                                // Exclude Geberit siphon 1422 117 from color selection propagation for cover
+                                if (mat.id === 'mat_deckel') {
+                                    const selSiphon = this.selectedTray.selections['mat_siphon'];
+                                    if (selSiphon === '1422 117.000.000' || selSiphon === '1422117.000.000') {
+                                        return;
+                                    }
+                                }
+
                                 let bestMatchOpt = null;
                                 let bestMatchScore = 0;
 
@@ -1359,7 +1390,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                                 // Fallback: If no match and variant is standard, fall back to option 0
                                 const hasExotic = activeColors.some(c => !['chrom', 'weiss', 'white'].includes(c)) || (variantColorCode && !['000', '100'].includes(variantColorCode));
                                 if (!bestMatchOpt && !hasExotic) {
-                                    bestMatchOpt = (mat.id === 'mat_deckel' && mat.options.length > 1 && mat.options[0].artNr === 'none') ? mat.options[1] : mat.options[0];
+                                    bestMatchOpt = mat.options[0];
                                 }
 
                                 if (bestMatchOpt && (bestMatchScore > 0 || !hasExotic)) {
@@ -1367,6 +1398,31 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                                 }
                             }
                         });
+
+                        // Enforce compatibility after color matching (ensure mat_deckel is compatible with mat_siphon)
+                        if (this.selectedTray.selections && this.selectedTray.mountingMaterials) {
+                            const siphonSelection = this.selectedTray.selections['mat_siphon'];
+                            const deckelMat = this.selectedTray.mountingMaterials.find(m => m.id === 'mat_deckel');
+                            if (siphonSelection && deckelMat && deckelMat.optionRules) {
+                                if (siphonSelection === '1422 117.000.000' || siphonSelection === '1422117.000.000') {
+                                    const currentDeckel = this.selectedTray.selections['mat_deckel'];
+                                    if (currentDeckel !== '1422 118.100.000' && currentDeckel !== '1422 118.501.000') {
+                                        this.selectedTray.selections['mat_deckel'] = '1422 118.501.000';
+                                    }
+                                } else {
+                                    const rule = deckelMat.optionRules.find(r => r.whenArtNr === siphonSelection);
+                                    if (rule) {
+                                        const currentDeckel = this.selectedTray.selections['mat_deckel'];
+                                        if (!rule.optionArtNrs.includes(currentDeckel)) {
+                                            const validOpt = deckelMat.options.find(o => rule.optionArtNrs.includes(o.artNr));
+                                            if (validOpt) {
+                                                this.selectedTray.selections['mat_deckel'] = validOpt.artNr;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
                         this.updateBOM();
                         this.renderConfigurator();

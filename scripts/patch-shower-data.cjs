@@ -141,7 +141,7 @@ function isDrainCover(item) {
     const label = (item.label || '').toLowerCase();
     if (label.includes('ohne ablaufhaube') || label.includes('ohne ablaufdeckel')) return false;
     if (startsWithAny(label, ['duschwannengarnitur', 'ablaufgarnitur', 'duschwannenablauf', 'duschwannen-ablauf'])) return false;
-    return label.includes('ablaufdeckel') || label.includes('ablaufhaube') || label.includes('ablaufabdeckung');
+    return label.includes('ablaufdeckel') || label.includes('ablaufhaube') || label.includes('ablaufabdeckung') || label.includes('abdeckhaube');
 }
 function drainNeedsCover(item) {
     const label = (item.label || '').toLowerCase();
@@ -157,6 +157,34 @@ function drainIncludesCover(item) {
         || label.includes('ablaufhaube')
         || label.includes('mit ablaufabdeckung')
         || label.includes('ablaufabdeckung');
+}
+
+function extractDepth(label) {
+    const lbl = (label || '').toLowerCase().replace(/,/g, '.');
+    
+    // Check for "x [depth] cm" e.g., "80 x 80 x 3.5 cm"
+    const cmMatch = lbl.match(/\d+\s*x\s*\d+\s*x\s*(\d+(?:\.\d+)?)\s*cm/);
+    if (cmMatch) {
+        return Math.round(parseFloat(cmMatch[1]) * 10); // in mm
+    }
+    
+    // Check for "x [depth] mm" e.g., "1200 x 1000 x 35 mm"
+    const mmMatch = lbl.match(/\d+\s*x\s*\d+\s*x\s*(\d+)\s*mm/);
+    if (mmMatch) {
+        return parseInt(mmMatch[1]);
+    }
+    
+    // Standalone height/depth checks
+    const heightCmMatch = lbl.match(/höhe\s*(\d+(?:\.\d+)?)\s*cm/);
+    if (heightCmMatch) {
+        return Math.round(parseFloat(heightCmMatch[1]) * 10);
+    }
+    const heightMmMatch = lbl.match(/höhe\s*(\d+)\s*mm/);
+    if (heightMmMatch) {
+        return parseInt(heightMmMatch[1]);
+    }
+    
+    return null;
 }
 
 function isPuKleber(item) {
@@ -177,6 +205,27 @@ function isDichtband(item) {
 function isSchallschutz(item) {
     const label = (item.label || '').toLowerCase();
     return !isDichtband(item) && (label.includes('schallschutz') || label.includes('schallschutzset') || label.includes('schall-set'));
+}
+
+function isFrame(item) {
+    const label = (item.label || '').toLowerCase();
+    return label.includes('rahmen') || label.includes('montagerahmen') || label.includes('installationsrahmen') || label.includes('fussset') || label.includes('fußset') || label.includes('omnia');
+}
+
+function isCarrier(item) {
+    const label = (item.label || '').toLowerCase();
+    return label.includes('träger') || label.includes('wannenträger') || label.includes('wannentraeger') || label.includes('styropor');
+}
+
+function isStelz(item) {
+    const label = (item.label || '').toLowerCase();
+    return label.includes('stelz') || label.includes('füsse') || label.includes('fuß');
+}
+
+function isLaufenMarbondFrame(item) {
+    const lbl = (item.label || '').toLowerCase();
+    const art = cleanArtNr(item.artNr);
+    return lbl.includes('marbond') || art.startsWith('131137');
 }
 
 function getByKeyword(item, keywords) {
@@ -285,12 +334,51 @@ function findCarriersForTray(tray) {
             const sizeMatches = (carrierL === mmL && carrierW === mmW) || (carrierL === mmW && carrierW === mmL);
             if (!sizeMatches) return;
 
-            // Manufacturer / Brand compatibility (allow alterna/schedel as universal)
+            // Strict depth (thickness) match check (if both label depths are extractable)
+            const trayDepth = extractDepth(tray.label);
+            const carrierDepth = extractDepth(p.label);
+            if (trayDepth !== null && carrierDepth !== null) {
+                const trayLbl = (tray.label || '').toLowerCase();
+                const carrierLbl = (p.label || '').toLowerCase();
+                const isTrayCayonoplan = trayLbl.includes('cayonoplan');
+                const isCarrierCayonoplan = carrierLbl.includes('cayonoplan');
+                
+                if (isTrayCayonoplan && isCarrierCayonoplan) {
+                    if (trayDepth !== carrierDepth && !(trayDepth === 25 && carrierDepth === 18)) {
+                        return;
+                    }
+                } else if (trayDepth !== carrierDepth) {
+                    return;
+                }
+            }
+
+            // Manufacturer / Brand compatibility
             const trayLbl = (tray.label || '').toLowerCase();
-            const hasMfr = lbl.includes(mfr) || lbl.includes('alterna') || lbl.includes('schedel') || 
-                           (trayLbl.includes('sanidusch') && lbl.includes('sanidusch')) ||
-                           (trayLbl.includes('superplan') && lbl.includes('superplan')) ||
-                           (trayLbl.includes('duschplan') && lbl.includes('duschplan'));
+            const carrierLbl = (p.label || '').toLowerCase();
+            
+            let brandCompatible = false;
+            if (mfr.includes('schmidlin')) {
+                if (carrierLbl.includes('schmidlin')) {
+                    brandCompatible = true;
+                }
+            } else if (mfr.includes('kaldewei')) {
+                if (carrierLbl.includes('kaldewei')) {
+                    brandCompatible = true;
+                } else if (carrierLbl.includes('alterna') && trayLbl.includes('superplan') && carrierLbl.includes('superplan')) {
+                    brandCompatible = true;
+                }
+            } else if (mfr.includes('alterna')) {
+                if (carrierLbl.includes('alterna')) {
+                    brandCompatible = true;
+                }
+            } else if (mfr.includes('laufen')) {
+                if (carrierLbl.includes('laufen')) {
+                    brandCompatible = true;
+                }
+            } else {
+                brandCompatible = carrierLbl.includes(mfr) || carrierLbl.includes('alterna') || carrierLbl.includes('schedel');
+            }
+            if (!brandCompatible) return;
 
             // Add strict matching for model family (including Superplan sub-families)
             let hasModel = true;
@@ -324,7 +412,7 @@ function findCarriersForTray(tray) {
                 hasModel = false;
             }
 
-            if (hasMfr && hasModel) {
+            if (hasModel) {
                 results.push({
                     artNr: p.artNr,
                     label: p.label,
@@ -419,6 +507,67 @@ function findIneoFramesForTray(l, w) {
     return matches.map(m => ({ ...m, type: "Zubehör", menge: 1 }));
 }
 
+function findBestKaldeweiFrame(frames, l, w) {
+    let targetArtNr = '';
+    if (l <= 90 && w <= 90) {
+        targetArtNr = '1435 421.000.000';
+    } else if (l <= 120 && w <= 120) {
+        targetArtNr = '1435 424.000.000';
+    } else {
+        targetArtNr = '1435 428.000.000';
+    }
+    
+    const found = frames.find(f => cleanArtNr(f.artNr) === cleanArtNr(targetArtNr));
+    if (found) {
+        return [found];
+    }
+    
+    return byArtNr(targetArtNr);
+}
+
+function selectBestIneoFrame(matches, l, w) {
+    if (matches.length <= 1) return matches;
+    
+    const l_mm = l < 250 ? l * 10 : l;
+    const w_mm = w < 250 ? w * 10 : w;
+    const max_mm = Math.max(l_mm, w_mm);
+    const min_mm = Math.min(l_mm, w_mm);
+    
+    const scored = matches.map(p => {
+        const lbl = (p.label || '').toLowerCase();
+        let lMin=0, lMax=0, wMin=0, wMax=0;
+        const match1 = lbl.match(/(\d+)\s*-\s*(\d+)\s*x\s*(\d+)\s*-\s*(\d+)/);
+        if (match1) {
+            lMin = parseInt(match1[1]); lMax = parseInt(match1[2]);
+            wMin = parseInt(match1[3]); wMax = parseInt(match1[4]);
+        } else {
+            const wMatch = lbl.match(/breite (\d+) mm/);
+            if (wMatch) { wMin = wMax = parseInt(wMatch[1]); }
+            const lMatch = lbl.match(/länge.*?(\d+)\s*-\s*(\d+)\s*mm/);
+            if (lMatch) { lMin = parseInt(lMatch[1]); lMax = parseInt(lMatch[2]); }
+        }
+        
+        const fitsDirect = (max_mm >= Math.max(lMin, wMin) && max_mm <= Math.max(lMax, wMax) &&
+                            min_mm >= Math.min(lMin, wMin) && min_mm <= Math.min(lMax, wMax));
+        const area = lMax * wMax;
+        
+        return { p, fitsDirect, area };
+    });
+    
+    scored.sort((a, b) => {
+        const a37 = a.p.artNr && a.p.artNr.replace(/\s/g, '').startsWith('131137');
+        const b37 = b.p.artNr && b.p.artNr.replace(/\s/g, '').startsWith('131137');
+        if (a37 && !b37) return -1;
+        if (!a37 && b37) return 1;
+
+        if (a.fitsDirect && !b.fitsDirect) return -1;
+        if (!a.fitsDirect && b.fitsDirect) return 1;
+        return a.area - b.area;
+    });
+    
+    return [scored[0].p];
+}
+
 // --- 4. Modular Template Resolvers ---
 
 function makeBidirectionalSiphonCover(siphons, deckels, hasIntegratedCover) {
@@ -427,9 +576,13 @@ function makeBidirectionalSiphonCover(siphons, deckels, hasIntegratedCover) {
     const optionalDeckels = [];
     if (deckels.length > 0) {
         if (hasIntegratedCover) {
-            optionalDeckels.push({ artNr: 'none', label: 'Ohne (Standardabdeckung der Ablaufgarnitur nutzen)', type: 'Zubehör', menge: 0 });
+            if (deckels.length > 1) {
+                optionalDeckels.push({ artNr: 'none', label: 'none_ohne Deckel', type: 'Zubehör', menge: 0 });
+                optionalDeckels.push(...deckels);
+            }
+        } else {
+            optionalDeckels.push(...deckels);
         }
-        optionalDeckels.push(...deckels);
     }
 
     const siphonRules = [];
@@ -537,12 +690,27 @@ function ensureSealingTape(tray, mountingMaterials, scraped) {
 }
 
 function resolveMiscAccessories(tray, mountingMaterials, scraped) {
-    const assigned = new Set(mountingMaterials.flatMap(m => [...m.options.map(o => o.artNr), ...(m.bundle || []).map(b => b.artNr)]));
+    const assigned = new Set(mountingMaterials.flatMap(m => [
+        ...m.options.map(o => o.artNr), 
+        ...(m.bundle || []).map(b => b.artNr),
+        ...(m.bundleRules || []).flatMap(r => (r.bundle || []).map(b => b.artNr))
+    ]));
     const isTape = (item) => {
         const lbl = (item.label || '').toLowerCase();
         return lbl.includes('dichtband') || lbl.includes('wannenband') || lbl.includes('zargen');
     };
-    const misc = scraped.allScraped.filter(item => !assigned.has(item.artNr) && !isPuKleber(item) && !isDrainCover(item) && !isDrainAssembly(item) && item.artNr !== '1461 015.000.000' && !isTape(item));
+    const misc = scraped.allScraped.filter(item => 
+        !assigned.has(item.artNr) && 
+        !isPuKleber(item) && 
+        !isDrainCover(item) && 
+        !isDrainAssembly(item) && 
+        !isFrame(item) && 
+        !isCarrier(item) && 
+        !isStelz(item) && 
+        !isSchallschutz(item) && 
+        item.artNr !== '1461 015.000.000' && 
+        !isTape(item)
+    );
     if (misc.length > 0) {
         mountingMaterials.push({ id: 'mat_misc', name: 'Weiteres Zubehör', options: misc });
     }
@@ -560,6 +728,7 @@ function resolveSchmidlinTemplate(tray, scraped) {
     const isViva = lbl.includes('viva');
     const isFloor = lbl.includes('floor');
     const isContura = lbl.includes('contura');
+    const isAlternaLoa = lbl.includes('alterna loa') || lbl.includes('loa');
     
     if (isSehrTief15) {
         const siphons = byArtNr('1421 111.501.000');
@@ -570,16 +739,22 @@ function resolveSchmidlinTemplate(tray, scraped) {
         });
     } else if (isSwissLine) {
         const siphons = byArtNr('1422 117.000.000');
-        const deckels = ['1422 118.100.000', '1422 118.501.000'].flatMap(byArtNr);
+        const deckels = ['1422 118.501.000', '1422 118.100.000'].flatMap(byArtNr);
         mountingMaterials.push(...makeBidirectionalSiphonCover(siphons, deckels, false));
-    } else if (isFloor) {
+    } else if (isFloor || isAlternaLoa) {
         const siphons = byArtNr('1311 701.000.000');
         const deckels = [
             '1311 699.100.000', '1311 699.536.000', '1311 698.100.000', 
             '1311 698.501.000', '1311 699.100.186', '1311 699.100.181', 
             '1311 699.105.000', '1311 699.536.181', '1311 699.536.202'
         ].flatMap(byArtNr);
-        deckels.sort((a, b) => (a.label || '').toLowerCase().includes(mfr) ? -1 : 1);
+        deckels.sort((a, b) => {
+            const aMfr = (a.label || '').toLowerCase().includes(mfr);
+            const bMfr = (b.label || '').toLowerCase().includes(mfr);
+            if (aMfr && !bMfr) return -1;
+            if (!aMfr && bMfr) return 1;
+            return 0;
+        });
         mountingMaterials.push(...makeBidirectionalSiphonCover(siphons, deckels, false));
     } else if (isContura) {
         const siphons = byArtNr('1422 223.000.000');
@@ -603,18 +778,30 @@ function resolveSchmidlinTemplate(tray, scraped) {
             '1311 698.501.000', '1311 699.100.186', '1311 699.100.181', 
             '1311 699.105.000', '1311 699.536.181', '1311 699.536.202'
         ].flatMap(byArtNr);
-        deckels.sort((a, b) => (a.label || '').toLowerCase().includes(mfr) ? -1 : 1);
+        deckels.sort((a, b) => {
+            const aMfr = (a.label || '').toLowerCase().includes(mfr);
+            const bMfr = (b.label || '').toLowerCase().includes(mfr);
+            if (aMfr && !bMfr) return -1;
+            if (!aMfr && bMfr) return 1;
+            return 0;
+        });
         mountingMaterials.push(...makeBidirectionalSiphonCover(siphons, deckels, false));
     } else {
         const siphons = [...byArtNr('1422 117.000.000'), ...byArtNr('1311 701.000.000')];
         const deckels = [
-            '1422 118.100.000', '1422 118.501.000',
+            '1422 118.501.000', '1422 118.100.000',
             '1311 699.100.000', '1311 699.536.000', '1311 698.100.000', 
             '1311 698.501.000', '1311 699.100.186', '1311 699.100.181', 
             '1311 699.105.000', '1311 699.536.181', '1311 699.536.202'
         ].flatMap(byArtNr);
         
-        deckels.sort((a, b) => (a.label || '').toLowerCase().includes(mfr) ? -1 : 1);
+        deckels.sort((a, b) => {
+            const aMfr = (a.label || '').toLowerCase().includes(mfr);
+            const bMfr = (b.label || '').toLowerCase().includes(mfr);
+            if (aMfr && !bMfr) return -1;
+            if (!aMfr && bMfr) return 1;
+            return 0;
+        });
         mountingMaterials.push(...makeBidirectionalSiphonCover(siphons, deckels, false));
     }
     
@@ -641,6 +828,34 @@ function resolveSchmidlinTemplate(tray, scraped) {
             }
             mountingMaterials.push({ id: 'mat_frame', name: 'Montagerahmen System', options: frames, bundle: [], bundleRules });
         }
+    }
+    
+    let carriers = [];
+    if (!isSwissLine) {
+        carriers = scraped.allScraped.filter(c => getByKeyword(c, ['träger', 'wannenträger']))
+            .filter(c => !isPuKleber(c) && !isMontageFoam(c) && !isSchallschutz(c));
+        if (carriers.length === 0) {
+            carriers = findCarriersForTray(tray);
+        }
+    }
+    
+    if (carriers.length > 0) {
+        const foamMenge = (l >= 120 && w >= 120) ? 2 : 1;
+        const foam = scraped.allScraped.filter(isMontageFoam).map(f => ({ ...f, menge: foamMenge }));
+        if (foam.length === 0) {
+            foam.push(...byArtNr(MASTER_PARTS.SCHAUM).map(f => ({ ...f, menge: foamMenge })));
+        }
+        const sound = scraped.allScraped.filter(isSchallschutz);
+        if (sound.length === 0) {
+            sound.push(...byArtNr(MASTER_PARTS.SCHALLSCHUTZ));
+        }
+        
+        mountingMaterials.push({
+            id: 'mat_carrier',
+            name: 'Wannenträger System',
+            options: carriers,
+            bundle: [...foam, ...sound]
+        });
     }
     
     return mountingMaterials;
@@ -714,8 +929,11 @@ function resolveKaldeweiTemplate(tray, scraped) {
     
     let frames = [];
     if (!isCalima) {
-        const frameArtNr = (l <= 120 && w <= 120) ? MASTER_PARTS.FR5300_SMALL : MASTER_PARTS.FR5300_LARGE;
-        frames = byArtNr(frameArtNr);
+        const scrapedFrames = scraped.allScraped.filter(f => {
+            const lbl = (f.label || '').toLowerCase();
+            return lbl.includes('fr 5300') || (lbl.includes('montagerahmen') && lbl.includes('kaldewei'));
+        });
+        frames = findBestKaldeweiFrame(scrapedFrames, l, w);
     }
     
     if (frames.length > 0) {
@@ -751,7 +969,7 @@ function resolveKaldeweiTemplate(tray, scraped) {
 function resolveLaufenTemplate(tray, scraped) {
     const [l, w] = getTrayDimensions(tray);
     const lbl = (tray.label || '').toLowerCase();
-    const isProS = lbl.includes('pro s');
+    const isProS = /\bpro\s+s\b/i.test(lbl);
     const mountingMaterials = [];
     
     if (isProS) {
@@ -770,9 +988,40 @@ function resolveLaufenTemplate(tray, scraped) {
         });
     }
     
-    const frames = findIneoFramesForTray(l, w);
+    // Start with all size-matching Ineo frames from the pool
+    let candidateFrames = findIneoFramesForTray(l, w);
+    
+    // Also include any installationsrahmen/montagerahmen from scraped.allScraped
+    const scrapedFrames = scraped.allScraped.filter(f => {
+        const lblLower = (f.label || '').toLowerCase();
+        return (lblLower.includes('installationsrahmen') || lblLower.includes('montagerahmen')) && lblLower.includes('laufen');
+    });
+    
+    // Add scraped frames if they are not already in the candidates list
+    scrapedFrames.forEach(sf => {
+        if (!candidateFrames.some(f => cleanArtNr(f.artNr) === cleanArtNr(sf.artNr))) {
+            candidateFrames.push(sf);
+        }
+    });
+
+    const isMarbond = lbl.includes('marbond');
+    let frames = [];
+    if (isMarbond) {
+        const marbondCandidates = candidateFrames.filter(isLaufenMarbondFrame);
+        if (marbondCandidates.length > 0) {
+            frames = selectBestIneoFrame(marbondCandidates, l, w);
+        } else {
+            // Fallback to standard frames if no Marbond frame fits
+            const standardCandidates = candidateFrames.filter(f => !isLaufenMarbondFrame(f));
+            frames = selectBestIneoFrame(standardCandidates, l, w);
+        }
+    } else {
+        const standardCandidates = candidateFrames.filter(f => !isLaufenMarbondFrame(f));
+        frames = selectBestIneoFrame(standardCandidates, l, w);
+    }
+
     if (frames.length > 0) {
-        const sound = byArtNr(lbl.includes('pro s') ? '1311 200.000.000' : '1311 201.000.000');
+        const sound = byArtNr(isProS ? '1311 200.000.000' : '1311 201.000.000');
         mountingMaterials.push({ id: 'mat_frame', name: 'Montagerahmen System', options: frames, bundle: sound });
     }
     
@@ -793,7 +1042,7 @@ function resolveDefaultTemplate(tray, scraped) {
     const deckels = [];
     
     siphons.push(...byArtNr('1422 117.000.000'));
-    deckels.push(...['1422 118.100.000', '1422 118.501.000'].flatMap(byArtNr));
+    deckels.push(...['1422 118.501.000', '1422 118.100.000'].flatMap(byArtNr));
     
     if (isLoa) {
         siphons.push(...byArtNr('1311 701.000.000'));
@@ -811,7 +1060,13 @@ function resolveDefaultTemplate(tray, scraped) {
         if (!aMfr && bMfr) return 1;
         return 0;
     });
-    deckels.sort((a, b) => (a.label || '').toLowerCase().includes(mfr) ? -1 : 1);
+    deckels.sort((a, b) => {
+        const aMfr = (a.label || '').toLowerCase().includes(mfr);
+        const bMfr = (b.label || '').toLowerCase().includes(mfr);
+        if (aMfr && !bMfr) return -1;
+        if (!aMfr && bMfr) return 1;
+        return 0;
+    });
     
     mountingMaterials.push(...makeBidirectionalSiphonCover(siphons, deckels, false));
     
@@ -925,71 +1180,7 @@ data.duschenwanne.trays.forEach(tray => {
     tray.mountingMaterials = resolveTrayAccessories(tray);
 });
 
-// --- 5. Merge from backup and enforce bidirectional rules ---
-const backupHtmlPath = path.join(__dirname, '../backups/20260616_054611_dist/index.html');
-if (fs.existsSync(backupHtmlPath)) {
-    console.log('Loading backup to restore siphon/cover mapping...');
-    const html = fs.readFileSync(backupHtmlPath, 'utf8');
-    const artIdx = html.indexOf('1311 407.100.000');
-    if (artIdx !== -1) {
-        const traysIdx = html.lastIndexOf('trays:[', artIdx);
-        if (traysIdx !== -1) {
-            const startIdx = traysIdx - 1; // index of "{"
-            let braceCount = 0;
-            let endIdx = -1;
-            for (let i = startIdx; i < html.length; i++) {
-                const c = html[i];
-                if (c === '{') braceCount++;
-                else if (c === '}') {
-                    braceCount--;
-                    if (braceCount === 0) {
-                        endIdx = i;
-                        break;
-                    }
-                }
-            }
-            try {
-                const backupData = eval('(' + html.substring(startIdx, endIdx + 1) + ')');
-                const backupTrays = backupData.trays;
-                let mergedCount = 0;
-                
-                data.duschenwanne.trays.forEach(curTray => {
-                    const mfr = (curTray.manufacturer || '').toLowerCase();
-                    const lbl = (curTray.label || '').toLowerCase();
-                    const isSchmidlinFloorOrContura = mfr.includes('schmidlin') && (lbl.includes('floor') || lbl.includes('contura'));
-                    
-                    if (isSchmidlinFloorOrContura) {
-                        return;
-                    }
-                    
-                    const bakTray = backupTrays.find(t => t.artNr === curTray.artNr);
-                    if (bakTray && bakTray.mountingMaterials && bakTray.mountingMaterials.length > 0) {
-                        const bakSiphon = bakTray.mountingMaterials.find(m => m.id === 'mat_siphon');
-                        const bakDeckel = bakTray.mountingMaterials.find(m => m.id === 'mat_deckel');
-                        
-                        if (bakSiphon || bakDeckel) {
-                            // Replace in curTray.mountingMaterials
-                            curTray.mountingMaterials = curTray.mountingMaterials.filter(m => m.id !== 'mat_siphon' && m.id !== 'mat_deckel');
-                            
-                            const bakMaterials = [];
-                            bakTray.mountingMaterials.forEach(m => {
-                                if (m.id === 'mat_siphon' || m.id === 'mat_deckel') {
-                                    bakMaterials.push(JSON.parse(JSON.stringify(m)));
-                                }
-                            });
-                            
-                            curTray.mountingMaterials.unshift(...bakMaterials);
-                            mergedCount++;
-                        }
-                    }
-                });
-                console.log(`Merged siphons/covers from backup for ${mergedCount} trays.`);
-            } catch (e) {
-                console.error('Failed to parse backup html:', e);
-            }
-        }
-    }
-}
+// --- 5. Backup merging disabled to rely 100% on the template resolver ---
 
 // --- 6. Save ---
 fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));

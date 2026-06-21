@@ -1121,6 +1121,33 @@ const tests = [
                 }
             }
         }
+    },
+    {
+        name: "Strict Schmidlin foam carrier (wannenträger) matching",
+        fn: () => {
+            const schmidlinTrays = data.duschenwanne.trays || [];
+            const tray = schmidlinTrays.find(t => t.artNr === "1311 407.100.000");
+            if (!tray) throw new Error("Could not find tray 1311 407.100.000");
+            
+            const carrierMat = tray.mountingMaterials.find(m => m.id === "mat_carrier");
+            if (!carrierMat) {
+                throw new Error("Expected Schmidlin tray 1311 407.100.000 to have resolved foam carriers (mat_carrier)");
+            }
+            
+            if (carrierMat.options.length === 0) {
+                throw new Error("Expected mat_carrier to have resolved option carriers");
+            }
+            
+            carrierMat.options.forEach(opt => {
+                const labelLower = (opt.label || "").toLowerCase();
+                if (!labelLower.includes("schmidlin")) {
+                    throw new Error(`Carrier ${opt.artNr} with label '${opt.label}' resolved for Schmidlin tray 1311 407.100.000 does not contain 'Schmidlin'`);
+                }
+                if (!labelLower.includes("35") && !labelLower.includes("3.5")) {
+                    throw new Error(`Carrier ${opt.artNr} with label '${opt.label}' does not match depth of 3.5 cm (35 mm)`);
+                }
+            });
+        }
     }
 ];
 
