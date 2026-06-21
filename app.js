@@ -1,5 +1,5 @@
 import { DATA_VERSION, catalog } from './modules/data.js?v=2.5.4';
-import { productApps } from './modules/apps.js?v=2.6.30';
+import { productApps } from './modules/apps.js?v=2.6.31';
 import { setupAdmin } from './modules/admin.js?v=2.5.4';
 
 window.copyTextToClipboard = function(text) {

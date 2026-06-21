@@ -69,6 +69,22 @@ window.copyBOMToClipboard = function() {
 };
 
 
+// Dynamic search engine to support multi-term queries and alphanumeric normalization
+const matchesSearchQuery = (item, queryText) => {
+    if (!queryText || queryText.trim() === '') return true;
+    const terms = queryText.toLowerCase().split(/\s+/).filter(Boolean);
+    const cleanLabel = ((item.label || '') + ' ' + (item.description || '')).toLowerCase().replace(/[^a-z0-9]/g, '');
+    const cleanArtNr = (item.artNr || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const cleanMfr = (item.manufacturer || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    
+    return terms.every(term => {
+        const cleanTerm = term.replace(/[^a-z0-9]/g, '');
+        if (!cleanTerm) return true;
+        return cleanLabel.includes(cleanTerm) || cleanArtNr.includes(cleanTerm) || cleanMfr.includes(cleanTerm);
+    });
+};
+
+
 // DOM Elements needed by factories
 const configSidebar = document.getElementById('configSidebar');
 const bomTableBody = document.getElementById('bomTableBody');
@@ -4814,8 +4830,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             let f8 = f7;
             if (this.basinSearchQuery && this.basinSearchQuery.trim() !== '') {
-                const q = this.basinSearchQuery.toLowerCase().trim();
-                f8 = f8.filter(t => (t.label || '').toLowerCase().includes(q) || (t.artNr || '').toLowerCase().includes(q));
+                f8 = f8.filter(t => matchesSearchQuery(t, this.basinSearchQuery));
             }
 
             // 8. Items list
@@ -5089,8 +5104,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             let f7 = f6;
             if (this.faucetSearchQuery && this.faucetSearchQuery.trim() !== '') {
-                const q = this.faucetSearchQuery.toLowerCase().trim();
-                f7 = f7.filter(t => (t.label || '').toLowerCase().includes(q) || (t.artNr || '').toLowerCase().includes(q));
+                f7 = f7.filter(t => matchesSearchQuery(t, this.faucetSearchQuery));
             }
 
             const itemsHTML = f7.length === 0 ? '<div class="no-results">Keine Armaturen gefunden.</div>' : f7.sort((a, b) => {
@@ -6534,14 +6548,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
               (a) => this.extractMontage(a) === this.currentMontage,
             )),
           t &&
-            (n = n.filter(
-              (a) =>
-                (a.label || "").toLowerCase().includes(t) ||
-                (a.artNr || "")
-                  .toLowerCase()
-                  .replace(/[\s\.]/g, "")
-                  .includes(t.replace(/[\s\.]/g, "")),
-            )),
+            (n = n.filter((a) => matchesSearchQuery(a, t))),
           (e.textContent = n.length),
           n.length === 0)
         ) {
@@ -7323,14 +7330,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
               (a) => this.extractMontage(a) === this.currentMontage,
             )),
           t &&
-            (n = n.filter(
-              (a) =>
-                (a.label || "").toLowerCase().includes(t) ||
-                (a.artNr || "")
-                  .toLowerCase()
-                  .replace(/[\s\.]/g, "")
-                  .includes(t.replace(/[\s\.]/g, "")),
-            )),
+            (n = n.filter((a) => matchesSearchQuery(a, t))),
           (e.textContent = n.length),
           n.length === 0)
         ) {
@@ -7706,10 +7706,7 @@ export function createStandardApp(title, desc, mainImgUrl) {
         },
         filterResults: function () {
             const search = document.getElementById(`input_search_${suffix}`).value.toLowerCase();
-            const filtered = this.trays.filter(t =>
-                (t.label || '').toLowerCase().includes(search) ||
-                (t.artNr || '').toLowerCase().includes(search)
-            );
+            const filtered = this.trays.filter(t => matchesSearchQuery(t, search));
 
             const countSpan = document.getElementById(`resultCount_${suffix}`);
             if (countSpan) countSpan.textContent = filtered.length;
@@ -8215,7 +8212,7 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 const o = (l.label || "").toLowerCase();
                 return !(
                     o.includes("massaufnahme") || o.includes("anfahrt") || (o.includes("badewanne") && !o.includes("duschwanne")) || 
-                    this.extractType(l) === null || 
+                    (this.extractType(l) === null && !m) || 
                     (this.currentManufacturer !== "all" && (l.manufacturer || "") !== this.currentManufacturer) ||
                     (this.currentType !== "all" && this.extractType(l) !== this.currentType) || 
                     (this.currentSituation !== "all" && this.extractSituation(l) !== this.currentSituation) || 
@@ -8227,7 +8224,7 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                     (this.currentHeight !== "all" && this.extractHeightCm(l) !== this.currentHeight) ||
                     (this.currentWidthBucket !== "all" && this.getWidthBucket(l) !== this.currentWidthBucket) ||
                     ((this.currentBreite || this.currentLaenge) && !this.checkCompatibility(l, s, r)) || 
-                    (m && !(l.label.toLowerCase().includes(m) || l.artNr.toLowerCase().includes(m)))
+                    (m && !matchesSearchQuery(l, m))
                 );
             });
             let t = e;
@@ -8681,7 +8678,7 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             const count = this.trays.filter(l => {
                 const o = (l.label || "").toLowerCase();
                 if (o.includes("massaufnahme") || o.includes("anfahrt") || (o.includes("badewanne") && !o.includes("duschwanne"))) return false;
-                if (this.extractType(l) === null) return false;
+                if (this.extractType(l) === null && !searchVal) return false;
                 
                 if (this.currentManufacturer !== "all" && (l.manufacturer || "") !== this.currentManufacturer) return false;
                 if (this.currentType !== "all" && this.extractType(l) !== this.currentType) return false;
@@ -8696,7 +8693,7 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 if (this.currentWidthBucket !== "all" && this.getWidthBucket(l) !== this.currentWidthBucket) return false;
                 
                 if ((this.currentBreite || this.currentLaenge) && !this.checkCompatibility(l, s, r)) return false;
-                if (searchVal && !(l.label.toLowerCase().includes(searchVal) || l.artNr.toLowerCase().includes(searchVal))) return false;
+                if (searchVal && !matchesSearchQuery(l, searchVal)) return false;
                 
                 return true;
             }).length;

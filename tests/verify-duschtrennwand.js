@@ -1148,6 +1148,72 @@ const tests = [
                 }
             });
         }
+    },
+    {
+        name: "Dynamic alphanumeric and multi-term search query matching",
+        fn: () => {
+            let lastInnerHTML = "";
+            const mockInput = { value: "" };
+            const originalGetElementById = document.getElementById;
+            
+            Object.defineProperty(globalMockElements.bomTableBody, 'innerHTML', {
+                set(val) { lastInnerHTML = val; },
+                get() { return lastInnerHTML; },
+                configurable: true
+            });
+
+            document.getElementById = (id) => {
+                if (id === "input_search_duschtrennwand") return mockInput;
+                if (id === "resultCount_duschtrennwand") return { textContent: "" };
+                if (id === "searchResults_duschtrennwand") {
+                    return {
+                        set innerHTML(val) { lastInnerHTML = val; },
+                        get innerHTML() { return lastInnerHTML; }
+                    };
+                }
+                return originalGetElementById(id);
+            };
+
+            try {
+                // Reset active filters and selection
+                app.selectedTray = null;
+                app.currentManufacturer = "all";
+                app.currentType = "all";
+                app.currentSituation = "all";
+                app.currentColor = "all";
+                app.currentBand = "all";
+                app.currentOption = "all";
+                app.currentGlasart = "all";
+                app.currentSeries = "all";
+                app.currentHeight = "all";
+                app.currentWidthBucket = "all";
+                app.currentBreite = "";
+                app.currentLaenge = "";
+
+                // Case 1: Search by clean article number (no spaces or dots)
+                mockInput.value = "1442238501118";
+                app.filterResults();
+                if (!lastInnerHTML.includes("1442 238.501.118")) {
+                    throw new Error(`Expected search with '1442238501118' to match S600 Plus side wall, got: ${lastInnerHTML}`);
+                }
+
+                // Case 2: Search by formatted article number with dots
+                mockInput.value = "1442.238.501.118";
+                app.filterResults();
+                if (!lastInnerHTML.includes("1442 238.501.118")) {
+                    throw new Error(`Expected search with '1442.238.501.118' to match S600 Plus side wall, got: ${lastInnerHTML}`);
+                }
+
+                // Case 3: Search by multi-term keywords in different order
+                mockInput.value = "Seitenwand S600 Plus";
+                app.filterResults();
+                if (!lastInnerHTML.includes("1442 238.501.118")) {
+                    throw new Error(`Expected search with 'Seitenwand S600 Plus' to match S600 Plus side wall, got: ${lastInnerHTML}`);
+                }
+            } finally {
+                document.getElementById = originalGetElementById;
+            }
+        }
     }
 ];
 
