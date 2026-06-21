@@ -25,6 +25,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           this.renderSidebar(),
           this.bindFilters(), this.filterResults());
           if (!config.enableGalleryUX) { this.clearBOM(); }
+        
       },
       applyGleitstangeHoseRelation: function (gleitMidx) {
         if (!this.selectedTray || !this.selectedTray.mountingMaterials) return;
@@ -472,7 +473,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                 return `
                     <div class="result-item-card catalog-preview-card" onclick="window.currentActiveApp.selectItem('${t.id}')" style="display:flex; flex-direction:row; align-items:center; gap:1rem; border:1px solid var(--border); border-radius:8px; padding:1rem; background:var(--bg-surface); cursor:pointer; transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
                         <div class="card-img-wrapper" style="width:70px; height:90px; display:flex; align-items:center; justify-content:center; border-radius:6px; overflow:hidden; background:var(--bg-subtle); flex-shrink:0;">
-                            ${t.imgUrl ? `<img src="${t.imgUrl}" loading="lazy" style="max-height:100%; max-width:100%; object-fit:contain;">` : '<i class="ri-image-line placeholder-icon" style="font-size:2rem; color:var(--text-secondary);"></i>'}
+                            ${(t.imgUrl || getSanitasImgUrl(t.artNr)) ? `<img src="${t.imgUrl || getSanitasImgUrl(t.artNr)}" loading="lazy" style="max-height:100%; max-width:100%; object-fit:contain;">` : '<i class="ri-image-line placeholder-icon" style="font-size:2rem; color:var(--text-secondary);"></i>'}
                         </div>
                         <div class="result-info" style="display:flex; flex-direction:column; flex:1; min-width:0;">
                             <span style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">${t.manufacturer || "Marke unbekannt"}</span>
@@ -500,7 +501,6 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           ).toLowerCase();
         if (!r) return;
         let n = this.trays;
-        
         if (
           (this.currentHersteller !== "all" &&
             (n = n.filter((a) => a.manufacturer === this.currentHersteller)),
@@ -511,53 +511,73 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
               (a) => this.extractMontage(a) === this.currentMontage,
             )),
           t &&
-            (n = n.filter(
-              (a) =>
-                (a.label || "").toLowerCase().includes(t) ||
-                (a.artNr || "")
-                  .toLowerCase()
-                  .replace(/[\s\.]/g, "")
-                  .includes(t.replace(/[\s\.]/g, "")),
-            )),
+            (n = n.filter((a) => matchesSearchQuery(a, t))),
           (e.textContent = n.length),
           n.length === 0)
         ) {
           r.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--text-secondary);">Keine Produkte gefunden. Bitte passen Sie die Filter an.</div>';
-          if (config.enableGalleryUX) { this.renderGridInMainPanel([]); }
+          if (config.enableGalleryUX) {
+              if (this.selectedTray) {
+                  this.renderConfigurator();
+                  this.updateBOM();
+              } else {
+                  this.renderGridInMainPanel([]);
+              }
+          }
           return;
         }
-        if (config.enableGalleryUX) {
-            this.renderGridInMainPanel(n);
-            r.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--text-secondary);">Keine Produkte gefunden. Bitte passen Sie die Filter an.</div>';
-          if (config.enableGalleryUX) { this.renderGridInMainPanel([]); }
-          return;
-        }
-        ((r.innerHTML = n
-          .map((a) => {
-            const l = this.selectedTray && this.selectedTray.id === a.id;
-            return `
-                <div class="result-item-card ${l ? "active" : ""}" onclick="window.currentActiveApp.selectItem('${a.id}')" data-tid="${a.id}">
-                    <div class="card-img-wrapper">
-                        ${a.imgUrl ? `<img src="${a.imgUrl}">` : '<i class="ri-image-line placeholder-icon"></i>'}
-                    </div>
-                    <div class="result-info">
-                        <strong>${this.extractSerie(a)}</strong>
-                        <div class="result-meta">
-                            <span>${a.manufacturer || "Andere"}</span> | <span>${this.extractMontage(a)}</span>
+        if (this.selectedTray) {
+            this.renderConfigurator();
+            this.updateBOM();
+        } else {
+            if (config.enableGalleryUX) {
+                this.renderGridInMainPanel(n);
+                r.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--text-secondary);">Bitte wählen Sie ein Produkt aus der Hauptansicht.</div>';
+                return;
+            } else {
+                ((r.innerHTML = n
+                  .map((a) => {
+                    const l = this.selectedTray && this.selectedTray.id === a.id;
+                    return `
+                        <div class="result-item-card ${l ? "active" : ""}" onclick="window.currentActiveApp.selectItem('${a.id}')" data-tid="${a.id}">
+                            <div class="card-img-wrapper">
+                                ${a.imgUrl ? `<img src="${a.imgUrl}">` : '<i class="ri-image-line placeholder-icon"></i>'}
+                            </div>
+                            <div class="result-info">
+                                <strong>${this.extractSerie(a)}</strong>
+                                <div class="result-meta">
+                                    <span>${a.manufacturer || "Andere"}</span> | <span>${this.extractMontage(a)}</span>
+                                </div>
+                                <span class="finish-artnr">${a.artNr}</span>
+                            </div>
                         </div>
-                        <span class="finish-artnr">${a.artNr}</span>
-                    </div>
-                </div>
-                `;
-          })
-          .join("")),
-          r.querySelectorAll(".result-item-card").forEach((a) => {
-            a.addEventListener("click", () => {
-              this.selectItem(a.dataset.tid);
-            });
-          }));
+                        `;
+                  })
+                  .join("")),
+                  r.querySelectorAll(".result-item-card").forEach((a) => {
+                    a.addEventListener("click", () => {
+                      this.selectItem(a.dataset.tid);
+                    });
+                  }));
+            }
+        }
       },
       selectItem: function (r) {
+          if (!r) {
+              this.selectedTray = null;
+              this.mischerOptionsState = {};
+              this.showAccessoires = false;
+              this.selectedAddonAccessoires = [];
+              if (config.enableGalleryUX) {
+                  this.updateBOM();
+                  this.filterResults();
+                  this.renderConfigurator();
+                  this.updateAccessoiresToggles();
+              } else {
+                  this.clearBOM();
+              }
+              return;
+          }
           if (!r) {
               this.selectedTray = null;
               this.mischerOptionsState = {};
@@ -577,11 +597,17 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           (this.mischerOptionsState = {}),
           this.selectedTray &&
             this.selectedTray.mountingMaterials &&
-            this.selectedTray.mountingMaterials.forEach((e, t) => {
+            (this.selectedTray.mountingMaterials.forEach((e, t) => {
               e.options &&
                 e.options.length > 0 &&
                 (this.mischerOptionsState[t] = 0);
             }),
+            this.selectedTray.mountingMaterials.forEach((e, t) => {
+              const y = (e.name || "").toLowerCase();
+              if (y.includes("gleitstange") || y.includes("duschgleitstange")) {
+                this.applyGleitstangeHoseRelation(t);
+              }
+            })),
           this.filterResults(),
           (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.populateAccessoires(), this.renderConfigurator(), this.updateBOM());
       },
@@ -614,6 +640,10 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           return;
         }
         if ((r && (r.style.display = "block"), !e)) return;
+        if (config.enableGalleryUX) {
+            r.style.display = "none";
+            return;
+        }
         e.innerHTML = "";
         const t = this.selectedTray.mountingMaterials || [];
         if (t.length === 0) {
@@ -679,15 +709,21 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                         backBtn.className = "icon-btn highlight-btn";
                         backBtn.style.marginRight = "auto";
                         backBtn.innerHTML = '<i class="ri-arrow-left-s-line" aria-hidden="true"></i> Zurück zur Übersicht';
-                        backBtn.onclick = () => {
-                            if (window.currentActiveApp && window.currentActiveApp.selectItem) {
-                                window.currentActiveApp.selectItem(null);
-                            }
-                        };
                         h.insertBefore(backBtn, h.firstChild);
                     }
                 }
-                if (backBtn) backBtn.style.display = "inline-flex";
+                if (backBtn) {
+                    backBtn.onclick = () => {
+                        if (window.currentActiveApp) {
+                            if (typeof window.currentActiveApp.selectItem === 'function') {
+                                window.currentActiveApp.selectItem(null);
+                            } else if (typeof window.currentActiveApp.selectTray === 'function') {
+                                window.currentActiveApp.selectTray(null);
+                            }
+                        }
+                    };
+                    backBtn.style.display = "inline-flex";
+                }
             }
         }
         const r = document.getElementById("bomTableBody"),
@@ -713,23 +749,45 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
               const a = this.mischerOptionsState[i];
               if (a !== void 0) {
                 const l = n.options[a];
-                if (l && !l.label.toLowerCase().startsWith("ohne")) {
-                  const o = l.menge || 1;
-                  ((t += o),
-                    (r.innerHTML += `
-                                <tr>
-                                    <td><div class="img-cell"><img src="${l.imgUrl || ""}"></div></td>
-                                    <td><span class="bom-code">${l.artNr}</span></td>
-                                    <td><div class="bom-desc">${l.label}</div></td>
-                                    
-                                    <td><strong>${o}</strong></td>
-                                </tr>
-                            `));
+                const isOhne = l && l.label.toLowerCase().startsWith("ohne");
+                
+                let isInlineDropdown = config.enableGalleryUX && n.options.length > 1;
+                
+                if (!isInlineDropdown && isOhne) return;
+
+                let descHTML = `<div class="bom-desc">${l ? l.label : ''}</div>`;
+                if (isInlineDropdown) {
+                    const optionsHTML = n.options.map((opt, idx) => {
+                        const selected = (a === idx) ? 'selected' : '';
+                        return `<option value="${idx}" ${selected}>${opt.label} (${opt.artNr})</option>`;
+                    }).join('');
+                    
+                    descHTML = `
+                        <div class="bom-desc" style="margin-bottom:0.25rem; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">${n.name || 'Zubehör'}</div>
+                        <select class="inline-bom-select" data-midx="${i}" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.9rem; margin-bottom: 0.25rem; font-family: inherit; font-weight: 500; cursor: pointer; outline: none; transition: border-color 0.2s ease;">
+                            ${optionsHTML}
+                        </select>
+                    `;
                 }
+
+                const o = l ? (l.menge || 1) : 1;
+                if (!isOhne) t += o;
+
+                const rowOpacity = isOhne ? 'opacity: 0.6; background: rgba(0,0,0,0.02);' : '';
+                const artNrDisplay = isOhne ? '-' : (l ? l.artNr : '');
+                const imgDisplay = (l && l.imgUrl) ? `<img src="${l.imgUrl}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>';
+
+                r.innerHTML += `
+                    <tr style="${rowOpacity}">
+                        <td><div class="img-cell" ${!(l && l.imgUrl) ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>${imgDisplay}</div></td>
+                        <td><span class="bom-code">${artNrDisplay}</span></td>
+                        <td>${descHTML}</td>
+                        <td><strong>${isOhne ? '-' : o}</strong></td>
+                    </tr>
+                `;
               }
             }),
-          
-        (function() {
+          (function() {
             if (this.showAccessoires && this.selectedAddonAccessoires && this.selectedAddonAccessoires.length > 0) {
                 this.selectedAddonAccessoires.forEach(acc => {
                     t += 1;
@@ -745,7 +803,24 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                 });
             }
         }).call(this), e && (e.textContent = `${t} Artikel gewählt`));
+        if (config.enableGalleryUX) {
+            r.querySelectorAll('.inline-bom-select').forEach(sel => {
+                sel.addEventListener('change', (ev) => {
+                    const midx = parseInt(ev.target.dataset.midx);
+                    const newVal = parseInt(ev.target.value);
+                    this.mischerOptionsState[midx] = newVal;
+                    
+                    this.showAccessoires = false;
+                    this.selectedAddonAccessoires = [];
+                    this.updateAccessoiresToggles();
+                    this.populateAccessoires();
+                    this.renderConfigurator();
+                    this.updateBOM();
+                });
+            });
+        }
       },
+
       clearBOM: function () {
         ((this.mischerOptionsState = {}), (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.updateBOM());
       },
