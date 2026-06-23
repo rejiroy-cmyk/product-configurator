@@ -1,4 +1,35 @@
-node_modules
-scratch/execute_restore.js
-scratch/all_lost_files.txt
-scratch/all_strings.txt
+# ── Dependencies ─────────────────────────────────────────────
+node_modules/
+
+# ── OS / editor noise ────────────────────────────────────────
+.DS_Store
+**/.DS_Store
+
+# ── Claude Code local settings (machine-specific) ────────────
+.claude/settings.local.json
+
+# ── Build output (regenerable via `npm run build`) ───────────
+/dist.zip
+/old_dist/
+/dist_*.js
+/dist_javascript_extracted.js
+
+# ── Auto-generated build backups (use git history instead) ───
+/backups/
+
+# ── Archived scratch (reversible — delete when confident) ────
+/_archive/
+/scratch/
+
+# ── Logs & local file backups ────────────────────────────────
+*.log
+*.bak
+
+# ── Scraper experiments & run-output dumps (regenerable) ─────
+#   The real scraper tools (scrape-*.js, inject-*.js, etc.) stay
+#   tracked; only throwaway probes and screenshots are ignored.
+/st-scraper/test-*.js
+/st-scraper/test_*.js
+/st-scraper/*.png
+/st-scraper/*.html
+/st-scraper/*.log
