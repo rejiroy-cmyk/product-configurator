@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 5175",
-    "test": "node tests/verify-duschtrennwand.js",
+    "test": "node tests/verify-duschtrennwand.js && node tests/verify-all-apps.js",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
