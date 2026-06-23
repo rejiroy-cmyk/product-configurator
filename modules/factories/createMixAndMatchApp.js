@@ -1,0 +1,1798 @@
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X } from './_shared.js';
+
+export function createMixAndMatchApp(title, desc, mainImgUrl) {
+    const suffix = 'MixMatch';
+
+    return {
+        basinTrays: [],
+        faucetTrays: [],
+        selectedBasin: null,
+        selectedFaucet: null,
+        selectedAblauf: null,
+
+        // Addon Toggles
+        showMoebel: false,
+        showSpiegelschrank: false,
+        showAccessoires: false,
+        currentAccessoiresSerie: 'all',
+        selectedMoebel: null,
+        selectedSpiegelschrank: null,
+        selectedAccessoires: [],
+        selectedSiphon: null, // New: track user choice for Siphon
+
+        // Selection States
+        currentBasinType: 'all',
+        currentBasinBrand: 'all',
+        currentBasinSerie: 'all',
+        currentBasinHahnloch: 'all',
+        currentBasinUeberlauf: 'all',
+        currentBasinAbstell: 'all',
+        currentBasinBreite: 'all',
+
+        currentFaucetBrand: 'all',
+        currentFaucetType: 'all',
+        currentFaucetAuslauf: 'all',
+        currentFaucetAblauf: 'all',
+        currentFaucetAusladung: 'all',
+        currentFaucetSerie: 'all',
+
+        init: function (basins, faucets) {
+            this.basinTrays = basins || [];
+            this.faucetTrays = (faucets || []).map(f => {
+                const fCopy = { ...f };
+                const lbl = (fCopy.label || '').toLowerCase();
+                if (fCopy.manufacturer === 'Andere' || !fCopy.manufacturer || fCopy.manufacturer === 'Sanitas Troesch') {
+                    if (lbl.includes('hansgrohe')) fCopy.manufacturer = 'Hansgrohe';
+                    else if (lbl.includes('axor')) fCopy.manufacturer = 'Axor';
+                    else if (lbl.includes('laufen')) fCopy.manufacturer = 'Laufen';
+                    else if (lbl.includes('alterna')) fCopy.manufacturer = 'Alterna';
+                    else if (lbl.includes('gessi')) fCopy.manufacturer = 'Gessi';
+                    else if (lbl.includes('kwc')) fCopy.manufacturer = 'KWC';
+                    else if (lbl.includes('dornbracht')) fCopy.manufacturer = 'Dornbracht';
+                }
+                return fCopy;
+            });
+            this.selectedBasin = null;
+            this.selectedFaucet = null;
+            this.selectedAblauf = null;
+
+            this.showMoebel = false;
+            this.showSpiegelschrank = false;
+            this.showAccessoires = false;
+            this.selectedMoebel = null;
+            this.selectedSpiegelschrank = null;
+            this.selectedAccessoires = [];
+
+            this.currentBasinType = 'all';
+            this.currentBasinBrand = 'all';
+            this.currentBasinSerie = 'all';
+            this.currentBasinHahnloch = 'all';
+            this.currentBasinUeberlauf = 'all';
+            this.currentBasinAbstell = 'all';
+            this.currentBasinBreite = 'all';
+
+            this.currentFaucetBrand = 'all';
+            this.currentFaucetType = 'all';
+            this.currentFaucetAuslauf = 'all';
+            this.currentFaucetAblauf = 'all';
+            this.currentFaucetAusladung = 'all';
+            this.currentFaucetSerie = 'all';
+
+            this.currentSpiegelschrankBrand = 'all';
+            this.currentSpiegelschrankSerie = 'all';
+            this.currentSpiegelschrankBreite = 'all';
+            this.currentSpiegelschrankBand = 'all';
+            this.currentSpiegelschrankSteckdose = 'all';
+            this.currentSpiegelschrankLichtfarbe = 'all';
+
+            this.basinSearchQuery = '';
+            this.faucetSearchQuery = '';
+
+            this.renderFinder();
+            this.clearBOM();
+        },
+
+        cleanLabel: function (t) {
+            let label = (t.label || t.name || '').trim();
+            const manufacturer = (t.manufacturer || '').toLowerCase();
+            const types = ['spiegelschrank', 'spiegelkabinett', 'miroir', 'mirror'];
+
+            let changed = true;
+            while (changed) {
+                changed = false;
+                const lower = label.toLowerCase();
+                if (manufacturer && lower.startsWith(manufacturer)) {
+                    label = label.substring(manufacturer.length).trim();
+                    changed = true;
+                }
+                for (const type of types) {
+                    if (label.toLowerCase().startsWith(type)) {
+                        label = label.substring(type.length).trim();
+                        if (['-', ':', '/', ','].includes(label[0])) label = label.substring(1).trim();
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+            return label;
+        },
+
+        extractSerie: function (t) {
+            if (t.serie) return t.serie;
+            let cleaned = (t.label || t.name || '').trim().toLowerCase();
+            const manufacturer = (t.manufacturer || '').toLowerCase();
+
+            // 1. Strip product-type prefixes
+            const typeWords = [
+                'spiegelschrank', 'spiegelkabinett', 'miroir', 'mirror',
+                'doppelwaschtisch', 'möbelwaschtisch', 'aufsatzwaschbecken', 'aufsatzbecken',
+                'auflegewaschtisch', 'wandbecken', 'handwaschbecken', 'waschtisch', 'becken', 'waschbecken',
+                'wandmischer', 'einlochmischer', 'mischer', 'batterie', 'armatur',
+                'papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste',
+                'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste',
+                'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'
+            ];
+
+            let changed = true;
+            while (changed) {
+                changed = false;
+                for (const word of typeWords) {
+                    if (cleaned.startsWith(word)) {
+                        cleaned = cleaned.substring(word.length).trim();
+                        if (['-', ':', '/', ','].includes(cleaned[0])) cleaned = cleaned.substring(1).trim();
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+
+            // 2. Strip manufacturer name from the front if present
+            if (manufacturer && cleaned.startsWith(manufacturer)) {
+                cleaned = cleaned.substring(manufacturer.length).trim();
+                if (['-', ':', '/', ','].includes(cleaned[0])) cleaned = cleaned.substring(1).trim();
+            }
+
+            // 3. Extract the first part of what remains (usually the series name)
+            const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d)/);
+            let serie = match && match[1] ? match[1].trim() : cleaned.trim();
+
+            const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => ((t.label||'') + ' ' + (t.description||'')).toLowerCase().includes(kw));
+            if (isAccessory && serie.includes(' ')) serie = serie.split(' ')[0];
+
+            // 4. Capitalize each word
+            serie = serie.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+            return serie || 'Andere';
+        },
+
+        isAblaufItem: function (t) {
+            const tl = ((t.label || '') + ' ' + (t.description || '')).toLowerCase();
+            const keywords = ['ablauf', 'siebventil', 'schaftventil', 'click', 'clack', 'clic', 'clac', 'ventilstopfen'];
+            const isVentil = keywords.some(k => tl.includes(k));
+            const isMischer = tl.includes('mischer') || tl.includes('batterie') || tl.includes('armatur');
+            return isVentil && !isMischer;
+        },
+
+        extractHahnloch: function (obj) {
+            const label = (obj.label || '').toLowerCase();
+            const desc = (obj.description || '').toLowerCase();
+            const text = label + ' ' + desc;
+            if (text.includes('ohne armaturenloch') || text.includes('ohne armaturenlöcher') || text.includes('ohne hahnloch')) return 'ohne';
+            if (text.includes('3 armaturen') || text.includes('3 hahnlöcher') || text.includes('3-loch') || text.includes('dreiloch')) return '3';
+            if (text.includes('2 armaturen') || text.includes('2 hahnlöcher') || text.includes('2-loch')) return '2';
+            if (text.includes('1 hahnloch') || text.includes('1-loch') || text.includes('einloch') || text.includes('armaturenloch') || text.includes('hahnloch')) return '1';
+            return 'unknown';
+        },
+
+        extractUeberlauf: function (obj) {
+            const lbl = (obj.label || '').toLowerCase();
+            const text = (obj.description || '').toLowerCase() + ' ' + lbl;
+
+            if (obj.overrideUeberlauf) return obj.overrideUeberlauf;
+
+            if (text.includes('ohne überlauf') || text.includes('ohne ueberlauf') ||
+                text.includes('ohne ü-') || text.includes('o.ü') || text.includes('o. ue') ||
+                text.includes('kein überlauf')) return 'ohne';
+
+            if (text.includes('mit überlauf') || text.includes('mit ueberlauf') ||
+                text.includes('mit ü-') || text.includes('m.ü') || text.includes('m. ue') ||
+                text.includes('überlauf') || text.includes('ueberlauf')) return 'mit';
+
+            if (text.includes('ohne') &&
+                !text.includes('ohne armaturenloch') &&
+                !text.includes('ohne armaturenlöcher') &&
+                !text.includes('ohne hahnloch') &&
+                !text.includes('ohne abstellfläche') &&
+                !text.includes('ohne ablauf')) return 'ohne';
+            if (text.includes('mit') && !text.includes('mit armaturenloch') && !text.includes('mit hahnloch')) return 'mit';
+
+            if (lbl.includes('aufsatz') || lbl.includes('schale') || lbl.includes('countertop')) return 'ohne';
+            if (lbl.includes('möbel') || lbl.includes('wandwaschtisch') || lbl.includes('waschtisch')) return 'mit';
+
+            return 'unknown';
+        },
+
+        extractAblauf: function (obj) {
+            const label = (obj.label || '').toLowerCase();
+            if (label.includes('ohne ablauf')) return 'ohne';
+            if (label.includes('ablauf')) return 'mit';
+            return 'ohne';
+        },
+
+        extractAbstellflaeche: function (obj) {
+            if (obj.overrideAbstell && obj.overrideAbstell !== 'auto') return obj.overrideAbstell;
+            const label = (obj.label || '').toLowerCase();
+            if (label.includes('abstellfläche links') || label.includes('ablage links')) return 'links';
+            if (label.includes('abstellfläche rechts') || label.includes('ablage rechts')) return 'rechts';
+            if (label.includes('abstellfläche beidseitig') || label.includes('ablage beidseitig')) return 'beidseitig';
+            return 'ohne';
+        },
+
+        extractAusladung: function (obj) {
+            const label = (obj.label || '');
+            const match = label.match(/(?:A\s|Ausladung\s*)([0-9]{2,3})\s*mm/i);
+            if (match) return match[1];
+            return 'unknown';
+        },
+
+        extractAuslauf: function (obj) {
+            const label = (obj.label || '').toLowerCase();
+            if (label.includes('schwenkauslauf') || label.includes('schwenkbar')) return 'schwenkbar';
+            if (label.includes('auslauf fest') || label.includes(' fest')) return 'fest';
+            // some have "Auslauf" without specifying, assume fixed by default unless mentioned
+            return 'fest';
+        },
+
+        extractBasinTyp: function (t) {
+            const lbl = (t.label || '').toLowerCase();
+            if (lbl.includes('doppelwaschtisch')) return 'Doppelwaschtisch';
+            if (lbl.includes('aufsatzwaschbecken') || lbl.includes('aufsatzbecken') || lbl.includes('auflegewaschtisch')) return 'Aufsatzwaschtisch';
+            if (lbl.includes('wandbecken')) return 'Wandbecken';
+            if (lbl.includes('handwaschbecken')) return 'Handwaschbecken';
+            if (lbl.includes('einbaubecken')) return 'Einbaubecken';
+            return 'Waschtisch';
+        },
+
+        extractFaucetAusfuehrung: function (obj) {
+            const label = (obj.label || '').toLowerCase();
+            const desc = (obj.description || '').toLowerCase();
+            const text = label + ' ' + desc;
+            if (text.includes('einloch')) return 'Einlochmischer';
+            if (text.includes('wand')) return 'Wandmischer'; // e.g. Wand-Waschtischmischer or Wandbatterie
+            if (text.includes('stand')) return 'Standmischer';
+            if (text.includes('3-loch') || text.includes('drei-loch') || text.includes('dreiloch')) return '3-Loch';
+            return 'Waschtischmischer';
+        },
+
+        extractBreite: function (obj) {
+            const label = (obj.label || obj.name || '');
+            // 1. Try to parse "Breite 60 cm" or "Breite 600 mm" or "B 600" from label
+            const bMatch = label.match(/(?:Breite|B)[:\s]+([\d,.]+)\s*(cm|mm)?/i);
+            if (bMatch) {
+                let val = bMatch[1].replace(',', '.');
+                let unit = (bMatch[2] || 'mm').toLowerCase();
+                if (unit === 'mm' || parseFloat(val) > 250) return (parseFloat(val) / 10).toString(); // mm or large val
+                return val;
+            }
+
+            // 2. Fallback to size field
+            const size = (obj.size || '');
+            const match = size.match(/^(\d+(?:[.,]\d+)?)/);
+            return match ? match[1].replace(',', '.') : 'unknown';
+        },
+
+
+
+        renderFinder: function () {
+            const sidebar = document.getElementById('configSidebar');
+            if (!sidebar) return;
+
+            sidebar.innerHTML = `
+                <div class="finder-shelf">
+                    <!-- Column 1: Basin Logic -->
+                    <div class="finder-column" id="col_basin">
+                        <div class="finder-column-header"><h3><i class="ri-mouse-line"></i> Waschtisch</h3></div>
+                        <div class="column-search-container">
+                            <i class="ri-search-line"></i>
+                            <input type="text" id="basin_local_search" placeholder="Art-Nr oder Modell suchen...">
+                        </div>
+                        
+                        <div class="finder-sub-header" id="head_basin_brand">Hersteller</div>
+                        <div class="pill-group" id="list_basin_brand"></div>
+                        
+                        <div class="finder-sub-header" id="head_basin_type">Ausführung</div>
+                        <div class="pill-group" id="list_basin_type"></div>
+                        
+                        <div class="finder-sub-header" id="head_basin_serie_filter">Serie</div>
+                        <div class="pill-group" id="list_basin_serie_filter" style="zoom: 0.85;"></div>
+                        
+                        <div class="finder-sub-header" id="head_basin_breite">Breite</div>
+                        <div class="pill-group" id="list_basin_breite" style="zoom: 0.85;"></div>
+                        
+                        <div class="finder-sub-header" id="head_basin_hahnloch">Armaturenloch</div>
+                        <div class="pill-group" id="list_basin_hahnloch"></div>
+                        
+                        <div class="finder-sub-header" id="head_basin_ueberlauf">Überlauf</div>
+                        <div class="pill-group" id="list_basin_ueberlauf"></div>
+                        
+                        <div class="finder-sub-header" id="head_basin_abstell">Abstellfläche</div>
+                        <div class="pill-group" id="list_basin_abstell"></div>
+                        
+                        <div class="finder-sub-header">Modell auswählen</div>
+                        <div class="finder-list" id="list_basin_serie"></div>
+                    </div>
+
+                    <!-- Column 2: Faucet Logic -->
+                    <div class="finder-column" id="col_faucet">
+                        <div class="finder-column-header"><h3><i class="ri-drops-line"></i> Armatur</h3></div>
+                        <div class="column-search-container">
+                            <i class="ri-search-line"></i>
+                            <input type="text" id="faucet_local_search" placeholder="Art-Nr oder Modell suchen...">
+                        </div>
+                        
+                        <div class="finder-sub-header" id="head_faucet_brand">Hersteller</div>
+                        <div class="pill-group" id="list_faucet_brand"></div>
+                        
+                        <div class="finder-sub-header" id="head_faucet_type">Typ</div>
+                        <div class="pill-group" id="list_faucet_type"></div>
+                        
+                        <div class="finder-sub-header" id="head_faucet_serie">Serie</div>
+                        <div class="pill-group" id="list_faucet_serie" style="zoom: 0.85;"></div>
+
+                        <div class="finder-sub-header" id="head_faucet_ausl">Ausladung</div>
+                        <div class="pill-group" id="list_faucet_ausl" style="zoom: 0.85;"></div>
+                        
+                        <div class="finder-sub-header" id="head_faucet_auslauf">Auslauf</div>
+                        <div class="pill-group" id="list_faucet_auslauf"></div>
+
+                        
+                        <div class="finder-sub-header" id="head_faucet_ablauf">Ablaufventil</div>
+                        <div class="pill-group" id="list_faucet_ablauf"></div>
+                        
+                        <div class="finder-sub-header">Modell auswählen</div>
+                        <div class="finder-list" id="list_faucet_items"></div>
+                    </div>
+
+                    <!-- Column 3: Valve Logic + Addon Toggles -->
+                    <div class="finder-column" id="col_valve">
+                        <div class="finder-column-header"><h3><i class="ri-settings-3-line"></i> Ablauf</h3></div>
+                        <div class="finder-list" id="list_valve_items"></div>
+
+                        <div class="addon-toggles-section" id="addon_toggles_section">
+                            <div class="finder-sub-header" style="margin-top: 1.5rem;">Zusatzoptionen</div>
+                            <div class="addon-toggle-row" id="toggle_moebel">
+                                <span class="addon-toggle-label"><i class="ri-door-line"></i> Möbel</span>
+                                <button class="ios-toggle" data-target="moebel" aria-label="Möbel ein/aus"><span class="ios-toggle-knob"></span></button>
+                            </div>
+                            <div class="addon-toggle-row" id="toggle_spiegelschrank">
+                                <span class="addon-toggle-label"><i class="ri-contrast-2-line"></i> Spiegelschrank</span>
+                                <button class="ios-toggle" data-target="spiegelschrank" aria-label="Spiegelschrank ein/aus"><span class="ios-toggle-knob"></span></button>
+                            </div>
+                            <div class="addon-toggle-row" id="toggle_accessoires">
+                                <span class="addon-toggle-label"><i class="ri-archive-line"></i> Accessoires</span>
+                                <button class="ios-toggle" data-target="accessoires" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
+                            </div>
+                        </div>
+
+                        <div id="addon_moebel_panel" class="addon-panel" style="display:none;">
+                            <div class="finder-sub-header">Möbel wählen</div>
+                            <div class="finder-list" id="list_addon_moebel"></div>
+                        </div>
+                        <div id="addon_spiegelschrank_panel" class="addon-panel" style="display:none;">
+                            <div class="finder-sub-header" id="spiegelschrank_breite_header" style="display:none;">Breite</div>
+                            <div class="pill-group" id="list_spiegelschrank_breite" style="margin-bottom: 0.75rem; display:none;"></div>
+                            
+                            <div class="finder-sub-header" id="spiegelschrank_brand_header">Marke</div>
+                            <div class="pill-group" id="list_spiegelschrank_brand" style="margin-bottom: 0.75rem;"></div>
+                            
+                            <div class="finder-sub-header" id="spiegelschrank_serie_header">Serie</div>
+                            <div class="pill-group" id="list_spiegelschrank_serie" style="margin-bottom: 0.75rem;"></div>
+
+                            <div class="finder-sub-header" id="spiegelschrank_band_header" style="display:none;">Band</div>
+                            <div class="pill-group" id="list_spiegelschrank_band" style="margin-bottom: 0.75rem; display:none;"></div>
+
+                            <div class="finder-sub-header" id="spiegelschrank_steckdose_header" style="display:none;">Steckdose</div>
+                            <div class="pill-group" id="list_spiegelschrank_steckdose" style="margin-bottom: 0.75rem; display:none;"></div>
+
+                            <div class="finder-sub-header" id="spiegelschrank_lichtfarbe_header" style="display:none;">Lichtfarbe</div>
+                            <div class="pill-group" id="list_spiegelschrank_lichtfarbe" style="margin-bottom: 0.75rem; display:none;"></div>
+
+                            <div class="finder-sub-header">Modell wählen</div>
+                            <div class="finder-list" id="list_addon_spiegelschrank"></div>
+                        </div>
+                        <div id="addon_accessoires_panel" class="addon-panel" style="display:none;">
+                            <div class="finder-sub-header" id="addon_accessoires_serie_header">Serie</div>
+                            <div class="pill-group" id="list_addon_accessoires_serie" style="margin-bottom: 0.75rem;"></div>
+                            <div class="finder-sub-header">Accessoires wählen</div>
+                            <div class="finder-list" id="list_addon_accessoires"></div>
+                        </div>
+                    </div>
+
+                    <!-- Column 4: Inspector / Preview -->
+                    <div class="finder-preview-col" id="col_preview">
+                        <!-- Populated by updatePreview() -->
+                    </div>
+                </div>
+            `;
+
+            // Search listeners
+            const basinSearch = document.getElementById('basin_local_search');
+            if (basinSearch) {
+                basinSearch.value = this.basinSearchQuery;
+                basinSearch.addEventListener('input', (e) => {
+                    this.basinSearchQuery = e.target.value;
+                    this.updateBasinTiers();
+                });
+            }
+            const faucetSearch = document.getElementById('faucet_local_search');
+            if (faucetSearch) {
+                faucetSearch.value = this.faucetSearchQuery;
+                faucetSearch.addEventListener('input', (e) => {
+                    this.faucetSearchQuery = e.target.value;
+                    this.updateFaucetTiers();
+                });
+            }
+
+            this.updateBasinTiers();
+            this.updateFaucetTiers();
+            this.updateValveTier();
+            this.updateAddonToggles();
+            this.updatePreview();
+        },
+
+        updateBasinTiers: function () {
+            const typeList = document.getElementById('list_basin_type');
+            const brandList = document.getElementById('list_basin_brand');
+            const serieFilterList = document.getElementById('list_basin_serie_filter');
+            const breiteList = document.getElementById('list_basin_breite');
+            const hahnlochList = document.getElementById('list_basin_hahnloch');
+            const ueberlaufList = document.getElementById('list_basin_ueberlauf');
+            const abstellList = document.getElementById('list_basin_abstell');
+            const serieList = document.getElementById('list_basin_serie');
+
+            if (!typeList || !brandList || !serieList || !hahnlochList || !ueberlaufList || !abstellList) return;
+
+            // 1. Hersteller (Brand)
+            const brands = [...new Set(this.basinTrays.map(t => t.manufacturer || 'Andere'))].sort();
+            brandList.innerHTML = `<button class="pill-btn ${this.currentBasinBrand === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + brands.map(b => `
+                <button class="pill-btn ${this.currentBasinBrand === b ? 'active' : ''}" data-val="${b}">${b}</button>
+            `).join('');
+            applyPillUI('head_basin_brand', 'list_basin_brand', this.currentBasinBrand, 'Hersteller', () => {
+                this.currentBasinBrand = 'all';
+                this.updateBasinTiers();
+            });
+
+            let f1 = this.basinTrays;
+            if (this.currentBasinBrand !== 'all') f1 = f1.filter(t => (t.manufacturer || 'Andere') === this.currentBasinBrand);
+
+            // 2. Ausführung (Typ)
+            const types = [...new Set(f1.map(t => this.extractBasinTyp(t)))].sort();
+            typeList.innerHTML = `<button class="pill-btn ${this.currentBasinType === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + types.map(t => `
+                <button class="pill-btn ${this.currentBasinType === t ? 'active' : ''}" data-val="${t}">${t}</button>
+            `).join('');
+            applyPillUI('head_basin_type', 'list_basin_type', this.currentBasinType, 'Ausführung', () => {
+                this.currentBasinType = 'all';
+                this.updateBasinTiers();
+            });
+
+            let f2 = f1;
+            if (this.currentBasinType !== 'all') f2 = f2.filter(t => this.extractBasinTyp(t) === this.currentBasinType);
+
+            // 3. Serie
+            if (serieFilterList) {
+                const series = [...new Set(f2.map(t => this.extractSerie(t)))].sort();
+                serieFilterList.innerHTML = `<button class="pill-btn ${this.currentBasinSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                    series.map(s => `<button class="pill-btn ${this.currentBasinSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
+                applyPillUI('head_basin_serie_filter', 'list_basin_serie_filter', this.currentBasinSerie, 'Serie', () => {
+                    this.currentBasinSerie = 'all';
+                    this.updateBasinTiers();
+                });
+            }
+
+            let f3 = f2;
+            if (this.currentBasinSerie !== 'all') f3 = f3.filter(t => this.extractSerie(t) === this.currentBasinSerie);
+
+            // 4. Breite
+            if (breiteList) {
+                const breiten = [...new Set(f3.map(t => this.extractBreite(t)))].filter(b => b !== 'unknown').sort((a, b) => parseFloat(a) - parseFloat(b));
+                breiteList.innerHTML = `<button class="pill-btn ${this.currentBasinBreite === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                    breiten.map(b => `<button class="pill-btn ${this.currentBasinBreite === b ? 'active' : ''}" data-val="${b}">${b} cm</button>`).join('');
+                applyPillUI('head_basin_breite', 'list_basin_breite', this.currentBasinBreite, 'Breite', () => {
+                    this.currentBasinBreite = 'all';
+                    this.updateBasinTiers();
+                });
+            }
+
+            let f4 = f3;
+            if (this.currentBasinBreite !== 'all') f4 = f4.filter(t => this.extractBreite(t) === this.currentBasinBreite);
+
+            // 5. Hahnloch
+            hahnlochList.innerHTML = `
+                <button class="pill-btn ${this.currentBasinHahnloch === 'all' ? 'active' : ''}" data-val="all">Alle</button>
+                <button class="pill-btn ${this.currentBasinHahnloch === 'ohne' ? 'active' : ''}" data-val="ohne">Ohne</button>
+                <button class="pill-btn ${this.currentBasinHahnloch === '1' ? 'active' : ''}" data-val="1">1 Loch</button>
+                <button class="pill-btn ${this.currentBasinHahnloch === '2' ? 'active' : ''}" data-val="2">2 Löcher</button>
+                <button class="pill-btn ${this.currentBasinHahnloch === '3' ? 'active' : ''}" data-val="3">3 Löcher</button>
+            `;
+            applyPillUI('head_basin_hahnloch', 'list_basin_hahnloch', this.currentBasinHahnloch, 'Armaturenloch', () => {
+                this.currentBasinHahnloch = 'all';
+                this.updateBasinTiers();
+            });
+
+            let f5 = f4;
+            if (this.currentBasinHahnloch !== 'all') f5 = f5.filter(t => this.extractHahnloch(t) === this.currentBasinHahnloch);
+
+            // 6. Überlauf
+            ueberlaufList.innerHTML = `
+                <button class="pill-btn ${this.currentBasinUeberlauf === 'all' ? 'active' : ''}" data-val="all">Alle</button>
+                <button class="pill-btn ${this.currentBasinUeberlauf === 'mit' ? 'active' : ''}" data-val="mit">Mit</button>
+                <button class="pill-btn ${this.currentBasinUeberlauf === 'ohne' ? 'active' : ''}" data-val="ohne">Ohne</button>
+            `;
+            applyPillUI('head_basin_ueberlauf', 'list_basin_ueberlauf', this.currentBasinUeberlauf, 'Überlauf', () => {
+                this.currentBasinUeberlauf = 'all';
+                this.updateBasinTiers();
+            });
+
+            let f6 = f5;
+            if (this.currentBasinUeberlauf !== 'all') f6 = f6.filter(t => this.extractUeberlauf(t) === this.currentBasinUeberlauf);
+
+            // 7. Abstellflaeche
+            abstellList.innerHTML = `
+                <button class="pill-btn ${this.currentBasinAbstell === 'all' ? 'active' : ''}" data-val="all">Alle</button>
+                <button class="pill-btn ${this.currentBasinAbstell === 'ohne' ? 'active' : ''}" data-val="ohne">Standard</button>
+                <button class="pill-btn ${this.currentBasinAbstell === 'links' ? 'active' : ''}" data-val="links">Links</button>
+                <button class="pill-btn ${this.currentBasinAbstell === 'rechts' ? 'active' : ''}" data-val="rechts">Rechts</button>
+                <button class="pill-btn ${this.currentBasinAbstell === 'beidseitig' ? 'active' : ''}" data-val="beidseitig">Beidseitig</button>
+            `;
+            applyPillUI('head_basin_abstell', 'list_basin_abstell', this.currentBasinAbstell, 'Abstellfläche', () => {
+                this.currentBasinAbstell = 'all';
+                this.updateBasinTiers();
+            });
+
+            let f7 = f6;
+            if (this.currentBasinAbstell !== 'all') f7 = f7.filter(t => this.extractAbstellflaeche(t) === this.currentBasinAbstell);
+
+            let f8 = f7;
+            if (this.basinSearchQuery && this.basinSearchQuery.trim() !== '') {
+                f8 = f8.filter(t => matchesSearchQuery(t, this.basinSearchQuery));
+            }
+
+            // 8. Items list
+            serieList.innerHTML = f8.length === 0 ? '<div class="no-results">Keine Waschtische gefunden.</div>' : f8.sort((a, b) => {
+                const sA = this.extractSerie(a).toLowerCase();
+                const sB = this.extractSerie(b).toLowerCase();
+                if (sA !== sB) return sA.localeCompare(sB);
+                return (a.size || '').localeCompare(b.size || '');
+            }).map(t => {
+                const imgHTML = t.imgUrl ? `<img src="${t.imgUrl}" style="width:36px; height:36px; object-fit:contain; background:white; border-radius:4px; border:1px solid rgba(0,0,0,0.1);" onerror="this.style.display='none'">` : '';
+                return `
+                <div class="finder-item ${this.selectedBasin && this.selectedBasin.id === t.id ? 'active' : ''}" data-id="${t.id}">
+                    <div style="display:flex; align-items:center; gap: 0.75rem;">
+                        ${imgHTML}
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-weight:500;">${this.extractSerie(t)}</span>
+                            <span class="result-meta">${t.size} | ${t.artNr}</span>
+                        </div>
+                    </div>
+                    <i class="ri-check-line finder-item-arrow" style="${this.selectedBasin && this.selectedBasin.id === t.id ? '' : 'display:none;'}"></i>
+                </div>
+            `}).join('');
+
+            // Bind Clicks
+            typeList.querySelectorAll('.pill-btn').forEach(el => {
+                el.addEventListener('click', () => {
+                    this.currentBasinType = el.dataset.val;
+                    this.updateBasinTiers();
+                });
+            });
+            brandList.querySelectorAll('.pill-btn').forEach(el => {
+                el.addEventListener('click', () => {
+                    this.currentBasinBrand = el.dataset.val;
+                    this.updateBasinTiers();
+                });
+            });
+            if (serieFilterList) {
+                serieFilterList.querySelectorAll('.pill-btn').forEach(el => {
+                    el.addEventListener('click', () => {
+                        this.currentBasinSerie = el.dataset.val;
+                        this.updateBasinTiers();
+                    });
+                });
+            }
+            if (breiteList) {
+                breiteList.querySelectorAll('.pill-btn').forEach(el => {
+                    el.addEventListener('click', () => {
+                        this.currentBasinBreite = el.dataset.val;
+                        this.updateBasinTiers();
+                    });
+                });
+            }
+            hahnlochList.querySelectorAll('.pill-btn').forEach(el => {
+                el.addEventListener('click', () => {
+                    this.currentBasinHahnloch = el.dataset.val;
+                    this.updateBasinTiers();
+                });
+            });
+            ueberlaufList.querySelectorAll('.pill-btn').forEach(el => {
+                el.addEventListener('click', () => {
+                    this.currentBasinUeberlauf = el.dataset.val;
+                    this.updateBasinTiers();
+                });
+            });
+            abstellList.querySelectorAll('.pill-btn').forEach(el => {
+                el.addEventListener('click', () => {
+                    this.currentBasinAbstell = el.dataset.val;
+                    this.updateBasinTiers();
+                });
+            });
+            serieList.querySelectorAll('.finder-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    this.selectedBasin = this.basinTrays.find(x => x.id === el.dataset.id);
+                    this.selectedFaucet = null;
+                    this.updateBasinTiers();
+                    this.updateFaucetTiers();
+                    this.updateValveTier();
+                    this.updatePreview();
+                });
+            });
+        },
+
+        extractFaucetSerie: function (t) {
+            if (t.serie) return t.serie;
+            let lbl = (t.label || '');
+
+            lbl = lbl.split(',')[0].trim();
+            lbl = lbl.replace(/\bA\s*\d+/i, '').trim();
+
+            const brand = (t.manufacturer || '').toLowerCase();
+            const skipWords = [
+                'einlochmischer', 'waschtischmischer', 'waschtischbatterie', 'batterie',
+                'mischer', 'armatur', 'wandmischer', 'standmischer', 'm.', 'm', 'waschtisch-',
+                'u-mischer', 'aufbau', brand, 'hansgrohe', 'axor', 'laufen', 'alterna', 'gessi', 'kwc',
+                'auslauf', 'fest', 'schwenkbar', 'mit', 'ohne', 'ablaufventil',
+                'endmontageset', 'fertigset', 'fertigbauset'
+            ];
+
+            let remainingWords = lbl.split(/\s+/).filter(w => {
+                let clean = w.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                if (!clean) return false;
+                if (skipWords.includes(clean)) return false;
+                return true;
+            });
+
+            let serie = remainingWords.join(' ');
+
+            // Clean common technical suffixes often attached to series names
+            serie = serie.replace(/(ComfortZone|CoolStart|EcoSmart|Normalstrahl|Waterfall|WaterfallStream).*/i, '').trim();
+
+            return serie || 'Andere';
+        },
+
+        updateFaucetTiers: function () {
+            const brandList = document.getElementById('list_faucet_brand');
+            const typeList = document.getElementById('list_faucet_type');
+            const serieList = document.getElementById('list_faucet_serie');
+            const auslList = document.getElementById('list_faucet_ausl');
+            const auslaufList = document.getElementById('list_faucet_auslauf');
+            const ablaufList = document.getElementById('list_faucet_ablauf');
+            const itemList = document.getElementById('list_faucet_items');
+
+            if (!brandList || !typeList || !serieList || !auslList || !itemList || !auslaufList || !ablaufList) return;
+
+            if (!this.selectedBasin) {
+                brandList.innerHTML = serieList.innerHTML = itemList.innerHTML = auslaufList.innerHTML = ablaufList.innerHTML = '<div class="finder-empty-state">Bitte Waschtisch wählen</div>';
+                return;
+            }
+
+            const hLoch = this.extractHahnloch(this.selectedBasin);
+            const basinUeber = this.extractUeberlauf(this.selectedBasin);
+
+            // 1. Initial technical filter
+            let faucets = this.faucetTrays.filter(t => {
+                if (this.isAblaufItem(t)) return false;
+                const lbl = (t.label || '').toLowerCase();
+                if (lbl.includes('einbaukörper') || lbl.includes('grundkörper')) {
+                    if (!lbl.includes('ohne') && !lbl.includes('fertigset') && !lbl.includes('endmontageset') && !lbl.includes('mischer') && !lbl.includes('batterie')) return false;
+                }
+                if (lbl.includes('einbaukosten')) return false;
+                return true;
+            });
+
+            // 2. Apply Rule 1, 2, 3, 4
+            faucets = faucets.filter(t => {
+                const lbl = (t.label || '').toLowerCase();
+                const ausf = this.extractFaucetAusfuehrung(t);
+                const abl = this.extractAblauf(t);
+
+                // Rules 3 & 4: Hahnloch Compatibility
+                if (hLoch === 'ohne') {
+                    // Rule 3: Only Wandmischer/Wandbatterie
+                    if (ausf !== 'Wandmischer') return false;
+                } else {
+                    // Rule 4: Only Einlochmischer or Waschtischmischer
+                    if (ausf !== 'Einlochmischer' && ausf !== 'Waschtischmischer' && ausf !== 'Standmischer' && ausf !== '3-Loch') return false;
+                }
+
+                // Rules 1 & 2: Overflow Compatibility
+                if (basinUeber === 'mit') {
+                    // Rule 1: Allow ohne, Click Clack, or Siebventil mit Überlauf
+                    if (abl === 'ohne') return true;
+                    if (lbl.includes('click clack') || lbl.includes('push open') || lbl.includes('siebventil mit überlauf') || lbl.includes('siebventil mit ueberlauf')) return true;
+                    // Standard "mit Ablaufventil" usually fits "mit Überlauf" unless explicitly unclosable
+                    if (abl === 'mit' && !lbl.includes('unverschliessbar') && !lbl.includes('schaftventil') && !lbl.includes('siebventil ohne überlauf')) return true;
+                    return false;
+                } else if (basinUeber === 'ohne') {
+                    // Rule 2: Allow ohne, Schaftventil, unverschliessbar, or Siebventil ohne Überlauf
+                    if (abl === 'ohne') return true;
+                    if (lbl.includes('schaftventil') || lbl.includes('unverschliessbar') || lbl.includes('siebventil ohne überlauf') || lbl.includes('siebventil ohne ueberlauf')) return true;
+                    return false;
+                }
+
+                return true;
+            });
+
+            const brands = [...new Set(faucets.map(t => t.manufacturer || 'Andere'))].sort();
+            brandList.innerHTML = `<button class="pill-btn ${this.currentFaucetBrand === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + brands.map(b => `
+                <button class="pill-btn ${this.currentFaucetBrand === b ? 'active' : ''}" data-val="${b}">${b}</button>
+            `).join('');
+            applyPillUI('head_faucet_brand', 'list_faucet_brand', this.currentFaucetBrand, 'Hersteller', () => {
+                this.currentFaucetBrand = 'all';
+                this.updateFaucetTiers();
+            });
+
+            let f1 = faucets;
+            if (this.currentFaucetBrand !== 'all') f1 = f1.filter(t => (t.manufacturer || 'Andere') === this.currentFaucetBrand);
+
+            // 2. Typ
+            const types = [...new Set(f1.map(t => this.extractFaucetAusfuehrung(t)))].sort();
+            typeList.innerHTML = `<button class="pill-btn ${this.currentFaucetType === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + types.map(t => `
+                <button class="pill-btn ${this.currentFaucetType === t ? 'active' : ''}" data-val="${t}">${t}</button>
+            `).join('');
+            applyPillUI('head_faucet_type', 'list_faucet_type', this.currentFaucetType, 'Typ', () => {
+                this.currentFaucetType = 'all';
+                this.updateFaucetTiers();
+            });
+
+            let f2 = f1;
+            if (this.currentFaucetType !== 'all') f2 = f2.filter(t => this.extractFaucetAusfuehrung(t) === this.currentFaucetType);
+
+            // 3. Serie
+            const series = [...new Set(f2.map(t => this.extractFaucetSerie(t)))].filter(s => s !== 'Andere').sort();
+            serieList.innerHTML = `<button class="pill-btn ${this.currentFaucetSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + series.map(s => `
+                <button class="pill-btn ${this.currentFaucetSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>
+            `).join('');
+            applyPillUI('head_faucet_serie', 'list_faucet_serie', this.currentFaucetSerie, 'Serie', () => {
+                this.currentFaucetSerie = 'all';
+                this.updateFaucetTiers();
+            });
+
+            let f3 = f2;
+            if (this.currentFaucetSerie !== 'all') f3 = f3.filter(t => this.extractFaucetSerie(t) === this.currentFaucetSerie);
+
+            // 4. Ausladung
+            const ausladungen = [...new Set(f3.map(t => this.extractAusladung(t)))].filter(a => a !== 'unknown').sort((a, b) => parseInt(a) - parseInt(b));
+            auslList.innerHTML = `<button class="pill-btn ${this.currentFaucetAusladung === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + ausladungen.map(a => `
+                <button class="pill-btn ${this.currentFaucetAusladung === a ? 'active' : ''}" data-val="${a}">${a} mm</button>
+            `).join('');
+            applyPillUI('head_faucet_ausl', 'list_faucet_ausl', this.currentFaucetAusladung, 'Ausladung', () => {
+                this.currentFaucetAusladung = 'all';
+                this.updateFaucetTiers();
+            });
+
+            let f4 = f3;
+            if (this.currentFaucetAusladung !== 'all') f4 = f4.filter(t => this.extractAusladung(t) === this.currentFaucetAusladung);
+
+            // 5. Auslauf
+            const auslaeufe = [...new Set(f4.map(t => this.extractAuslauf(t)))].filter(a => a !== 'unknown').sort();
+            auslaufList.innerHTML = `<button class="pill-btn ${this.currentFaucetAuslauf === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + auslaeufe.map(a => `
+                <button class="pill-btn ${this.currentFaucetAuslauf === a ? 'active' : ''}" data-val="${a}">${a.charAt(0).toUpperCase() + a.slice(1)}</button>
+            `).join('');
+            applyPillUI('head_faucet_auslauf', 'list_faucet_auslauf', this.currentFaucetAuslauf, 'Auslauf', () => {
+                this.currentFaucetAuslauf = 'all';
+                this.updateFaucetTiers();
+            });
+
+            let f5 = f4;
+            if (this.currentFaucetAuslauf !== 'all') f5 = f5.filter(t => this.extractAuslauf(t) === this.currentFaucetAuslauf);
+
+            // 6. Ablaufventil
+            const ablaeufe = [...new Set(f5.map(t => this.extractAblauf(t)))].filter(a => a !== 'unknown').sort();
+            ablaufList.innerHTML = `<button class="pill-btn ${this.currentFaucetAblauf === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + ablaeufe.map(a => `
+                <button class="pill-btn ${this.currentFaucetAblauf === a ? 'active' : ''}" data-val="${a}">${a.charAt(0).toUpperCase() + a.slice(1)}</button>
+            `).join('');
+            applyPillUI('head_faucet_ablauf', 'list_faucet_ablauf', this.currentFaucetAblauf, 'Ablaufventil', () => {
+                this.currentFaucetAblauf = 'all';
+                this.updateFaucetTiers();
+            });
+
+            let f6 = f5;
+            if (this.currentFaucetAblauf !== 'all') f6 = f6.filter(t => this.extractAblauf(t) === this.currentFaucetAblauf);
+
+            // Bind Events
+            [brandList, typeList, serieList, auslList, auslaufList, ablaufList].forEach(list => {
+                list.querySelectorAll('.pill-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const target = list.id.replace('list_faucet_', '');
+                        const val = btn.dataset.val;
+                        if (target === 'brand') this.currentFaucetBrand = val;
+                        else if (target === 'type') this.currentFaucetType = val;
+                        else if (target === 'serie') this.currentFaucetSerie = val;
+                        else if (target === 'ausl') this.currentFaucetAusladung = val;
+                        else if (target === 'auslauf') this.currentFaucetAuslauf = val;
+                        else if (target === 'ablauf') this.currentFaucetAblauf = val;
+
+                        this.updateFaucetTiers();
+                    });
+                });
+            });
+
+            let f7 = f6;
+            if (this.faucetSearchQuery && this.faucetSearchQuery.trim() !== '') {
+                f7 = f7.filter(t => matchesSearchQuery(t, this.faucetSearchQuery));
+            }
+
+            const itemsHTML = f7.length === 0 ? '<div class="no-results">Keine Armaturen gefunden.</div>' : f7.sort((a, b) => {
+                const sA = this.extractFaucetSerie(a).toLowerCase();
+                const sB = this.extractFaucetSerie(b).toLowerCase();
+                if (sA !== sB) return sA.localeCompare(sB);
+                return (a.artNr || '').localeCompare(b.artNr || '');
+            }).map(t => {
+                const ausladung = this.extractAusladung(t);
+                const ablauf = this.extractAblauf(t);
+
+                const tags = [];
+                if (ausladung !== 'unknown') tags.push(`<span style="background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">${ausladung} mm</span>`);
+                if (ablauf === 'mit') tags.push(`<span style="background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">mit Ablaufventil</span>`);
+                if (ablauf === 'ohne') tags.push(`<span style="background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">ohne Ablaufventil</span>`);
+                const tagsHTML = tags.length > 0 ? `<div style="display:flex; flex-wrap:wrap; gap: 0.3rem; font-size: 0.65rem; color: var(--text-secondary); margin-top: 0.3rem;">${tags.join('')}</div>` : '';
+
+                const imgHTML = t.imgUrl ? `<img src="${t.imgUrl}" style="width:54px; height:54px; object-fit:contain; background:white; border-radius:6px; border:1px solid rgba(0,0,0,0.1); padding: 2px; flex-shrink: 0;" onerror="this.style.display='none'">` : '';
+                return `
+                <div class="finder-item ${this.selectedFaucet && this.selectedFaucet.id === t.id ? 'active' : ''}" data-id="${t.id}" style="padding: 0.75rem;">
+                    <div style="display:flex; align-items:flex-start; gap: 0.75rem;">
+                        ${imgHTML}
+                        <div style="display:flex; flex-direction:column; gap: 0.15rem; flex: 1;">
+                            <span style="font-weight:600; font-size:0.9rem;">${this.extractFaucetSerie(t)}</span>
+                            <span style="font-size:0.75rem; color:var(--text-secondary); font-family:monospace;">${t.artNr}</span>
+                            ${tagsHTML}
+                        </div>
+                    </div>
+                    <i class="ri-check-line finder-item-arrow" style="${this.selectedFaucet && this.selectedFaucet.id === t.id ? 'align-self: center;' : 'display:none;'}"></i>
+                </div>
+            `}).join('');
+
+            itemList.innerHTML = itemsHTML;
+
+            itemList.querySelectorAll('.finder-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    this.selectedFaucet = this.faucetTrays.find(x => x.id === el.dataset.id);
+                    this.updateFaucetTiers();
+                    this.updateValveTier();
+                    this.updatePreview();
+                });
+            });
+        },
+
+        updateValveTier: function () {
+            const list = document.getElementById('list_valve_items');
+            if (!list) return;
+
+            if (!this.selectedBasin) {
+                list.innerHTML = '<div class="finder-empty-state">Bitte Waschtisch wählen</div>';
+                return;
+            }
+
+            let html = '';
+
+            // 1. Ablaufventil Section
+            if (this.selectedFaucet && this.extractAblauf(this.selectedFaucet) === 'mit') {
+                html += '<div class="finder-sub-header" style="color:var(--accent);"><i class="ri-checkbox-circle-line"></i> Ablaufventil inklusive</div>';
+            } else {
+                html += '<div class="finder-sub-header">Ablaufventil</div>';
+                const overflow = this.extractUeberlauf(this.selectedBasin);
+                const requirements = {
+                    mit: [
+                        { artNr: "3161 111.501.000", label: "Siebventil mit Überlauf" },
+                        { artNr: "3161 127.501.000", label: "Ablaufventil ClickClack" }
+                    ],
+                    ohne: [
+                        { artNr: "3161 113.501.000", label: "Siebventil ohne Überlauf" },
+                        { artNr: "3161 121.501.000", label: "Schaftventil" }
+                    ]
+                };
+                const selectedReqs = requirements[overflow] || requirements.mit;
+                html += selectedReqs.map(req => `
+                    <div class="finder-item valve-item ${this.selectedAblauf === req.artNr ? 'active' : ''}" data-artnr="${req.artNr}">
+                        <span>${req.label}</span>
+                    </div>
+                `).join('');
+            }
+
+            // 2. Siphon Section (Only if NO cabinet is selected)
+            if (!this.showMoebel || !this.selectedMoebel) {
+                html += '<div class="finder-sub-header" style="margin-top:1.5rem;">Siphon</div>';
+                const siphons = [
+                    { artNr: "3163 105.100.000", label: "Sifon Geberit 40mm Weiss" },
+                    { artNr: "3163 115.501.000", label: "Sifon Geberit 40mm Chrom" }
+                ];
+                // Set default if none selected
+                if (!this.selectedSiphon) this.selectedSiphon = siphons[1].artNr;
+
+                html += siphons.map(s => `
+                    <div class="finder-item siphon-item ${this.selectedSiphon === s.artNr ? 'active' : ''}" data-artnr="${s.artNr}">
+                        <span>${s.label}</span>
+                    </div>
+                `).join('');
+            } else {
+                html += '<div class="finder-sub-header" style="margin-top:1.5rem; color:var(--accent);"><i class="ri-checkbox-circle-line"></i> Möbelsiphon inklusive</div>';
+            }
+
+            list.innerHTML = html;
+
+            // Event Listeners
+            list.querySelectorAll('.valve-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    this.selectedAblauf = el.dataset.artnr;
+                    this.updateValveTier();
+                    this.updatePreview();
+                });
+            });
+            list.querySelectorAll('.siphon-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    this.selectedSiphon = el.dataset.artnr;
+                    this.updateValveTier();
+                    this.updatePreview();
+                });
+            });
+        },
+
+        updateAddonToggles: function () {
+            // Sync toggle active states from app state
+            const targets = ['moebel', 'spiegelschrank', 'accessoires'];
+            targets.forEach(t => {
+                const btn = document.querySelector(`.ios-toggle[data-target="${t}"]`);
+                const panel = document.getElementById(`addon_${t}_panel`);
+                const isOn = this[`show${t.charAt(0).toUpperCase() + t.slice(1)}`];
+                if (btn) btn.classList.toggle('active', isOn);
+                if (panel) panel.style.display = isOn ? 'block' : 'none';
+            });
+
+            // Bind toggle click events (only once — use a guard flag)
+            const section = document.getElementById('addon_toggles_section');
+            if (section && !section._bound) {
+                section._bound = true;
+                section.querySelectorAll('.ios-toggle').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const t = btn.dataset.target;
+                        const key = `show${t.charAt(0).toUpperCase() + t.slice(1)}`;
+                        this[key] = !this[key];
+                        if (!this[key]) {
+                            // Clear selection when toggled off
+                            if (t === 'moebel') this.selectedMoebel = null;
+                            if (t === 'spiegelschrank') this.selectedSpiegelschrank = null;
+                            if (t === 'accessoires') {
+                                this.selectedAccessoires = [];
+                                this.currentAccessoiresSerie = 'all';
+                            }
+                        }
+                        this.updateAddonToggles();
+                        this.populateAddonPanel(t);
+                        this.updatePreview();
+                    });
+                });
+            }
+
+            // Auto-populate visible panels
+            targets.forEach(t => {
+                if (this[`show${t.charAt(0).toUpperCase() + t.slice(1)}`]) {
+                    this.populateAddonPanel(t);
+                }
+            });
+        },
+
+        populateAddonPanel: function (target) {
+            const listEl = document.getElementById(`list_addon_${target}`);
+            if (!listEl) return;
+
+            // Build the keyword map for each toggle category
+            const keywordMap = {
+                moebel: ['möbel', 'meuble', 'unterschrank', 'waschtischunterschrank', 'schrankunterschrank'],
+                spiegelschrank: ['spiegelschrank', 'spiegelkabinett', 'miroir', 'mirror', ' mirror '],
+                accessoires: ['accessoire', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'hakenleiste'],
+                accessoires_wc: ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste'],
+                accessoires_dusche: ['drahtseifenhalter', 'duschkorb', 'badetuchstange', 'schwammhalter']
+            };
+
+            const keywords = keywordMap[target] || [];
+
+            // 1. Search all app data for matching products (Gather Base Candidates)
+            let baseCandidates = [];
+            let allSpiegelschrankCandidates = []; // For width fallback logic
+            const allApps = window.productApps || {};
+            Object.values(allApps).forEach(app => {
+                // Relational apps use 'trays', Mix & Match uses 'basinTrays'/'faucets'
+                const items = app.trays || app.basinTrays || app.faucets || [];
+                items.forEach(t => {
+                    const lbl = (t.label || t.name || '').toLowerCase();
+                    if (keywords.some(k => lbl.includes(k))) {
+                        if (target === 'spiegelschrank') {
+                            if (lbl.includes('schallschutz')) return;
+                        }
+                        if (target === 'accessoires' || target === 'accessoires_wc' || target === 'accessoires_dusche') {
+                            if (lbl.includes('spiegelschrank') || lbl.includes('spiegelkabinett')) return;
+                        }
+
+                        // Filter to matching rules if basin is selected
+                        if (this.selectedBasin) {
+                            let matchFound = false;
+
+                            // 1. Check strict "zu [Art-Nr]" rule for Möbel
+                            if (target === 'moebel') {
+                                const basinId7 = (this.selectedBasin.artNr || '').replace(/[^\d]/g, '').substring(0, 7);
+
+                                // Parse label for "zu 2112 409 / 410 / ..."
+                                const zuMatch = t.label.match(/zu\s+([\d\s\/]+)/i);
+                                if (zuMatch && basinId7.length === 7) {
+                                    const digits = zuMatch[1].match(/\d+/g);
+                                    let validIds = [];
+                                    let lastPrefix = "";
+
+                                    if (digits) {
+                                        digits.forEach(d => {
+                                            if (d.length === 7) {
+                                                validIds.push(d);
+                                                lastPrefix = d.substring(0, 4);
+                                            } else if (d.length === 4) {
+                                                lastPrefix = d;
+                                            } else if (d.length === 3 && lastPrefix) {
+                                                validIds.push(lastPrefix + d);
+                                            }
+                                        });
+                                    }
+
+                                    if (validIds.length > 0) {
+                                        // Strict check: if "zu" exists, it MUST match exactly
+                                        if (!validIds.includes(basinId7)) return;
+                                        matchFound = true;
+                                    }
+                                }
+                            }
+
+                            // 1.5 Rule for Spiegelschrank: Match Basin width (Rounded)
+                            if (target === 'spiegelschrank') {
+                                const basinWStr = this.extractBreite(this.selectedBasin);
+                                const cabinetWStr = this.extractBreite(t);
+
+                                if (basinWStr !== 'unknown' && cabinetWStr !== 'unknown') {
+                                    const bW = parseFloat(basinWStr);
+                                    const cW = parseFloat(cabinetWStr);
+                                    
+                                    // Save all valid cabinets for potential fallback
+                                    allSpiegelschrankCandidates.push({ item: t, width: cW });
+
+                                    // Allow up to 3cm difference (e.g. 78cm quattro luci for 80cm basin)
+                                    if (Math.abs(bW - cW) > 3) return;
+                                    // If width matches or is close, we consider it a found match
+                                    matchFound = true;
+                                } else if (target === 'spiegelschrank' && basinWStr !== 'unknown') {
+                                    // Basin has a width, but cabinet doesn't? Skip it to be safe.
+                                    return;
+                                }
+                            }
+
+                            // 2. Fallback to Series match if no specific rule matched
+                            if (!matchFound && !target.startsWith('accessoires')) {
+                                const basinSerie = this.extractSerie(this.selectedBasin).toLowerCase();
+                                const tSerie = this.extractSerie(t).toLowerCase();
+                                if (!tSerie.includes(basinSerie) && !basinSerie.includes(tSerie)) return;
+                            }
+                        }
+                        baseCandidates.push(t);
+                    }
+                });
+            });
+
+
+            // 1.8 Fallback logic for Spiegelschrank if NO exact match was found
+            let isOffsetMatch = false;
+            if (target === 'spiegelschrank' && this.selectedBasin && baseCandidates.length === 0 && allSpiegelschrankCandidates.length > 0) {
+                const basinWStr = this.extractBreite(this.selectedBasin);
+                if (basinWStr !== 'unknown') {
+                    const bW = Math.round(parseFloat(basinWStr));
+                    
+                    // Find all unique available mirror widths
+                    const uniqueWidths = [...new Set(allSpiegelschrankCandidates.map(c => Math.round(c.width)))].sort((a, b) => a - b);
+                    
+                    // Find closest smaller and closest larger
+                    let smallerWidth = -1;
+                    let largerWidth = Infinity;
+                    
+                    for (let w of uniqueWidths) {
+                        if (w < bW && w > smallerWidth) smallerWidth = w;
+                        if (w > bW && w < largerWidth) largerWidth = w;
+                    }
+                    
+                    // Add all cabinets that match the smaller or larger width (Bypass series filter just like exact match)
+                    const fallbackItems = allSpiegelschrankCandidates.filter(c => Math.round(c.width) === smallerWidth || Math.round(c.width) === largerWidth);
+                    if (fallbackItems.length > 0) {
+                        isOffsetMatch = true;
+                        fallbackItems.forEach(c => baseCandidates.push(c.item));
+                    }
+                }
+            }
+
+            // Deduplicate baseCandidates by artNr
+            const seenArt = new Set();
+            baseCandidates = baseCandidates.filter(c => {
+                if (!c.artNr || seenArt.has(c.artNr)) return false;
+                seenArt.add(c.artNr); return true;
+            });
+
+            let displayCandidates = baseCandidates;
+
+            // 2. Handle Pill Filters for Spiegelschrank
+            if (target === 'spiegelschrank') {
+                const breiteHeaderEl = document.getElementById('spiegelschrank_breite_header');
+                const breiteListEl = document.getElementById('list_spiegelschrank_breite');
+                const brandListEl = document.getElementById('list_spiegelschrank_brand');
+                const serieListEl = document.getElementById('list_spiegelschrank_serie');
+
+                if (breiteHeaderEl && breiteListEl) {
+                    if (isOffsetMatch) {
+                        breiteHeaderEl.style.display = 'block';
+                        breiteListEl.style.display = 'flex';
+                        
+                        // Extract precise raw widths from the fallback candidates
+                        const widths = [...new Set(baseCandidates.map(c => {
+                            const wStr = this.extractBreite(c);
+                            return wStr !== 'unknown' ? parseFloat(wStr) : null;
+                        }).filter(w => w !== null))].sort((a, b) => a - b);
+                        
+                        breiteListEl.innerHTML = `<button class="pill-btn ${this.currentSpiegelschrankBreite === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                            widths.map(w => `<button class="pill-btn ${this.currentSpiegelschrankBreite === w.toString() ? 'active' : ''}" data-val="${w}">${w} cm</button>`).join('');
+                            
+                        breiteListEl.querySelectorAll('.pill-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                this.currentSpiegelschrankBreite = btn.dataset.val;
+                                this.currentSpiegelschrankBrand = 'all';
+                                this.currentSpiegelschrankSerie = 'all';
+                                this.populateAddonPanel('spiegelschrank');
+                            });
+                        });
+                    } else {
+                        breiteHeaderEl.style.display = 'none';
+                        breiteListEl.style.display = 'none';
+                        this.currentSpiegelschrankBreite = 'all'; // Reset if not in offset mode
+                    }
+                }
+
+                if (brandListEl && serieListEl) {
+                    // Gather brands from base candidates
+                    const brands = [...new Set(baseCandidates.map(c => c.manufacturer).filter(Boolean))].sort();
+                    brandListEl.innerHTML = `<button class="pill-btn ${this.currentSpiegelschrankBrand === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                        brands.map(b => `<button class="pill-btn ${this.currentSpiegelschrankBrand === b ? 'active' : ''}" data-val="${b}">${b}</button>`).join('');
+
+                    brandListEl.querySelectorAll('.pill-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            this.currentSpiegelschrankBrand = btn.dataset.val;
+                            this.currentSpiegelschrankSerie = 'all';
+                            this.populateAddonPanel('spiegelschrank');
+                        });
+                    });
+
+                    // Gather series from filtered brands
+                    let fSeries = baseCandidates;
+                    if (this.currentSpiegelschrankBrand !== 'all') fSeries = fSeries.filter(c => c.manufacturer === this.currentSpiegelschrankBrand);
+                    const series = [...new Set(fSeries.map(c => this.extractSerie(c)))].filter(s => s !== 'Andere').sort();
+
+                    serieListEl.innerHTML = `<button class="pill-btn ${this.currentSpiegelschrankSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                        series.map(s => `<button class="pill-btn ${this.currentSpiegelschrankSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
+
+                    serieListEl.querySelectorAll('.pill-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            this.currentSpiegelschrankSerie = btn.dataset.val;
+                            this.populateAddonPanel('spiegelschrank');
+                        });
+                    });
+
+                    // APPLY UI RESET BUTTONS
+                    const resetSpiegelschrankFn = () => {
+                        this.currentSpiegelschrankBreite = 'all';
+                        this.currentSpiegelschrankBrand = 'all';
+                        this.currentSpiegelschrankSerie = 'all';
+                        this.currentSpiegelschrankBand = 'all';
+                        this.currentSpiegelschrankSteckdose = 'all';
+                        this.currentSpiegelschrankLichtfarbe = 'all';
+                        this.populateAddonPanel('spiegelschrank');
+                    };
+
+                    if (isOffsetMatch) {
+                        applyPillUI('spiegelschrank_breite_header', 'list_spiegelschrank_breite', this.currentSpiegelschrankBreite, 'Breite', resetSpiegelschrankFn, this.currentSpiegelschrankBreite !== 'all' ? this.currentSpiegelschrankBreite + ' cm' : 'all');
+                    }
+                    applyPillUI('spiegelschrank_brand_header', 'list_spiegelschrank_brand', this.currentSpiegelschrankBrand, 'Marke', resetSpiegelschrankFn);
+                    applyPillUI('spiegelschrank_serie_header', 'list_spiegelschrank_serie', this.currentSpiegelschrankSerie, 'Serie', resetSpiegelschrankFn);
+
+                    // Final display filtering
+                    if (this.currentSpiegelschrankBreite !== 'all') {
+                        displayCandidates = displayCandidates.filter(c => {
+                            const wStr = this.extractBreite(c);
+                            return wStr !== 'unknown' && parseFloat(wStr).toString() === this.currentSpiegelschrankBreite;
+                        });
+                    }
+                    if (this.currentSpiegelschrankBrand !== 'all') displayCandidates = displayCandidates.filter(c => c.manufacturer === this.currentSpiegelschrankBrand);
+                    if (this.currentSpiegelschrankSerie !== 'all') displayCandidates = displayCandidates.filter(c => this.extractSerie(c) === this.currentSpiegelschrankSerie);
+
+                    // NEW FILTERS: BAND, STECKDOSE, LICHTFARBE
+                    const getProp = (c, type) => {
+                        const l = (c.label || '').toLowerCase();
+                        if (type === 'band') {
+                            if (l.includes('band links')) return 'links';
+                            if (l.includes('band rechts')) return 'rechts';
+                            if (l.includes('wechselbar') || l.includes('beides')) return 'beides';
+                            return null;
+                        }
+                        if (type === 'steckdose') {
+                            if (!l.includes('steckdose')) return null;
+                            if (l.includes('steckdose links')) return 'links';
+                            if (l.includes('steckdose rechts')) return 'rechts';
+                            if (l.includes('steckdose mitte') || l.includes('steckdose in der mitte')) return 'mitte';
+                            return 'vorhanden';
+                        }
+                        if (type === 'lichtfarbe') {
+                            if (l.includes('3000 k') || l.includes('3000k')) return '3000K';
+                            if (l.includes('4000 k') || l.includes('4000k')) return '4000K';
+                            if (l.includes('stufenlos')) return 'Stufenlos wechselbar';
+                            return null;
+                        }
+                        return null;
+                    };
+
+                    const renderFilter = (type, currentVal, headerId, listId, titleLabel) => {
+                        const header = document.getElementById(headerId);
+                        const list = document.getElementById(listId);
+                        if (!header || !list) return;
+
+                        // Only show filter if there are actually options in the current displayCandidates
+                        const options = [...new Set(displayCandidates.map(c => getProp(c, type)).filter(Boolean))].sort();
+                        if (options.length === 0) {
+                            header.style.display = 'none';
+                            list.style.display = 'none';
+                            return;
+                        }
+                        header.style.display = 'block';
+                        list.style.display = 'flex';
+
+                        list.innerHTML = `<button class="pill-btn ${currentVal === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                            options.map(o => `<button class="pill-btn ${currentVal === o ? 'active' : ''}" data-val="${o}">${o}</button>`).join('');
+                        
+                        list.querySelectorAll('.pill-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                if (type === 'band') this.currentSpiegelschrankBand = btn.dataset.val;
+                                if (type === 'steckdose') this.currentSpiegelschrankSteckdose = btn.dataset.val;
+                                if (type === 'lichtfarbe') this.currentSpiegelschrankLichtfarbe = btn.dataset.val;
+                                this.populateAddonPanel('spiegelschrank');
+                            });
+                        });
+                        
+                        applyPillUI(headerId, listId, currentVal, titleLabel, resetSpiegelschrankFn);
+                    };
+
+                    renderFilter('band', this.currentSpiegelschrankBand, 'spiegelschrank_band_header', 'list_spiegelschrank_band', 'Band');
+                    renderFilter('steckdose', this.currentSpiegelschrankSteckdose, 'spiegelschrank_steckdose_header', 'list_spiegelschrank_steckdose', 'Steckdose');
+                    renderFilter('lichtfarbe', this.currentSpiegelschrankLichtfarbe, 'spiegelschrank_lichtfarbe_header', 'list_spiegelschrank_lichtfarbe', 'Lichtfarbe');
+
+                    if (this.currentSpiegelschrankBand !== 'all') displayCandidates = displayCandidates.filter(c => getProp(c, 'band') === this.currentSpiegelschrankBand);
+                    if (this.currentSpiegelschrankSteckdose !== 'all') displayCandidates = displayCandidates.filter(c => getProp(c, 'steckdose') === this.currentSpiegelschrankSteckdose);
+                    if (this.currentSpiegelschrankLichtfarbe !== 'all') displayCandidates = displayCandidates.filter(c => getProp(c, 'lichtfarbe') === this.currentSpiegelschrankLichtfarbe);
+                }
+            }
+
+            if (displayCandidates.length === 0) {
+                const serieInfo = this.selectedBasin ? ` für "${this.extractSerie(this.selectedBasin)}"` : '';
+                listEl.innerHTML = `<div class="finder-empty-state" style="font-size:0.8rem;">Keine passenden Produkte${serieInfo} gefunden.</div>`;
+                return;
+            }
+
+            const isMulti = target === 'accessoires';
+            if (target === 'accessoires') {
+                const serieListEl = document.getElementById('list_addon_accessoires_serie');
+                if (serieListEl) {
+                    const series = [...new Set(displayCandidates.map(c => this.extractSerie(c)))].filter(Boolean).sort();
+                    serieListEl.innerHTML = `<button class="pill-btn ${this.currentAccessoiresSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                        series.map(s => `<button class="pill-btn ${this.currentAccessoiresSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
+                    
+                    serieListEl.querySelectorAll('.pill-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            this.currentAccessoiresSerie = btn.dataset.val;
+                            this.populateAddonPanel(target);
+                        });
+                    });
+                }
+                
+                if (this.currentAccessoiresSerie !== 'all') {
+                    displayCandidates = displayCandidates.filter(c => this.extractSerie(c) === this.currentAccessoiresSerie);
+                }
+            }
+            
+            listEl.innerHTML = displayCandidates.map(c => {
+                const isSelected = isMulti
+                    ? this.selectedAccessoires.includes(c.artNr)
+                    : (target === 'moebel' ? this.selectedMoebel === c.artNr : this.selectedSpiegelschrank === c.artNr);
+                return `
+                    <div class="finder-item ${isSelected ? 'active' : ''}" data-artnr="${c.artNr}" data-target="${target}" title="${c.artNr}">
+                        <div style="display:flex; align-items:center; gap:0.5rem; overflow:hidden;">
+                            ${(c.imgUrl || getSanitasImgUrl(c.artNr)) ? `<img src="${c.imgUrl || getSanitasImgUrl(c.artNr)}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;" onerror="this.outerHTML='<div style=&quot;width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;&quot;><i class=&quot;ri-image-line placeholder-icon&quot;></i></div>'">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
+                            <div style="min-width:0; overflow:hidden;">
+                                <div style="font-size:0.8rem; font-weight:500; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis;">${this.cleanLabel(c)}</div>
+                                <div style="font-size:0.7rem; color:var(--text-secondary); font-family:monospace; margin-top:2px;">${c.artNr}</div>
+                            </div>
+                        </div>
+                        ${isSelected ? '<i class="ri-check-line" style="margin-left:auto; color:var(--accent); flex-shrink:0;"></i>' : ''}
+                    </div>`;
+            }).join('');
+
+            listEl.querySelectorAll('.finder-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const artNr = el.dataset.artnr;
+                    const t = el.dataset.target;
+                    if (t === 'accessoires') {
+                        const idx = this.selectedAccessoires.indexOf(artNr);
+                        if (idx > -1) this.selectedAccessoires.splice(idx, 1);
+                        else this.selectedAccessoires.push(artNr);
+                    } else if (t === 'moebel') {
+                        this.selectedMoebel = this.selectedMoebel === artNr ? null : artNr;
+                    } else {
+                        this.selectedSpiegelschrank = this.selectedSpiegelschrank === artNr ? null : artNr;
+                    }
+                    this.populateAddonPanel(t);
+                    this.updatePreview();
+                });
+            });
+        },
+
+        updatePreview: function () {
+            const container = document.getElementById('col_preview');
+            if (!container) return;
+
+            if (!this.selectedBasin) {
+                container.innerHTML = `
+                    <div class="finder-empty-state">
+                        <i class="ri-find-replace-line"></i>
+                        <h2>Konfiguration starten</h2>
+                        <p>Wählen Sie links Ihre Produkte aus, um eine Vorschau zu generieren.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = `
+                <div class="finder-preview-card slide-in" style="width: 100%; margin: 0;">
+                    <div class="finder-preview-header" style="margin-bottom: 1.5rem;">
+                        <img src="${this.selectedBasin.imgUrl}" class="preview-thumbnail">
+                        <div class="preview-header-info">
+                            <h2 style="margin: 0 0 4px 0; font-size: 1.1rem; font-weight: 700;">${this.selectedBasin.label}</h2>
+                            <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 10px;">Art-Nr: ${this.selectedBasin.artNr}</p>
+                            <div style="display: flex; gap: 6px;">
+                                <span class="mini-badge blue">${this.extractUeberlauf(this.selectedBasin) === 'mit' ? 'Mit' : 'Ohne'} Überlauf</span>
+                                <span class="mini-badge gray" style="background: rgba(255,255,255,0.05);">${this.extractHahnloch(this.selectedBasin)} Loch</span>
+                            </div>
+                        </div>
+                    </div>
+
+                        <div class="preview-details">
+                        <div class="preview-bom-list" style="border-top: 1px solid var(--border); padding-top: 1.25rem;">
+                            <h3 style="font-size: 0.75rem; margin-bottom: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Zusammenfassung</h3>
+                            <div style="background: rgba(255,255,255,0.02); border-radius: 12px; padding: 0.75rem 1rem; border: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: 24px max-content 1fr; gap: 0.4rem 0.75rem; align-items: start; max-width: 900px;">
+                                ${this.getBOMPreviewItems().map(item => {
+                if (item.isSpacer) return '<div style="grid-column: 1 / -1; margin: 0.3rem 0; border-top: 1px dashed rgba(255,255,255,0.1);"></div>';
+                return `
+                                        <div style="color: var(--text-secondary); font-size: 0.7rem; padding-top: 2px;">${item.qty}x</div>
+                                        <div style="font-family: monospace; color: var(--accent); font-weight: 700; font-size: 0.76rem; white-space: nowrap; text-align: left;">${item.artNr}</div>
+                                        <div style="font-weight: 500; color: var(--text-primary); line-height: 1.35; font-size: 0.76rem;">${item.label}</div>
+                                    `;
+            }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        },
+
+        getBOMPreviewItems: function () {
+            if (!this.selectedBasin) return [];
+            const hLochStatus = this.extractHahnloch(this.selectedBasin);
+            const isDoppel = (this.selectedBasin.label || '').toLowerCase().includes('doppel');
+
+            const label = (this.selectedFaucet?.label || '').toLowerCase();
+            const isSelectedWandModel = label.includes('wandmischer') || label.includes('wandbatterie');
+
+            // Quantity rules:
+            // - Doppelwaschtisch        → 2 faucets
+            // - Single basin, 2 Löcher  → 2 faucets
+            // - Single basin, 3 Löcher  → 1 faucet
+            // - Single basin, 1 Loch    → 1 faucet
+            let faucetQty = (isDoppel || hLochStatus === '2') ? 2 : 1;
+            // Special rule: If no holes, we only have a faucet if it's a wall-mounted one
+            if (hLochStatus === 'ohne' && !isSelectedWandModel) faucetQty = 0;
+            const valveQty = isDoppel ? 2 : 1;
+
+            const items = [];
+            const faucetItems = [];
+
+            // 1. Process Faucet (or Wandmischer) first for positioning logic
+            if (this.selectedFaucet) {
+                const label = (this.selectedFaucet.label || '').toLowerCase();
+                const desc = (this.selectedFaucet.description || '').toLowerCase();
+                const fullText = label + ' ' + desc;
+                const isWandModel = label.includes('wandmischer') || label.includes('wandbatterie');
+
+                // Add main faucet
+                faucetItems.push({ qty: faucetQty, label: this.selectedFaucet.label, artNr: this.selectedFaucet.artNr });
+
+                if (isWandModel) {
+                    // Wandmischer Logic: No Einbaukosten
+
+                    // KWC Specific Logic
+                    const kwcMapping = {
+                        '6113 266.501.000': ['6118 132.000.000', '6118 137.000.000'],
+                        '6113 269.501.000': ['6118 132.000.000', '6118 137.000.000'],
+                        '6113 268.501.000': ['6118 132.000.000', '6118 137.000.000'],
+                        '6113 267.501.000': ['6118 132.000.000', '6118 137.000.000'],
+                        '6111 864.501.000': ['6118 138.000.000', '6118 137.000.000'],
+                        '6111 861.501.000': ['6118 138.000.000', '6118 137.000.000'],
+                        '6111 863.501.000': ['6118 138.000.000', '6118 137.000.000'],
+                        '6111 862.501.000': ['6118 138.000.000', '6118 137.000.000'],
+                        '6111 261.501.000': ['6118 138.000.000', '6118 137.000.000'],
+                        '6111 262.501.000': ['6118 138.000.000', '6118 137.000.000'],
+                        '6113 661.502.000': ['6118 138.000.000', '6118 137.000.000'],
+                        '6113 662.502.000': ['6118 138.000.000', '6118 137.000.000'],
+                        '6113 972.501.000': ['6118 141.000.000', '6118 137.000.000'],
+                        '6113 970.501.000': ['6118 142.000.000', '6118 137.000.000'],
+                        '6111 142.501.000': ['6118 132.000.000', '6118 137.000.000'],
+                        '6114 672.502.000': ['6118 135.000.000', '6118 137.000.000'],
+                        '6114 671.502.000': ['6118 135.000.000', '6118 137.000.000']
+                    };
+
+                    const currentArtNr = this.selectedFaucet.artNr;
+                    if (kwcMapping[currentArtNr]) {
+                        kwcMapping[currentArtNr].forEach(accArtNr => {
+                            const acc = this.faucetTrays.find(t => t.artNr === accArtNr);
+                            if (acc) {
+                                faucetItems.push({ qty: faucetQty, label: acc.label, artNr: acc.artNr });
+                            } else {
+                                // Fallback labels if not found in trays
+                                if (accArtNr.includes('137')) faucetItems.push({ qty: faucetQty, label: 'KWC Befestigungsset zu KWC BLUEBOX', artNr: accArtNr });
+                                else faucetItems.push({ qty: faucetQty, label: 'KWC Grundkörper zu KWC BLUEBOX', artNr: accArtNr });
+                            }
+                        });
+                    }
+
+                    // Hansgrohe Specific Logic
+                    const isHG = (this.selectedFaucet.manufacturer || '').toLowerCase().includes('hansgrohe');
+                    const hgWandModels = [
+                        '6417 462.501.000', '6417 460.501.000', '6416 962.501.000', '6417 260.501.000',
+                        '6416 659.501.000', '6417 567.501.000', '6417 568.501.000', '6416 660.501.000',
+                        '6416 961.501.000', '6417 527.501.000'
+                    ];
+                    if (isHG && hgWandModels.includes(currentArtNr)) {
+                        const accArtNr = '6418 132.000.000';
+                        const acc = this.faucetTrays.find(t => t.artNr === accArtNr);
+                        faucetItems.push({
+                            qty: faucetQty,
+                            label: acc ? acc.label : 'Einbaukörper Hansgrohe ½"',
+                            artNr: accArtNr
+                        });
+                    }
+
+                    if (fullText.includes('ad 153 mm')) {
+                        // AP: Add 2x Abstellverschraubung per faucet
+                        faucetItems.push({ qty: 2 * faucetQty, label: 'Abstellverschraubung Laufen Verchromt ½" x ½"', artNr: '6521 103.501.000' });
+                    } else if (fullText.includes('endmontageset')) {
+                        // UP: Add its existing mounting materials (Grundkörper etc.)
+                        if (this.selectedFaucet.mountingMaterials) {
+                            this.selectedFaucet.mountingMaterials.forEach(mat => {
+                                if (mat.options && mat.options.length > 0) {
+                                    faucetItems.push({ qty: faucetQty, label: mat.options[0].label, artNr: mat.options[0].artNr });
+                                }
+                            });
+                        }
+                    }
+                } else {
+                    // Standard Faucet Logic: Add Einbaukosten
+                    let hasEinbau = false;
+                    if (this.selectedFaucet.mountingMaterials) {
+                        this.selectedFaucet.mountingMaterials.forEach(mat => {
+                            if (mat.name && mat.name.toLowerCase().includes('einbaukosten') && mat.options && mat.options.length > 0) {
+                                faucetItems.push({ qty: faucetQty, label: mat.options[0].label, artNr: mat.options[0].artNr });
+                                hasEinbau = true;
+                            }
+                        });
+                    }
+
+                    // Dynamic fallback if not present in data
+                    if (!hasEinbau && faucetQty > 0) {
+                        const ablauf = this.extractAblauf(this.selectedFaucet);
+                        const isMehrloch = label.includes('dreiloch') || label.includes('zweiloch');
+
+                        if (isMehrloch) {
+                            faucetItems.push({ qty: faucetQty, label: 'Einbaukosten, Zwei- und Dreilocharmatur, Nettopreis', artNr: '6000 015.000.000' });
+                        } else if (ablauf === 'mit') {
+                            faucetItems.push({ qty: faucetQty, label: 'Einbaukosten, Einlocharmatur mit Ablaufventil, Zugventil, Nettopreis', artNr: '6000 011.000.000' });
+                        } else {
+                            faucetItems.push({ qty: faucetQty, label: 'Einbaukosten, Einlocharmatur ohne Exzenterventil, Nettopreis', artNr: '6000 013.000.000' });
+                        }
+                    }
+                }
+            }
+
+            // 2. Assemble the final item list in the correct order
+            if (isSelectedWandModel) {
+                // Wandmischer case
+                const label = (this.selectedFaucet?.label || '').toLowerCase();
+                const includesAblauf = (label.includes('ablauf') && !label.includes('ohne ablauf')) || this.selectedAblauf;
+
+                if (includesAblauf) {
+                    // Core order: Wandmischer items -> G1 -> Waschtisch -> Einbaukosten
+                    const cleanFaucetItems = faucetItems.filter(it => !it.label.toLowerCase().includes('einbaukosten'));
+                    const einbauItems = faucetItems.filter(it => it.label.toLowerCase().includes('einbaukosten'));
+
+                    items.push(...cleanFaucetItems);
+                    items.push({ qty: 1, label: 'Gürtelset', artNr: 'G1' });
+                    items.push({ qty: 1, label: this.selectedBasin.label, artNr: this.selectedBasin.artNr });
+
+                    // Standalone valve article if selected
+                    if (this.selectedAblauf) {
+                        const valve = this.faucetTrays.find(t => t.artNr === this.selectedAblauf);
+                        if (valve) items.push({ qty: valveQty, label: valve.label, artNr: valve.artNr });
+                    }
+
+                    // Einbaukosten always at the bottom of the core set
+                    if (einbauItems.length > 0) {
+                        items.push(...einbauItems);
+                    } else {
+                        items.push({ qty: faucetQty, label: 'Einbaukosten, Ablaufventil einzeln, Wipp- und Siebventil, Nettopreis', artNr: '6000 017.000.000' });
+                    }
+                } else {
+                    items.push(...faucetItems);
+                    items.push({ qty: 1, label: 'Gürtelset', artNr: 'G1' });
+                    items.push({ qty: 1, label: this.selectedBasin.label, artNr: this.selectedBasin.artNr });
+                }
+            } else {
+                // Standard case: G1 -> Basin -> Faucet items
+                items.push({ qty: 1, label: 'Gürtelset', artNr: 'G1' });
+                items.push({ qty: 1, label: this.selectedBasin.label, artNr: this.selectedBasin.artNr });
+                items.push(...faucetItems);
+            }
+
+            // 2. Add Ablaufventil (Only for Standard Deck-mounted case, Wandmischer is handled above)
+            if (!isSelectedWandModel && this.selectedAblauf) {
+                const valve = this.faucetTrays.find(t => t.artNr === this.selectedAblauf);
+                if (valve) {
+                    items.push({ qty: valveQty, label: valve.label, artNr: valve.artNr });
+
+                    let hasEinbau = false;
+                    if (valve.mountingMaterials) {
+                        valve.mountingMaterials.forEach(mat => {
+                            if (mat.name && mat.name.toLowerCase().includes('einbaukosten') && mat.options && mat.options.length > 0) {
+                                items.push({ qty: valveQty, label: mat.options[0].label, artNr: mat.options[0].artNr });
+                                hasEinbau = true;
+                            }
+                        });
+                    }
+
+                    // Dynamic fallback for standalone valve installation
+                    if (!hasEinbau) {
+                        items.push({ qty: valveQty, label: 'Einbaukosten, Ablaufventil einzeln, Wipp- und Siebventil, Nettopreis', artNr: '6000 017.000.000' });
+                    }
+                }
+            }
+
+            // 3. Spacer for SAP (Breaks the G1 bundle)
+            items.push({ isSpacer: true });
+
+            // 4. Mounting screws and Basin isolation (Dübelschrauben etc.)
+            if (this.selectedBasin.mountingMaterials && this.selectedBasin.mountingMaterials.length > 0) {
+                this.selectedBasin.mountingMaterials.forEach(mat => {
+                    if (mat.options && mat.options.length > 0) {
+                        const opt = mat.options[0];
+                        items.push({ qty: opt.menge || 1, label: opt.label, artNr: opt.artNr });
+                    }
+                });
+            }
+
+            // 4. Inject Möbel and dependent logic (Cabinet, Cabinet Isolation, Siphon, Regulierventil)
+            const hasCabinet = this.showMoebel && this.selectedMoebel;
+            const faucetDesc = (this.selectedFaucet?.description || '').toLowerCase();
+            const isMischwasser = faucetDesc.includes('mischwasser');
+            const regQty = isSelectedWandModel ? 0 : (isMischwasser ? 1 : 2) * faucetQty;
+            const siphonQty = (this.selectedBasin.label || '').toLowerCase().includes('doppelwaschtisch') ? 2 : 1;
+
+            if (hasCabinet) {
+                // Find cabinet object
+                const allApps = window.productApps || {};
+                let cabinetObj = null;
+                Object.values(allApps).forEach(app => {
+                    if (cabinetObj) return;
+                    const itemsToSearch = app.trays || app.basinTrays || app.faucets || [];
+                    cabinetObj = itemsToSearch.find(t => t.artNr === this.selectedMoebel);
+                });
+
+                if (cabinetObj) {
+                    items.push({ qty: 1, label: cabinetObj.label, artNr: cabinetObj.artNr });
+                }
+
+                // Cabinet Isolation Tape (Automatically based on width)
+                const width = parseFloat(this.extractBreite(this.selectedBasin));
+                if (width <= 120) items.push({ qty: 1, label: 'Schallschutz Iso-Set Möbel 120', artNr: '3171 166.000.000' });
+                else if (width <= 150) items.push({ qty: 1, label: 'Schallschutz Iso-Set Möbel 150', artNr: '3171 167.000.000' });
+                else if (width <= 200) items.push({ qty: 1, label: 'Schallschutz Iso-Set Möbel 200', artNr: '3171 168.000.000' });
+                else items.push({ qty: 1, label: 'Schallschutz Iso-Set Hafner Waschtischmöbel', artNr: '3171 165.000.000' });
+            }
+
+            // 5. Add Siphon and Regulierventile
+            if (hasCabinet) {
+                // Siphon (Strictly Möbelsiphon)
+                items.push({ qty: siphonQty, label: 'Möbelsiphon Viega, Raumsparmodell', artNr: '3163 172.100.000' });
+
+                // Regulierventil (Strictly 6511 222.501.000)
+                if (regQty > 0) items.push({ qty: regQty, label: 'Regulierventil Laufen ½" Absperrung vertikal', artNr: '6511 222.501.000' });
+            } else {
+                // User-selected Siphon
+                if (this.selectedSiphon) {
+                    const sLabelMap = {
+                        "3163 105.100.000": "Sifon Geberit 40mm Weiss",
+                        "3163 115.501.000": "Sifon Geberit 40mm Chrom"
+                    };
+                    items.push({ qty: siphonQty, label: sLabelMap[this.selectedSiphon] || 'Sifon', artNr: this.selectedSiphon });
+                }
+
+                // Regulierventil (Standard)
+                if (regQty > 0) items.push({ qty: regQty, label: 'Regulierventil Laufen ½" Verchromt', artNr: '6511 201.501.000' });
+            }
+
+            // 6. Add Spiegelschrank
+            if (this.showSpiegelschrank && this.selectedSpiegelschrank) {
+                const allApps = window.productApps || {};
+                let mirrorObj = null;
+                Object.values(allApps).forEach(app => {
+                    if (mirrorObj) return;
+                    const itemsToSearch = app.trays || app.basinTrays || app.faucets || [];
+                    mirrorObj = itemsToSearch.find(t => t.artNr === this.selectedSpiegelschrank);
+                });
+
+                if (mirrorObj) {
+                    items.push({ qty: 1, label: mirrorObj.label || mirrorObj.name, artNr: mirrorObj.artNr });
+                } else {
+                    items.push({ qty: 1, label: 'Spiegelschrank', artNr: this.selectedSpiegelschrank });
+                }
+
+                // Mandatory Isolation for Mirror Cabinet
+                items.push({ qty: 1, label: 'Alterna Isolations-Set für Spiegelschränke', artNr: '5299 910.000.000' });
+            }
+
+            // 7. Add Accessories
+            if (this.showAccessoires && this.selectedAccessoires.length > 0) {
+                const allApps = window.productApps || {};
+                this.selectedAccessoires.forEach(artNr => {
+                    let accObj = null;
+                    Object.values(allApps).forEach(app => {
+                        if (accObj) return;
+                        const itemsToSearch = app.trays || app.basinTrays || app.faucets || [];
+                        accObj = itemsToSearch.find(t => t.artNr === artNr);
+                    });
+                    if (accObj) {
+                        items.push({ qty: 1, label: accObj.label, artNr: accObj.artNr });
+                    }
+                });
+            }
+
+            return items;
+        },
+
+        // Copies only the G1 set lines (G1 header → basin → faucet → einbaukosten → ablaufventil → ablauf einbaukosten)
+        copyToClipboard: function () {
+            const previewItems = this.getBOMPreviewItems();
+            if (previewItems.length === 0) {
+                alert('Bitte konfigurieren Sie zuerst ein Mix & Match Set.');
+                return;
+            }
+
+            // G1 set = all items up to (but NOT including) the spacer
+            const g1Items = [];
+            for (const item of previewItems) {
+                if (item.isSpacer) break;
+                g1Items.push(item);
+            }
+
+            if (g1Items.length === 0) {
+                alert('Kein G1-Set vorhanden.');
+                return;
+            }
+
+            const textLines = g1Items.map(item => {
+                let cleanArtNr = (item.artNr || '').toString().replace(/\t/g, '').trim();
+                return `${cleanArtNr}\t${item.qty}`;
+            });
+            const textArray = textLines.join('\n');
+            window.copyTextToClipboard(textArray).then(() => {
+                alert("✅ G1-Set kopiert für SAP (" + g1Items.length + " Zeilen):\n\n" + textArray.replace(/\t/g, "    "));
+            }).catch(e => alert("Kopieren fehlgeschlagen."));
+        },
+
+        // Copies ONLY the loose items (Schallschutz + Dübelschrauben) — paste SEPARATELY after the G1 set is closed
+        copyLooseItemsToClipboard: function () {
+            const previewItems = this.getBOMPreviewItems();
+            if (previewItems.length === 0) {
+                alert('Bitte konfigurieren Sie zuerst ein Mix & Match Set.');
+                return;
+            }
+
+            // Loose items = everything AFTER the spacer
+            let pastSpacer = false;
+            const looseItems = [];
+            for (const item of previewItems) {
+                if (item.isSpacer) { pastSpacer = true; continue; }
+                if (pastSpacer) looseItems.push(item);
+            }
+
+            if (looseItems.length === 0) {
+                alert('Keine losen Artikel vorhanden (kein Schallschutz / keine Dübelschrauben konfiguriert).');
+                return;
+            }
+
+            const textLines = looseItems.map(item => {
+                let cleanArtNr = (item.artNr || '').toString().replace(/\t/g, '').trim();
+                return `${cleanArtNr}\t${item.qty}`;
+            });
+            const textArray = textLines.join('\n');
+            window.copyTextToClipboard(textArray).then(() => {
+                alert("✅ Lose Artikel kopiert für SAP (" + looseItems.length + " Zeilen):\n\nBitte NACH dem G1-Set einfügen!\n\n" + textArray.replace(/\t/g, "    "));
+            }).catch(e => alert("Kopieren fehlgeschlagen."));
+        },
+
+        clearBOM: function () {
+            bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9da3ad; padding: 2rem;">Bitte konfigurieren Sie Ihr Mix & Match Set.</td></tr>';
+            bomCountCounter.textContent = "0 Artikel";
+        },
+
+        updateBOM: function () {
+            const previewItems = this.getBOMPreviewItems();
+            if (previewItems.length === 0) return;
+
+            let bomHtml = '';
+            let totalCount = 0;
+
+            previewItems.forEach(item => {
+                if (item.isSpacer) {
+                    bomHtml += `<tr><td colspan="5" style="height: 1.5rem; background: transparent; border: none;"></td></tr>`;
+                    return;
+                }
+
+                const isService = item.label.toLowerCase().includes('einbaukosten');
+                bomHtml += `
+                    <tr style="${isService ? 'background: rgba(59, 130, 246, 0.03);' : ''}">
+                        <td><div class="img-cell">
+                            ${isService ? '<div style="width:40px;height:40px;background:#e0e7ff;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#4f46e5;"><i class="ri-tools-fill"></i></div>' : `<i class="ri-box-3-line" style="font-size:1.5rem; color:var(--text-secondary);"></i>`}
+                        </div></td>
+                        <td><span class="bom-code">${item.artNr}</span></td>
+                        <td>
+                            <div class="bom-desc">${item.label}</div>
+                        </td>
+                        
+                        <td><strong>${item.qty}</strong></td>
+                    </tr>
+                `;
+                totalCount += item.qty;
+            });
+
+            bomTableBody.innerHTML = bomHtml;
+            bomCountCounter.textContent = `${totalCount} Artikel`;
+
+            if (window.saveWishlist) window.saveWishlist();
+        }
+    };
+}
+
+/* Mischer Factory */
+
