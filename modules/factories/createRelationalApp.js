@@ -2574,6 +2574,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                                 this.selectedTray.selections['__variant__'] = validCombs[key];
                                 
                                 // Dynamic Deckel Sync for 1311 699
+                                let finalDeckel = null;
                                 const curDeckel = this.selectedTray.selections['mat_deckel'];
                                 if (curDeckel && curDeckel.startsWith('1311 699.')) {
                                     const nextDeckel = `1311 699.${newColor}.${newSurface}`;
@@ -2582,7 +2583,6 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                                     const allApps = window.productApps || {};
                                     const zubPool = allApps['zubehoer_pool'] ? allApps['zubehoer_pool'].trays : [];
                                     
-                                    let finalDeckel = null;
                                     if (zubPool.find(z => z.artNr === nextDeckel)) finalDeckel = nextDeckel;
                                     else if (zubPool.find(z => z.artNr === nextDeckelFallback)) finalDeckel = nextDeckelFallback;
                                     

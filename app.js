@@ -1,6 +1,6 @@
 import { DATA_VERSION, catalog } from './modules/data.js?v=2.5.4';
 import { productApps } from './modules/apps.js?v=2.6.31';
-import { setupAdmin } from './modules/admin.js?v=2.5.4';
+import { setupAdmin } from './modules/admin.js?v=2.5.5';
 
 window.copyTextToClipboard = function(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -170,6 +170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const homeView = document.getElementById('homeView');
     const configView = document.getElementById('configView');
     const searchResultView = document.getElementById('searchResultView');
+    const adminView = document.getElementById('adminView');
     const backHomeBtn = document.getElementById('backHomeBtn');
     window.currentActiveApp = null; // Track which app is loaded globally for Admin View to reset
     window.customWishlist = readStoredJson('sanitas_wishlist', []);
