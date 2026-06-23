@@ -1,0 +1,11 @@
+dist/
+dist-ci/
+backups/
+_archive/
+scratch/
+old_dist/
+node_modules/
+st-scraper/
+custom-data.json
+dist_*.js
+modules/factories/createRelationalApp.js
