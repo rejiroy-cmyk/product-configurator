@@ -5,7 +5,7 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 
 export default defineConfig({
     server: {
-        port: 5176,
+        port: 5175,
         strictPort: true
     },
     plugins: [

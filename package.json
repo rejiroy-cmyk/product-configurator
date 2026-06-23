@@ -6,15 +6,20 @@
   "scripts": {
     "dev": "vite --port 5175",
     "test": "node tests/verify-duschtrennwand.js",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "backup": "mkdir -p backups/$(date +%Y%m%d_%H%M%S) && cp -r modules index.html index.css backups/$(date +%Y%m%d_%H%M%S)/",
     "build": "npm run test && npm run backup && vite build && cp -r dist backups/$(date +%Y%m%d_%H%M%S)_dist",
     "preview": "vite preview",
     "pdf": "node st-scraper/pdf-to-csv.js"
   },
   "devDependencies": {
-    "javascript-obfuscator": "^5.4.2",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.5.0",
+    "globals": "^17.7.0",
+    "prettier": "^3.8.4",
     "vite": "^5.0.0",
-    "vite-plugin-javascript-obfuscator": "^3.1.0",
     "vite-plugin-singlefile": "^2.3.2"
   },
   "dependencies": {
