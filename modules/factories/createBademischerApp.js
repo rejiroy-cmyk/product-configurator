@@ -1,11 +1,55 @@
 import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X } from './_shared.js';
 
 export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
+  function transformBademischerUPTrays(trays) {
+    if (!Array.isArray(trays)) return trays;
+    return trays.map(tray => {
+      // Only apply to UP products
+      if (!tray.label || (!tray.label.includes('UP') && !tray.label.includes('Endmontage'))) return tray;
+      if (!tray.mountingMaterials) return tray;
+      
+      const hasGleitstange = tray.mountingMaterials.some(m => (m.name || "").toLowerCase().includes("gleitstange"));
+      if (hasGleitstange) return tray;
+
+      // Add Duschgleitstange (Optional) as a brand new material
+      tray.mountingMaterials.push({
+        id: "mat_gleitstange_up",
+        name: "Duschgleitstange (Optional)",
+        options: [
+          {
+            artNr: "ohne_gleitstange",
+            label: "Ohne Duschgleitstange",
+            type: "Option",
+            menge: 0,
+            imgUrl: ""
+          },
+          {
+            artNr: "6531 404.501.000",
+            label: "Duschengleitstange Alterna fit Gelenkhalter Arretierungshebel, 1100 mm Verchromt",
+            menge: 1,
+            type: "Option",
+            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06531404_501_000.png"
+          },
+          {
+            artNr: "6531 403.501.000",
+            label: "Duschengleitstange Alterna fit Gelenkhalter Arretierungshebel, 610 mm Verchromt",
+            menge: 1,
+            type: "Option",
+            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06531403_501_000.png"
+          }
+        ]
+      });
+      return tray;
+    });
+  }
+
   function gt(B, F, R, N = {}) {
     const m = N.isBath || !1,
       s = B.replace(/\s/g, "");
+    let _trays = [];
     return {
-      trays: [],
+      get trays() { return _trays; },
+      set trays(val) { _trays = transformBademischerUPTrays(val); },
       mainImgUrl: R,
       selectedTray: null,
       mischerOptionsState: {},
