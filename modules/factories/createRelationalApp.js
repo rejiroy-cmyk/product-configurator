@@ -976,6 +976,11 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             // Ensure data structure and setup selections
             this.selectedTray.selections = {};
 
+            // Montageset trays (e.g. Schmidlin Swiss Line) ship as one complete kit —
+            // default the "Komplettes Montageset verwenden" toggle ON so the set shows
+            // immediately; trays without a Montageset reset it OFF.
+            this.useMontageset = (this.selectedTray.mountingMaterials || []).some(g => g.id === 'mat_montageset');
+
             // Initialize default variant
             if (this.selectedTray.variants && this.selectedTray.variants.length > 0) {
                 this.selectedTray.selections['__variant__'] = this.selectedTray.artNr;
@@ -1227,7 +1232,15 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 inner.appendChild(warnDiv);
             }
 
-            if (this.selectedTray.mountingMaterials.some(g => g.id === 'mat_montageset')) {
+            // Only show the "Komplettes Montageset verwenden" toggle when there is an
+            // actual choice — i.e. a Montageset AND individual raw parts to switch to.
+            // Montageset-only trays (e.g. Schmidlin Swiss Line today) keep the toggle
+            // HIDDEN, but all its logic/properties stay so it re-appears automatically
+            // if individual parts are added for those trays later. (useMontageset still
+            // defaults ON in selectTray, so the set renders by default while hidden.)
+            const hasMontageset = this.selectedTray.mountingMaterials.some(g => g.id === 'mat_montageset');
+            const hasIndividualParts = this.selectedTray.mountingMaterials.some(g => g.id !== 'mat_montageset' && g.options && g.options.length > 0);
+            if (hasMontageset && hasIndividualParts) {
                 const toggleDiv = document.createElement('div');
                 toggleDiv.className = 'montageset-toggle-wrapper';
                 toggleDiv.style.marginBottom = '1.5rem';
