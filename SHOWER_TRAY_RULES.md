@@ -46,13 +46,3 @@ When a siphon does *not* include an integrated cover, we must present the user w
 *\* "none" indicates that the siphon's own default chrome cover is used.*
 
 ---
-
-## 3. Color Selection Propagation Rules
-When a user selects a shower tray in a specific finish/color, what cover color should be selected automatically by default?
-
-| Chosen Tray Color / Finish | Matching Cover Finish / Art. Nr. |
-| :--- | :--- |
-| **Standard/Glanz Weiss** (e.g. `.100.`) | `[ E.g. Chrom or Weiss ]` |
-| **Weiss Matt** | `[ E.g. Weiss Matt ]` |
-| **Schwarze / Anthrazit / Dark finishes** | `[ E.g. Anthrazit / Chrom ]` |
-| **Coated / Antislip (Secure)** | `[ E.g. Secure Cover ]` |

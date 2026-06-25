@@ -1,6 +1,6 @@
 import { DATA_VERSION, catalog } from './modules/data.js?v=2.5.4';
 import { productApps } from './modules/apps.js?v=2.6.31';
-import { setupAdmin } from './modules/admin.js?v=2.5.5';
+import { setupAdmin } from './modules/admin.js?v=2.5.6';
 
 window.copyTextToClipboard = function(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {

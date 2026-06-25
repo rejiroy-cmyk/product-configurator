@@ -1,0 +1,2178 @@
+{
+  "1549 143.000.000": {
+    "label": "Montagepauschale Alterna lin.3, bis 125 cm, Pendeltüre mit Seitenteil in Front,",
+    "description": null,
+    "parentCount": 13,
+    "parentExamples": [
+      "1545 315.501.119",
+      "1545 379.501.119",
+      "1545 317.501.119"
+    ]
+  },
+  "1549 144.000.000": {
+    "label": "Montagepauschale Alterna lin.3, ab 125,1 cm, Pendeltüre mit Seitenteil in",
+    "description": null,
+    "parentCount": 13,
+    "parentExamples": [
+      "1545 315.501.119",
+      "1545 379.501.119",
+      "1545 317.501.119"
+    ]
+  },
+  "1519 990.000.000": {
+    "label": "Massaufnahme Trennwände Duscholux, für 1 -3 Trennwände pro Objekt, Nettobetrag",
+    "description": null,
+    "parentCount": 951,
+    "parentExamples": [
+      "1545 315.501.119",
+      "1545 341.501.119",
+      "1545 364.501.119"
+    ]
+  },
+  "1519 991.000.000": {
+    "label": "Anfahrtspauschale Duscholux, für 1 -3 Trennwände pro Objekt, Nettobetrag",
+    "description": null,
+    "parentCount": 951,
+    "parentExamples": [
+      "1545 315.501.119",
+      "1545 341.501.119",
+      "1545 364.501.119"
+    ]
+  },
+  "1549 150.000.000": {
+    "label": "Montagepauschale Alterna lin.3, bis 125 cm, Eckeinstieg, mit Pendeltüren mit Festteilen, Breite pro Glasteil kleiner als 125 cm und Höhe kleiner als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1545 341.501.119",
+      "1545 342.501.119",
+      "1545 344.501.119"
+    ]
+  },
+  "1549 151.000.000": {
+    "label": "Montagepauschale Alterna lin.3, ab 125,1 cm, Eckeinstieg, mit Pendeltüren mit Festteilen, Breite pro Glasteil grösser als 125 cm oder Höhe grösser als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1545 341.501.119",
+      "1545 342.501.119",
+      "1545 344.501.119"
+    ]
+  },
+  "1549 154.000.000": {
+    "label": "Montagepauschale Alterna lin.3, bis 125 cm, Pendeltüre mit Festteil, mit Seitenwand, Breite pro Glasteil kleiner als 125 cm und Höhe kleiner als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 30,
+    "parentExamples": [
+      "1545 364.501.119",
+      "1545 361.501.119",
+      "1545 368.501.119"
+    ]
+  },
+  "1549 155.000.000": {
+    "label": "Montagepauschale Alterna lin.3, ab 125,1 cm, Pendeltüre mit Festteil, mit Seitenwand, Breite pro Glasteil grösser als 125 cm oder Höhe grösser als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 40,
+    "parentExamples": [
+      "1545 364.501.119",
+      "1545 690.501.119",
+      "1545 361.501.119"
+    ]
+  },
+  "1549 152.000.000": {
+    "label": "Montagepauschale Alterna lin.3, bis 125 cm, Pendeltüre mit Seitenwand, Breite pro Glasteil kleiner als 125 cm und Höhe kleiner als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 16,
+    "parentExamples": [
+      "1545 353.501.119",
+      "1545 355.501.119",
+      "1117 122.501.119"
+    ]
+  },
+  "1549 153.000.000": {
+    "label": "Montagepauschale Alterna lin.3, ab 125,1 cm, Pendeltüre mit Seitenwand, Breite pro Glasteil grösser als 125 cm oder Höhe grösser als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 16,
+    "parentExamples": [
+      "1545 353.501.119",
+      "1545 355.501.119",
+      "1117 122.501.119"
+    ]
+  },
+  "1549 159.000.000": {
+    "label": "Montagepauschale Alterna lin.3, ab 125,1 cm, Seitenwand mit L- Verbau, Breite pro Glasteil grösser als 125 cm oder Höhe grösser als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 16,
+    "parentExamples": [
+      "1545 686.501.119",
+      "1117 142.501.119",
+      "1545 685.501.119"
+    ]
+  },
+  "1549 156.000.000": {
+    "label": "Montagepauschale Alterna lin.3, bis 125 cm, Seitenwand, Breite pro Glasteil kleiner als 125 cm und Höhe kleiner als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 14,
+    "parentExamples": [
+      "1545 604.501.119",
+      "1545 601.501.119",
+      "1545 662.501.119"
+    ]
+  },
+  "1549 157.000.000": {
+    "label": "Montagepauschale Alterna lin.3, ab 125,1 cm, Seitenwand, Breite pro Glasteil grösser als 125 cm oder Höhe grösser als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 14,
+    "parentExamples": [
+      "1545 604.501.119",
+      "1545 601.501.119",
+      "1545 662.501.119"
+    ]
+  },
+  "1549 172.000.000": {
+    "label": "Montagepauschale Alterna lin.3, bis 125 cm, Seitenwand geklebt, Breite pro Glasteil kleiner als 125 cm und Höhe kleiner als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1545 612.501.119",
+      "1545 613.501.119",
+      "1545 614.501.119"
+    ]
+  },
+  "1549 173.000.000": {
+    "label": "Montagepauschale Alterna lin.3, ab 125,1 cm, Seitenwand geklebt, Breite pro Glasteil grösser als 125 cm oder Höhe grösser als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1545 612.501.119",
+      "1545 613.501.119",
+      "1545 614.501.119"
+    ]
+  },
+  "1549 141.000.000": {
+    "label": "Montagepauschale Alterna lin.3, bis 125 cm, Pendeltüre mit Festteil, in Nische, Breite pro Glasteil kleiner als 125 cm und Höhe kleiner als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 12,
+    "parentExamples": [
+      "1117 107.501.119",
+      "1545 326.501.119",
+      "1545 321.501.119"
+    ]
+  },
+  "1549 142.000.000": {
+    "label": "Montagepauschale Alterna lin.3, ab 125,1 cm, Pendeltüre mit Festteil, in Nische, Breite pro Glasteil grösser als 125 cm oder Höhe grösser als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 12,
+    "parentExamples": [
+      "1117 107.501.119",
+      "1545 326.501.119",
+      "1545 321.501.119"
+    ]
+  },
+  "1549 158.000.000": {
+    "label": "Montagepauschale Alterna lin.3, bis 125 cm, Seitenwand mit L- Verbau, Breite pro Glasteil kleiner als 125 cm und Höhe kleiner als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1117 143.501.119",
+      "1545 680.501.119",
+      "1545 683.501.119"
+    ]
+  },
+  "1549 145.000.000": {
+    "label": "Montagepauschale Alterna lin.3, bis 125 cm, Pendeltüre mit Seitenteil in Front und Festteil, in Nische, Breite pro Glasteil kleiner als 125 cm und Höhe kleiner als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 12,
+    "parentExamples": [
+      "1117 112.501.119",
+      "1117 110.501.119",
+      "1545 338.501.119"
+    ]
+  },
+  "1549 146.000.000": {
+    "label": "Montagepauschale Alterna lin.3, ab 125,1 cm, Pendeltüre mit, Seitenteil in Front und Festteil, in Nische, Breite pro Glasteil grösser als 125 cm oder Höhe grösser als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 12,
+    "parentExamples": [
+      "1117 112.501.119",
+      "1117 110.501.119",
+      "1545 338.501.119"
+    ]
+  },
+  "1549 147.000.000": {
+    "label": "Montagepauschale Alterna lin.3, bis 125 cm, Pendeltüre, 2- teilig, in Nische, Breite pro Glasteil kleiner als 125 cm und Höhe kleiner als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1545 301.501.119",
+      "1545 302.501.119"
+    ]
+  },
+  "1549 148.000.000": {
+    "label": "Montagepauschale Alterna lin.3, ab 125,1 cm, Pendeltüre, 2- teilig, in Nische, Breite pro Glasteil grösser als 125 cm oder Höhe grösser als 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1545 301.501.119",
+      "1545 302.501.119"
+    ]
+  },
+  "1549 140.000.000": {
+    "label": "Montagepauschale Alterna lin.3, Pendeltüre 1- teilig in Nische, bis Höhe 210 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1545 304.501.119",
+      "1545 303.501.119"
+    ]
+  },
+  "1549 139.000.000": {
+    "label": "Montagepauschale Alterna lin.3 Pendeltüre 1-teilig in Nische ab Höhe 210,1 cm",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1545 304.501.119",
+      "1545 303.501.119"
+    ]
+  },
+  "1549 178.000.000": {
+    "label": "Montagepauschale Alterna liva, Gleittüre + Seitenwand, Gleittüre +",
+    "description": null,
+    "parentCount": 29,
+    "parentExamples": [
+      "1541 756.591.118",
+      "1541 765.597.119",
+      "1541 755.149.118"
+    ]
+  },
+  "1549 177.000.000": {
+    "label": "Montagepauschale Alterna liva, Gleittüre, Gleittüre mit Wandprofil,",
+    "description": null,
+    "parentCount": 21,
+    "parentExamples": [
+      "1541 748.591.118",
+      "1541 750.591.118",
+      "1541 749.597.118"
+    ]
+  },
+  "1549 179.000.000": {
+    "label": "Montagepauschale Alterna liva, Gleittüre, Gleittüre für Eckeinstieg,",
+    "description": null,
+    "parentCount": 33,
+    "parentExamples": [
+      "1541 772.535.118",
+      "1541 776.591.119",
+      "1541 773.591.118"
+    ]
+  },
+  "1549 174.000.000": {
+    "label": "Montagepauschale Alterna liva, Gleittüre, Gleittüre",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1541 611.591.118",
+      "1549 174.000.000",
+      "1541 612.597.118"
+    ]
+  },
+  "1549 175.000.000": {
+    "label": "Montagepauschale Alterna liva, Gleittüre + Seitenwand, Gleittüre +",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1541 645.597.118",
+      "1549 175.000.000",
+      "1541 644.597.119"
+    ]
+  },
+  "1549 176.000.000": {
+    "label": "Montagepauschale Alterna liva, Gleittüre, Gleittüre für Eckeinstieg",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1541 652.149.118",
+      "1549 176.000.000",
+      "1541 651.149.118"
+    ]
+  },
+  "1519 171.000.000": {
+    "label": "Montagepauschale Alterna costa, Eckeinstieg, Gleittüre mit Seitenwand,",
+    "description": null,
+    "parentCount": 81,
+    "parentExamples": [
+      "1541 457.597.118",
+      "1541 521.535.140",
+      "1541 465.535.118"
+    ]
+  },
+  "1549 190.000.000": {
+    "label": "Massaufnahme Trennwände Duka, für 1 -3 Trennwände pro Objekt, Nettobetrag",
+    "description": null,
+    "parentCount": 110,
+    "parentExamples": [
+      "1541 457.597.118",
+      "1541 521.535.140",
+      "1541 465.535.118"
+    ]
+  },
+  "1549 191.000.000": {
+    "label": "Anfahrtspauschale Duka, für 1 - 3 Trennwände, pro Objekt, Nettobetrag",
+    "description": null,
+    "parentCount": 110,
+    "parentExamples": [
+      "1541 457.597.118",
+      "1541 521.535.140",
+      "1541 465.535.118"
+    ]
+  },
+  "1519 170.000.000": {
+    "label": "Montagepauschale Alterna costa, Türe in Nische 2-teilig, Schiebetüre 2tlg.",
+    "description": null,
+    "parentCount": 28,
+    "parentExamples": [
+      "1541 538.591.118",
+      "1541 415.535.118",
+      "1541 412.535.140"
+    ]
+  },
+  "1511 338.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6 Pivot Drehtüre in Nische 1-teilig",
+    "description": null,
+    "parentCount": 5,
+    "parentExamples": [
+      "1541 475.591.118",
+      "1511 118.591.118",
+      "1511 117.591.118"
+    ]
+  },
+  "1519 152.000.000": {
+    "label": "Anfahrtspauschale Ronal, Nettobetrag",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1541 797.595.120",
+      "1541 792.595.120",
+      "1541 799.595.120"
+    ]
+  },
+  "1519 150.000.000": {
+    "label": "Massaufnahme Trennwände Ronal, für 1- 3 Trennwände pro Objekt, Nettobetrag",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1541 797.595.120",
+      "1541 792.595.120",
+      "1541 799.595.120"
+    ]
+  },
+  "1519 151.000.000": {
+    "label": "Massaufnahme Zusatz Trennwände Ronal, für jede weitere Duschtrennwand auf",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1541 797.595.120",
+      "1541 792.595.120",
+      "1541 799.595.120"
+    ]
+  },
+  "1519 155.000.000": {
+    "label": "Montagepauschale Ronal, Eckeinstieg, Nettobetrag",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1541 797.595.120",
+      "1541 799.595.120",
+      "1541 796.595.120"
+    ]
+  },
+  "1519 153.000.000": {
+    "label": "Montagepauschale Ronal, Gleittüre in Nische, bis 100 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 3,
+    "parentExamples": [
+      "1541 792.595.120",
+      "1541 791.595.120",
+      "1541 793.595.120"
+    ]
+  },
+  "1519 154.000.000": {
+    "label": "Montagepauschale Ronal, Gleittüre mit Seitenwand, Nettobetrag",
+    "description": null,
+    "parentCount": 3,
+    "parentExamples": [
+      "1541 792.595.120",
+      "1541 791.595.120",
+      "1541 793.595.120"
+    ]
+  },
+  "1519 999.000.000": {
+    "label": "Demontage und Entsorgung Duscholux für 1 bestehende Trennwand Nettobetrag",
+    "description": null,
+    "parentCount": 1,
+    "parentExamples": [
+      "1549 178.000.000"
+    ]
+  },
+  "1519 156.000.000": {
+    "label": "Demontage und Entsorgung Ronal, für 1 bestehende Trennwand, Nettobetrag",
+    "description": null,
+    "parentCount": 1,
+    "parentExamples": [
+      "1541 817.000.000"
+    ]
+  },
+  "1519 895.000.000": {
+    "label": "Montagepauschale Duscholux, bis Breite 125 cm, und Höhe bis 210 cm, für",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1515 091.501.119",
+      "1515 094.501.119",
+      "1515 092.501.119"
+    ]
+  },
+  "1519 896.000.000": {
+    "label": "Montagepauschale Duscholux, ab Breite 125,1 cm, und Höhe ab 210,1 cm, für",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1515 091.501.119",
+      "1515 094.501.119",
+      "1515 092.501.119"
+    ]
+  },
+  "1519 881.000.000": {
+    "label": "Montagepauschale Duscholux, bis 125 cm, für freistehende Seitenwand Duscholux",
+    "description": null,
+    "parentCount": 16,
+    "parentExamples": [
+      "1514 483.591.119",
+      "1514 418.000.119",
+      "1514 482.591.119"
+    ]
+  },
+  "1519 882.000.000": {
+    "label": "Montagepauschale Duscholux, ab 125,1 cm, für freistehende Seitenwand",
+    "description": null,
+    "parentCount": 16,
+    "parentExamples": [
+      "1514 483.591.119",
+      "1514 418.000.119",
+      "1514 482.591.119"
+    ]
+  },
+  "1519 862.000.000": {
+    "label": "Montagepauschale Duscholux, bis Breite 125 cm und Höhe 210 cm, freistehende",
+    "description": null,
+    "parentCount": 23,
+    "parentExamples": [
+      "1514 009.536.119",
+      "1514 001.536.119",
+      "1514 006.535.119"
+    ]
+  },
+  "1519 863.000.000": {
+    "label": "Montagepauschale Duscholux, ab Breite 125,1 cm und Höhe 210,1 cm,",
+    "description": null,
+    "parentCount": 18,
+    "parentExamples": [
+      "1514 001.536.119",
+      "1514 006.535.119",
+      "1514 012.536.119"
+    ]
+  },
+  "1519 853.000.000": {
+    "label": "Montagepauschale Duscholux, bis Breite 120 cm, für Optima 6 Walk- in bis Breite 120 cm, Nettobetrag",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1512 874.591.118",
+      "1512 876.597.118",
+      "1512 877.535.118"
+    ]
+  },
+  "1519 897.000.000": {
+    "label": "Montagepauschale Duscholux, ab Breite 120 cm, für Optima 6",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1512 876.597.118",
+      "1512 877.535.118",
+      "1512 878.535.119"
+    ]
+  },
+  "1519 873.000.000": {
+    "label": "Montagepauschale Duscholux, Bella Vita 3, Eckeinstieg (Gleittüren),",
+    "description": null,
+    "parentCount": 19,
+    "parentExamples": [
+      "1513 202.597.119",
+      "1513 200.597.119",
+      "1513 142.591.119"
+    ]
+  },
+  "1511 111.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 400, Gleittüre mit Seitenwand",
+    "description": null,
+    "parentCount": 56,
+    "parentExamples": [
+      "1372 264.591.125",
+      "1372 273.591.118",
+      "1372 269.591.118"
+    ]
+  },
+  "1511 110.000.000": {
+    "label": "Montagepauschale Duscholux für Optima 400 Eckeinstieg",
+    "description": null,
+    "parentCount": 34,
+    "parentExamples": [
+      "1372 250.591.125",
+      "1372 251.591.118",
+      "1372 260.591.125"
+    ]
+  },
+  "1519 880.000.000": {
+    "label": "Montagepauschale Duscholux für Optima 6 Plus Eckeinstieg",
+    "description": null,
+    "parentCount": 13,
+    "parentExamples": [
+      "1511 302.591.125",
+      "1511 300.591.125",
+      "1511 297.591.118"
+    ]
+  },
+  "1511 339.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6 Pivot Drehtüre mit Seitenwand",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1511 138.591.119",
+      "1511 137.591.119",
+      "1511 139.591.118"
+    ]
+  },
+  "1519 834.000.000": {
+    "label": "Montagepauschale Duscholux für Eckeinstieg, 2-teilig Viva Nettobetrag",
+    "description": null,
+    "parentCount": 5,
+    "parentExamples": [
+      "1515 122.591.119",
+      "1515 123.597.119",
+      "1515 121.597.119"
+    ]
+  },
+  "1519 866.000.000": {
+    "label": "Montagepauschale Duscholux, Bella Vita 3, Pendeltür in Nische, Nettobetrag",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1511 149.597.119",
+      "1511 146.597.119",
+      "1511 147.591.119"
+    ]
+  },
+  "1519 869.000.000": {
+    "label": "Montagepauschale Duscholux, Pendeltüre + Seitenwand, Bella Vita 3, Drehfalttür",
+    "description": null,
+    "parentCount": 31,
+    "parentExamples": [
+      "1513 167.591.119",
+      "1513 268.591.119",
+      "1513 168.597.119"
+    ]
+  },
+  "1519 871.000.000": {
+    "label": "Montagepauschale Duscholux, Bella Vita 3, Gleittür 2-teilig in Nische,",
+    "description": null,
+    "parentCount": 35,
+    "parentExamples": [
+      "1513 106.597.119",
+      "1513 129.597.119",
+      "1513 101.597.119"
+    ]
+  },
+  "1519 870.000.000": {
+    "label": "Montagepauschale Duscholux, Bella Vita 3, Eckeinstieg (Drehfalttüren),",
+    "description": null,
+    "parentCount": 28,
+    "parentExamples": [
+      "1513 177.591.119",
+      "1513 182.597.119",
+      "1513 277.591.119"
+    ]
+  },
+  "1519 879.000.000": {
+    "label": "Montagepauschale Duscholux, Bella Vita 3, Eckeinstieg (Pendeltüren),",
+    "description": null,
+    "parentCount": 13,
+    "parentExamples": [
+      "1511 175.591.119",
+      "1511 177.591.119",
+      "1511 176.591.119"
+    ]
+  },
+  "1519 868.000.000": {
+    "label": "Montagepauschale Duscholux, Bella Vita 3, Drehfalttür 2-teilig in Nische,",
+    "description": null,
+    "parentCount": 17,
+    "parentExamples": [
+      "1513 155.597.119",
+      "1513 156.597.119",
+      "1513 151.597.119"
+    ]
+  },
+  "1519 872.000.000": {
+    "label": "Montagepauschale Duscholux, Bella Vita 3, Gleittür 2-teilig mit Seitenwand,",
+    "description": null,
+    "parentCount": 23,
+    "parentExamples": [
+      "1513 208.591.119",
+      "1513 211.597.119",
+      "1513 203.591.119"
+    ]
+  },
+  "1519 877.000.000": {
+    "label": "Montagepauschale Duscholux, Bella Vita 3, Pendeltür mit Festteil, in Nische,",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1511 158.597.119",
+      "1511 159.591.119",
+      "1511 161.591.119"
+    ]
+  },
+  "1519 875.000.000": {
+    "label": "Montagepauschale Duscholux, Bella Vita 3, Gleittür 4-teilig in Nische,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1513 308.597.119",
+      "1513 307.597.119",
+      "1513 121.591.119"
+    ]
+  },
+  "1519 878.000.000": {
+    "label": "Montagepauschale Duscholux, Pendeltüre + Seitenwand, Bella Vita 3, Pendeltür",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1511 167.591.119",
+      "1511 166.591.119",
+      "1511 170.597.119"
+    ]
+  },
+  "1519 818.000.000": {
+    "label": "Montagepauschale Duscholux, für Bella Vita 3 Round, Eckeinstieg Viertelkreis, Nettobetrag",
+    "description": null,
+    "parentCount": 13,
+    "parentExamples": [
+      "1513 107.591.119",
+      "1512 561.597.119",
+      "1512 564.597.119"
+    ]
+  },
+  "1519 867.000.000": {
+    "label": "Montagepauschale Duscholux, Pendeltüre + Seitenwand, Bella Vita 3, Pendeltür",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1511 156.591.119",
+      "1511 154.597.119",
+      "1511 151.597.119"
+    ]
+  },
+  "1519 850.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6 Pendeltür mit Seitenwand, Nettobetrag",
+    "description": null,
+    "parentCount": 24,
+    "parentExamples": [
+      "1512 816.591.118",
+      "1512 854.591.118",
+      "1512 852.591.118"
+    ]
+  },
+  "1511 109.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 400, Gleittüre in Nische",
+    "description": null,
+    "parentCount": 18,
+    "parentExamples": [
+      "1372 239.591.118",
+      "1372 236.591.118",
+      "1372 237.591.118"
+    ]
+  },
+  "1519 855.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6 Pendeltür, Nettobetrag",
+    "description": null,
+    "parentCount": 24,
+    "parentExamples": [
+      "1512 805.591.118",
+      "1512 804.591.118",
+      "1512 807.591.118"
+    ]
+  },
+  "1519 851.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6 Drehfalttür, Eckeinstieg, Nettobetrag",
+    "description": null,
+    "parentCount": 10,
+    "parentExamples": [
+      "1512 910.591.118",
+      "1512 908.591.118",
+      "1512 905.591.118"
+    ]
+  },
+  "1511 794.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6, Pendeltüre Pivot mit Seitenwand,",
+    "description": null,
+    "parentCount": 5,
+    "parentExamples": [
+      "1522 183.591.118",
+      "1522 182.591.118",
+      "1522 180.591.118"
+    ]
+  },
+  "1511 793.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6, Pendeltüre Pivot in Nische,",
+    "description": null,
+    "parentCount": 5,
+    "parentExamples": [
+      "1522 174.591.118",
+      "1522 176.591.118",
+      "1522 178.591.118"
+    ]
+  },
+  "1519 854.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6 Pendeltür, Eckeinstieg, Nettobetrag",
+    "description": null,
+    "parentCount": 12,
+    "parentExamples": [
+      "1512 868.591.118",
+      "1512 872.591.118",
+      "1512 861.591.118"
+    ]
+  },
+  "1519 864.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6 Plus, Gleittüre in Nische,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1511 289.591.118",
+      "1511 293.591.118",
+      "1511 295.591.118"
+    ]
+  },
+  "1519 801.000.000": {
+    "label": "Montagepauschale Duscholux, in Nische, für Optima 300, Türe in Nische,",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1511 029.591.118",
+      "1511 028.591.118",
+      "1511 026.591.118"
+    ]
+  },
+  "1519 802.000.000": {
+    "label": "Montagepauschale Duscholux, mit Seitenwand, für Optima 300, Türe mit",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1511 029.591.118",
+      "1511 028.591.118",
+      "1511 026.591.118"
+    ]
+  },
+  "1519 858.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6 Drehfalttür mit Seitenteil,",
+    "description": null,
+    "parentCount": 10,
+    "parentExamples": [
+      "1512 897.591.118",
+      "1512 895.591.118",
+      "1512 891.591.118"
+    ]
+  },
+  "1519 865.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6 Plus, Gleittüre mit Seitenwand,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1511 310.591.118",
+      "1511 304.591.118",
+      "1511 309.591.118"
+    ]
+  },
+  "1519 804.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 300, Eckeinstieg- Viertelkreis, Nettobetrag",
+    "description": null,
+    "parentCount": 7,
+    "parentExamples": [
+      "1512 812.591.118",
+      "1512 137.591.118",
+      "1512 136.591.118"
+    ]
+  },
+  "1519 856.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6 Pendeltür mit Seitenteil in Front,",
+    "description": null,
+    "parentCount": 10,
+    "parentExamples": [
+      "1512 828.591.118",
+      "1512 825.591.118",
+      "1512 823.591.118"
+    ]
+  },
+  "1519 852.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6 Drehfalttür, Nettobetrag",
+    "description": null,
+    "parentCount": 10,
+    "parentExamples": [
+      "1512 882.591.118",
+      "1512 881.591.118",
+      "1512 886.591.118"
+    ]
+  },
+  "1519 828.000.000": {
+    "label": "Montagepauschale Duscholux, für Viva, Gleittüre raumhoch in Nische, 2-teilig,",
+    "description": null,
+    "parentCount": 15,
+    "parentExamples": [
+      "1515 111.591.119",
+      "1515 113.591.119",
+      "1515 116.591.119"
+    ]
+  },
+  "1519 829.000.000": {
+    "label": "Montagepauschale Duscholux, für Viva, Gleittüre mit Seitenwand auf",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1515 136.591.119",
+      "1515 134.591.119",
+      "1515 133.591.119"
+    ]
+  },
+  "1519 820.000.000": {
+    "label": "Montagepauschale Duscholux, Gleittüre in Nische 2-teilig, Viva, Nettobetrag",
+    "description": null,
+    "parentCount": 16,
+    "parentExamples": [
+      "1515 104.591.119",
+      "1515 102.591.119",
+      "1515 103.591.119"
+    ]
+  },
+  "1519 835.000.000": {
+    "label": "Montagepauschale Duscholux, bis Höhe 210 cm, für Viva, Pendeltüre in Nische,",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1515 011.501.119",
+      "1515 012.501.119"
+    ]
+  },
+  "1519 836.000.000": {
+    "label": "Montagepauschale Duscholux, ab Höhe 210,1 cm, für Viva, Pendeltüre in",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1515 011.501.119",
+      "1515 012.501.119"
+    ]
+  },
+  "1519 883.000.000": {
+    "label": "Montagepauschale Duscholux, bis Höhe 210 cm, für Pendeltüre in Nische,",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1515 001.501.119",
+      "1515 002.501.119"
+    ]
+  },
+  "1519 884.000.000": {
+    "label": "Montagepauschale Duscholux, ab Höhe 210,1 cm, für Pendeltüre in Nische,",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1515 001.501.119",
+      "1515 002.501.119"
+    ]
+  },
+  "1519 887.000.000": {
+    "label": "Montagepauschale Duscholux, bis Breite 125 cm, und Höhe 210 cm, für Pendeltüre",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1515 053.501.119",
+      "1515 051.501.119",
+      "1515 054.501.119"
+    ]
+  },
+  "1519 888.000.000": {
+    "label": "Montagepauschale Duscholux, ab Breite 125,1 cm, und Höhe 210,1 cm, für",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1515 053.501.119",
+      "1515 051.501.119",
+      "1515 054.501.119"
+    ]
+  },
+  "1519 889.000.000": {
+    "label": "Montagepauschale Duscholux, bis Breite 125 cm, und Höhe 210 cm, für Pendeltüre",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1515 072.501.119",
+      "1515 074.501.119",
+      "1515 073.501.119"
+    ]
+  },
+  "1519 890.000.000": {
+    "label": "Montagepauschale Duscholux, ab Breite 125,1 cm, und Höhe 210,1 cm, für",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1515 072.501.119",
+      "1515 074.501.119",
+      "1515 073.501.119"
+    ]
+  },
+  "1519 885.000.000": {
+    "label": "Montagepauschale Duscholux, bis Breite 125 cm, und Höhe 210 cm, für Pendeltüre",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1515 061.501.119",
+      "1515 063.501.119",
+      "1515 064.501.119"
+    ]
+  },
+  "1519 886.000.000": {
+    "label": "Montagepauschale Duscholux, ab Breite 125,1 cm, und Höhe 210,1 cm, für",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1515 061.501.119",
+      "1515 063.501.119",
+      "1515 064.501.119"
+    ]
+  },
+  "1519 839.000.000": {
+    "label": "Montagepauschale Duscholux, bis Höhe 210 cm, für Viva, Pendeltüre in Nische",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1515 023.501.119",
+      "1515 022.501.119",
+      "1515 021.501.119"
+    ]
+  },
+  "1519 840.000.000": {
+    "label": "Montagepauschale Duscholux, ab Höhe 210,1 cm, für Viva, für Pendeltüre in",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1515 023.501.119",
+      "1515 022.501.119",
+      "1515 021.501.119"
+    ]
+  },
+  "1519 837.000.000": {
+    "label": "Montagepauschale Duscholux, bis Höhe 210 cm, für Viva, Pendeltüre in Nische",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1515 032.501.119",
+      "1515 034.501.119",
+      "1515 031.501.119"
+    ]
+  },
+  "1519 838.000.000": {
+    "label": "Montagepauschale Duscholux, ab Höhe 210,1 cm, für Viva, Pendeltüre in",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1515 032.501.119",
+      "1515 034.501.119",
+      "1515 031.501.119"
+    ]
+  },
+  "1519 891.000.000": {
+    "label": "Montagepauschale Duscholux, bis Höhe 210 cm, für Pendeltüre mit Seitenteil",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1515 081.501.119",
+      "1515 083.501.119",
+      "1515 084.501.119"
+    ]
+  },
+  "1519 892.000.000": {
+    "label": "Montagepauschale Duscholux, ab Höhe 210,1 cm, für Pendeltüre mit Seitenteil",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1515 081.501.119",
+      "1515 083.501.119",
+      "1515 084.501.119"
+    ]
+  },
+  "1519 893.000.000": {
+    "label": "Montagepauschale Duscholux für für Eckeinstieg mit Festteil bis Breite 125 cm und Höhe bis 210 cm Nettobetrag",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1515 042.501.119",
+      "1515 041.501.119"
+    ]
+  },
+  "1519 894.000.000": {
+    "label": "Montagepauschale Duscholux für für Eckeinstieg mit Festteil ab Breite 125,1 cm und Höhe ab 210,1 cm Nettobetrag",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1515 042.501.119",
+      "1515 041.501.119"
+    ]
+  },
+  "1521 457.000.000": {
+    "label": "Montagepauschale Koralle, Eckeinstieg, für S808, Eckeinstieg, Viertelkreis,",
+    "description": null,
+    "parentCount": 19,
+    "parentExamples": [
+      "1173 938.490.118",
+      "1173 945.490.118",
+      "1173 946.490.118"
+    ]
+  },
+  "1529 990.000.000": {
+    "label": "Massaufnahme Trennwände Koralle, für 1 - 3 Trennwände pro Objekt, Nettobetrag",
+    "description": null,
+    "parentCount": 555,
+    "parentExamples": [
+      "1173 938.490.118",
+      "1173 941.490.118",
+      "1173 942.490.118"
+    ]
+  },
+  "1529 991.000.000": {
+    "label": "Anfahrtspauschale Koralle, Nettobetrag",
+    "description": null,
+    "parentCount": 555,
+    "parentExamples": [
+      "1173 938.490.118",
+      "1173 941.490.118",
+      "1173 942.490.118"
+    ]
+  },
+  "1521 458.000.000": {
+    "label": "Montagepauschale Koralle, in Nische, für S505, S808, Türe in Nische,",
+    "description": null,
+    "parentCount": 13,
+    "parentExamples": [
+      "1173 941.490.118",
+      "1173 942.490.118",
+      "1173 945.490.118"
+    ]
+  },
+  "1521 459.000.000": {
+    "label": "Montagepauschale Koralle, bis 100 cm, für S505 Türe mit Seitenwand bis 100",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1173 941.490.118",
+      "1173 942.490.118",
+      "1173 943.490.118"
+    ]
+  },
+  "1521 460.000.000": {
+    "label": "Montagepauschale Koralle, ab 100,1 cm, für S505 Türe mit Seitenwand ab 100,1",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1173 941.490.118",
+      "1173 942.490.118",
+      "1173 943.490.118"
+    ]
+  },
+  "1521 464.000.000": {
+    "label": "Montagepauschale Koralle, für S808,",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1173 943.490.118",
+      "1173 944.490.118",
+      "1524 431.490.118"
+    ]
+  },
+  "1521 463.000.000": {
+    "label": "Montagepauschale Koralle, ab 100,1 cm, für S808, Pendeltüre mit Festelement",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1173 945.490.118",
+      "1173 946.490.118",
+      "1173 954.490.118"
+    ]
+  },
+  "1521 499.000.000": {
+    "label": "Montagepauschale Koralle, in Nische, für S808, Pendeltüre 2-teilig,",
+    "description": null,
+    "parentCount": 3,
+    "parentExamples": [
+      "1173 959.490.118",
+      "1173 960.490.118",
+      "1173 961.490.118"
+    ]
+  },
+  "1521 478.000.000": {
+    "label": "Montagepauschale Koralle, bis 120 cm, für S808, freistehende Seitenwand bis",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1173 962.490.118",
+      "1173 963.490.118",
+      "1524 424.490.118"
+    ]
+  },
+  "1521 480.000.000": {
+    "label": "Montagepauschale Koralle, ab 160,1 cm, für S500, S808, freistehende Seitenwand",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1173 964.490.118",
+      "1173 965.490.118"
+    ]
+  },
+  "1521 486.000.000": {
+    "label": "Montagepauschale Koralle, bis 120 cm, für S808, freistehende Seitenwand mit",
+    "description": null,
+    "parentCount": 12,
+    "parentExamples": [
+      "1173 966.490.118",
+      "1173 967.490.118",
+      "1173 972.490.118"
+    ]
+  },
+  "1521 487.000.000": {
+    "label": "Montagepauschale Koralle, ab 120,1 cm, für S808, freistehende Seitenwand mit",
+    "description": null,
+    "parentCount": 12,
+    "parentExamples": [
+      "1173 966.490.118",
+      "1173 967.490.118",
+      "1173 972.490.118"
+    ]
+  },
+  "1521 488.000.000": {
+    "label": "Montagepauschale Koralle, ab 160,1 cm, für S808, freistehende Seitenwand mit",
+    "description": null,
+    "parentCount": 12,
+    "parentExamples": [
+      "1173 966.490.118",
+      "1173 967.490.118",
+      "1173 972.490.118"
+    ]
+  },
+  "1521 080.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand / Eckeinstieg, für S400",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1372 666.599.118",
+      "1372 668.599.118",
+      "1565 175.535.118"
+    ]
+  },
+  "1521 887.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand / Eckeinstieg, für S400",
+    "description": null,
+    "parentCount": 28,
+    "parentExamples": [
+      "1372 670.599.118",
+      "1372 672.599.118",
+      "1372 674.599.118"
+    ]
+  },
+  "1521 889.000.000": {
+    "label": "Montagepauschale Koralle, in Nische,",
+    "description": null,
+    "parentCount": 10,
+    "parentExamples": [
+      "1372 690.599.118",
+      "1372 693.599.118",
+      "1565 215.535.118"
+    ]
+  },
+  "1521 074.000.000": {
+    "label": "Montagepauschale Koralle, mit",
+    "description": null,
+    "parentCount": 10,
+    "parentExamples": [
+      "1372 690.599.118",
+      "1372 693.599.118",
+      "1565 215.535.118"
+    ]
+  },
+  "1521 908.000.000": {
+    "label": "Montagepauschale Koralle, in Nische,",
+    "description": null,
+    "parentCount": 16,
+    "parentExamples": [
+      "1372 694.599.118",
+      "1372 696.599.118",
+      "1372 698.599.118"
+    ]
+  },
+  "1521 907.000.000": {
+    "label": "Montagepauschale Koralle, für S600",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1442 215.501.118",
+      "1442 216.501.118",
+      "1442 217.501.118"
+    ]
+  },
+  "1521 976.000.000": {
+    "label": "Montagepauschale Koralle, in Nische,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1442 224.501.118",
+      "1442 225.501.118",
+      "1442 226.501.118"
+    ]
+  },
+  "1521 977.000.000": {
+    "label": "Montagepauschale Koralle, bis 100 cm,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1442 224.501.118",
+      "1442 225.501.118",
+      "1442 226.501.118"
+    ]
+  },
+  "1521 978.000.000": {
+    "label": "Montagepauschale Koralle, ab 100,1 cm,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1442 224.501.118",
+      "1442 225.501.118",
+      "1442 226.501.118"
+    ]
+  },
+  "1521 979.000.000": {
+    "label": "Montagepauschale Koralle, bis 120 cm,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1442 242.501.118",
+      "1442 243.501.118",
+      "1442 244.501.118"
+    ]
+  },
+  "1521 980.000.000": {
+    "label": "Montagepauschale Koralle, ab 120,1 cm,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1442 242.501.118",
+      "1442 243.501.118",
+      "1442 244.501.118"
+    ]
+  },
+  "1521 981.000.000": {
+    "label": "Montagepauschale Koralle, ab 160,1 cm,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1442 242.501.118",
+      "1442 243.501.118",
+      "1442 244.501.118"
+    ]
+  },
+  "1521 890.000.000": {
+    "label": "Montagepauschale Koralle, mit",
+    "description": null,
+    "parentCount": 21,
+    "parentExamples": [
+      "1521 005.592.118",
+      "1521 006.592.118",
+      "1521 007.592.118"
+    ]
+  },
+  "1521 891.000.000": {
+    "label": "Montagepauschale Koralle, in Nische bis",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1521 005.592.118",
+      "1521 006.592.118",
+      "1521 007.592.118"
+    ]
+  },
+  "1522 191.000.000": {
+    "label": "Montagepauschale Koralle, für Twiggy Top, Viertelkreis, Nettobetrag",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1522 151.599.118",
+      "1522 152.599.118",
+      "1522 161.599.118"
+    ]
+  },
+  "1521 885.000.000": {
+    "label": "Montagepauschale Koralle, für S400 Plus, Eckeinstieg Viertelkreis",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1522 324.592.118",
+      "1522 325.592.118",
+      "1522 326.592.118"
+    ]
+  },
+  "1521 471.000.000": {
+    "label": "Montagepauschale Koralle, für S800, Eckeinstieg, Viertelkreis, Nettobetrag",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1522 383.592.118",
+      "1522 384.592.118",
+      "1522 386.592.118"
+    ]
+  },
+  "1521 481.000.000": {
+    "label": "Montagepauschale Koralle, für S600, Eckeinstieg Viertelkreis, Nettobetrag",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1522 631.597.118",
+      "1522 632.597.130",
+      "1522 633.597.118"
+    ]
+  },
+  "1522 893.000.000": {
+    "label": "Montagepauschale Koralle, in Nische, für S500 Plus, S505 Plus, S600 Plus,",
+    "description": null,
+    "parentCount": 30,
+    "parentExamples": [
+      "1522 801.100.118",
+      "1522 802.100.118",
+      "1522 803.100.118"
+    ]
+  },
+  "1521 897.000.000": {
+    "label": "Montagepauschale Koralle, für S500 Plus, S505 Plus, S600 Plus, S606 Plus,",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1522 821.100.118",
+      "1522 822.100.118",
+      "1522 823.100.118"
+    ]
+  },
+  "1522 896.000.000": {
+    "label": "Montagepauschale Koralle, für S505 Plus, S606 Plus, Gleittüre 1-teilig in",
+    "description": null,
+    "parentCount": 7,
+    "parentExamples": [
+      "1522 825.100.118",
+      "1522 826.100.118",
+      "1522 827.100.118"
+    ]
+  },
+  "1521 894.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand / Eckeinstieg, für S600",
+    "description": null,
+    "parentCount": 17,
+    "parentExamples": [
+      "1522 831.100.118",
+      "1522 832.100.118",
+      "1522 833.100.118"
+    ]
+  },
+  "1521 895.000.000": {
+    "label": "Montagepauschale Koralle, in Nische, für S606 Plus, Gleittüre 4-teilig in",
+    "description": null,
+    "parentCount": 1,
+    "parentExamples": [
+      "1522 838.100.118"
+    ]
+  },
+  "1521 485.000.000": {
+    "label": "Montagepauschale Koralle, für S606 Plus, Gleittüre 4-teilig mit",
+    "description": null,
+    "parentCount": 1,
+    "parentExamples": [
+      "1522 838.100.118"
+    ]
+  },
+  "1522 894.000.000": {
+    "label": "Montagepauschale Koralle, in Nische, für S606 Plus - Raumhoch, Gleittüre,",
+    "description": null,
+    "parentCount": 13,
+    "parentExamples": [
+      "1522 861.100.118",
+      "1522 862.100.118",
+      "1522 863.100.118"
+    ]
+  },
+  "1522 895.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand, für S606 Plus - Raumhoch,",
+    "description": null,
+    "parentCount": 3,
+    "parentExamples": [
+      "1522 871.100.118",
+      "1522 873.100.118",
+      "1522 875.100.118"
+    ]
+  },
+  "1521 892.000.000": {
+    "label": "Montagepauschale Koralle, in Nische ab 100,1 cm, für S400 Plus, S404 Plus,",
+    "description": null,
+    "parentCount": 18,
+    "parentExamples": [
+      "1524 211.535.118",
+      "1524 212.535.118",
+      "1524 213.535.118"
+    ]
+  },
+  "1521 472.000.000": {
+    "label": "Montagepauschale Koralle, für S800 Pendeltüre in Nische, Nettobetrag",
+    "description": null,
+    "parentCount": 3,
+    "parentExamples": [
+      "1524 303.592.118",
+      "1524 307.592.118",
+      "1524 308.592.118"
+    ]
+  },
+  "1521 473.000.000": {
+    "label": "Montagepauschale Koralle, für S800, Pendeltüre mit Seitenwand bis 100 cm,",
+    "description": null,
+    "parentCount": 3,
+    "parentExamples": [
+      "1524 303.592.118",
+      "1524 307.592.118",
+      "1524 308.592.118"
+    ]
+  },
+  "1521 474.000.000": {
+    "label": "Montagepauschale Koralle, für S800, Pendeltüre mit Seitenwand ab 100,1 cm,",
+    "description": null,
+    "parentCount": 3,
+    "parentExamples": [
+      "1524 303.592.118",
+      "1524 307.592.118",
+      "1524 308.592.118"
+    ]
+  },
+  "1521 079.000.000": {
+    "label": "Montagepauschale Koralle, für S400 Plus, S404 Plus, Eckeinstieg",
+    "description": null,
+    "parentCount": 34,
+    "parentExamples": [
+      "1524 325.592.118",
+      "1524 334.535.118",
+      "1524 335.535.118"
+    ]
+  },
+  "1524 891.000.000": {
+    "label": "Montagepauschale Koralle, bis 120 cm, für X77 Serie, freistehende Seitenwand",
+    "description": null,
+    "parentCount": 11,
+    "parentExamples": [
+      "1524 713.000.118",
+      "1524 714.524.118",
+      "1524 715.524.118"
+    ]
+  },
+  "1524 892.000.000": {
+    "label": "Montagepauschale Koralle, ab 120,1 cm, für X77 Serie, freistehende Seitenwand",
+    "description": null,
+    "parentCount": 10,
+    "parentExamples": [
+      "1524 713.000.118",
+      "1524 714.524.118",
+      "1524 715.524.118"
+    ]
+  },
+  "1524 888.000.000": {
+    "label": "Montagepauschale Koralle, bis 120 cm,",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1524 855.000.118",
+      "1524 861.000.118",
+      "1524 862.000.118"
+    ]
+  },
+  "1524 889.000.000": {
+    "label": "Montagepauschale Koralle, ab 120,1 cm,",
+    "description": null,
+    "parentCount": 16,
+    "parentExamples": [
+      "1524 855.000.118",
+      "1524 861.000.118",
+      "1524 865.000.118"
+    ]
+  },
+  "1524 890.000.000": {
+    "label": "Montagepauschale Koralle, für X88 Free GTFS, freistehende Seitenwand,",
+    "description": null,
+    "parentCount": 10,
+    "parentExamples": [
+      "1524 913.000.118",
+      "1524 914.000.118",
+      "1524 915.000.118"
+    ]
+  },
+  "1521 614.000.000": {
+    "label": "Montagepauschale Koralle, für S606 Plus, Eckeinstieg mit Falttüren",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1528 237.501.118",
+      "1528 238.501.118"
+    ]
+  },
+  "1521 615.000.000": {
+    "label": "Montagepauschale Koralle, in Nische, für S606 Plus, Falttüre 2-teilig in",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1528 239.501.118",
+      "1528 240.501.118",
+      "1528 263.501.118"
+    ]
+  },
+  "1521 616.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand bis 100 cm, für S606 Plus,",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1528 239.501.118",
+      "1528 240.501.118"
+    ]
+  },
+  "1521 617.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand ab 100,1 cm, für S606 Plus,",
+    "description": null,
+    "parentCount": 3,
+    "parentExamples": [
+      "1528 239.501.118",
+      "1528 263.501.118",
+      "1528 264.501.118"
+    ]
+  },
+  "1521 964.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand bis 100 cm, für S606 Plus,",
+    "description": null,
+    "parentCount": 41,
+    "parentExamples": [
+      "1528 301.501.118",
+      "1528 302.501.118",
+      "1528 303.501.118"
+    ]
+  },
+  "1521 967.000.000": {
+    "label": "Montagepauschale Koralle, in Nische, für S606 Plus, Pendeltüre in Nische,",
+    "description": null,
+    "parentCount": 24,
+    "parentExamples": [
+      "1528 311.501.118",
+      "1528 312.501.118",
+      "1528 313.501.118"
+    ]
+  },
+  "1521 965.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand ab 100,1 cm, für S606 Plus,",
+    "description": null,
+    "parentCount": 23,
+    "parentExamples": [
+      "1528 311.501.118",
+      "1528 312.501.118",
+      "1528 313.501.118"
+    ]
+  },
+  "1521 968.000.000": {
+    "label": "Montagepauschale Koralle, in Nische,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1528 315.501.118",
+      "1528 316.501.118",
+      "1528 317.501.118"
+    ]
+  },
+  "1521 969.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand bis 100 cm, für S606 Plus,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1528 331.501.118",
+      "1528 332.501.118",
+      "1528 333.501.118"
+    ]
+  },
+  "1521 970.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand ab 100,1 cm, für S606 Plus,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1528 331.501.118",
+      "1528 332.501.118",
+      "1528 333.501.118"
+    ]
+  },
+  "1521 896.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand bis 100 cm, für S606 Plus,",
+    "description": null,
+    "parentCount": 12,
+    "parentExamples": [
+      "1528 342.501.118",
+      "1528 343.501.118",
+      "1528 344.501.118"
+    ]
+  },
+  "1521 971.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand ab 100,1 cm, für S606 Plus,",
+    "description": null,
+    "parentCount": 12,
+    "parentExamples": [
+      "1528 342.501.118",
+      "1528 343.501.118",
+      "1528 344.501.118"
+    ]
+  },
+  "1521 484.000.000": {
+    "label": "Montagepauschale Koralle, bis 120 cm, für S606 Plus, freistehende Seitenwand",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1528 365.501.118",
+      "1528 379.501.118",
+      "1528 380.501.118"
+    ]
+  },
+  "1521 974.000.000": {
+    "label": "Montagepauschale Koralle, ab 120,1 cm, für S606 Plus, freistehende Seitenwand",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1528 365.501.118",
+      "1528 379.501.118",
+      "1528 380.501.118"
+    ]
+  },
+  "1521 975.000.000": {
+    "label": "Montagepauschale Koralle, ab 160,1 cm, für S606 Plus, freistehende Seitenwand",
+    "description": null,
+    "parentCount": 9,
+    "parentExamples": [
+      "1528 365.501.118",
+      "1528 379.501.118",
+      "1528 380.501.118"
+    ]
+  },
+  "1521 972.000.000": {
+    "label": "Montagepauschale Koralle, bis 120 cm, für S606 Plus, freistehende Seitenwand",
+    "description": null,
+    "parentCount": 10,
+    "parentExamples": [
+      "1528 369.501.118",
+      "1528 370.501.118",
+      "1528 371.501.118"
+    ]
+  },
+  "1521 483.000.000": {
+    "label": "Montagepauschale Koralle, ab 120,1 cm, für S606 Plus, freistehende Seitenwand",
+    "description": null,
+    "parentCount": 10,
+    "parentExamples": [
+      "1528 369.501.118",
+      "1528 370.501.118",
+      "1528 371.501.118"
+    ]
+  },
+  "1521 973.000.000": {
+    "label": "Montagepauschale Koralle, ab 160,1 cm, für S606 Plus, freistehende Seitenwand",
+    "description": null,
+    "parentCount": 10,
+    "parentExamples": [
+      "1528 369.501.118",
+      "1528 370.501.118",
+      "1528 371.501.118"
+    ]
+  },
+  "1522 299.000.000": {
+    "label": "Montagepauschale Koralle, bis 120 cm, für S505 Plus, freistehende Seitenwand",
+    "description": null,
+    "parentCount": 5,
+    "parentExamples": [
+      "1541 240.501.118",
+      "1543 252.501.118",
+      "1543 253.501.118"
+    ]
+  },
+  "1522 300.000.000": {
+    "label": "Montagepauschale Koralle, ab 120,1 cm, für S505 Plus, freistehende Seitenwand",
+    "description": null,
+    "parentCount": 5,
+    "parentExamples": [
+      "1541 240.501.118",
+      "1543 252.501.118",
+      "1543 253.501.118"
+    ]
+  },
+  "1522 287.000.000": {
+    "label": "Montagepauschale Koralle, für S505 Plus, Eckeinstieg, Viertelkreis,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1543 194.501.118",
+      "1543 195.501.118",
+      "1543 196.501.118"
+    ]
+  },
+  "1522 288.000.000": {
+    "label": "Montagepauschale Koralle, in Nische, für S505 Plus, Flügeltüre in Nische,",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1543 202.501.118",
+      "1543 203.501.118",
+      "1543 204.501.118"
+    ]
+  },
+  "1522 289.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand bis 100 cm, für S505 Plus,",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1543 202.501.118",
+      "1543 203.501.118",
+      "1543 204.501.118"
+    ]
+  },
+  "1522 290.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand ab 100,1 cm, für S505 Plus,",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1543 202.501.118",
+      "1543 203.501.118",
+      "1543 204.501.118"
+    ]
+  },
+  "1522 291.000.000": {
+    "label": "Montagepauschale Koralle, für S505 Plus, Flügeltüre mit Seitenwand in",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1543 206.501.118",
+      "1543 207.501.118",
+      "1543 208.501.118"
+    ]
+  },
+  "1522 292.000.000": {
+    "label": "Montagepauschale Koralle, in Nische, für S505 Plus, Flügeltüre mit",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1543 214.501.118",
+      "1543 215.501.118",
+      "1543 216.501.118"
+    ]
+  },
+  "1522 293.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand bis 100 cm, für S505 Plus,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1543 214.501.118",
+      "1543 215.501.118",
+      "1543 216.501.118"
+    ]
+  },
+  "1522 294.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand ab 100,1 cm, für S505 Plus,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1543 214.501.118",
+      "1543 215.501.118",
+      "1543 216.501.118"
+    ]
+  },
+  "1522 295.000.000": {
+    "label": "Montagepauschale Koralle, für S505 Plus, Flügeltüre mit Festelement und",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1543 222.501.118",
+      "1543 223.501.118",
+      "1543 224.501.118"
+    ]
+  },
+  "1522 296.000.000": {
+    "label": "Montagepauschale Koralle, bis 120 cm, für S505 Plus, freisehende Seitenwand",
+    "description": null,
+    "parentCount": 10,
+    "parentExamples": [
+      "1543 242.501.118",
+      "1543 243.501.118",
+      "1543 244.501.118"
+    ]
+  },
+  "1522 297.000.000": {
+    "label": "Montagepauschale Koralle, 120,1 - 160 cm, für S505 Plus, freisehende",
+    "description": null,
+    "parentCount": 10,
+    "parentExamples": [
+      "1543 242.501.118",
+      "1543 243.501.118",
+      "1543 244.501.118"
+    ]
+  },
+  "1522 298.000.000": {
+    "label": "Montagepauschale Koralle, ab 160,1 cm, für S505 Plus, freistehende Seitenwand",
+    "description": null,
+    "parentCount": 10,
+    "parentExamples": [
+      "1543 242.501.118",
+      "1543 243.501.118",
+      "1543 244.501.118"
+    ]
+  },
+  "1522 153.000.000": {
+    "label": "Montagepauschale Koralle, für S500 Plus, Eckeinstieg, Viertelkreis,",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1543 256.592.118",
+      "1543 257.592.118",
+      "1543 258.592.118"
+    ]
+  },
+  "1522 154.000.000": {
+    "label": "Montagepauschale Koralle, in Nische, für S500 Plus, Flügeltüre in Nische,",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1543 267.592.118",
+      "1543 268.592.118",
+      "1543 269.592.118"
+    ]
+  },
+  "1522 155.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand bis 100 cm, für S500 Plus,",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1543 267.592.118",
+      "1543 268.592.118",
+      "1543 269.592.118"
+    ]
+  },
+  "1522 156.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand ab 100,1 cm, für S500 Plus,",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1543 267.592.118",
+      "1543 268.592.118",
+      "1543 269.592.118"
+    ]
+  },
+  "1522 157.000.000": {
+    "label": "Montagepauschale Koralle, für S500 Plus, Flügeltüre mit Seitenwand in",
+    "description": null,
+    "parentCount": 7,
+    "parentExamples": [
+      "1543 273.592.118",
+      "1543 274.592.118",
+      "1543 275.592.118"
+    ]
+  },
+  "1522 158.000.000": {
+    "label": "Montagepauschale Koralle, bis 120 cm, für S500 Plus, freistehende Seitenwand",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1543 297.592.118",
+      "1543 298.592.118",
+      "1543 299.592.118"
+    ]
+  },
+  "1522 159.000.000": {
+    "label": "Montagepauschale Koralle, 120,1 - 160 cm, für S500 Plus, freistehende",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1543 297.592.118",
+      "1543 298.592.118",
+      "1543 299.592.118"
+    ]
+  },
+  "1522 160.000.000": {
+    "label": "Montagepauschale Koralle, ab 160,1 cm, für S500 Plus, freistehende Seitenwand",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1543 297.592.118",
+      "1543 298.592.118",
+      "1543 299.592.118"
+    ]
+  },
+  "1521 886.000.000": {
+    "label": "Montagepauschale Koralle, in Nische,",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1565 112.535.118",
+      "1565 113.535.118",
+      "1565 191.535.118"
+    ]
+  },
+  "1521 078.000.000": {
+    "label": "Montagepauschale Koralle, für S400",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1565 112.535.118",
+      "1565 113.535.118",
+      "1565 191.535.118"
+    ]
+  },
+  "1521 008.000.000": {
+    "label": "Montagepauschale Koralle, für S400",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1565 253.535.118",
+      "1565 255.535.118"
+    ]
+  },
+  "1521 884.000.000": {
+    "label": "Montagepauschale Koralle, in Nische,",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1565 257.535.118",
+      "1565 260.535.118",
+      "1565 261.535.118"
+    ]
+  },
+  "1521 883.000.000": {
+    "label": "Montagepauschale Koralle, mit",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1565 257.535.118",
+      "1565 260.535.118",
+      "1565 261.535.118"
+    ]
+  },
+  "1521 098.000.000": {
+    "label": "Montagepauschale Korallle, bis 120 cm,",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1565 285.535.118",
+      "1565 286.535.118",
+      "1565 287.535.118"
+    ]
+  },
+  "1521 099.000.000": {
+    "label": "Montagepauschale Koralle, ab 120,1 cm,",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1565 285.535.118",
+      "1565 286.535.118",
+      "1565 287.535.118"
+    ]
+  },
+  "1521 092.000.000": {
+    "label": "Montagepauschale Koralle, für S400",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1565 291.535.118",
+      "1565 292.535.118",
+      "1565 294.535.118"
+    ]
+  },
+  "1521 880.000.000": {
+    "label": "Montagepauschale Koralle, für Rubin, Flügeltüre auf Badewanne, Avant,",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1528 141.501.118",
+      "1528 142.501.118"
+    ]
+  },
+  "1521 888.000.000": {
+    "label": "Montagepauschale Koralle, für Rubin, Faltwand 2-teilig auf Badewanne,",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1528 145.501.118",
+      "1528 146.501.118"
+    ]
+  },
+  "1521 898.000.000": {
+    "label": "Montagepauschale Koralle, für S505 Plus, S600 Plus, S606 Plus, Gleittüre",
+    "description": null,
+    "parentCount": 14,
+    "parentExamples": [
+      "1528 186.100.118",
+      "1528 187.100.118",
+      "1111 656.535.118"
+    ]
+  },
+  "1521 899.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand, für S505 Plus, S606 Plus,",
+    "description": null,
+    "parentCount": 6,
+    "parentExamples": [
+      "1528 186.100.118",
+      "1528 187.100.118",
+      "1111 661.535.118"
+    ]
+  },
+  "1521 882.000.000": {
+    "label": "Montagepauschale Koralle, in Nische, für S400, Gleittüre 3-teilig auf",
+    "description": null,
+    "parentCount": 1,
+    "parentExamples": [
+      "1528 225.592.118"
+    ]
+  },
+  "1521 881.000.000": {
+    "label": "Montagepauschale Koralle, mit Seitenwand, für S400, Gleittüre",
+    "description": null,
+    "parentCount": 1,
+    "parentExamples": [
+      "1528 225.592.118"
+    ]
+  },
+  "1521 962.000.000": {
+    "label": "Montagepauschale Koralle, für S400 Plus, Pendeltüre auf Badewanne,",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1565 299.535.118",
+      "1565 300.535.118"
+    ]
+  },
+  "1521 901.000.000": {
+    "label": "Montagepauschale Koralle, für S400 Plus, Pendeltüre mit Festelement auf",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1565 301.535.118",
+      "1565 302.535.118"
+    ]
+  },
+  "1521 902.000.000": {
+    "label": "Montagepauschale Koralle, für S400 Plus, Falttrennwand 2-teilig auf",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1565 304.535.118",
+      "1565 305.535.118"
+    ]
+  },
+  "1519 823.000.000": {
+    "label": "Montagepauschale Duscholux, für Bella Vita 3, Gleittüre 2-teilig auf",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1518 121.591.119",
+      "1518 124.591.119",
+      "1518 160.591.119"
+    ]
+  },
+  "1519 860.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6 Faltwand 2-tlg., Nettobetrag",
+    "description": null,
+    "parentCount": 16,
+    "parentExamples": [
+      "1512 931.591.118",
+      "1512 924.591.119",
+      "1512 937.591.119"
+    ]
+  },
+  "1519 822.000.000": {
+    "label": "Montagepauschale Duscholux, Holydoor Top (Collection3), auf Badewanne,",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1518 113.591.119",
+      "1518 114.591.119",
+      "1518 115.591.119"
+    ]
+  },
+  "1519 859.000.000": {
+    "label": "Montagepauschale Duscholux, für Optima 6 Faltwand 1-tlg., Nettobetrag",
+    "description": null,
+    "parentCount": 8,
+    "parentExamples": [
+      "1512 918.591.119",
+      "1512 920.591.118",
+      "1512 916.535.119"
+    ]
+  },
+  "1519 826.000.000": {
+    "label": "Montagepauschale Duscholux, für Step-in PURE, Falttrennwand 2-teilig auf",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1518 284.591.118",
+      "1518 290.591.118",
+      "1518 283.597.118"
+    ]
+  },
+  "1519 825.000.000": {
+    "label": "Montagepauschale Duscholux, für Step-in PURE, Falttrennwand 1-teilig auf",
+    "description": null,
+    "parentCount": 4,
+    "parentExamples": [
+      "1518 274.591.118",
+      "1518 280.591.118",
+      "1518 279.597.118"
+    ]
+  },
+  "1521 620.000.000": {
+    "label": "Montagepauschale Koralle, für S606 Plus, Falttrennwand 2-teilig, auf",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1528 269.501.118",
+      "1528 270.501.118"
+    ]
+  },
+  "1521 618.000.000": {
+    "label": "Montagepauschale Koralle, für S606 Plus, Pendeltüre mit Wandanschlag, auf",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1528 265.501.118",
+      "1528 266.501.118"
+    ]
+  },
+  "1521 619.000.000": {
+    "label": "Montagepauschale Koralle, für S606 Plus, Pendeltüre mit Festelement, auf",
+    "description": null,
+    "parentCount": 2,
+    "parentExamples": [
+      "1528 267.501.118",
+      "1528 268.501.118"
+    ]
+  }
+}

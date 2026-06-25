@@ -5,7 +5,7 @@ import { saveToIndexedDB, loadFromIndexedDB } from './storage.js';
 
 /**
  * Admin Panel Controller
- * Handles CRUD operations, CSV/Excel imports, and data persistence.
+ * Handles CRUD operations, CSV imports, and data persistence.
  */
 export function setupAdmin(modifiedApps, renderCatalog) {
     const homeView = document.getElementById('homeView');
@@ -612,8 +612,11 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                 if (!currentAdminAppId) return;
                 const file = e.dataTransfer.files[0];
                 if (file) {
-                    if (file.name.endsWith('.xlsx')) uploadExcelInput.onchange({ target: { files: [file] } });
-                    else uploadCsvInput.onchange({ target: { files: [file] } });
+                    if (/\.xlsx?$/i.test(file.name)) {
+                        alert('Excel-Dateien werden nicht unterstützt. Bitte als .csv exportieren.');
+                    } else {
+                        uploadCsvInput.onchange({ target: { files: [file] } });
+                    }
                 }
             });
         }
@@ -680,16 +683,13 @@ export function setupAdmin(modifiedApps, renderCatalog) {
             header.className = 'admin-editor-header';
             header.innerHTML = `
                 <div style="display:flex; gap:1rem; flex-wrap: wrap;">
-                    <button class="finish-row-btn" id="adminRefreshBtn"><i class="ri-refresh-line"></i> Re-Sync All</button>
                     <button class="finish-row-btn highlight-btn" id="adminResyncBtn" style="background: var(--accent); color: #000; border:none; font-weight:700;"><i class="ri-refresh-line"></i> 🔄 Patch & Sync Alle Regeln</button>
                     <button class="finish-row-btn btn-danger" id="adminWipeBtn"><i class="ri-delete-bin-line"></i> Alle löschen</button>
                     <button class="finish-row-btn btn-danger" id="adminDeleteSelectedBtn" style="display:none;"><i class="ri-delete-bin-line"></i> Markierte löschen (<span id="deleteSelectedCount">0</span>)</button>
-                    <button class="finish-row-btn" id="adminFactoryResetBtn" style="color:#d9ae61;"><i class="ri-history-line"></i> Standard wiederherstellen</button>
                 </div>
             `;
             adminEditorArea.appendChild(header);
 
-            document.getElementById('adminRefreshBtn').onclick = () => { renderAdminEditorArea(); renderAdminSidebar(); };
             document.getElementById('adminWipeBtn').onclick = () => {
                 if (confirm(`Alle Daten in ${currentAdminAppId} löschen?`)) {
                     if (app.trays) app.trays = [];
@@ -698,11 +698,6 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                     saveAllData(false); modifiedApps.add(currentAdminAppId); renderAdminEditorArea(); renderAdminSidebar();
                 }
             };
-            document.getElementById('adminFactoryResetBtn').onclick = () => {
-                alert('Factory Reset ist in dieser Version nicht verfügbar, da die Daten direkt vom Server geladen werden.');
-            };
-
-
             document.getElementById('adminResyncBtn').onclick = () => {
                 const currentApps = window.productApps || productApps;
                 const appIds = Object.keys(currentApps);
