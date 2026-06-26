@@ -259,24 +259,24 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                     <div class="filter-group">
                         <label id="head_hersteller_${s}" class="filter-label">Hersteller</label>
                         <div class="pill-group" id="list_hersteller_${s}">
-                            <button class="pill-btn ${this.currentHersteller === "all" ? "active" : ""}" data-key="Hersteller" data-val="all">Alle</button>
-                            ${n.map((o) => `<button class="pill-btn ${this.currentHersteller === o ? "active" : ""}" data-key="Hersteller" data-val="${o}">${o}</button>`).join("")}
+                            <button class="pill-btn ${this.currentHersteller === "all" ? "active" : ""}" data-key="Hersteller" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount("Hersteller", "all")}</span></button>
+                            ${n.map((o) => `<button class="pill-btn ${this.currentHersteller === o ? "active" : ""}" data-key="Hersteller" data-val="${o}">${o} <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount("Hersteller", o)}</span></button>`).join("")}
                         </div>
                     </div>
 
                     <div class="filter-group">
                         <label id="head_montage_${s}" class="filter-label">Montageart</label>
                         <div class="pill-group" id="list_montage_${s}">
-                            <button class="pill-btn ${this.currentMontage === "all" ? "active" : ""}" data-key="Montage" data-val="all">Alle</button>
-                            ${a.map((o) => `<button class="pill-btn ${this.currentMontage === o ? "active" : ""}" data-key="Montage" data-val="${o}">${o}</button>`).join("")}
+                            <button class="pill-btn ${this.currentMontage === "all" ? "active" : ""}" data-key="Montage" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount("Montage", "all")}</span></button>
+                            ${a.map((o) => `<button class="pill-btn ${this.currentMontage === o ? "active" : ""}" data-key="Montage" data-val="${o}">${o} <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount("Montage", o)}</span></button>`).join("")}
                         </div>
                     </div>
 
                     <div class="filter-group">
                         <label id="head_serie_${s}" class="filter-label">Serie</label>
                         <div class="pill-group" id="list_serie_${s}">
-                            <button class="pill-btn ${this.currentSerie === "all" ? "active" : ""}" data-key="Serie" data-val="all">Alle</button>
-                            ${i.map((o) => `<button class="pill-btn ${this.currentSerie === o ? "active" : ""}" data-key="Serie" data-val="${o}">${o}</button>`).join("")}
+                            <button class="pill-btn ${this.currentSerie === "all" ? "active" : ""}" data-key="Serie" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount("Serie", "all")}</span></button>
+                            ${i.map((o) => `<button class="pill-btn ${this.currentSerie === o ? "active" : ""}" data-key="Serie" data-val="${o}">${o} <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount("Serie", o)}</span></button>`).join("")}
                         </div>
                     </div>
 
@@ -522,6 +522,23 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
 
             bomTableBody.innerHTML = '<tr><td colspan="5" style="padding:0; border:none; background:transparent;"><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px; padding:12px; background:var(--bg-body); border-radius:8px;">' + cards + '</div></td></tr>';
       },
+      // Faceted count for a filter pill value — mirrors the filterResults predicate
+      // below (Hersteller / Serie / Montage + search). Keep the two in sync.
+      getFilteredCount: function (key, value) {
+        var i;
+        const prop = `current${key}`;
+        const orig = this[prop];
+        this[prop] = value;
+        const t = (((i = document.getElementById(`input_search_${s}`)) == null ? void 0 : i.value) || "").toLowerCase();
+        let n = this.trays;
+        if (this.currentHersteller !== "all") n = n.filter((a) => a.manufacturer === this.currentHersteller);
+        if (this.currentSerie !== "all") n = n.filter((a) => this.extractSerie(a) === this.currentSerie);
+        if (this.currentMontage !== "all") n = n.filter((a) => this.extractMontage(a) === this.currentMontage);
+        if (t) n = n.filter((a) => matchesSearchQuery(a, t));
+        this[prop] = orig;
+        return n.length;
+      },
+
       filterResults: function () {
         var i;
         const r = document.getElementById(`searchResults_${s}`),

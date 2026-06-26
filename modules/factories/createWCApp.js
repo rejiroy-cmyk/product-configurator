@@ -160,13 +160,20 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             };
 
             const rawClass = getRawClass.call(this, obj);
-            
+
+            // Valid montage classes must match the pill VALUES. Toilets (and mixers)
+            // use Aufputz/Unterputz — the same `isUpAp` logic the pill labels use —
+            // NOT the Wannenträger/Montagerahmen defaults, otherwise getRawClass's
+            // correct 'aufputz'/'unterputz' would be squashed to 'common' and the
+            // Aufputz/Unterputz pills would filter everything out.
+            const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
+            const isUpAp = isMixer || isToilet;
             const validCategories = [
                 'common',
                 'alle',
                 'all',
-                (config.montageLabel1 || (isMixer ? "Aufputz" : "Wannenträger")).toLowerCase(),
-                (config.montageLabel2 || (isMixer ? "Unterputz" : "Montagerahmen")).toLowerCase(),
+                (config.montageLabel1 || (isUpAp ? "Aufputz" : "Wannenträger")).toLowerCase(),
+                (config.montageLabel2 || (isUpAp ? "Unterputz" : "Montagerahmen")).toLowerCase(),
                 (config.montageLabel3 || "").toLowerCase(),
                 (config.montageLabel4 || "").toLowerCase(),
                 (config.montageLabel5 || "").toLowerCase()
@@ -301,8 +308,8 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
 
             // 1. Manufacturer
             const manufacturers = this.getUniqueValues('manufacturer');
-            mList.innerHTML = `<button class="pill-btn ${this.currentManufacturer === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + manufacturers.map(m => `
-                    <button class="pill-btn ${this.currentManufacturer === m ? 'active' : ''}" data-val="${m}">${m}</button>
+            mList.innerHTML = `<button class="pill-btn ${this.currentManufacturer === 'all' ? 'active' : ''}" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Manufacturer', 'all')}</span></button>` + manufacturers.map(m => `
+                    <button class="pill-btn ${this.currentManufacturer === m ? 'active' : ''}" data-val="${m}">${m} <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Manufacturer', m)}</span></button>
                 `).join('');
             applyPillUI(`head_rel_mfr_${suffix}`, `list_rel_mfr_${suffix}`, this.currentManufacturer, 'Hersteller', () => {
                 this.currentManufacturer = 'all';
@@ -325,8 +332,8 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 validTraysForSerie = validTraysForSerie.filter(t => t.manufacturer === this.currentManufacturer);
             }
             const series = [...new Set(validTraysForSerie.map(t => this.extractSerie(t)))].sort();
-            serList.innerHTML = `<button class="pill-btn ${this.currentSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + series.map(s => `
-                    <button class="pill-btn ${this.currentSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>
+            serList.innerHTML = `<button class="pill-btn ${this.currentSerie === 'all' ? 'active' : ''}" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Serie', 'all')}</span></button>` + series.map(s => `
+                    <button class="pill-btn ${this.currentSerie === s ? 'active' : ''}" data-val="${s}">${s} <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Serie', s)}</span></button>
                 `).join('');
             applyPillUI(`head_rel_serie_${suffix}`, `list_rel_serie_${suffix}`, this.currentSerie, 'Serie', () => {
                 this.currentSerie = 'all';
@@ -348,8 +355,8 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 }
                 const forms = [...new Set(validTraysForForm.map(t => t.form))].filter(Boolean).sort();
 
-                fList.innerHTML = `<button class="pill-btn ${this.currentForm === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + forms.map(f => `
-                        <button class="pill-btn ${this.currentForm === f ? 'active' : ''}" data-val="${f}">${f}</button>
+                fList.innerHTML = `<button class="pill-btn ${this.currentForm === 'all' ? 'active' : ''}" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Form', 'all')}</span></button>` + forms.map(f => `
+                        <button class="pill-btn ${this.currentForm === f ? 'active' : ''}" data-val="${f}">${f} <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Form', f)}</span></button>
                     `).join('');
                 applyPillUI(`head_rel_form_${suffix}`, `list_rel_form_${suffix}`, this.currentForm, config.formLabel || formLabel, () => {
                     this.currentForm = 'all';
@@ -381,9 +388,9 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     if (isNaN(numB)) return -1;
                     return numA - numB;
                 });
-                sList.innerHTML = `<button class="pill-btn ${this.currentSize === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + sizes.map(s => {
+                sList.innerHTML = `<button class="pill-btn ${this.currentSize === 'all' ? 'active' : ''}" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Size', 'all')}</span></button>` + sizes.map(s => {
                     const btnLabel = config.sizeLabel === 'Breite' ? `bis ${s} cm` : s;
-                    return `<button class="pill-btn ${this.currentSize === s ? 'active' : ''}" data-val="${s}">${btnLabel}</button>`;
+                    return `<button class="pill-btn ${this.currentSize === s ? 'active' : ''}" data-val="${s}">${btnLabel} <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Size', s)}</span></button>`;
                 }).join('');
                 const displaySizeVal = config.sizeLabel === 'Breite' ? `bis ${this.currentSize} cm` : this.currentSize;
                 applyPillUI(`head_rel_size_${suffix}`, `list_rel_size_${suffix}`, this.currentSize, config.sizeLabel || 'Grösse', () => {
@@ -475,6 +482,90 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             }
             this.updatePillFilters();
         },
+        // Pure filter predicate — extracted from filterResults so the pill counts
+        // (getFilteredCount) reuse the EXACT same filtering. Behaviour-preserving.
+        matchesFilters: function (t, ctx) {
+            const mFilter = this.currentManufacturer || 'all';
+            const serieFilter = this.currentSerie || 'all';
+            const fFilter = this.currentForm || 'all';
+            const sFilter = this.currentSize || 'all';
+            const lFilter = ctx.lFilter;
+            const wFilter = ctx.wFilter;
+            const isToilet = ctx.isToilet;
+
+            if (mFilter !== 'all' && mFilter !== 'alle' && t.manufacturer !== mFilter) return false;
+
+            if (serieFilter !== 'all' && serieFilter !== 'alle') {
+                const s = this.extractSerie(t);
+                if (s !== serieFilter) return false;
+            }
+
+            if (!hideSizeForm) {
+                const fFilterClean = fFilter.toLowerCase();
+                const tFormClean = (t.form || '').toLowerCase();
+                if (fFilterClean !== 'all' && fFilterClean !== 'alle' && !tFormClean.includes(fFilterClean) && !fFilterClean.includes(tFormClean)) return false;
+
+                if (sFilter !== 'all' && sFilter !== 'alle') {
+                    if (t.size !== sFilter) return false;
+                } else if (!isToilet && (lFilter || wFilter)) {
+                    if (t.size && t.size.includes('x')) {
+                        const parts = t.size.toLowerCase().split('x').map(p => p.trim());
+                        if (parts.length >= 2) {
+                            let [l, w] = parts.map(p => parseFloat(p));
+                            let lf = parseFloat(lFilter);
+                            let wf = parseFloat(wFilter);
+                            const norm = (v) => (v < 400 ? v * 10 : v);
+                            if (lFilter && wFilter) {
+                                if (!((norm(l) == norm(lf) && norm(w) == norm(wf)) || (norm(l) == norm(wf) && norm(w) == norm(lf)))) return false;
+                            } else if (lFilter) {
+                                if (norm(l) != norm(lf) && norm(w) != norm(lf)) return false;
+                            } else if (wFilter) {
+                                if (norm(l) != norm(wf) && norm(w) != norm(wf)) return false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Filter Main Products by Montageart if chosen
+            if (this.currentMontageart !== 'alle' && this.currentMontageart !== 'all') {
+                const m = this.classifyAccessory(t);
+                if (m !== 'common' && m !== this.currentMontageart) return false;
+
+                // For trays/products that are 'common' themselves, check their accessories
+                if (m === 'common') {
+                    let hasMatchingAccessory = false;
+                    if (t.mountingMaterials) {
+                        t.mountingMaterials.forEach(mat => {
+                            if (mat.options && mat.options[0]) {
+                                if (this.classifyAccessory(mat.options[0]) === this.currentMontageart) {
+                                    hasMatchingAccessory = true;
+                                }
+                            }
+                        });
+                    }
+                    if (!hasMatchingAccessory && t.mountingMaterials && t.mountingMaterials.length > 0) return false;
+                }
+            }
+
+            return true;
+        },
+
+        // Faceted count for a product-filter pill value (mirrors the Glass app).
+        getFilteredCount: function (category, value) {
+            const prop = 'current' + category;
+            const original = this[prop];
+            this[prop] = value;
+            const ctx = {
+                lFilter: document.getElementById(`filterLength_${suffix}`)?.value || '',
+                wFilter: document.getElementById(`filterWidth_${suffix}`)?.value || '',
+                isToilet: this.isToiletApp || (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc')),
+            };
+            const count = this.trays.filter(t => this.matchesFilters(t, ctx)).length;
+            this[prop] = original;
+            return count;
+        },
+
         filterResults: function () {
             const mFilter = this.currentManufacturer || 'all';
             const serieFilter = this.currentSerie || 'all';
@@ -485,65 +576,8 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
 
             const isToilet = this.isToiletApp || (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
 
-            const filtered = this.trays.filter(t => {
-                if (mFilter !== 'all' && mFilter !== 'alle' && t.manufacturer !== mFilter) return false;
-
-                if (serieFilter !== 'all' && serieFilter !== 'alle') {
-                    const s = this.extractSerie(t);
-                    if (s !== serieFilter) return false;
-                }
-
-                if (!hideSizeForm) {
-                    const fFilterClean = fFilter.toLowerCase();
-                    const tFormClean = (t.form || '').toLowerCase();
-                    if (fFilterClean !== 'all' && fFilterClean !== 'alle' && !tFormClean.includes(fFilterClean) && !fFilterClean.includes(tFormClean)) return false;
-
-                    if (sFilter !== 'all' && sFilter !== 'alle') {
-                        if (t.size !== sFilter) return false;
-                    } else if (!isToilet && (lFilter || wFilter)) {
-                        // Only run numeric parsing if it's NOT a toilet and looks like "120 x 80"
-                        if (t.size && t.size.includes('x')) {
-                            const parts = t.size.toLowerCase().split('x').map(p => p.trim());
-                            if (parts.length >= 2) {
-                                let [l, w] = parts.map(p => parseFloat(p));
-                                let lf = parseFloat(lFilter);
-                                let wf = parseFloat(wFilter);
-                                const norm = (v) => (v < 400 ? v * 10 : v);
-                                if (lFilter && wFilter) {
-                                    if (!((norm(l) == norm(lf) && norm(w) == norm(wf)) || (norm(l) == norm(wf) && norm(w) == norm(lf)))) return false;
-                                } else if (lFilter) {
-                                    if (norm(l) != norm(lf) && norm(w) != norm(lf)) return false;
-                                } else if (wFilter) {
-                                    if (norm(l) != norm(wf) && norm(w) != norm(wf)) return false;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Filter Main Products by Montageart if chosen
-                if (this.currentMontageart !== 'alle' && this.currentMontageart !== 'all') {
-                    const m = this.classifyAccessory(t);
-                    if (m !== 'common' && m !== this.currentMontageart) return false;
-
-                    // For trays/products that are 'common' themselves, check their accessories
-                    if (m === 'common') {
-                        let hasMatchingAccessory = false;
-                        if (t.mountingMaterials) {
-                            t.mountingMaterials.forEach(mat => {
-                                if (mat.options && mat.options[0]) {
-                                    if (this.classifyAccessory(mat.options[0]) === this.currentMontageart) {
-                                        hasMatchingAccessory = true;
-                                    }
-                                }
-                            });
-                        }
-                        if (!hasMatchingAccessory && t.mountingMaterials && t.mountingMaterials.length > 0) return false;
-                    }
-                }
-
-                return true;
-            });
+            const ctx = { lFilter, wFilter, isToilet };
+            const filtered = this.trays.filter(t => this.matchesFilters(t, ctx));
 
             console.log(`[Configurator] ${title} Filter Results: ${filtered.length} of ${this.trays.length} visible. (M:${mFilter}, S:${serieFilter}, F:${fFilter})`);
 

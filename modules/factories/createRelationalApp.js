@@ -476,8 +476,8 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
 
             // 1. Manufacturer
             const manufacturers = this.getUniqueValues('manufacturer');
-            mList.innerHTML = `<button class="pill-btn ${this.currentManufacturer === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + manufacturers.map(m => `
-                    <button class="pill-btn ${this.currentManufacturer === m ? 'active' : ''}" data-val="${m}">${m}</button>
+            mList.innerHTML = `<button class="pill-btn ${this.currentManufacturer === 'all' ? 'active' : ''}" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Manufacturer', 'all')}</span></button>` + manufacturers.map(m => `
+                    <button class="pill-btn ${this.currentManufacturer === m ? 'active' : ''}" data-val="${m}">${m} <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Manufacturer', m)}</span></button>
                 `).join('');
             applyPillUI(`head_rel_mfr_${suffix}`, `list_rel_mfr_${suffix}`, this.currentManufacturer, 'Hersteller', () => {
                 this.currentManufacturer = 'all';
@@ -506,8 +506,8 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 if (s.startsWith('Cerafloor')) return 'Cerafloor';
                 return s;
             }))].sort();
-            serList.innerHTML = `<button class="pill-btn ${this.currentSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + series.map(s => `
-                    <button class="pill-btn ${this.currentSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>
+            serList.innerHTML = `<button class="pill-btn ${this.currentSerie === 'all' ? 'active' : ''}" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Serie', 'all')}</span></button>` + series.map(s => `
+                    <button class="pill-btn ${this.currentSerie === s ? 'active' : ''}" data-val="${s}">${s} <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Serie', s)}</span></button>
                 `).join('');
             applyPillUI(`head_rel_serie_${suffix}`, `list_rel_serie_${suffix}`, this.currentSerie, 'Serie', () => {
                 this.currentSerie = 'all';
@@ -533,8 +533,8 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     const matchingFullSeries = rawSeries.filter(s => s.startsWith(baseSerie));
                     const variants = [...new Set(matchingFullSeries.map(s => s.slice(baseSerie.length).trim()))].sort();
                     
-                    varList.innerHTML = `<button class="pill-btn ${this.currentVariant === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + variants.map(v => `
-                        <button class="pill-btn ${this.currentVariant === v ? 'active' : ''}" data-val="${v}">${v}</button>
+                    varList.innerHTML = `<button class="pill-btn ${this.currentVariant === 'all' ? 'active' : ''}" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Variant', 'all')}</span></button>` + variants.map(v => `
+                        <button class="pill-btn ${this.currentVariant === v ? 'active' : ''}" data-val="${v}">${v} <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Variant', v)}</span></button>
                     `).join('');
                     
                     applyPillUI(`head_rel_variant_${suffix}`, `list_rel_variant_${suffix}`, this.currentVariant, 'Varianten', () => {
@@ -562,8 +562,8 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 }
                 const forms = [...new Set(validTraysForForm.map(t => t.form))].filter(Boolean).sort();
 
-                fList.innerHTML = `<button class="pill-btn ${this.currentForm === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + forms.map(f => `
-                        <button class="pill-btn ${this.currentForm === f ? 'active' : ''}" data-val="${f}">${f}</button>
+                fList.innerHTML = `<button class="pill-btn ${this.currentForm === 'all' ? 'active' : ''}" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Form', 'all')}</span></button>` + forms.map(f => `
+                        <button class="pill-btn ${this.currentForm === f ? 'active' : ''}" data-val="${f}">${f} <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Form', f)}</span></button>
                     `).join('');
                 applyPillUI(`head_rel_form_${suffix}`, `list_rel_form_${suffix}`, this.currentForm, formLabel, () => {
                     this.currentForm = 'all';
@@ -601,9 +601,9 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     }
                     return String(a).localeCompare(String(b));
                 });
-                sList.innerHTML = `<button class="pill-btn ${this.currentSize === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + sizes2D.map(s => {
+                sList.innerHTML = `<button class="pill-btn ${this.currentSize === 'all' ? 'active' : ''}" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Size', 'all')}</span></button>` + sizes2D.map(s => {
                     const btnLabel = config.sizeLabel === 'Breite' ? `bis ${s} cm` : s;
-                    return `<button class="pill-btn ${this.currentSize === s ? 'active' : ''}" data-val="${s}">${btnLabel}</button>`;
+                    return `<button class="pill-btn ${this.currentSize === s ? 'active' : ''}" data-val="${s}">${btnLabel} <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Size', s)}</span></button>`;
                 }).join('');
                 const displaySizeVal = config.sizeLabel === 'Breite' ? `bis ${this.currentSize} cm` : this.currentSize;
                 applyPillUI(`head_rel_size_${suffix}`, `list_rel_size_${suffix}`, this.currentSize, config.sizeLabel || 'Grösse', () => {
@@ -648,8 +648,8 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     
                     if (depths.length > 0) {
                         tiefeGroup.style.display = 'block';
-                        tList.innerHTML = `<button class="pill-btn ${this.currentTiefe === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + depths.map(d => {
-                            return `<button class="pill-btn ${this.currentTiefe === d ? 'active' : ''}" data-val="${d}">${d}</button>`;
+                        tList.innerHTML = `<button class="pill-btn ${this.currentTiefe === 'all' ? 'active' : ''}" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Tiefe', 'all')}</span></button>` + depths.map(d => {
+                            return `<button class="pill-btn ${this.currentTiefe === d ? 'active' : ''}" data-val="${d}">${d} <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Tiefe', d)}</span></button>`;
                         }).join('');
                         
                         applyPillUI(`head_rel_tiefe_${suffix}`, `list_rel_tiefe_${suffix}`, this.currentTiefe, 'Tiefe', () => {
@@ -752,6 +752,136 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             }
             this.updatePillFilters();
         },
+        // Pure filter predicate — extracted verbatim from filterResults so the pill
+        // counts (getFilteredCount) reuse the EXACT same filtering. Filter values are
+        // read live from this.current*; lFilter/wFilter/isToilet come via ctx (computed
+        // once per pass). Behaviour-preserving.
+        matchesFilters: function (t, ctx) {
+            const mFilter = this.currentManufacturer || 'all';
+            const serieFilter = this.currentSerie || 'all';
+            const fFilter = this.currentForm || 'all';
+            const sFilter = this.currentSize || 'all';
+            const tiefeFilter = this.currentTiefe || 'all';
+            const lFilter = ctx.lFilter;
+            const wFilter = ctx.wFilter;
+            const isToilet = ctx.isToilet;
+
+            if (mFilter !== 'all' && mFilter !== 'alle' && t.manufacturer !== mFilter) return false;
+
+            if (serieFilter !== 'all' && serieFilter !== 'alle') {
+                const s = this.extractSerie(t);
+                if (serieFilter === 'Cerawall' || serieFilter === 'Cerafloor') {
+                    if (!s.startsWith(serieFilter)) return false;
+                    if (this.currentVariant !== 'all' && s !== `${serieFilter} ${this.currentVariant}`) {
+                        return false;
+                    }
+                } else {
+                    if (s !== serieFilter) return false;
+                }
+            }
+
+            if (!hideSizeForm) {
+                const fFilterClean = fFilter.toLowerCase();
+                const tFormClean = (t.form || '').toLowerCase();
+                if (fFilterClean !== 'all' && fFilterClean !== 'alle' && !tFormClean.includes(fFilterClean) && !fFilterClean.includes(tFormClean)) return false;
+
+                if (sFilter !== 'all' && sFilter !== 'alle' && sFilter !== 'custom') {
+                    const parsed = this.parseSize(t);
+
+                    if (parsed.isVario) {
+                        const fParts = sFilter.split('x').map(x => parseFloat(x.trim()));
+                        if (fParts.length >= 2) {
+                            let filterW = fParts[0];
+                            let filterL = fParts[1];
+                            let passDirect = (filterW >= parsed.varioMinL && filterW <= parsed.varioMaxL) && (filterL >= parsed.varioMinW && filterL <= parsed.varioMaxW);
+                            let passRotated = (filterW >= parsed.varioMinW && filterW <= parsed.varioMaxW) && (filterL >= parsed.varioMinL && filterL <= parsed.varioMaxL);
+                            if (!passDirect && !passRotated) return false;
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        if (parsed.size2D !== sFilter && parsed.size2DReversed !== sFilter) return false;
+                    }
+
+                    if (tiefeFilter !== 'all' && parsed.depth !== tiefeFilter) return false;
+                } else if (!isToilet && (lFilter || wFilter)) {
+                    const parsed = this.parseSize(t);
+                    let lf = parseFloat(lFilter);
+                    let wf = parseFloat(wFilter);
+
+                    if (parsed.isVario) {
+                        let passDirect = (!lf || (lf >= parsed.varioMinL && lf <= parsed.varioMaxL)) &&
+                                         (!wf || (wf >= parsed.varioMinW && wf <= parsed.varioMaxW));
+                        let passRotated = (!lf || (lf >= parsed.varioMinW && lf <= parsed.varioMaxW)) &&
+                                          (!wf || (wf >= parsed.varioMinL && wf <= parsed.varioMaxL));
+                        if (!passDirect && !passRotated) return false;
+                    } else if (parsed.size2D) {
+                        const fParts = parsed.size2D.split('x').map(x => parseFloat(x.trim()));
+                        if (fParts.length >= 2) {
+                            let tL = fParts[0];
+                            let tW = fParts[1];
+                            let passDirect = (!lf || lf === tL) && (!wf || wf === tW);
+                            let passRotated = (!lf || lf === tW) && (!wf || wf === tL);
+                            if (!passDirect && !passRotated) return false;
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+            }
+
+            // Filter Main Products by Montageart if chosen
+            if (this.currentMontageart !== 'alle' && this.currentMontageart !== 'all') {
+                if (title.toLowerCase().includes('rinne')) {
+                    const m = this.extractTrayMontage(t);
+                    if (m !== 'both' && m !== this.currentMontageart) return false;
+                } else {
+                    const m = this.classifyAccessory(t);
+                    if (m !== 'common' && m !== this.currentMontageart) return false;
+
+                    // For trays/products that are 'common' themselves, check their accessories
+                    if (m === 'common') {
+                        let hasMatchingAccessory = false;
+                        if (t.mountingMaterials) {
+                            t.mountingMaterials.forEach(mat => {
+                                // Classify by the mat CATEGORY itself (id/name) — most reliable
+                                const matCls = this.classifyAccessory(mat);
+                                if (matCls === this.currentMontageart) {
+                                    hasMatchingAccessory = true;
+                                } else if (matCls === 'common' && mat.options && mat.options[0]) {
+                                    // Fall back to classifying by the first option label
+                                    if (this.classifyAccessory(mat.options[0]) === this.currentMontageart) {
+                                        hasMatchingAccessory = true;
+                                    }
+                                }
+                            });
+                        }
+                        if (!hasMatchingAccessory && t.mountingMaterials && t.mountingMaterials.length > 0) return false;
+                    }
+                }
+            }
+
+            return true;
+        },
+
+        // Faceted count for a product-filter pill value: how many products match if this
+        // value were selected, given the other active filters (mirrors the Glass app).
+        getFilteredCount: function (category, value) {
+            const prop = 'current' + category;
+            const original = this[prop];
+            this[prop] = value;
+            const ctx = {
+                lFilter: document.getElementById(`filterLength_${suffix}`)?.value || '',
+                wFilter: document.getElementById(`filterWidth_${suffix}`)?.value || '',
+                isToilet: this.isToiletApp || (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc')),
+            };
+            const count = this.trays.filter(t => this.matchesFilters(t, ctx)).length;
+            this[prop] = original;
+            return count;
+        },
+
         filterResults: function () {
             const mFilter = this.currentManufacturer || 'all';
             const serieFilter = this.currentSerie || 'all';
@@ -763,106 +893,8 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
 
             const isToilet = this.isToiletApp || (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
 
-            const filtered = this.trays.filter(t => {
-                if (mFilter !== 'all' && mFilter !== 'alle' && t.manufacturer !== mFilter) return false;
-
-                if (serieFilter !== 'all' && serieFilter !== 'alle') {
-                    const s = this.extractSerie(t);
-                    if (serieFilter === 'Cerawall' || serieFilter === 'Cerafloor') {
-                        if (!s.startsWith(serieFilter)) return false;
-                        if (this.currentVariant !== 'all' && s !== `${serieFilter} ${this.currentVariant}`) {
-                            return false;
-                        }
-                    } else {
-                        if (s !== serieFilter) return false;
-                    }
-                }
-
-                if (!hideSizeForm) {
-                    const fFilterClean = fFilter.toLowerCase();
-                    const tFormClean = (t.form || '').toLowerCase();
-                    if (fFilterClean !== 'all' && fFilterClean !== 'alle' && !tFormClean.includes(fFilterClean) && !fFilterClean.includes(tFormClean)) return false;
-
-                    if (sFilter !== 'all' && sFilter !== 'alle' && sFilter !== 'custom') {
-                        const parsed = this.parseSize(t);
-                        
-                        if (parsed.isVario) {
-                            const fParts = sFilter.split('x').map(x => parseFloat(x.trim()));
-                            if (fParts.length >= 2) {
-                                let filterW = fParts[0];
-                                let filterL = fParts[1];
-                                let passDirect = (filterW >= parsed.varioMinL && filterW <= parsed.varioMaxL) && (filterL >= parsed.varioMinW && filterL <= parsed.varioMaxW);
-                                let passRotated = (filterW >= parsed.varioMinW && filterW <= parsed.varioMaxW) && (filterL >= parsed.varioMinL && filterL <= parsed.varioMaxL);
-                                if (!passDirect && !passRotated) return false;
-                            } else {
-                                return false;
-                            }
-                        } else {
-                            if (parsed.size2D !== sFilter && parsed.size2DReversed !== sFilter) return false;
-                        }
-                        
-                        if (tiefeFilter !== 'all' && parsed.depth !== tiefeFilter) return false;
-                    } else if (!isToilet && (lFilter || wFilter)) {
-                        const parsed = this.parseSize(t);
-                        let lf = parseFloat(lFilter);
-                        let wf = parseFloat(wFilter);
-                        
-                        if (parsed.isVario) {
-                            let passDirect = (!lf || (lf >= parsed.varioMinL && lf <= parsed.varioMaxL)) && 
-                                             (!wf || (wf >= parsed.varioMinW && wf <= parsed.varioMaxW));
-                            let passRotated = (!lf || (lf >= parsed.varioMinW && lf <= parsed.varioMaxW)) && 
-                                              (!wf || (wf >= parsed.varioMinL && wf <= parsed.varioMaxL));
-                            if (!passDirect && !passRotated) return false;
-                        } else if (parsed.size2D) {
-                            const fParts = parsed.size2D.split('x').map(x => parseFloat(x.trim()));
-                            if (fParts.length >= 2) {
-                                let tL = fParts[0];
-                                let tW = fParts[1];
-                                let passDirect = (!lf || lf === tL) && (!wf || wf === tW);
-                                let passRotated = (!lf || lf === tW) && (!wf || wf === tL);
-                                if (!passDirect && !passRotated) return false;
-                            } else {
-                                return false;
-                            }
-                        } else {
-                            return false;
-                        }
-                    }
-                }
-
-                // Filter Main Products by Montageart if chosen
-                if (this.currentMontageart !== 'alle' && this.currentMontageart !== 'all') {
-                    if (title.toLowerCase().includes('rinne')) {
-                        const m = this.extractTrayMontage(t);
-                        if (m !== 'both' && m !== this.currentMontageart) return false;
-                    } else {
-                        const m = this.classifyAccessory(t);
-                        if (m !== 'common' && m !== this.currentMontageart) return false;
-
-                        // For trays/products that are 'common' themselves, check their accessories
-                        if (m === 'common') {
-                            let hasMatchingAccessory = false;
-                            if (t.mountingMaterials) {
-                                t.mountingMaterials.forEach(mat => {
-                                    // Classify by the mat CATEGORY itself (id/name) — most reliable
-                                    const matCls = this.classifyAccessory(mat);
-                                    if (matCls === this.currentMontageart) {
-                                        hasMatchingAccessory = true;
-                                    } else if (matCls === 'common' && mat.options && mat.options[0]) {
-                                        // Fall back to classifying by the first option label
-                                        if (this.classifyAccessory(mat.options[0]) === this.currentMontageart) {
-                                            hasMatchingAccessory = true;
-                                        }
-                                    }
-                                });
-                            }
-                            if (!hasMatchingAccessory && t.mountingMaterials && t.mountingMaterials.length > 0) return false;
-                        }
-                    }
-                }
-
-                return true;
-            });
+            const ctx = { lFilter, wFilter, isToilet };
+            const filtered = this.trays.filter(t => this.matchesFilters(t, ctx));
 
             console.log(`[Configurator] ${title} Filter Results: ${filtered.length} of ${this.trays.length} visible. (M:${mFilter}, S:${serieFilter}, F:${fFilter})`);
 
