@@ -55,6 +55,62 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         materials[gleitIdx].options = standardOptions.map(o => ({ ...o }));
       }
 
+      // === Abstellverschraubung (dynamic, label-driven — works for future imports) ===
+      // The mixer's own description says whether the screw connections are included.
+      // ADD 2× 6521 108.501.000 ONLY when it explicitly states "ohne Abstellverschraubungen".
+      // Everything else (incl. Hansgrohe's "mit S-Anschlüssen") = included → leave out.
+      // Nothing hard-coded per product — re-evaluated from the label on every import.
+      const label = (tray.label || "").toLowerCase();
+      materials = materials.filter(m => !(m.name || "").toLowerCase().includes("abstellverschraubung"));
+      if (/ohne\s+abstellverschraubung/.test(label)) {
+        materials.unshift({
+          name: "Abstellverschraubung",
+          options: [{
+            artNr: "6521 108.501.000",
+            label: 'Abstellverschraubung, ½" x ½", mit flacher Rosette, Verchromt',
+            menge: 2,
+            type: "Zubehör",
+            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06521108_501_000.png"
+          }]
+        });
+      }
+
+      // === Per-group standard (the default selection is always options[0], see selectItem) ===
+      const brand = (tray.manufacturer || "").toLowerCase().trim();
+      const toFront = (opts, idx) => {
+        if (idx > 0) { const [p] = opts.splice(idx, 1); opts.unshift(p); }
+      };
+      materials.forEach(mat => {
+        const n = (mat.name || "").toLowerCase();
+        const opts = mat.options;
+        if (!Array.isArray(opts) || opts.length < 2) return;
+        // Alterna Gleitstange stays the standard; Abstellverschraubung is a fixed single line.
+        if (n.includes("gleitstange") || n.includes("abstellverschraubung")) return;
+        const has = (o, ...needles) => needles.every(x => (o.label || "").toLowerCase().includes(x));
+        if (n.includes("brauseschlauch")) {
+          // Standard = 1600 mm (brand-matched 1600 first, then any 1600), then brand, else leave.
+          let i = brand ? opts.findIndex(o => has(o, brand, "1600")) : -1;
+          if (i < 0) i = opts.findIndex(o => has(o, "1600"));
+          if (i < 0 && brand) i = opts.findIndex(o => has(o, brand));
+          toFront(opts, i);
+        } else if (brand) {
+          // Handbrause (and any other group): brand-matched accessory as standard if the pool has one.
+          toFront(opts, opts.findIndex(o => has(o, brand)));
+        }
+      });
+
+      // === BOM order: Abstellverschraubung → Brauseschlauch → Handbrause → Duschengleitstange ===
+      // (The Mischer itself is the main BOM row, rendered before these accessory groups.)
+      const bomRank = (name) => {
+        const n = (name || "").toLowerCase();
+        if (n.includes("abstellverschraubung")) return 0;
+        if (n.includes("brauseschlauch")) return 1;
+        if (n.includes("handbrause")) return 2;
+        if (n.includes("gleitstange")) return 3;
+        return 4;
+      };
+      materials.sort((a, b) => bomRank(a.name) - bomRank(b.name));
+
       return {
         ...tray,
         mountingMaterials: materials
@@ -208,7 +264,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
               e.includes(" ap ") ||
               e.includes("wandbatterie") ||
               e.includes("wandmischer") ||
-              e.includes("ad 153 mm") ||
+              /\bad\s+\d/.test(e) ||
               e.includes("aufputz-duschenmischer") ||
               e.includes("thermostat-duschenmischer")
             ? "Aufputz"
@@ -700,7 +756,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           ((a.className = "filter-group"), (a.style.marginBottom = "1.25rem"));
           const l = this.mischerOptionsState[i],
             o = l !== void 0 ? n.options[l] : null,
-            y = (o == null ? void 0 : o.imgUrl) || "",
+            y = (o && (o.imgUrl || getSanitasImgUrl(o.artNr))) || "",
             M = n.options.length > 1;
           ((a.innerHTML = `
                     <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">${n.name || "Zubehör"}</label>
@@ -813,11 +869,12 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
 
                 const rowOpacity = isOhne ? 'opacity: 0.6; background: rgba(0,0,0,0.02);' : '';
                 const artNrDisplay = isOhne ? '-' : (l ? l.artNr : '');
-                const imgDisplay = (l && l.imgUrl) ? `<img src="${l.imgUrl}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>';
+                const imgSrc = l ? (l.imgUrl || getSanitasImgUrl(l.artNr)) : '';
+                const imgDisplay = imgSrc ? `<img src="${imgSrc}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>';
 
                 r.innerHTML += `
                     <tr style="${rowOpacity}">
-                        <td><div class="img-cell" ${!(l && l.imgUrl) ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>${imgDisplay}</div></td>
+                        <td><div class="img-cell" ${!imgSrc ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>${imgDisplay}</div></td>
                         <td><span class="bom-code">${artNrDisplay}</span></td>
                         <td>${descHTML}</td>
                         <td><strong>${isOhne ? '-' : o}</strong></td>

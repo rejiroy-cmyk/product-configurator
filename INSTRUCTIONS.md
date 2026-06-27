@@ -55,6 +55,20 @@ This document outlines the strict business logic rules and safeguards that must 
   - **Montagerahmen / Füsse:**
     1. Badewannen Montageset or Füsse or Wannenanker or Infinityträger
 
+### Duschenmischer (Shower Mixers) — Aufputz
+- **Aufputz detection:** identified in the description by an outer-diameter marker, e.g. `AD 153 mm` or `AD 138 - 162 mm`. These fall under the **Aufputz** filter pill. (Logic lives in `extractMontage`, regex `/\bad\s+\d/`; Unterputz markers are still checked first.)
+- **BOM Sorting Order:**
+  1. Mischer (Main Item / Hauptartikel)
+  2. Abstellverschraubung — `6521 108.501.000`, **quantity 2** (ONLY if not already included — see rule below)
+  3. Brauseschlauch — **standard = 1600 mm**; remaining lengths/variants as dropdown options
+  4. Handbrause — **brand-matched** to the mixer if the option pool contains one; otherwise the existing first option
+  5. Duschengleitstange — **standard = Alterna 1100 mm** (`6531 404.501.000`); 610 mm (`6531 403.501.000`) as a dropdown option
+- **Abstellverschraubung rule (DYNAMIC — never hard-code per product; re-evaluated from the label on every import):**
+  - **ADD** `2× 6521 108.501.000` **only when** the description explicitly says **`ohne Abstellverschraubungen`** (e.g. `ohne Abstellverschraubungen ½" x ½"`). Match: `/ohne\s+abstellverschraubung/i`.
+  - **OTHERWISE leave it out** — the connections are already included. This covers Hansgrohe's **`mit S-Anschlüssen`** (S-Anschlüsse = the Abstellverschraubungen, included), as well as labels that list `Abstellverschraubungen` without `ohne`.
+- **Standard selection** = the first option in each group (`options[0]`); the rules above reorder each group so the correct standard sits first. The Alterna Gleitstange stays the standard for the whole configurator until other Gleitstange products are introduced.
+- **Scope:** Duschenmischer only (`createDuschenmischerApp.js`, `transformDuschenmischerTrays`). The Gleitstange feature also exists in Bademischer, but Bademischer is intentionally **not** covered by these rules yet.
+
 ## 3. Brand & Bundling Rules
 
 ### Kaldewei
