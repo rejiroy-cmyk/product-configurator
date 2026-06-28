@@ -13,6 +13,7 @@ const PRICES = path.resolve(__dirname, '../../..'); // unused
 const CATALOG_PRICES = '/Users/jenistonsellathamby/Downloads/sanitas_prices_2026.6.json';
 const OUT = path.resolve(__dirname, 'sanitas-scraped.json');
 const MAX = parseInt(process.argv[2] || '999999', 10);
+const SCRAPE_VERSION = 2;   // bump to re-queue all bases after an extraction fix
 
 const rnd = (a, b) => a + Math.random() * (b - a);
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -88,14 +89,20 @@ async function scrapeBase(page, baseDigits) {
             const desc = t.slice(0, t.indexOf('Art-Nr.')).trim().slice(0, 160);
             rows.push({ artNr, price, desc });
         });
-        // also the main landed variant (URL + first URP)
-        const url = location.href.match(/(\d{13})$/);
-        const mainP = (document.body.innerText.match(/URP\s*([\d'’.]+)\s*CHF/) || [])[1];
-        return { rows, mainDigits: url ? url[1] : null, mainPrice: mainP ? parseFloat(mainP.replace(/['’]/g, '')) : null };
+        // the DISPLAYED/default variant ("Weitere Varianten" excludes it). Read it from the
+        // page header "Art-Nr. … URP … CHF" — reliable, unlike the old URL-digits guess.
+        const body = document.body.innerText;
+        const aM = body.match(/Art-Nr\.\s*(\d{4}\s?\d{3}\.\d{3}\.\d{3})/);
+        const pM = body.match(/URP\s*([\d'’.]+)\s*CHF/);
+        return {
+            rows,
+            mainArt: aM ? aM[1].replace(/\s+/g, ' ') : null,
+            mainPrice: pM ? parseFloat(pM[1].replace(/['’]/g, '')) : null,
+        };
     }, baseDigits);
     const out = {};
-    if (variants.mainDigits && variants.mainDigits.slice(0, 7) === baseDigits && variants.mainPrice)
-        out[fmtArt(variants.mainDigits)] = variants.mainPrice;
+    if (variants.mainArt && variants.mainArt.replace(/[ .]/g, '').slice(0, 7) === baseDigits && variants.mainPrice != null)
+        out[variants.mainArt] = variants.mainPrice;
     for (const r of variants.rows) out[r.artNr] = r.price;
     return { status: 'done', variants: out };
 }
@@ -103,7 +110,9 @@ async function scrapeBase(page, baseDigits) {
 (async () => {
     const bases = buildBases();
     const results = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, 'utf8')) : {};
-    const todo = bases.filter(b => !results[b] || results[b].status === 'error');
+    let todo = bases.filter(b => !results[b] || results[b].status === 'error' || results[b].v !== SCRAPE_VERSION);
+    const ONLY = (process.env.ONLY_BASES || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (ONLY.length) todo = ONLY;   // test mode: scrape only these specific bases
     console.log(`Total bases: ${bases.length} | already done: ${bases.length - todo.length} | this run cap: ${Math.min(MAX, todo.length)}`);
 
     const RESTART_EVERY = 100;   // recycle the browser to avoid long-session memory degradation
@@ -137,6 +146,7 @@ async function scrapeBase(page, baseDigits) {
             catch (e2) { rec = { status: 'error', error: String(e2).slice(0, 120), variants: {} }; }
         }
         rec.ts = Math.round((Date.now() - t0) / 1000);
+        rec.v = SCRAPE_VERSION;
         results[base] = rec;
         fs.writeFileSync(OUT, JSON.stringify(results));   // save after EVERY base (resumable)
         done++; sinceRestart++; skus += Object.keys(rec.variants || {}).length;

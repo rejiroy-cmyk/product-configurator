@@ -1,0 +1,10 @@
+{
+  "_meta": {
+    "source": "Sanitas Troesch Katalog 2026.6, Seite 6.5 — Einbaukosten (Nettopreis, exkl. MWSt)",
+    "note": "Service/installation charges live in catalog service tables (base-only art-Nr, no Farbe rows), which the product-price scrape/parse does not cover. Authoritative overlay — merged last by build-prices.js. Add further service pages here."
+  },
+  "6000 011.000.000": 48.50,
+  "6000 013.000.000": 39.50,
+  "6000 015.000.000": 66.00,
+  "6000 017.000.000": 34.50
+}
