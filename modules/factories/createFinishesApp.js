@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
 
 export function createFinishesApp(title, desc, mainImgUrl, baseBodyLabel, baseBodyArtNr, baseBodyImg) {
     return {
@@ -86,6 +86,7 @@ export function createFinishesApp(title, desc, mainImgUrl, baseBodyLabel, baseBo
                         <td><strong>${baseMenge}</strong></td>
                     </tr>
                 `;
+            priceBOM(document.getElementById('bomTableBody'));
         },
         copyToClipboard: function () {
             const finish = this.finishes.find(f => f.id === this.currentFinishId) || this.finishes[0];

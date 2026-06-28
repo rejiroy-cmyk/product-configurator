@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
 
 export function createWCApp(title, desc, mainImgUrl, config = {}) {
     const isMixer = config.isMixer || title.toLowerCase().includes('mischer') || title.toLowerCase().includes('armatur');
@@ -1417,6 +1417,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             });
 
             bomCountCounter.textContent = `${totalCount} Artikel benötigt`;
+            priceBOM(document.getElementById('bomTableBody'));
         },
         copyToClipboard: function () {
             if (!this.selectedTray) {

@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
 
 export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
   function transformBademischerUPTrays(trays) {
@@ -886,6 +886,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
                 });
             }
         }).call(this), e && (e.textContent = `${t} Artikel gewählt`));
+        priceBOM(document.getElementById('bomTableBody'));
         if (config.enableGalleryUX) {
             r.querySelectorAll('.inline-bom-select').forEach(sel => {
                 sel.addEventListener('change', (ev) => {

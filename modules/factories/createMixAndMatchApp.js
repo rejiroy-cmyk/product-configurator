@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
 
 export function createMixAndMatchApp(title, desc, mainImgUrl) {
     const suffix = 'MixMatch';
@@ -1788,6 +1788,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             bomTableBody.innerHTML = bomHtml;
             bomCountCounter.textContent = `${totalCount} Artikel`;
+            priceBOM(bomTableBody);   // services (Einbaukosten) have no product price → shown as "-"
 
             if (window.saveWishlist) window.saveWishlist();
         }

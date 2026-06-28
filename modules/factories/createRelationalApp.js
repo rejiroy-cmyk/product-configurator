@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
 
 export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
     const w = title;
@@ -2691,6 +2691,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             });
 
             bomCountCounter.textContent = `${totalCount} Artikel benötigt`;
+            priceBOM(bomTableBody);
         },
         copyToClipboard: window.copyBOMToClipboard
     };

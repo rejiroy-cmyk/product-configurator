@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
 
 export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {}) {
     const suffix = title.replace(/\s/g, '');
@@ -704,6 +704,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
 
             bomTableBody.innerHTML = bomHtml;
             bomCountCounter.textContent = `${count} Artikel`;
+            priceBOM(document.getElementById('bomTableBody'));
         },
         copyToClipboard: function () {
             if (!this.selectedTray) {

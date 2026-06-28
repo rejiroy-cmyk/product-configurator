@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
 
 export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
   function transformDuschenmischerTrays(trays) {
@@ -29,6 +29,13 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         options: m.options ? m.options.map(o => ({ ...o })) : []
       }));
 
+      // The Aufputz BOM rules below (Abstellverschraubung, 1600/brand option defaults,
+      // BOM-order sort, guaranteed Gleitstange) apply to AUFPUTZ mixers ONLY. Unterputz
+      // Endmontagesets keep their established numbered group order untouched.
+      const _lbl = (tray.label || "").toLowerCase();
+      const isAufputz = !(_lbl.includes("unterputz") || _lbl.includes(" up ") || _lbl.includes("einbau")
+        || _lbl.includes("endmontageset") || _lbl.includes("grundkörper") || _lbl.includes("grundkoerper"));
+
       const holderIdx = materials.findIndex(m => {
         const name = (m.name || "").toLowerCase();
         return (name.includes("brausehalter") || name.includes("steckhalter") || name.includes("steckholder"))
@@ -53,63 +60,128 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       } else if (gleitIdx !== -1) {
         materials[gleitIdx].name = "Duschengleitstange";
         materials[gleitIdx].options = standardOptions.map(o => ({ ...o }));
-      }
-
-      // === Abstellverschraubung (dynamic, label-driven — works for future imports) ===
-      // The mixer's own description says whether the screw connections are included.
-      // ADD 2× 6521 108.501.000 ONLY when it explicitly states "ohne Abstellverschraubungen".
-      // Everything else (incl. Hansgrohe's "mit S-Anschlüssen") = included → leave out.
-      // Nothing hard-coded per product — re-evaluated from the label on every import.
-      const label = (tray.label || "").toLowerCase();
-      materials = materials.filter(m => !(m.name || "").toLowerCase().includes("abstellverschraubung"));
-      if (/ohne\s+abstellverschraubung/.test(label)) {
-        materials.unshift({
-          name: "Abstellverschraubung",
-          options: [{
-            artNr: "6521 108.501.000",
-            label: 'Abstellverschraubung, ½" x ½", mit flacher Rosette, Verchromt',
-            menge: 2,
-            type: "Zubehör",
-            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06521108_501_000.png"
-          }]
+      } else if (isAufputz) {
+        // No Brausehalter/Gleitstange group in the scraped data — but the Alterna
+        // Gleitstange is a standard line for every Aufputz Duschenmischer (INSTRUCTIONS.md
+        // §2). Add it. Unterputz Endmontagesets stay without one.
+        materials.push({
+          name: "Duschengleitstange",
+          options: standardOptions.map(o => ({ ...o }))
         });
       }
 
-      // === Per-group standard (the default selection is always options[0], see selectItem) ===
+      // === Per-group standard defaults (Aufputz + Unterputz) — the default selection is always
+      // options[0] (see selectItem). Reorder each group so the correct standard sits first. ===
       const brand = (tray.manufacturer || "").toLowerCase().trim();
+      const has = (o, ...needles) => needles.every(x => (o.label || "").toLowerCase().includes(x));
       const toFront = (opts, idx) => {
         if (idx > 0) { const [p] = opts.splice(idx, 1); opts.unshift(p); }
       };
+      // Best-effort series tokens from the mixer label, for "same brand and series if possible".
+      const serieTokens = (tray.label || "").toLowerCase()
+        .replace(/duschenmischer|endmontageset|fertigmontageset|grundk[öo]rper|thermostat/g, " ")
+        .replace(brand, " ")
+        .replace(/[^a-zäöü\s]/g, " ")
+        .split(/\s+/)
+        .filter(w => w.length >= 4 && !["ohne", "rund", "eckig", "abdeckplatte", "verchromt", "rosette"].includes(w))
+        .slice(0, 2);
+
       materials.forEach(mat => {
         const n = (mat.name || "").toLowerCase();
         const opts = mat.options;
         if (!Array.isArray(opts) || opts.length < 2) return;
-        // Alterna Gleitstange stays the standard; Abstellverschraubung is a fixed single line.
-        if (n.includes("gleitstange") || n.includes("abstellverschraubung")) return;
-        const has = (o, ...needles) => needles.every(x => (o.label || "").toLowerCase().includes(x));
+        // Fixed / brand-neutral groups keep their existing order.
+        if (n.includes("gleitstange") || n.includes("abstellverschraubung")
+          || n.includes("grundkörper") || n.includes("grundkoerper")
+          || n.includes("montageschiene") || n.includes("montageset")) return;
+        if (n.includes("anschlussbogen")) {
+          // Standard = "ohne Brausehalter" (für Handbrause); "mit Brausehalter" stays a dropdown option.
+          toFront(opts, opts.findIndex(o => !(o.label || "").toLowerCase().includes("brausehalter")));
+          return;
+        }
         if (n.includes("brauseschlauch")) {
           // Standard = 1600 mm (brand-matched 1600 first, then any 1600), then brand, else leave.
           let i = brand ? opts.findIndex(o => has(o, brand, "1600")) : -1;
           if (i < 0) i = opts.findIndex(o => has(o, "1600"));
           if (i < 0 && brand) i = opts.findIndex(o => has(o, brand));
           toFront(opts, i);
-        } else if (brand) {
-          // Handbrause (and any other group): brand-matched accessory as standard if the pool has one.
-          toFront(opts, opts.findIndex(o => has(o, brand)));
+          return;
+        }
+        // Handbrause (and any other accessory): brand-matched as standard. Series is an extra
+        // tiebreak for UNTERPUTZ only ("same brand and series" — Aufputz spec is brand-only).
+        if (brand) {
+          let i = (!isAufputz && serieTokens.length)
+            ? opts.findIndex(o => has(o, brand) && serieTokens.some(s => (o.label || "").toLowerCase().includes(s)))
+            : -1;
+          if (i < 0) i = opts.findIndex(o => has(o, brand));
+          toFront(opts, i);
         }
       });
 
-      // === BOM order: Abstellverschraubung → Brauseschlauch → Handbrause → Duschengleitstange ===
-      // (The Mischer itself is the main BOM row, rendered before these accessory groups.)
-      const bomRank = (name) => {
-        const n = (name || "").toLowerCase();
-        if (n.includes("abstellverschraubung")) return 0;
-        if (n.includes("brauseschlauch")) return 1;
-        if (n.includes("handbrause")) return 2;
-        if (n.includes("gleitstange")) return 3;
-        return 4;
-      };
-      materials.sort((a, b) => bomRank(a.name) - bomRank(b.name));
+      if (isAufputz) {
+        // === Abstellverschraubung (AUFPUTZ only, dynamic/label-driven) ===
+        // ADD 2× 6521 108.501.000 only when the label says "ohne Abstellverschraubungen"
+        // (incl. Hansgrohe "mit S-Anschlüssen" = included → skip). Unterputz never needs it —
+        // the connections sit on the Grundkörper.
+        const label = (tray.label || "").toLowerCase();
+        materials = materials.filter(m => !(m.name || "").toLowerCase().includes("abstellverschraubung"));
+        if (/ohne\s+abstellverschraubung/.test(label)) {
+          materials.unshift({
+            name: "Abstellverschraubung",
+            options: [{
+              artNr: "6521 108.501.000",
+              label: 'Abstellverschraubung, ½" x ½", mit flacher Rosette, Verchromt',
+              menge: 2,
+              type: "Zubehör",
+              imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06521108_501_000.png"
+            }]
+          });
+        }
+        // BOM order: Abstellverschraubung → Brauseschlauch → Handbrause → Gleitstange
+        const rank = (name) => {
+          const x = (name || "").toLowerCase();
+          if (x.includes("abstellverschraubung")) return 0;
+          if (x.includes("brauseschlauch")) return 1;
+          if (x.includes("handbrause")) return 2;
+          if (x.includes("gleitstange")) return 3;
+          return 4;
+        };
+        materials.sort((a, b) => rank(a.name) - rank(b.name));
+      } else {
+        // === Unterputz: Grundkörper ALWAYS needs mounting brackets (like the UP-Bademischer) ===
+        // Integrated-box systems (KWC Homebox, Hansgrohe iBox) ship without a Montageschiene group
+        // in the scraped data — add the brand's mandatory mounting set when none is present.
+        const hasMontage = materials.some(m => {
+          const x = (m.name || "").toLowerCase();
+          return x.includes("montageschiene") || x.includes("montageset");
+        });
+        if (!hasMontage) {
+          const mfr = (tray.manufacturer || "").toLowerCase();
+          let bracket = null;
+          if (mfr === "kwc") {
+            bracket = { artNr: "6118 149.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Homebox", menge: 1, type: "Zubehör", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06118149_000_000.png" };
+          } else if (mfr === "hansgrohe") {
+            bracket = { artNr: "6418 111.000.000", label: "Montageset Hansgrohe iBox Universal, 2 Montageschienen 550 mm, Befestigungsmaterial", menge: 1, type: "Zubehör", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06418111_000_000.png" };
+          }
+          if (bracket) materials.push({ name: "Montageschiene", options: [bracket] });
+        }
+
+        // === Unterputz BOM order (INSTRUCTIONS.md §2) ===
+        // Grundkörper → Montageschiene → Anschlussbogen → Brauseschlauch → Handbrause → Gleitstange.
+        // (Regenbrause block = future work.) No Abstellverschraubung — it sits on the Grundkörper.
+        const rank = (name) => {
+          const x = (name || "").toLowerCase();
+          if (x.includes("grundkörper") || x.includes("grundkoerper") || x.includes("einbaukörper") || x.includes("einbaukoerper") || x.includes("ibox")) return 0;
+          if (x.includes("montageschiene") || x.includes("montageset")) return 1;
+          if (x.includes("anschlussbogen")) return 2;
+          if (x.includes("brauseschlauch")) return 3;
+          if (x.includes("handbrause")) return 4;
+          if (x.includes("gleitstange")) return 5;
+          if (x.includes("regenbrause") || x.includes("brausearm")) return 6;
+          return 7;
+        };
+        materials.sort((a, b) => rank(a.name) - rank(b.name));
+      }
 
       return {
         ...tray,
@@ -833,7 +905,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                     <td><div class="img-cell"><img src="${this.selectedTray.imgUrl || ""}"></div></td>
                     <td><span class="bom-code">${this.selectedTray.artNr}</span></td>
                     <td><div class="bom-desc">${this.selectedTray.label}</div></td>
-                    
+
                     <td><strong>1</strong></td>
                 </tr>
             `),
@@ -891,13 +963,14 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                             <td><div class="img-cell"><img src="${acc.imgUrl || ''}"></div></td>
                             <td><span class="bom-code">${acc.artNr}</span></td>
                             <td><div class="bom-desc">${acc.label || acc.name}</div></td>
-                            
+
                             <td><strong>1</strong></td>
                         </tr>
                     `;
                 });
             }
         }).call(this), e && (e.textContent = `${t} Artikel gewählt`));
+        priceBOM(r);   // append ‹without taxes› price column + grand total
         if (config.enableGalleryUX) {
             r.querySelectorAll('.inline-bom-select').forEach(sel => {
                 sel.addEventListener('change', (ev) => {

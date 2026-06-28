@@ -181,4 +181,68 @@ const ke = getVariantColor;
 const Be = getSanitasImgUrl;
 const X = applyPillUI;
 
-export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X };
+// ── Pricing (additive, read-only) ─────────────────────────────────────────────
+// `prices.json` (loaded into window.__PRICES__ by app.js, inlined in the bundle)
+// maps the FULL art-Nr (base.colour.finish) → ‹without taxes› price (exkl. MWSt).
+// Read LIVE at BOM-render time, so it follows whatever variant is selected; never
+// baked into product data. Unknown art-Nr → null → "Preis auf Anfrage".
+const PRICE_NA = 'Preis auf Anfrage';
+const getPrice = (artNr) => {
+    if (!artNr) return null;
+    const map = (typeof window !== 'undefined' && window.__PRICES__) || null;
+    if (!map) return null;
+    const p = map[String(artNr).trim()];
+    return typeof p === 'number' ? p : null;
+};
+// Swiss formatting: 1006 → "1'006.00"
+const formatCHF = (n) => {
+    const [int, dec] = Number(n).toFixed(2).split('.');
+    return int.replace(/\B(?=(\d{3})+(?!\d))/g, "'") + '.' + dec;
+};
+const ART_RE = /\d{4}\s\d{3}\.\d{3}\.\d{3}/;
+// Shared post-render pass: every factory renders its 4-cell BOM rows (art-Nr in .bom-code,
+// Menge as the last <td>); call priceBOM(tbody) at the END of updateBOM to append a per-line
+// ‹without taxes› price cell + a grand-total row. Idempotent on a freshly-rendered tbody.
+// Rows without a real art-Nr (placeholders, "ohne") show "-"; unknown art-Nr → "Preis auf Anfrage".
+const priceBOM = (tbody, cols = 5) => {
+    if (!tbody || !tbody.querySelectorAll) return;
+    let grand = 0, anyNA = false, anyRow = false;
+    tbody.querySelectorAll(':scope > tr').forEach((tr) => {
+        const codeEl = tr.querySelector('.bom-code');
+        const cells = tr.querySelectorAll(':scope > td');
+        if (!codeEl || cells.length < 2 || tr.classList.contains('bom-total-row')) return;
+        anyRow = true;
+        const code = (codeEl.textContent || '').trim();
+        const mengeTxt = (cells[cells.length - 1].textContent || '').trim();
+        const menge = parseInt(mengeTxt, 10);
+        const m = code.match(ART_RE);
+        const p = m ? getPrice(m[0]) : null;
+        const td = document.createElement('td');
+        td.style.textAlign = 'right';
+        if (!m || mengeTxt === '-') {
+            td.innerHTML = '<span style="color:var(--text-secondary)">-</span>';
+        } else if (p == null) {
+            anyNA = true;
+            td.innerHTML = `<span style="font-style:italic; font-size:0.78rem; color:var(--st-gray)">${PRICE_NA}</span>`;
+        } else {
+            grand += p * (isNaN(menge) ? 1 : menge);
+            td.style.whiteSpace = 'nowrap';
+            td.style.fontFamily = 'var(--st-font-mono)';
+            td.textContent = formatCHF(p);
+        }
+        tr.appendChild(td);
+    });
+    if (!anyRow) return;
+    const total = document.createElement('tr');
+    total.className = 'bom-total-row';
+    total.style.cssText = 'border-top:2px solid var(--border); font-weight:700;';
+    total.innerHTML = `<td colspan="${cols - 1}" style="text-align:right; text-transform:uppercase; font-size:0.82rem; letter-spacing:0.5px; padding-right:1rem;">Gesamtbetrag exkl. MwSt${anyNA ? ' *' : ''}</td><td style="text-align:right; white-space:nowrap; font-family:var(--st-font-mono);">CHF ${formatCHF(grand)}</td>`;
+    tbody.appendChild(total);
+    if (anyNA) {
+        const fn = document.createElement('tr');
+        fn.innerHTML = `<td colspan="${cols}" style="font-size:0.72rem; color:var(--st-gray); font-style:italic; padding-top:0.25rem;">* zzgl. Positionen mit „Preis auf Anfrage"</td>`;
+        tbody.appendChild(fn);
+    }
+};
+
+export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM };

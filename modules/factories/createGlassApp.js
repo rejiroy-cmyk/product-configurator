@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
 
 export function createGlassApp(title, desc, mainImgUrl, config = {}) {
     const appConfig = { enableGalleryUX: true, ...config };
@@ -1310,6 +1310,7 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             }
 
             bomCountCounter.textContent = `${count} Artikel benötigt`;
+            priceBOM(document.getElementById('bomTableBody'));
         },
 
         copyToClipboard: function() {

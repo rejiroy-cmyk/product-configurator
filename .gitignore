@@ -30,6 +30,9 @@ node_modules/
 #   tracked; only throwaway probes and screenshots are ignored.
 /st-scraper/test-*.js
 /st-scraper/test_*.js
+/st-scraper/recon-*.js
+/st-scraper/poc-*.js
+/st-scraper/sanitas-scraped.json
 /st-scraper/*.png
 /st-scraper/*.html
 /st-scraper/*.log

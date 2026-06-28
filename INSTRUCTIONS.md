@@ -67,7 +67,25 @@ This document outlines the strict business logic rules and safeguards that must 
   - **ADD** `2× 6521 108.501.000` **only when** the description explicitly says **`ohne Abstellverschraubungen`** (e.g. `ohne Abstellverschraubungen ½" x ½"`). Match: `/ohne\s+abstellverschraubung/i`.
   - **OTHERWISE leave it out** — the connections are already included. This covers Hansgrohe's **`mit S-Anschlüssen`** (S-Anschlüsse = the Abstellverschraubungen, included), as well as labels that list `Abstellverschraubungen` without `ohne`.
 - **Standard selection** = the first option in each group (`options[0]`); the rules above reorder each group so the correct standard sits first. The Alterna Gleitstange stays the standard for the whole configurator until other Gleitstange products are introduced.
+- **Montageart scope:** the Abstellverschraubung rule and this Aufputz BOM-order sort apply to **Aufputz** mixers only (gated via `isAufputz` in `transformDuschenmischerTrays`). The shared option-default rules (1600 mm Brauseschlauch, brand-matched Handbrause) apply to both montage types; Unterputz has its own order/extra rules below.
 - **Scope:** Duschenmischer only (`createDuschenmischerApp.js`, `transformDuschenmischerTrays`). The Gleitstange feature also exists in Bademischer, but Bademischer is intentionally **not** covered by these rules yet.
+
+### Duschenmischer (Shower Mixers) — Unterputz
+- **Unterputz detection:** identified in the description by `ohne Grundkörper…`, `UP`, `Endmontageset` (also `unterputz`, `einbau`, `grundkörper`). These fall under the **Unterputz** filter pill. Same `extractMontage` logic; Unterputz markers are checked **before** the Aufputz AD-marker.
+- **No Abstellverschraubung** — they sit on the Grundkörper, so it is never added for Unterputz.
+- **Grundkörper ALWAYS needs mounting brackets** (like the UP-Bademischer): the Montageschiene/Montageset is mandatory. Integrated-box systems ship without one in the scraped data — the transform adds the brand's set when none is present: **KWC Homebox → `6118 149.000.000`** ("Montageschiene KWC, zu Einbaukörper KWC Homebox", URP 85.00 CHF), **Hansgrohe iBox → `6418 111.000.000`** ("Montageset Hansgrohe iBox Universal, 2 Montageschienen 550 mm"). Both menge 1, with verified profishop labels/images.
+- **BOM Sorting Order:**
+  1. Mischer (`Duschenmischer-Endmontageset …` — Main Item)
+  2. Grundkörper or Einbaukörper
+  3. Montageschiene or Montageset
+  4. Anschlussbogen — **standard = ohne Brausehalter** (`für Handbrause`); `mit integriertem Brausehalter` as a dropdown option (same brand & series if possible)
+  5. Brauseschlauch — **standard = 1600 mm**; the rest in the dropdown
+  6. Handbrause — **same brand and series** if the pool has one (series is a best-effort tiebreak over brand)
+  7. Duschengleitstange — **standard = Alterna 1100 mm** (`6531 404`); 610 mm (`6531 403`) as option
+  8. Regenbrause *(future work — deferred)*
+     - 8.1 Grundkörper for the Regenbrause (if required)
+     - 8.2 Brausearm (if not already included with the Regenbrause)
+- **Note:** the current scraped data already complies with order items 2–7; the rules above are encoded in the transform so future imports stay compliant.
 
 ## 3. Brand & Bundling Rules
 

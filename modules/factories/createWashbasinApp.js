@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
 
 export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
     const suffix = title.replace(/\s/g, '');
@@ -580,6 +580,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                 }
             });
             bomCountCounter.textContent = `${visibleCount} Artikel benötigt`;
+            priceBOM(document.getElementById('bomTableBody'));
         },
         copyToClipboard: function () {
             if (!this.selectedTray) { alert('Bitte wählen Sie zuerst einen Waschtisch aus.'); return; }

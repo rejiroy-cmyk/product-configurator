@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
 
 export function createStandardApp(title, desc, mainImgUrl) {
     const suffix = title.replace(/\s/g, '');
@@ -72,6 +72,7 @@ export function createStandardApp(title, desc, mainImgUrl) {
                 </tr>
             `;
             bomCountCounter.textContent = "1 Artikel";
+            priceBOM(document.getElementById('bomTableBody'));
         },
         copyToClipboard: function () {
             if (!this.selectedTray) {
