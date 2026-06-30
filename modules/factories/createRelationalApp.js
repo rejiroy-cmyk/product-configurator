@@ -250,6 +250,12 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     if (artNr === '1431191.000.000' || artNr === '1431190.000.000' || artNr === '1435435.000.000' || artNr === '1435433.000.000') {
                         return 'montagerahmen';
                     }
+                    // Anchors in the "Weiteres Zubehör" group on trays that don't tag them with
+                    // an overrideMontageart (e.g. Alterna ecoplan). Classify by their own system so
+                    // they land under the dedicated Nivodübel / Wannenanker pills — same as the trays
+                    // (e.g. Kaldewei Sanidusch) that DO tag them — instead of leaking as 'common'.
+                    if (artNr === '1451116.000.000') return 'nivodübel';      // Einschlagdübel Nivo
+                    if (artNr === '1451131.000.000') return 'wannenanker';    // Wannenanker Mepa
                 } else if (this.title === 'Badewanne') {
                     // Future Badewanne specific exceptions go here
                 }
@@ -692,6 +698,13 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 this.currentMontageart = btn.dataset.val;
                 this.updatePillFilters();
                 this.filterResults();
+                // Montageart also governs which mounting accessories belong in the
+                // selected tray's BOM — re-render both sidebar + BOM, otherwise toggling
+                // the pill after a tray is picked leaves a stale (unfiltered) Stückliste.
+                if (this.selectedTray) {
+                    this.renderConfigurator();
+                    this.updateBOM();
+                }
             }));
             if (!hideSizeForm) this.updateManualInputs();
         },
