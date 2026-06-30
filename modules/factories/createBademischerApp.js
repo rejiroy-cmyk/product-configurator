@@ -4,10 +4,42 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
   function transformBademischerUPTrays(trays) {
     if (!Array.isArray(trays)) return trays;
     return trays.map(tray => {
+      // Abstellverschraubung rule (all montage): keep it ONLY when the description says
+      // "ohne Abstellverschraubungen". Anything else — "mit Verschraubungen", "mit S-Anschlüssen",
+      // or a label that simply doesn't state "ohne" — means it's already included → drop the
+      // baked Abstellverschraubung line. (Everything else in Bademischer stays untouched.)
+      if (tray.mountingMaterials && !/ohne\s+abstellverschraubung/.test((tray.label || "").toLowerCase())) {
+        tray.mountingMaterials = tray.mountingMaterials.filter(
+          m => !(m.name || "").toLowerCase().includes("abstellverschraubung")
+        );
+      }
+
       // Only apply to UP products
       if (!tray.label || (!tray.label.includes('UP') && !tray.label.includes('Endmontage'))) return tray;
       if (!tray.mountingMaterials) return tray;
-      
+
+      // Grundkörper ALWAYS needs mounting brackets (same rule as Duschenmischer Unterputz):
+      // a Grundkörper/Einbaukörper with no Montageschiene gets the brand's mounting set,
+      // inserted right after the Grundkörper. KWC Homebox Endmontagesets need this.
+      const hasMontage = tray.mountingMaterials.some(m => {
+        const x = (m.name || "").toLowerCase();
+        return x.includes("montageschiene") || x.includes("montageset");
+      });
+      const gkIdx = tray.mountingMaterials.findIndex(m => {
+        const x = (m.name || "").toLowerCase();
+        return x.includes("grundkörper") || x.includes("grundkoerper") || x.includes("einbaukörper") || x.includes("einbaukoerper") || x.includes("ibox") || x.includes("homebox");
+      });
+      if (gkIdx >= 0 && !hasMontage) {
+        const mfr = (tray.manufacturer || "").toLowerCase();
+        let bracket = null;
+        if (mfr === "kwc") {
+          bracket = { artNr: "6118 149.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Homebox", menge: 1, type: "Zubehör", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06118149_000_000.png" };
+        } else if (mfr === "hansgrohe") {
+          bracket = { artNr: "6418 111.000.000", label: "Montageset Hansgrohe iBox Universal, 2 Montageschienen 550 mm, Befestigungsmaterial", menge: 1, type: "Zubehör", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06418111_000_000.png" };
+        }
+        if (bracket) tray.mountingMaterials.splice(gkIdx + 1, 0, { name: "Montageschiene", options: [bracket] });
+      }
+
       const hasGleitstange = tray.mountingMaterials.some(m => (m.name || "").toLowerCase().includes("gleitstange"));
       if (hasGleitstange) return tray;
 
