@@ -1,158 +1,27 @@
 {
- "note": "Standalone Duschtrennwand/Badeabtrennung partitions (doors + Freistehende/Walk-In side-walls) that have Massaufnahme+Anfahrt but no confidently-matchable Montagepauschale. Add-on Seitenwaende were stripped of services (per rule) and are NOT here.",
- "count": 15,
- "by_reason": {
-  "no-montage-twin": 4,
-  "unclassified-type": 1,
-  "malformed-artNr": 1,
-  "ambiguous-montage": 9
- },
+ "note": "Standalone Duschtrennwand/Badeabtrennung partitions still missing a Montagepauschale after round-2 heals. Needs per-product service scrape / user-supplied art-Nr.",
+ "count": 3,
  "items": [
   {
-   "artNr": "1541 604.597.140",
-   "category": "duschtrennwand",
-   "brand": "Alterna",
-   "serie": "primo",
-   "label": "Freistehende Seitenwand Alterna primo mit Wandprofil, Höhe 200 cm Breite 103,1 - 123 cm (M",
-   "reason": "no-montage-twin",
-   "bracket": "bis125",
-   "config": "walkin"
-  },
-  {
-   "artNr": "1541 601.591.118",
-   "category": "duschtrennwand",
-   "brand": "Alterna",
-   "serie": "primo",
-   "label": "Freistehende Seitenwand Alterna primo mit Wandprofil, Höhe 200 cm Breite 100 cm (97,8 - 10",
-   "reason": "no-montage-twin",
-   "bracket": "bis125",
-   "config": "walkin"
-  },
-  {
-   "artNr": "1541 603.597.140",
-   "category": "duschtrennwand",
-   "brand": "Alterna",
-   "serie": "primo",
-   "label": "Freistehende Seitenwand Alterna primo mit Wandprofil, Höhe 200 cm Breite 40 - 103 cm (Mass",
-   "reason": "no-montage-twin",
-   "bracket": "bis125",
-   "config": "walkin"
-  },
-  {
-   "artNr": "1541 602.597.118",
-   "category": "duschtrennwand",
-   "brand": "Alterna",
-   "serie": "primo",
-   "label": "Freistehende Seitenwand Alterna primo mit Wandprofil, Höhe 200 cm Breite 120 cm (117,8 - 1",
-   "reason": "no-montage-twin",
-   "bracket": "bis125",
-   "config": "walkin"
-  },
-  {
-   "artNr": "1513 172.597.119",
-   "category": "duschtrennwand",
-   "brand": "Duscholux",
-   "serie": "Bella Vita 3",
-   "label": "Drehfaltt��r Duscholux Bella Vita 3, Breite 120 cm (118,5 - 120,5 cm), Band rechts, für Se",
-   "reason": "unclassified-type"
-  },
-  {
-   "artNr": "Echtglas klar Glasplus",
-   "category": "duschtrennwand",
-   "brand": "Koralle",
-   "serie": "S600",
+   "artNr": "1522 651.597.118",
+   "manufacturer": "Andere",
+   "serie": null,
    "label": "Eckeinstieg Koralle S600 Viertelkreis, 100 x 100 cm (98,5 - 100,5 cm), zu",
-   "reason": "malformed-artNr"
+   "category": "duschtrennwand"
   },
   {
    "artNr": "1524 433.490.118",
-   "category": "duschtrennwand",
-   "brand": "Koralle",
-   "serie": "S808",
-   "label": "Pendeltüre Koralle S808, Breite 1001 - 1400 mm, Band links, Wandanschlag mit Seitenwand in",
-   "reason": "ambiguous-montage",
-   "bracket": "bis125",
-   "config": "door:pendeltüre"
+   "manufacturer": "Koralle",
+   "serie": null,
+   "label": "Pendeltüre Koralle S808, Breite 1001 - 1400 mm, Band links, Wandanschlag mit Sei",
+   "category": "duschtrennwand"
   },
   {
    "artNr": "1524 434.490.118",
-   "category": "duschtrennwand",
-   "brand": "Koralle",
-   "serie": "S808",
-   "label": "Pendeltüre Koralle S808, Breite 1001 - 1400 mm, Band rechts, Wandanschlag mit Seitenwand i",
-   "reason": "ambiguous-montage",
-   "bracket": "bis125",
-   "config": "door:pendeltüre"
-  },
-  {
-   "artNr": "1518 285.597.118",
-   "category": "badeabtrennung",
-   "brand": "Duscholux",
+   "manufacturer": "Koralle",
    "serie": null,
-   "label": "Falttrennwand Duscholux Step-in Pure, Band links, Breite 114,1 cm, 2-teilig,",
-   "reason": "ambiguous-montage",
-   "bracket": "bis125",
-   "config": "door:falttrennwand"
-  },
-  {
-   "artNr": "1518 286.591.118",
-   "category": "badeabtrennung",
-   "brand": "Duscholux",
-   "serie": null,
-   "label": "Falttrennwand Duscholux Step-in Pure, Band rechts, Breite 114,1 cm, 2-teilig,",
-   "reason": "ambiguous-montage",
-   "bracket": "bis125",
-   "config": "door:falttrennwand"
-  },
-  {
-   "artNr": "1518 281.597.119",
-   "category": "badeabtrennung",
-   "brand": "Duscholux",
-   "serie": null,
-   "label": "Falttrennwand Duscholux Step-in Pure, Band links, Breite 73,9 cm, 1-teilig,",
-   "reason": "ambiguous-montage",
-   "bracket": "bis125",
-   "config": "door:falttrennwand"
-  },
-  {
-   "artNr": "1518 282.591.118",
-   "category": "badeabtrennung",
-   "brand": "Duscholux",
-   "serie": null,
-   "label": "Falttrennwand Duscholux Step-in Pure, Band rechts, Breite 73,9 cm, 1-teilig,",
-   "reason": "ambiguous-montage",
-   "bracket": "bis125",
-   "config": "door:falttrennwand"
-  },
-  {
-   "artNr": "1528 182.100.118",
-   "category": "badeabtrennung",
-   "brand": "Koralle",
-   "serie": "S606",
-   "label": "Gleittüre Koralle S606 Plus, Festelement rechts, Breite 120 - 140 cm, 2-teilig, Höhe 160 c",
-   "reason": "ambiguous-montage",
-   "bracket": "bis125",
-   "config": "door:gleittüre"
-  },
-  {
-   "artNr": "1528 183.100.118",
-   "category": "badeabtrennung",
-   "brand": "Koralle",
-   "serie": "S606",
-   "label": "Gleittüre Koralle S606 Plus, Festelement links, Breite 140,1 - 150 cm, 2-teilig, Höhe 160 ",
-   "reason": "ambiguous-montage",
-   "bracket": "ab125",
-   "config": "door:gleittüre"
-  },
-  {
-   "artNr": "1528 184.100.118",
-   "category": "badeabtrennung",
-   "brand": "Koralle",
-   "serie": "S606",
-   "label": "Gleittüre Koralle S606 Plus, Festelement rechts, Breite 140,1 - 150",
-   "reason": "ambiguous-montage",
-   "bracket": "ab125",
-   "config": "door:gleittüre"
+   "label": "Pendeltüre Koralle S808, Breite 1001 - 1400 mm, Band rechts, Wandanschlag mit Se",
+   "category": "duschtrennwand"
   }
  ]
 }

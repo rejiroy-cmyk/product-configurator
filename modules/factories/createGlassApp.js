@@ -1297,6 +1297,33 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 `;
             });
 
+            // Alterna primo freistehende Seitenwand: bundled Dienstleistungspaket (Ausmass +
+            // Anfahrt + Montage in ONE Art-Nr) with a quantity-tier dropdown — 1549 180 for
+            // 1–4 Stück (standard) and 1549 181 for ab 5 Stück (option). Replaces the individual
+            // service rows for these products (their `services` array is intentionally empty).
+            if (Array.isArray(this.selectedTray.servicePackage) && this.selectedTray.servicePackage.length) {
+                const pkgs = this.selectedTray.servicePackage;
+                this.selectedTray.selections = this.selectedTray.selections || {};
+                const selPkg = this.selectedTray.selections.__servicepaket__ || pkgs[0].artNr;
+                this.selectedTray.selections.__servicepaket__ = selPkg;
+                const activePkg = pkgs.find(p => p.artNr === selPkg) || pkgs[0];
+                count += activePkg.qty || 1;
+                const pkgOptions = pkgs.map(p => `<option value="${p.artNr}" ${selPkg === p.artNr ? "selected" : ""}>${p.label} (${p.artNr})</option>`).join('');
+                html += `
+                    <tr class="service-row servicepaket-bom-row">
+                        <td><div class="img-cell"><i class="ri-customer-service-2-line" style="font-size:1.5rem; color:var(--accent);"></i></div></td>
+                        <td><span class="bom-code">${activePkg.artNr}</span></td>
+                        <td><div class="bom-desc">
+                            <strong style="color:var(--accent); font-size:0.75rem; text-transform:uppercase; display:block; margin-bottom:4px;">Dienstleistungspaket</strong>
+                            <select class="inline-bom-select config-select-servicepaket" style="width:100%; padding:0.4rem; border-radius:6px; border:1px solid var(--border); background:var(--bg-surface); color:var(--text-primary); font-size:0.85rem; font-family:inherit; cursor:pointer; outline:none;">
+                                ${pkgOptions}
+                            </select>
+                        </div></td>
+                        <td><strong>${activePkg.qty || 1}</strong></td>
+                    </tr>
+                `;
+            }
+
             bomTableBody.innerHTML = html;
 
             // Bind InlineBOM Seitenwand selection listener
@@ -1305,6 +1332,16 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 selectEl.addEventListener('change', (e) => {
                     this.selectedTray.selections = this.selectedTray.selections || {};
                     this.selectedTray.selections.__seitenwand__ = e.target.value;
+                    this.updateBOM();
+                });
+            }
+
+            // Bind service-package (Dienstleistungspaket) selection listener
+            const pkgSelectEl = bomTableBody.querySelector('.config-select-servicepaket');
+            if (pkgSelectEl) {
+                pkgSelectEl.addEventListener('change', (e) => {
+                    this.selectedTray.selections = this.selectedTray.selections || {};
+                    this.selectedTray.selections.__servicepaket__ = e.target.value;
                     this.updateBOM();
                 });
             }
