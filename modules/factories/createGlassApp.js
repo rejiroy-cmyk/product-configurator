@@ -1190,9 +1190,35 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             const r = this.extractSizeScore(this.selectedTray);
             let checkWidth = this.extractWidthCm(this.selectedTray);
 
+            // When a product's own Montage candidates include more than one "ab N,1 cm"
+            // (unbounded-upward) threshold — e.g. "ab 120,1 cm" AND "ab 160,1 cm" as a 3-tier
+            // bis120/120-160/ab160 bracket system — the lower threshold has no stated upper
+            // bound in its own text, so per-candidate width checks alone can't tell it's meant
+            // to stop where the higher one starts. Precompute the highest "ab" threshold this
+            // product's width actually qualifies for, so only that one survives.
+            let highestQualifyingAbThreshold = null;
+            if (checkWidth !== null) {
+                const abThresholds = [];
+                (this.selectedTray.services || []).forEach(s => {
+                    const t = ((s.label || '') + ' ' + (s.description || '')).toLowerCase();
+                    if (!t.includes('montagepauschale')) return;
+                    const m = t.match(/ab\s+(\d+)(?:[.,]1)?\s*cm/);
+                    if (m) abThresholds.push(+m[1]);
+                });
+                const qualifying = [...new Set(abThresholds)].filter(v => checkWidth > v);
+                if (qualifying.length) highestQualifyingAbThreshold = Math.max(...qualifying);
+            }
+
             const isSideWallIncluded = this.isAlternaOrDuscholuxSideWallIncluded(this.selectedTray);
             const isMainProductSeitenwand = this.extractType(this.selectedTray) === "Freistehende Seitenwand";
             const hasSideWallActiveOrIncluded = hasSideWallActive || isSideWallIncluded || isMainProductSeitenwand;
+            // A "Seitenwand ..." product selected AS THE MAIN PRODUCT (browsed/ordered on its
+            // own, not as a companion picked under some door) carries no information about
+            // which door it'll actually be paired with — Nische vs a specific door's side-wall
+            // bracket is a real installation fact only the customer knows, not derivable from
+            // the wall's own data. Don't run the door-oriented Nische/Seitenwand toggle branch
+            // for this case; let every width/config-compatible candidate through instead.
+            const isSeitenwandMainProduct = /^seitenwand/i.test((this.selectedTray.label || '').trim());
 
             const filteredServices = (this.selectedTray.services || []).filter(n => {
                 const labelAndDesc = (n.label + " " + (n.description || "")).toLowerCase();
@@ -1212,7 +1238,26 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 }
                 
                 // Dynamic mounting service filtering based on side wall selection
-                if (hasSideWallActiveOrIncluded) {
+                if (isSeitenwandMainProduct) {
+                    // Only drop services that are exclusively for a different product shape
+                    // (Eckeinstieg-only); everything else — Nische install AND width-bracketed
+                    // companion-wall options — survives to the width filter below, and if 2+
+                    // remain they surface via the Montage dropdown for the customer to pick.
+                    if (!isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg") && !labelAndDesc.includes("seitenwand")) {
+                        return false;
+                    }
+                    // 1521 964 is a broad catch-all superseded by the more specific S606 SKUs
+                    // below when they're also present on the same product — same redundancy
+                    // rule as the door-toggle branch, so it doesn't duplicate as a vague option
+                    // alongside its precise siblings.
+                    if (n.artNr === '1521 964.000.000') {
+                        const hasSpecificService = (this.selectedTray.services || []).some(s =>
+                            s.artNr === '1521 969.000.000' || s.artNr === '1521 970.000.000' ||
+                            s.artNr === '1521 971.000.000' || s.artNr === '1521 896.000.000'
+                        );
+                        if (hasSpecificService) return false;
+                    }
+                } else if (hasSideWallActiveOrIncluded) {
                     if (!isMainProductSeitenwand && (labelAndDesc.includes("in nische") || labelAndDesc.includes("für nische") || labelAndDesc.includes("fuer nische"))) {
                         return false;
                     }
@@ -1223,8 +1268,11 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                         );
                         if (hasSpecificService) return false;
                     }
-                    // If not an Eckeinstieg product, exclude Eckeinstieg services
-                    if (!isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg")) {
+                    // If not an Eckeinstieg product, exclude Eckeinstieg-EXCLUSIVE services —
+                    // but a shared "Seitenwand / Eckeinstieg" Montage entry (one SKU covering
+                    // BOTH configs) must survive for a non-Eckeinstieg product with a side wall
+                    // active, or the Montage line disappears entirely instead of switching.
+                    if (!isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg") && !labelAndDesc.includes("seitenwand")) {
                         return false;
                     }
                     // If it is an Eckeinstieg product, exclude standard side wall services (only for Koralle)
@@ -1233,10 +1281,12 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                         return false;
                     }
                 } else {
-                    const cleanLabel = n.label.toLowerCase();
-                    if (cleanLabel.includes("nische") || cleanLabel.includes("nischen")) {
+                    // Check label+description (not label alone) for "nische" — some Montage
+                    // entries only state their config in the description (e.g. "1521 464.000.000"
+                    // whose label is just "für S808," but description says "...in Nische").
+                    if (labelAndDesc.includes("nische") || labelAndDesc.includes("nischen")) {
                         // Keep it!
-                    } else if (labelAndDesc.includes("mit seitenwand") || labelAndDesc.includes("für seitenwand") || labelAndDesc.includes("fuer seitenwand") || labelAndDesc.includes("seitenwand") || (!isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg")) || 
+                    } else if (labelAndDesc.includes("mit seitenwand") || labelAndDesc.includes("für seitenwand") || labelAndDesc.includes("fuer seitenwand") || labelAndDesc.includes("seitenwand") || (!isEckeinstiegProduct && labelAndDesc.includes("eckeinstieg")) ||
                         (labelAndDesc.includes(" mit") && !labelAndDesc.includes("nische") && !labelAndDesc.includes("festelement") && !labelAndDesc.includes("pendelelement") && !labelAndDesc.includes("glasteil"))) {
                         return false;
                     }
@@ -1247,14 +1297,23 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                     // Check 100 cm threshold
                     if (labelAndDesc.includes("bis 100") && checkWidth > 100) return false;
                     if ((labelAndDesc.includes("ab 100") || labelAndDesc.includes("100,1") || labelAndDesc.includes("100.1")) && checkWidth <= 100) return false;
-                    
+
                     // Check 120 cm threshold
                     if (labelAndDesc.includes("bis 120") && checkWidth > 120) return false;
                     if ((labelAndDesc.includes("ab 120") || labelAndDesc.includes("120,1") || labelAndDesc.includes("120.1")) && !labelAndDesc.includes("160") && checkWidth <= 120) return false;
-                    
+
                     // Check 160 cm threshold
                     if (labelAndDesc.includes("bis 160") && checkWidth > 160) return false;
                     if ((labelAndDesc.includes("ab 160") || labelAndDesc.includes("160,1") || labelAndDesc.includes("160.1")) && checkWidth <= 160) return false;
+
+                    // A lower "ab N,1 cm" threshold with no stated upper bound of its own must
+                    // not survive when a higher "ab" threshold on a sibling candidate ALSO
+                    // qualifies for this width (e.g. width=180 qualifies both "ab 120,1" and
+                    // "ab 160,1" — only the more specific "ab 160,1" should remain).
+                    if (highestQualifyingAbThreshold !== null) {
+                        const abMatch = labelAndDesc.match(/ab\s+(\d+)(?:[.,]1)?\s*cm/);
+                        if (abMatch && +abMatch[1] < highestQualifyingAbThreshold) return false;
+                    }
                     
                     // Check 120 to 160 range
                     if ((labelAndDesc.includes("120,1") || labelAndDesc.includes("120")) && labelAndDesc.includes("160")) {
@@ -1277,7 +1336,16 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 return getPriority(a) - getPriority(b);
             });
 
-            filteredServices.forEach(n => {
+            // When the size/config filters above still leave 2+ Montagepauschale candidates
+            // (an installation bracket the data itself can't disambiguate further — e.g. a
+            // width+height combination that splits across brackets, or a config the product's
+            // own label doesn't state), don't charge all of them at once. Pull them into a
+            // single dropdown so the customer picks the one matching the real situation.
+            const montageCandidates = filteredServices.filter(n => /^montagepauschale/i.test((n.label || '').trim()));
+            const showMontageDropdown = montageCandidates.length >= 2;
+            const otherServices = showMontageDropdown ? filteredServices.filter(n => !montageCandidates.includes(n)) : filteredServices;
+
+            otherServices.forEach(n => {
                 count += n.qty || 1;
                 let showDescription = false;
                 if (n.description) {
@@ -1296,6 +1364,38 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                     </tr>
                 `;
             });
+
+            if (showMontageDropdown) {
+                this.selectedTray.selections = this.selectedTray.selections || {};
+                const selMontage = this.selectedTray.selections.__montage__ || '';
+                const activeMontage = montageCandidates.find(m => m.artNr === selMontage);
+                if (activeMontage) count += activeMontage.qty || 1;
+                // Some Montage labels are short/generic ("Montagepauschale Koralle, mit") while
+                // the description carries the actual distinguishing install context — show
+                // whichever is more informative so the dropdown is actually readable.
+                const montageOptionText = m => {
+                    const label = (m.label || '').trim();
+                    const desc = (m.description || '').replace(/\s+/g, ' ').trim();
+                    return desc.length > label.length ? desc : label;
+                };
+                const montageOptions = `<option value="" ${!activeMontage ? 'selected' : ''}>Bitte wählen…</option>` +
+                    montageCandidates.map(m => `<option value="${m.artNr}" ${selMontage === m.artNr ? 'selected' : ''}>${montageOptionText(m)} (${m.artNr})</option>`).join('');
+                const artNrDisplay = activeMontage ? activeMontage.artNr : '<span style="color:var(--accent); font-weight:bold;">Ausstehend</span>';
+                const mengeDisplay = activeMontage ? (activeMontage.qty || 1) : '-';
+                html += `
+                    <tr class="service-row montage-bom-row">
+                        <td><div class="img-cell"><i class="ri-customer-service-2-line" style="font-size:1.5rem; color:var(--accent);"></i></div></td>
+                        <td><span class="bom-code">${artNrDisplay}</span></td>
+                        <td><div class="bom-desc">
+                            <strong style="color:var(--accent); font-size:0.75rem; text-transform:uppercase; display:block; margin-bottom:4px;">Montagepauschale — Situation wählen</strong>
+                            <select class="inline-bom-select config-select-montage" style="width:100%; padding:0.4rem; border-radius:6px; border:1px solid var(--border); background:var(--bg-surface); color:var(--text-primary); font-size:0.85rem; font-family:inherit; cursor:pointer; outline:none;">
+                                ${montageOptions}
+                            </select>
+                        </div></td>
+                        <td><strong>${mengeDisplay}</strong></td>
+                    </tr>
+                `;
+            }
 
             // Alterna primo freistehende Seitenwand: bundled Dienstleistungspaket (Ausmass +
             // Anfahrt + Montage in ONE Art-Nr) with a quantity-tier dropdown — 1549 180 for
@@ -1332,6 +1432,16 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 selectEl.addEventListener('change', (e) => {
                     this.selectedTray.selections = this.selectedTray.selections || {};
                     this.selectedTray.selections.__seitenwand__ = e.target.value;
+                    this.updateBOM();
+                });
+            }
+
+            // Bind Montagepauschale (ambiguous-bracket) selection listener
+            const montageSelectEl = bomTableBody.querySelector('.config-select-montage');
+            if (montageSelectEl) {
+                montageSelectEl.addEventListener('change', (e) => {
+                    this.selectedTray.selections = this.selectedTray.selections || {};
+                    this.selectedTray.selections.__montage__ = e.target.value;
                     this.updateBOM();
                 });
             }
