@@ -1029,12 +1029,25 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             const doorHeight = this.extractHeight(tray);
             const doorTypes = this.extractDoorTypes(tray.label + ' ' + (tray.description || ''));
 
-            const walls = this.trays.filter(t => {
+            // Alterna liva side walls come in two mount types: STANDARD (fitted on a shower
+            // tray — no mounting keyword) and BODENMONTAGE (fitted directly on the floor,
+            // no tray — carries "Bodenmontage"). A liva Gleittüre must pair only with side
+            // walls of its OWN mount type (user rule 2026-07-04; liva-scoped so other series
+            // are untouched). FULL-TEXT: the keyword may live in label OR description.
+            const isLiva = (mfg || '').toLowerCase() === 'alterna' && (series || '').toLowerCase() === 'liva';
+            const doorIsBoden = isLiva && /bodenmontage/i.test((tray.label || '') + ' ' + (tray.description || ''));
+
+            const findWalls = (enforceGlass) => this.trays.filter(t => {
                 if (t.manufacturer !== mfg || this.extractSeries(t) !== series) return false;
                 if (this.extractSituation(t) === "Freistehend / Walk-in") return false;
                 const l = (t.label || '').toLowerCase();
                 const form = (t.form || '').toLowerCase();
-                
+
+                if (isLiva) {
+                    const wallIsBoden = /bodenmontage/i.test((t.label || '') + ' ' + (t.description || ''));
+                    if (wallIsBoden !== doorIsBoden) return false;
+                }
+
                 // Side wall detection
                 const isSeitenwand = (form === 'seitenwand' || l.startsWith('seitenwand') || l.includes('seitenwand')) &&
                                      !l.startsWith('gleit') &&
@@ -1060,10 +1073,10 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                         return false;
                     }
                 }
-                
+
                 // Color & Glass & Height matching
                 if (doorColor && this.getExactColor(t) !== doorColor) return false;
-                if (doorGlas && this.getExactGlasart(t) !== doorGlas) return false;
+                if (enforceGlass && doorGlas && this.getExactGlasart(t) !== doorGlas) return false;
                 if (doorHeight && !this.heightsCompatible(tray, doorHeight, this.extractHeight(t))) return false;
 
                 // Band (hinge) direction matching (must be opposite if specified)
@@ -1074,6 +1087,14 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
 
                 return true;
             });
+
+            // Prefer an exact glass match. For liva, the CareTec-Pro side-wall variants are
+            // simply absent from the data, so a CareTec-Pro door would otherwise find no wall —
+            // fall back to the same colour/mount/band wall in the plain-glass finish rather than
+            // leave the door unconfigurable (glass is a coating, visually identical). Mount type
+            // and opposite-band stay strict either way (user rule 2026-07-04).
+            let walls = findWalls(true);
+            if (isLiva && walls.length === 0) walls = findWalls(false);
             return walls.sort((a, b) => this.extractSizeScore(a) - this.extractSizeScore(b));
         },
 
@@ -1232,6 +1253,16 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             const r = this.extractSizeScore(this.selectedTray);
             let checkWidth = this.extractWidthCm(this.selectedTray);
 
+            // The 125-cm Montage bracket must compare against the product's TRUE overall width.
+            // extractSizeScore can grab a sub-panel width (e.g. a Pendeltüre leaf "bis 1000 mm"
+            // on a 2-flügelig door whose overall Breite is 1800 mm), and specs.Breite is
+            // occasionally wrong the other way — so take the max of both real signals (ignoring
+            // the 9999/999 "unknown" sentinels), falling back to r when neither is known.
+            const eff125 = Math.max(
+                (r && r < 900) ? r : 0,
+                (checkWidth != null && checkWidth < 900) ? checkWidth : 0
+            ) || r;
+
             // When a product's own Montage candidates include more than one "ab N,1 cm"
             // (unbounded-upward) threshold — e.g. "ab 120,1 cm" AND "ab 160,1 cm" as a 3-tier
             // bis120/120-160/ab160 bracket system — the lower threshold has no stated upper
@@ -1269,8 +1300,8 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                     (this.selectedTray.form || "").toLowerCase().includes("eckeinstieg") ||
                     isSideWallIncluded;
                 
-                // Original size filter
-                if (labelAndDesc.includes("montagepauschale") && ((labelAndDesc.includes("bis 125") && r > 125) || (labelAndDesc.includes("ab 125") && r <= 125))) {
+                // Original size filter (uses the true overall width, see eff125 above)
+                if (labelAndDesc.includes("montagepauschale") && ((labelAndDesc.includes("bis 125") && eff125 > 125) || (labelAndDesc.includes("ab 125") && eff125 <= 125))) {
                     return false;
                 }
 
@@ -1365,6 +1396,16 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 
                 return true;
             });
+
+            // Safety net: the filters above disambiguate AMONG a product's Montage candidates;
+            // they must never eliminate its ONLY one (the data already assigned the correct
+            // Montage). If filtering dropped every Montage — e.g. a greedy "mit"/width/config
+            // match caught the sole candidate — restore the raw candidates so a Montage always
+            // renders (2+ fall to the dropdown below; 1 renders directly).
+            const rawMontages = (this.selectedTray.services || []).filter(n => /^montagepauschale/i.test((n.label || '').trim()));
+            if (rawMontages.length && !filteredServices.some(n => /^montagepauschale/i.test((n.label || '').trim()))) {
+                filteredServices.push(...rawMontages);
+            }
 
             // Sort services: 1. Massaufnahme/Ausmass, 2. Anfahrtspauschale, 3. Montagepauschale, 4. Others
             filteredServices.sort((a, b) => {
