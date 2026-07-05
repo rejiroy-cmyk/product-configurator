@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 5175",
-    "test": "node tests/verify-duschtrennwand.js && node tests/verify-all-apps.js && node tests/verify-shower-rules.js && node tests/verify-servicepaket.mjs",
+    "test": "node tests/verify-duschtrennwand.js && node tests/verify-all-apps.js && node tests/verify-shower-rules.js && node tests/verify-servicepaket.mjs && node tests/verify-fulltext-rule.js",
     "replay:tape": "node scripts/replay-shower-rules.js",
     "lint": "eslint .",
     "format": "prettier --write .",

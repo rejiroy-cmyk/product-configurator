@@ -67,11 +67,6 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
         },
         extractSerie: function (t) {
             if (t.serie) return t.serie;
-            let lbl = (t.label || '');
-
-            lbl = lbl.split(',')[0].trim();
-            lbl = lbl.replace(/\bA\s*\d+/i, '').trim();
-
             const brand = (t.manufacturer || '').toLowerCase();
             const skipWords = [
                 'einlochmischer', 'waschtischmischer', 'waschtischbatterie', 'batterie',
@@ -79,16 +74,21 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                 'u-mischer', 'aufbau', brand, 'hansgrohe', 'axor', 'laufen', 'alterna', 'gessi', 'kwc',
                 'auslauf', 'fest', 'schwenkbar', 'mit', 'ohne', 'ablaufventil'
             ];
-
-            let remainingWords = lbl.split(/\s+/).filter(w => {
-                let clean = w.toLowerCase().replace(/[^a-z0-9-]/g, '');
-                if (!clean) return false;
-                if (skipWords.includes(clean)) return false;
-                return true;
-            });
-
-            let serie = remainingWords.join(' ');
-            serie = serie.replace(/(ComfortZone|CoolStart|EcoSmart|Normalstrahl|Waterfall|WaterfallStream).*/i, '').trim();
+            // FULL-TEXT RULE: parse the label's leading segment for the series; fall back to the
+            // description when the label is truncated to nothing usable.
+            const parse = (raw) => {
+                let lbl = (raw || '').split(',')[0].trim();
+                lbl = lbl.replace(/\bA\s*\d+/i, '').trim();
+                let remainingWords = lbl.split(/\s+/).filter(w => {
+                    let clean = w.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                    if (!clean) return false;
+                    if (skipWords.includes(clean)) return false;
+                    return true;
+                });
+                let serie = remainingWords.join(' ');
+                return serie.replace(/(ComfortZone|CoolStart|EcoSmart|Normalstrahl|Waterfall|WaterfallStream).*/i, '').trim();
+            };
+            let serie = parse(t.label) || parse(t.description);
 
             if (title === 'Duschenmischer') {
                 return this.normalizeDuschenmischerSerie(serie);
@@ -467,10 +467,11 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             if (!this.selectedTray.selections) this.selectedTray.selections = {};
             this.selectedTray.selections.variant = this.selectedTray.artNr;
 
-            const l = (this.selectedTray.label || '').toLowerCase();
+            // FULL-TEXT RULE: read label AND description for the built-in-Ablauf classification.
+            const l = ((this.selectedTray.label || '') + ' ' + (this.selectedTray.description || '')).toLowerCase();
             const ablaufState = this.extractAblauf(this.selectedTray);
             const isWand = this.extractAusfuehrung(this.selectedTray) === 'Wandmischer';
-            const labelLow = (this.selectedTray.label || '').toLowerCase();
+            const labelLow = ((this.selectedTray.label || '') + ' ' + (this.selectedTray.description || '')).toLowerCase();
             const hasNoBuiltInAblauf = !labelLow.includes('ablauf') || labelLow.includes('ohne ablauf');
 
             if (isWand || hasNoBuiltInAblauf) {

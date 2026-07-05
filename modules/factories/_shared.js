@@ -204,6 +204,35 @@ const ART_RE = /\d{4}\s\d{3}\.\d{3}\.\d{3}/;
 // Menge as the last <td>); call priceBOM(tbody) at the END of updateBOM to append a per-line
 // ‹without taxes› price cell + a grand-total row. Idempotent on a freshly-rendered tbody.
 // Rows without a real art-Nr (placeholders, "ohne") show "-"; unknown art-Nr → "Preis auf Anfrage".
+// ============================================================================
+// GLOBAL ENGINE RULE — FULL-TEXT CLASSIFICATION (user directive 2026-07-03,
+// INSTRUCTIONS.md §1). Any logic that CLASSIFIES, MATCHES, or FILTERS a product
+// (type, situation, series, dimensions, config keywords, service selection)
+// must consider the FULL product text — label AND description AND spec values —
+// never the label alone. ERP labels are truncated; the distinguishing keyword
+// regularly lives only in the description. Use productText() as the single
+// source of truth for such checks.
+//
+// The ONLY permitted exception: product-IDENTITY prefix checks (e.g. a label
+// literally starting with "Seitenwand" or "Montagepauschale" identifies what
+// the product IS). Those may read the label alone but MUST carry a
+// `// label-prefix by design` comment at the call site.
+//
+// Enforced by tests/verify-fulltext-rule.js (npm test fails on regression).
+// ============================================================================
+const productText = (m) => {
+    if (!m) return '';
+    const parts = [m.label || '', m.description || ''];
+    if (m.specs && typeof m.specs === 'object') {
+        for (const v of Object.values(m.specs)) if (typeof v === 'string') parts.push(v);
+    }
+    return parts.join(' ')
+        .toLowerCase()
+        .replace(/[‐-―]/g, '-')   // unicode hyphens -> ascii
+        .replace(/\s+/g, ' ')
+        .trim();
+};
+
 const priceBOM = (tbody, cols = 5) => {
     if (!tbody || !tbody.querySelectorAll) return;
     let grand = 0, anyNA = false, anyRow = false;
@@ -245,4 +274,4 @@ const priceBOM = (tbody, cols = 5) => {
     }
 };
 
-export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM };
+export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText };

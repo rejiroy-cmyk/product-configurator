@@ -152,29 +152,26 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             if (title && title.toLowerCase().includes('wanne')) {
                 typeKeywords.push("duschenwanne", "duschwanne", "badewanne", "duschfläche", "wanne");
             }
-            let label = (t.label || '').toLowerCase();
-
-            if (t.manufacturer) {
-                const m = t.manufacturer.toLowerCase();
-                if (label.startsWith(m)) label = label.slice(m.length).trim();
-            }
-
-            for (const kw of typeKeywords) {
-                if (label.startsWith(kw)) {
-                    label = label.slice(kw.length).trim();
-                    break;
+            // FULL-TEXT RULE: parse the label for the leading series token; fall back to the
+            // description when the label is truncated to nothing usable.
+            const parse = (raw) => {
+                let label = (raw || '').toLowerCase();
+                if (t.manufacturer) {
+                    const m = t.manufacturer.toLowerCase();
+                    if (label.startsWith(m)) label = label.slice(m.length).trim();
                 }
-            }
-
-            label = label.replace(/-?endmontageset/g, '').replace(/-?fertigmontageset/g, '').trim();
-
-            if (t.manufacturer) {
-                const m = t.manufacturer.toLowerCase();
-                if (label.startsWith(m)) label = label.slice(m.length).trim();
-            }
-
-            const match = label.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm|\s+\d+\s*x\s*\d+)/);
-            let serie = match && match[1] ? match[1].trim() : label.trim();
+                for (const kw of typeKeywords) {
+                    if (label.startsWith(kw)) { label = label.slice(kw.length).trim(); break; }
+                }
+                label = label.replace(/-?endmontageset/g, '').replace(/-?fertigmontageset/g, '').trim();
+                if (t.manufacturer) {
+                    const m = t.manufacturer.toLowerCase();
+                    if (label.startsWith(m)) label = label.slice(m.length).trim();
+                }
+                const match = label.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm|\s+\d+\s*x\s*\d+)/);
+                return match && match[1] ? match[1].trim() : label.trim();
+            };
+            let serie = parse(t.label) || parse(t.description);
 
             const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => ((t.label||'') + ' ' + (t.description||'')).toLowerCase().includes(kw));
             if (isAccessory && serie.includes(' ')) serie = serie.split(' ')[0];
@@ -1900,7 +1897,8 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
 
                     // RULE: Do not overwrite Calima logic without asking the user for keyword 'Jariel'
                     // Dynamic quantity calculation for Kaldewei Calima Stelzfüsse (Pack of 4)
-                    const trayLbl = (this.selectedTray.label || '').toLowerCase();
+                    // FULL-TEXT RULE: series keyword + dimensions can be truncated off the label.
+                    const trayLbl = ((this.selectedTray.label || '') + ' ' + (this.selectedTray.description || '')).toLowerCase();
                     if (trayLbl.includes('calima') && combinedLbl.includes('stelz')) {
                         const dims = trayLbl.match(/(\d{3,4})\s*x\s*(\d{3,4})/);
                         if (dims) {
@@ -1928,7 +1926,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     if (this.title === 'Duschenwanne') {
                         if (selectedOption.artNr === '1435 435.000.000' || selectedOption.artNr === '1435435.000.000' || selectedOption.artNr === '1435 433.000.000' || selectedOption.artNr === '1435433.000.000') {
                             const isKaldewei = (this.selectedTray.manufacturer || '').toLowerCase() === 'kaldewei';
-                            const E = (this.selectedTray.label || "").toLowerCase();
+                            const E = ((this.selectedTray.label || "") + " " + (this.selectedTray.description || "")).toLowerCase(); // FULL-TEXT RULE
                             const isCalima = E.includes("calima");
                             let maxSide = 0;
                             if (this.selectedTray.size && this.selectedTray.size.includes('x')) {
@@ -2004,7 +2002,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                             if (this.title === 'Duschenwanne') {
                                 if (b.artNr === '1435 435.000.000' || b.artNr === '1435435.000.000' || b.artNr === '1435 433.000.000' || b.artNr === '1435433.000.000') {
                                     const isKaldewei = (this.selectedTray.manufacturer || '').toLowerCase() === 'kaldewei';
-                                    const E = (this.selectedTray.label || "").toLowerCase();
+                                    const E = ((this.selectedTray.label || "") + " " + (this.selectedTray.description || "")).toLowerCase(); // FULL-TEXT RULE
                                     const isCalima = E.includes("calima");
                                     let maxSide = 0;
                                     if (this.selectedTray.size && this.selectedTray.size.includes('x')) {

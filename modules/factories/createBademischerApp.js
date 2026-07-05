@@ -8,14 +8,16 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
       // "ohne Abstellverschraubungen". Anything else — "mit Verschraubungen", "mit S-Anschlüssen",
       // or a label that simply doesn't state "ohne" — means it's already included → drop the
       // baked Abstellverschraubung line. (Everything else in Bademischer stays untouched.)
-      if (tray.mountingMaterials && !/ohne\s+abstellverschraubung/.test((tray.label || "").toLowerCase())) {
+      // FULL-TEXT RULE: read label AND description for the "ohne"/UP classification.
+      const trayFull = (tray.label || "") + " " + (tray.description || "");
+      if (tray.mountingMaterials && !/ohne\s+abstellverschraubung/.test(trayFull.toLowerCase())) {
         tray.mountingMaterials = tray.mountingMaterials.filter(
           m => !(m.name || "").toLowerCase().includes("abstellverschraubung")
         );
       }
 
       // Only apply to UP products
-      if (!tray.label || (!tray.label.includes('UP') && !tray.label.includes('Endmontage'))) return tray;
+      if (!tray.label || (!trayFull.includes('UP') && !trayFull.includes('Endmontage'))) return tray;
       if (!tray.mountingMaterials) return tray;
 
       // Grundkörper ALWAYS needs mounting brackets (same rule as Duschenmischer Unterputz):
@@ -221,32 +223,38 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
           "einlochmischer",
           "mischer",
         ];
-        let t = (r.label || "").toLowerCase();
-        if (r.manufacturer) {
-          const a = r.manufacturer.toLowerCase();
-          t.startsWith(a) && (t = t.slice(a.length).trim());
-        }
-        for (const a of e)
-          if (t.startsWith(a)) {
-            t = t.slice(a.length).trim();
-            break;
+        // FULL-TEXT RULE (INSTRUCTIONS §1): the series is a leading token, but the label
+        // can be truncated to nothing usable — parse the label first, then fall back to the
+        // description (same prefix structure) so a truncated label never loses the series.
+        const parseSerie = (raw) => {
+          let t = (raw || "").toLowerCase();
+          if (r.manufacturer) {
+            const a = r.manufacturer.toLowerCase();
+            t.startsWith(a) && (t = t.slice(a.length).trim());
           }
-        if (
-          ((t = t.replace(/-?endmontageset/g, "").trim()),
-          (t = t.replace(/-?fertigmontageset/g, "").trim()),
-          r.manufacturer)
-        ) {
-          const a = r.manufacturer.toLowerCase();
-          t.startsWith(a) && (t = t.slice(a.length).trim());
-        }
-        const n = t.match(
-          /^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/,
-        );
-        let i = n && n[1] ? n[1].trim() : t.trim();
+          for (const a of e)
+            if (t.startsWith(a)) {
+              t = t.slice(a.length).trim();
+              break;
+            }
+          t = t.replace(/-?endmontageset/g, "").trim().replace(/-?fertigmontageset/g, "").trim();
+          if (r.manufacturer) {
+            const a = r.manufacturer.toLowerCase();
+            t.startsWith(a) && (t = t.slice(a.length).trim());
+          }
+          const n = t.match(
+            /^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/,
+          );
+          return n && n[1] ? n[1].trim() : t.trim();
+        };
+        let i = parseSerie(r.label);
+        if (!i) i = parseSerie(r.description);
         return this.normalizeBademischerSerie(i, r.manufacturer);
       },
       extractMontage: function (r) {
-        const e = (r.label || "").toLowerCase();
+        // FULL-TEXT RULE: mounting keywords (Unterputz/Aufputz/Standmodell) can be truncated
+        // off the label — classify from label AND description.
+        const e = ((r.label || "") + " " + (r.description || "")).toLowerCase();
         return m && (e.includes("standmodell") || e.includes("freistehend"))
           ? "Standmodell"
           : e.includes("unterputz") ||
@@ -443,7 +451,8 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
                 const a = allApps[appKey];
                 if (a.trays) {
                     a.trays.forEach(t => {
-                        const lbl = (t.label || t.name || '').toLowerCase();
+                        // FULL-TEXT RULE: an accessory keyword may live only in the description.
+                        const lbl = (t.label || t.name || '').toLowerCase() + ' ' + (t.description || '').toLowerCase();
                         if (keywords.some(kw => lbl.includes(kw))) {
                             candidates.push(t);
                         }
@@ -459,24 +468,27 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
 
             const extractAccessoireSerie = (t) => {
                 if (t.serie) return t.serie;
-                let label = (t.label || '').toLowerCase();
-                if (t.manufacturer) {
-                    const m = t.manufacturer.toLowerCase();
-                    if (label.startsWith(m)) label = label.slice(m.length).trim();
-                }
-                for (const kw of keywords) {
-                    if (label.startsWith(kw)) {
-                        label = label.slice(kw.length).trim();
-                        break;
+                // FULL-TEXT RULE: parse the label for the leading series token; fall back to
+                // the description when the label is truncated to nothing usable.
+                const parse = (raw) => {
+                    let label = (raw || '').toLowerCase();
+                    if (t.manufacturer) {
+                        const m = t.manufacturer.toLowerCase();
+                        if (label.startsWith(m)) label = label.slice(m.length).trim();
                     }
-                }
-                if (t.manufacturer) {
-                    const m = t.manufacturer.toLowerCase();
-                    if (label.startsWith(m)) label = label.slice(m.length).trim();
-                }
-                const match = label.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/);
-                let serie = match && match[1] ? match[1].trim() : label.trim();
-                if (serie.includes(' ')) serie = serie.split(' ')[0];
+                    for (const kw of keywords) {
+                        if (label.startsWith(kw)) { label = label.slice(kw.length).trim(); break; }
+                    }
+                    if (t.manufacturer) {
+                        const m = t.manufacturer.toLowerCase();
+                        if (label.startsWith(m)) label = label.slice(m.length).trim();
+                    }
+                    const match = label.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/);
+                    let serie = match && match[1] ? match[1].trim() : label.trim();
+                    if (serie.includes(' ')) serie = serie.split(' ')[0];
+                    return serie;
+                };
+                let serie = parse(t.label) || parse(t.description);
                 return serie ? serie.charAt(0).toUpperCase() + serie.slice(1) : 'Andere';
             };
 

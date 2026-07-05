@@ -51,11 +51,12 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             if (text.includes('mit') && !text.includes('mit armaturenloch') && !text.includes('mit hahnloch')) return 'mit';
 
             // 4. Smart Inference (Defaulting based on product type)
+            // FULL-TEXT RULE: infer from label AND description (`text`), not the label alone.
             // Most "Aufsatzbecken" (countertop bowls) don't have overflows.
-            if (lbl.includes('aufsatz') || lbl.includes('schale') || lbl.includes('countertop')) return 'ohne';
+            if (text.includes('aufsatz') || text.includes('schale') || text.includes('countertop')) return 'ohne';
 
             // Most standard furniture/wall basins DO have overflows.
-            if (lbl.includes('möbel') || lbl.includes('wandwaschtisch') || lbl.includes('waschtisch')) return 'mit';
+            if (text.includes('möbel') || text.includes('wandwaschtisch') || text.includes('waschtisch')) return 'mit';
 
             return 'unknown';
         },
@@ -72,32 +73,27 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             if (t.serie) {
                 return title === 'Duschenmischer' ? this.normalizeDuschenmischerSerie(t.serie) : t.serie;
             }
-            let cleaned = (t.label || '').toLowerCase();
-
             // 1. Strip product-type prefixes
             const prefixes = [
                 'doppelwaschtisch', 'wandbecken', 'handwaschbecken',
                 'aufsatzwaschbecken', 'aufsatzbecken', 'auflegewaschtisch',
                 'einbaubecken', 'waschtisch', 'waschbecken'
             ];
-            for (const p of prefixes) {
-                if (cleaned.startsWith(p)) {
-                    cleaned = cleaned.substring(p.length).trim();
-                    break;
+            // FULL-TEXT RULE: parse the label for the leading series token; fall back to the
+            // description when the label is truncated to nothing usable.
+            const parse = (raw) => {
+                let cleaned = (raw || '').toLowerCase();
+                for (const p of prefixes) {
+                    if (cleaned.startsWith(p)) { cleaned = cleaned.substring(p.length).trim(); break; }
                 }
-            }
-
-            // 2. Strip manufacturer name from the front if present
-            if (t.manufacturer) {
-                const mLower = t.manufacturer.toLowerCase();
-                if (cleaned.startsWith(mLower)) {
-                    cleaned = cleaned.substring(mLower.length).trim();
+                if (t.manufacturer) {
+                    const mLower = t.manufacturer.toLowerCase();
+                    if (cleaned.startsWith(mLower)) cleaned = cleaned.substring(mLower.length).trim();
                 }
-            }
-
-            // 3. Extract the series name up to any size, comma, or bracket
-            const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d)/);
-            let serie = match && match[1] ? match[1].trim() : cleaned.trim();
+                const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d)/);
+                return match && match[1] ? match[1].trim() : cleaned.trim();
+            };
+            let serie = parse(t.label) || parse(t.description);
 
             const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => ((t.label||'') + ' ' + (t.description||'')).toLowerCase().includes(kw));
             if (isAccessory && serie.includes(' ')) serie = serie.split(' ')[0];

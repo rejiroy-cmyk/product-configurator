@@ -119,7 +119,6 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
         extractSerie: function (t) {
             if (t.serie) return t.serie;
-            let cleaned = (t.label || t.name || '').trim().toLowerCase();
             const manufacturer = (t.manufacturer || '').toLowerCase();
 
             // 1. Strip product-type prefixes
@@ -133,28 +132,30 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'
             ];
 
-            let changed = true;
-            while (changed) {
-                changed = false;
-                for (const word of typeWords) {
-                    if (cleaned.startsWith(word)) {
-                        cleaned = cleaned.substring(word.length).trim();
-                        if (['-', ':', '/', ','].includes(cleaned[0])) cleaned = cleaned.substring(1).trim();
-                        changed = true;
-                        break;
+            // FULL-TEXT RULE: parse the label for the leading series token; fall back to the
+            // description when the label is truncated to nothing usable.
+            const parse = (raw) => {
+                let cleaned = (raw || '').trim().toLowerCase();
+                let changed = true;
+                while (changed) {
+                    changed = false;
+                    for (const word of typeWords) {
+                        if (cleaned.startsWith(word)) {
+                            cleaned = cleaned.substring(word.length).trim();
+                            if (['-', ':', '/', ','].includes(cleaned[0])) cleaned = cleaned.substring(1).trim();
+                            changed = true;
+                            break;
+                        }
                     }
                 }
-            }
-
-            // 2. Strip manufacturer name from the front if present
-            if (manufacturer && cleaned.startsWith(manufacturer)) {
-                cleaned = cleaned.substring(manufacturer.length).trim();
-                if (['-', ':', '/', ','].includes(cleaned[0])) cleaned = cleaned.substring(1).trim();
-            }
-
-            // 3. Extract the first part of what remains (usually the series name)
-            const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d)/);
-            let serie = match && match[1] ? match[1].trim() : cleaned.trim();
+                if (manufacturer && cleaned.startsWith(manufacturer)) {
+                    cleaned = cleaned.substring(manufacturer.length).trim();
+                    if (['-', ':', '/', ','].includes(cleaned[0])) cleaned = cleaned.substring(1).trim();
+                }
+                const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d)/);
+                return match && match[1] ? match[1].trim() : cleaned.trim();
+            };
+            let serie = parse(t.label || t.name) || parse(t.description);
 
             const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => ((t.label||'') + ' ' + (t.description||'')).toLowerCase().includes(kw));
             if (isAccessory && serie.includes(' ')) serie = serie.split(' ')[0];
@@ -206,14 +207,16 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 !text.includes('ohne ablauf')) return 'ohne';
             if (text.includes('mit') && !text.includes('mit armaturenloch') && !text.includes('mit hahnloch')) return 'mit';
 
-            if (lbl.includes('aufsatz') || lbl.includes('schale') || lbl.includes('countertop')) return 'ohne';
-            if (lbl.includes('möbel') || lbl.includes('wandwaschtisch') || lbl.includes('waschtisch')) return 'mit';
+            // FULL-TEXT RULE: infer from label AND description (`text`), not the label alone.
+            if (text.includes('aufsatz') || text.includes('schale') || text.includes('countertop')) return 'ohne';
+            if (text.includes('möbel') || text.includes('wandwaschtisch') || text.includes('waschtisch')) return 'mit';
 
             return 'unknown';
         },
 
         extractAblauf: function (obj) {
-            const label = (obj.label || '').toLowerCase();
+            // FULL-TEXT RULE: read label AND description.
+            const label = ((obj.label || '') + ' ' + (obj.description || '')).toLowerCase();
             if (label.includes('ohne ablauf')) return 'ohne';
             if (label.includes('ablauf')) return 'mit';
             return 'ohne';
@@ -221,7 +224,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
         extractAbstellflaeche: function (obj) {
             if (obj.overrideAbstell && obj.overrideAbstell !== 'auto') return obj.overrideAbstell;
-            const label = (obj.label || '').toLowerCase();
+            // FULL-TEXT RULE: read label AND description.
+            const label = ((obj.label || '') + ' ' + (obj.description || '')).toLowerCase();
             if (label.includes('abstellfläche links') || label.includes('ablage links')) return 'links';
             if (label.includes('abstellfläche rechts') || label.includes('ablage rechts')) return 'rechts';
             if (label.includes('abstellfläche beidseitig') || label.includes('ablage beidseitig')) return 'beidseitig';
@@ -229,14 +233,16 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         },
 
         extractAusladung: function (obj) {
-            const label = (obj.label || '');
+            // FULL-TEXT RULE: read label AND description.
+            const label = (obj.label || '') + ' ' + (obj.description || '');
             const match = label.match(/(?:A\s|Ausladung\s*)([0-9]{2,3})\s*mm/i);
             if (match) return match[1];
             return 'unknown';
         },
 
         extractAuslauf: function (obj) {
-            const label = (obj.label || '').toLowerCase();
+            // FULL-TEXT RULE: read label AND description.
+            const label = ((obj.label || '') + ' ' + (obj.description || '')).toLowerCase();
             if (label.includes('schwenkauslauf') || label.includes('schwenkbar')) return 'schwenkbar';
             if (label.includes('auslauf fest') || label.includes(' fest')) return 'fest';
             // some have "Auslauf" without specifying, assume fixed by default unless mentioned
@@ -244,7 +250,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         },
 
         extractBasinTyp: function (t) {
-            const lbl = (t.label || '').toLowerCase();
+            // FULL-TEXT RULE: read label AND description.
+            const lbl = ((t.label || '') + ' ' + (t.description || '')).toLowerCase();
             if (lbl.includes('doppelwaschtisch')) return 'Doppelwaschtisch';
             if (lbl.includes('aufsatzwaschbecken') || lbl.includes('aufsatzbecken') || lbl.includes('auflegewaschtisch')) return 'Aufsatzwaschtisch';
             if (lbl.includes('wandbecken')) return 'Wandbecken';
@@ -265,7 +272,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         },
 
         extractBreite: function (obj) {
-            const label = (obj.label || obj.name || '');
+            // FULL-TEXT RULE: width can be truncated off the label — read label AND description.
+            const label = (obj.label || obj.name || '') + ' ' + (obj.description || '');
             // 1. Try to parse "Breite 60 cm" or "Breite 600 mm" or "B 600" from label
             const bMatch = label.match(/(?:Breite|B)[:\s]+([\d,.]+)\s*(cm|mm)?/i);
             if (bMatch) {
@@ -639,11 +647,6 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
         extractFaucetSerie: function (t) {
             if (t.serie) return t.serie;
-            let lbl = (t.label || '');
-
-            lbl = lbl.split(',')[0].trim();
-            lbl = lbl.replace(/\bA\s*\d+/i, '').trim();
-
             const brand = (t.manufacturer || '').toLowerCase();
             const skipWords = [
                 'einlochmischer', 'waschtischmischer', 'waschtischbatterie', 'batterie',
@@ -652,18 +655,21 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 'auslauf', 'fest', 'schwenkbar', 'mit', 'ohne', 'ablaufventil',
                 'endmontageset', 'fertigset', 'fertigbauset'
             ];
-
-            let remainingWords = lbl.split(/\s+/).filter(w => {
-                let clean = w.toLowerCase().replace(/[^a-z0-9-]/g, '');
-                if (!clean) return false;
-                if (skipWords.includes(clean)) return false;
-                return true;
-            });
-
-            let serie = remainingWords.join(' ');
-
-            // Clean common technical suffixes often attached to series names
-            serie = serie.replace(/(ComfortZone|CoolStart|EcoSmart|Normalstrahl|Waterfall|WaterfallStream).*/i, '').trim();
+            // FULL-TEXT RULE: parse the label's leading segment for the series; fall back to the
+            // description when the label is truncated to nothing usable.
+            const parse = (raw) => {
+                let lbl = (raw || '').split(',')[0].trim();
+                lbl = lbl.replace(/\bA\s*\d+/i, '').trim();
+                let remainingWords = lbl.split(/\s+/).filter(w => {
+                    let clean = w.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                    if (!clean) return false;
+                    if (skipWords.includes(clean)) return false;
+                    return true;
+                });
+                let serie = remainingWords.join(' ');
+                return serie.replace(/(ComfortZone|CoolStart|EcoSmart|Normalstrahl|Waterfall|WaterfallStream).*/i, '').trim();
+            };
+            let serie = parse(t.label) || parse(t.description);
 
             return serie || 'Andere';
         },
@@ -690,7 +696,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             // 1. Initial technical filter
             let faucets = this.faucetTrays.filter(t => {
                 if (this.isAblaufItem(t)) return false;
-                const lbl = (t.label || '').toLowerCase();
+                // FULL-TEXT RULE: read label AND description.
+                const lbl = ((t.label || '') + ' ' + (t.description || '')).toLowerCase();
                 if (lbl.includes('einbaukörper') || lbl.includes('grundkörper')) {
                     if (!lbl.includes('ohne') && !lbl.includes('fertigset') && !lbl.includes('endmontageset') && !lbl.includes('mischer') && !lbl.includes('batterie')) return false;
                 }
@@ -700,7 +707,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             // 2. Apply Rule 1, 2, 3, 4
             faucets = faucets.filter(t => {
-                const lbl = (t.label || '').toLowerCase();
+                // FULL-TEXT RULE: read label AND description.
+                const lbl = ((t.label || '') + ' ' + (t.description || '')).toLowerCase();
                 const ausf = this.extractFaucetAusfuehrung(t);
                 const abl = this.extractAblauf(t);
 

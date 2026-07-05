@@ -17,7 +17,6 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
         selectedAccessoires: [],
         extractSerie: function (t) {
             if (t.serie) return t.serie;
-            let cleaned = (t.label || t.name || '').trim().toLowerCase();
             const manufacturer = (t.manufacturer || '').toLowerCase();
 
             // 1. Strip product-type prefixes
@@ -31,30 +30,34 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'
             ];
 
-            let changed = true;
-            while (changed) {
-                changed = false;
-                for (const word of typeWords) {
-                    if (cleaned.startsWith(word)) {
-                        cleaned = cleaned.substring(word.length).trim();
-                        if (['-', ':', '/', ','].includes(cleaned[0])) cleaned = cleaned.substring(1).trim();
-                        changed = true;
-                        break;
+            // FULL-TEXT RULE: parse the label for the leading series token; fall back to the
+            // description when the label is truncated to nothing usable.
+            const parse = (raw) => {
+                let cleaned = (raw || '').trim().toLowerCase();
+                let changed = true;
+                while (changed) {
+                    changed = false;
+                    for (const word of typeWords) {
+                        if (cleaned.startsWith(word)) {
+                            cleaned = cleaned.substring(word.length).trim();
+                            if (['-', ':', '/', ','].includes(cleaned[0])) cleaned = cleaned.substring(1).trim();
+                            changed = true;
+                            break;
+                        }
                     }
                 }
-            }
+                if (manufacturer && cleaned.startsWith(manufacturer)) {
+                    cleaned = cleaned.substring(manufacturer.length).trim();
+                    if (['-', ':', '/', ','].includes(cleaned[0])) cleaned = cleaned.substring(1).trim();
+                }
+                const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d)/);
+                return match && match[1] ? match[1].trim() : cleaned.trim();
+            };
+            let serie = parse(t.label || t.name) || parse(t.description);
 
-            // 2. Strip manufacturer name from the front if present
-            if (manufacturer && cleaned.startsWith(manufacturer)) {
-                cleaned = cleaned.substring(manufacturer.length).trim();
-                if (['-', ':', '/', ','].includes(cleaned[0])) cleaned = cleaned.substring(1).trim();
-            }
-
-            // 3. Extract the first part of what remains (usually the series name)
-            const match = cleaned.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d)/);
-            let serie = match && match[1] ? match[1].trim() : cleaned.trim();
-
-            const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => (t.label||'').toLowerCase().includes(kw));
+            // FULL-TEXT RULE: an accessory keyword may live only in the description.
+            const accFull = ((t.label || '') + ' ' + (t.description || '')).toLowerCase();
+            const isAccessory = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'badetuchstange', 'hakenleiste', 'drahtseifenhalter', 'duschkorb', 'schwammhalter', 'accessoire'].some(kw => accFull.includes(kw));
             if (isAccessory && serie.includes(' ')) serie = serie.split(' ')[0];
 
             // 4. Capitalize each word
@@ -73,7 +76,9 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 if (!obj) return 'common';
                 // Detect main tray object using mountingMaterials. For toilets, extract explicit montage info from description.
                 if (obj.mountingMaterials !== undefined) {
-                    const label = (obj.label || obj.name || '').toLowerCase();
+                    // FULL-TEXT RULE: montage keywords ("für Einbauspülkasten" etc.) can live in
+                    // the description — classify from label AND description.
+                    const label = ((obj.label || obj.name || '') + ' ' + (obj.description || '')).toLowerCase();
                     const isToilet = title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc');
                     if (isToilet) {
                         if (label.includes('für einbauspülkasten') || label.includes('fuer einbauspuelkasten')) return 'unterputz';
@@ -87,8 +92,8 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     return obj.overrideMontageart.toLowerCase();
                 }
 
-                // 2. Clean input data
-                const label = (obj.label || obj.name || '').toLowerCase();
+                // 2. Clean input data — FULL-TEXT RULE: read label AND description.
+                const label = ((obj.label || obj.name || '') + ' ' + (obj.description || '')).toLowerCase();
                 const artNr = (obj.artNr || '').replace(/\s/g, '');
 
                 // 3. HARD EXCEPTIONS (Firm IDs)
@@ -1130,7 +1135,8 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
 
                     // RULE: Do not overwrite Calima logic without asking the user for keyword 'Jariel'
                     // Dynamic quantity calculation for Kaldewei Calima Stelzfüsse (Pack of 4)
-                    const trayLbl = (this.selectedTray.label || '').toLowerCase();
+                    // FULL-TEXT RULE: series keyword + dimensions can be truncated off the label.
+                    const trayLbl = ((this.selectedTray.label || '') + ' ' + (this.selectedTray.description || '')).toLowerCase();
                     if (trayLbl.includes('calima') && combinedLbl.includes('stelz')) {
                         const dims = trayLbl.match(/(\d{3,4})\s*x\s*(\d{3,4})/);
                         if (dims) {

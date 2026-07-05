@@ -32,7 +32,8 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       // The Aufputz BOM rules below (Abstellverschraubung, 1600/brand option defaults,
       // BOM-order sort, guaranteed Gleitstange) apply to AUFPUTZ mixers ONLY. Unterputz
       // Endmontagesets keep their established numbered group order untouched.
-      const _lbl = (tray.label || "").toLowerCase();
+      // FULL-TEXT RULE: read label AND description for the Aufputz/Unterputz classification.
+      const _lbl = ((tray.label || "") + " " + (tray.description || "")).toLowerCase();
       const isAufputz = !(_lbl.includes("unterputz") || _lbl.includes(" up ") || _lbl.includes("einbau")
         || _lbl.includes("endmontageset") || _lbl.includes("grundkörper") || _lbl.includes("grundkoerper"));
 
@@ -77,8 +78,9 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       const toFront = (opts, idx) => {
         if (idx > 0) { const [p] = opts.splice(idx, 1); opts.unshift(p); }
       };
-      // Best-effort series tokens from the mixer label, for "same brand and series if possible".
-      const serieTokens = (tray.label || "").toLowerCase()
+      // Best-effort series tokens from the mixer text, for "same brand and series if possible".
+      // FULL-TEXT RULE: read label AND description.
+      const serieTokens = ((tray.label || "") + " " + (tray.description || "")).toLowerCase()
         .replace(/duschenmischer|endmontageset|fertigmontageset|grundk[öo]rper|thermostat/g, " ")
         .replace(brand, " ")
         .replace(/[^a-zäöü\s]/g, " ")
@@ -123,7 +125,8 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         // ADD 2× 6521 108.501.000 only when the label says "ohne Abstellverschraubungen"
         // (incl. Hansgrohe "mit S-Anschlüssen" = included → skip). Unterputz never needs it —
         // the connections sit on the Grundkörper.
-        const label = (tray.label || "").toLowerCase();
+        // FULL-TEXT RULE: read label AND description for the "ohne Abstellverschraubung" check.
+        const label = ((tray.label || "") + " " + (tray.description || "")).toLowerCase();
         materials = materials.filter(m => !(m.name || "").toLowerCase().includes("abstellverschraubung"));
         if (/ohne\s+abstellverschraubung/.test(label)) {
           materials.unshift({
@@ -299,32 +302,36 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           "einlochmischer",
           "mischer",
         ];
-        let t = (r.label || "").toLowerCase();
-        if (r.manufacturer) {
-          const a = r.manufacturer.toLowerCase();
-          t.startsWith(a) && (t = t.slice(a.length).trim());
-        }
-        for (const a of e)
-          if (t.startsWith(a)) {
-            t = t.slice(a.length).trim();
-            break;
+        // FULL-TEXT RULE (INSTRUCTIONS §1): parse the label for the leading series token;
+        // fall back to the description when the label is truncated to nothing usable.
+        const parseSerie = (raw) => {
+          let t = (raw || "").toLowerCase();
+          if (r.manufacturer) {
+            const a = r.manufacturer.toLowerCase();
+            t.startsWith(a) && (t = t.slice(a.length).trim());
           }
-        if (
-          ((t = t.replace(/-?endmontageset/g, "").trim()),
-          (t = t.replace(/-?fertigmontageset/g, "").trim()),
-          r.manufacturer)
-        ) {
-          const a = r.manufacturer.toLowerCase();
-          t.startsWith(a) && (t = t.slice(a.length).trim());
-        }
-        const n = t.match(
-          /^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/,
-        );
-        let i = n && n[1] ? n[1].trim() : t.trim();
+          for (const a of e)
+            if (t.startsWith(a)) {
+              t = t.slice(a.length).trim();
+              break;
+            }
+          t = t.replace(/-?endmontageset/g, "").trim().replace(/-?fertigmontageset/g, "").trim();
+          if (r.manufacturer) {
+            const a = r.manufacturer.toLowerCase();
+            t.startsWith(a) && (t = t.slice(a.length).trim());
+          }
+          const n = t.match(
+            /^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/,
+          );
+          return n && n[1] ? n[1].trim() : t.trim();
+        };
+        let i = parseSerie(r.label);
+        if (!i) i = parseSerie(r.description);
         return this.normalizeDuschenmischerSerie(i, r.manufacturer);
       },
       extractMontage: function (r) {
-        const e = (r.label || "").toLowerCase();
+        // FULL-TEXT RULE: mounting keywords can be truncated off the label — read both.
+        const e = ((r.label || "") + " " + (r.description || "")).toLowerCase();
         return e.includes("unterputz") ||
           e.includes(" up ") ||
           e.includes("einbau") ||
@@ -522,7 +529,8 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                 const a = allApps[appKey];
                 if (a.trays) {
                     a.trays.forEach(t => {
-                        const lbl = (t.label || t.name || '').toLowerCase();
+                        // FULL-TEXT RULE: an accessory keyword may live only in the description.
+                        const lbl = (t.label || t.name || '').toLowerCase() + ' ' + (t.description || '').toLowerCase();
                         if (keywords.some(kw => lbl.includes(kw))) {
                             candidates.push(t);
                         }
@@ -538,24 +546,27 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
 
             const extractAccessoireSerie = (t) => {
                 if (t.serie) return t.serie;
-                let label = (t.label || '').toLowerCase();
-                if (t.manufacturer) {
-                    const m = t.manufacturer.toLowerCase();
-                    if (label.startsWith(m)) label = label.slice(m.length).trim();
-                }
-                for (const kw of keywords) {
-                    if (label.startsWith(kw)) {
-                        label = label.slice(kw.length).trim();
-                        break;
+                // FULL-TEXT RULE: parse the label for the leading series token; fall back to
+                // the description when the label is truncated to nothing usable.
+                const parse = (raw) => {
+                    let label = (raw || '').toLowerCase();
+                    if (t.manufacturer) {
+                        const m = t.manufacturer.toLowerCase();
+                        if (label.startsWith(m)) label = label.slice(m.length).trim();
                     }
-                }
-                if (t.manufacturer) {
-                    const m = t.manufacturer.toLowerCase();
-                    if (label.startsWith(m)) label = label.slice(m.length).trim();
-                }
-                const match = label.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/);
-                let serie = match && match[1] ? match[1].trim() : label.trim();
-                if (serie.includes(' ')) serie = serie.split(' ')[0];
+                    for (const kw of keywords) {
+                        if (label.startsWith(kw)) { label = label.slice(kw.length).trim(); break; }
+                    }
+                    if (t.manufacturer) {
+                        const m = t.manufacturer.toLowerCase();
+                        if (label.startsWith(m)) label = label.slice(m.length).trim();
+                    }
+                    const match = label.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/);
+                    let serie = match && match[1] ? match[1].trim() : label.trim();
+                    if (serie.includes(' ')) serie = serie.split(' ')[0];
+                    return serie;
+                };
+                let serie = parse(t.label) || parse(t.description);
                 return serie ? serie.charAt(0).toUpperCase() + serie.slice(1) : 'Andere';
             };
 

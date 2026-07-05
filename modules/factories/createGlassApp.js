@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, productText } from './_shared.js';
 
 export function createGlassApp(title, desc, mainImgUrl, config = {}) {
     const appConfig = { enableGalleryUX: true, ...config };
@@ -127,14 +127,26 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
 
             const text = `${s} ${ps}`;
 
+            // label-prefix by design: service definitions carry their identity in the label
             if (text.includes("massaufnahme") || text.includes("anfahrt") || (text.includes("montage") && !text.includes("montage ausschliesslich") && !text.includes("bodenmontage") && !text.includes("wannenmontage")) || text.includes("demontage") || text.includes("nettobetrag") || (text.includes("für wannenmontage") && !text.includes("bodenmontage"))) return null;
-            
+
+            // label-prefix by design: pure hardware identity lives at the label start; their
+            // descriptions reference partner doors and must not classify them as doors.
+            if (/^(wandprofil|klebeset|handtuchhalter|verbreiterungsprofil|nischenfüllstück|nischenfuellstueck|stabilisationsstrebe|oberflächenschutz|oberflaechenschutz|dienstleistungspaket|eckregal)/.test(s.trim())) return null;
+
+            // FULL-TEXT RULE: door-type keywords may live only in the description when the
+            // label is truncated — classify from label+description+specs, not label alone.
+            // Partner references ("zur Kombination mit Gleittüre", "zu Pendeltüren") describe
+            // what this product PAIRS WITH, not what it IS — strip them before matching.
+            const partnerStripped = (`${desc} ${specSerie}`).replace(/(?:zur?m?|für|fuer|in kombination mit|kombination mit|mit)\s+(?:\d+\s+)?(?:einer\s+|der\s+|den\s+)?(?:gleit|pendel|dreh|falt|schiebe|flügel|fluegel)[a-zäöüß()\/-]*/g, ' ');
+            const full = `${text} ${partnerStripped}`;
+
             // Robust encoding-independent door checks (supporting replacements/umlauts)
-            const isPivotOrDreh = text.includes("pivot") || text.includes("drehtür") || text.includes("dreht") || text.includes("dreh-t");
-            const isFalt = text.includes("falttür") || text.includes("drehfalttür") || text.includes("faltt") || text.includes("falt-t");
-            const isFluegel = text.includes("flügeltür") || text.includes("flügelig") || text.includes("flügel") || text.includes("fluegel");
-            const isPendel = text.includes("pendeltür") || text.includes("pendelt") || text.includes("pendel-t");
-            const isGleitOrSchiebe = text.includes("gleittür") || text.includes("schiebetür") || text.includes("gleitt") || text.includes("gleit-t") || text.includes("schiebet") || text.includes("schiebe-t");
+            const isPivotOrDreh = full.includes("pivot") || full.includes("drehtür") || full.includes("dreht") || full.includes("dreh-t");
+            const isFalt = full.includes("falttür") || full.includes("drehfalttür") || full.includes("faltt") || full.includes("falt-t");
+            const isFluegel = full.includes("flügeltür") || full.includes("flügelig") || full.includes("flügel") || full.includes("fluegel");
+            const isPendel = full.includes("pendeltür") || full.includes("pendelt") || full.includes("pendel-t");
+            const isGleitOrSchiebe = full.includes("gleittür") || full.includes("schiebetür") || full.includes("gleitt") || full.includes("gleit-t") || full.includes("schiebet") || full.includes("schiebe-t");
 
             // 1. Check if it's a side wall (form is seitenwand or label contains seitenwand)
             const hasSeitenwand = (m.form || labelObj.form || "").toLowerCase() === 'seitenwand' || s.startsWith('seitenwand') || s.includes('seitenwand') || ps.startsWith('seitenwand') || ps.includes('seitenwand');
@@ -266,9 +278,14 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
         },
         
         extractSizeScore: function(m) {
-            const cleanLabel = (m.label || "").toLowerCase().replace((m.artNr || "").toLowerCase(), "").replace(/\b[a-zA-Z]-?\d+\b/g, "").trim();
-            const nums = (cleanLabel.match(/\d+([\.,]\d+)?/g) || []).map(n => Number(n.replace(",", "."))).filter(n => n > 20).map(n => n > 250 ? n / 10 : n).filter(n => n < 195);
-            return nums[0] || 9999;
+            // FULL-TEXT RULE: dimensions may only survive in the description when the label
+            // is truncated — fall back to it when the label yields no usable number.
+            const scoreFrom = (raw) => {
+                const clean = (raw || "").toLowerCase().replace((m.artNr || "").toLowerCase(), "").replace(/\b[a-zA-Z]-?\d+\b/g, "").trim();
+                const nums = (clean.match(/\d+([\.,]\d+)?/g) || []).map(n => Number(n.replace(",", "."))).filter(n => n > 20).map(n => n > 250 ? n / 10 : n).filter(n => n < 195);
+                return nums[0] || null;
+            };
+            return scoreFrom(m.label) || scoreFrom(m.description) || 9999;
         },
         
         checkCompatibility: function(m, s, r) {
@@ -725,21 +742,29 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
         },
 
         extractSeries: function(r) {
-            const s = (r.label || "").toLowerCase();
+            // label-prefix by design: service definitions carry their identity in the label
+            const lbl = (r.label || "").toLowerCase();
             if (
-              s.includes("massaufnahme") ||
-              s.includes("anfahrtspauschale") ||
-              s.includes("montagepauschale") ||
-              s.includes("demontage") ||
-              s.includes("nettobetrag")
+              lbl.includes("massaufnahme") ||
+              lbl.includes("anfahrtspauschale") ||
+              lbl.includes("montagepauschale") ||
+              lbl.includes("demontage") ||
+              lbl.includes("nettobetrag")
             )
               return null;
+            // FULL-TEXT RULE: the series regularly lives in the DESCRIPTION after the brand
+            // (Duscholux "Bella Vita 3"/"Optima 6", Koralle S-codes, Alterna sub-series) —
+            // read label+description+specs, not the label alone.
+            const s = productText(r);
             if (s.includes("alterna ")) {
-              const n = s.match(/alterna\s+([a-z0-9\.]+)/);
-              if (n && n[1]) {
-                let m = n[1];
+              // Validate the captured word against the known Alterna sub-series — on full
+              // text, a naive capture could grab whatever word follows "Alterna" in a spec.
+              const KNOWN_ALTERNA = ["costa", "lin.3", "lin3", "lin", "liva", "primo"];
+              for (const n of s.matchAll(/alterna\s+([a-z0-9\.]+)/g)) {
+                let m = (n[1] || "").replace(/[.,;:]+$/, "");
+                if (!KNOWN_ALTERNA.includes(m)) continue;
                 m = m.charAt(0).toUpperCase() + m.slice(1);
-                return (m === "Lin3" || m === "Lin.3" ? "Lin.3" : m);
+                return (m === "Lin3" || m === "Lin.3" || m === "Lin" ? "Lin.3" : m);
               }
             }
             return s.includes("viva")
@@ -754,7 +779,7 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                       ? "Optima"
                       : s.includes("step-in")
                         ? "Step-in"
-                        : s.includes("twiggytop")
+                        : (s.includes("twiggytop") || s.includes("twiggy top"))
                           ? "Twiggytop"
                           : s.includes("x77")
                             ? "X77"
@@ -813,10 +838,26 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
         extractHeight: function(m) {
             const h = this.getSpec(m, "höhe");
             if (h) return h;
-            const s = (m.label || '').toLowerCase();
+            // FULL-TEXT RULE: read label AND description — truncated labels drop the height.
+            const s = ((m.label || '') + ' ' + (m.description || '')).toLowerCase().replace(/[\r\n]+/g, ' ');
             const hMatch = s.match(/(?:h|h.|höhe|hoehe)\s*(?:bis)?\s*(\d+)\s*cm/);
             if (hMatch) return hMatch[1] + '0 mm';
             return '';
+        },
+
+        // A door stating its height as a CEILING ("Höhe bis 210 cm") accepts companion side
+        // walls at or under that ceiling — e.g. a fixed 200 cm wall fits under a bis-210 door
+        // (user rule 2026-07-03). Doors with an exact stated height keep strict equality.
+        statesCeilingHeight: function(m) {
+            const s = ((m.label || '') + ' ' + (m.description || '')).toLowerCase();
+            return /(?:h|höhe|hoehe)\s*[.:]?\s*bis\s*\d+/.test(s);
+        },
+        heightsCompatible: function(door, doorHeight, wallHeight) {
+            if (wallHeight === doorHeight) return true;
+            if (!this.statesCeilingHeight(door)) return false;
+            const d = parseInt(doorHeight, 10), w = parseInt(wallHeight, 10);
+            if (isNaN(d) || isNaN(w)) return false;
+            return w <= d;
         },
 
         extractDoorTypes: function(text) {
@@ -842,7 +883,8 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 const w = parseFloat(specBreite);
                 if (w > 0) return w / 10;
             }
-            const s = (m.label || "").toLowerCase().replace(/\b[a-zA-Z]-?\d+\b/g, "");
+            // FULL-TEXT RULE: read label AND description — truncated labels drop the width.
+            const s = ((m.label || "") + " " + (m.description || "")).toLowerCase().replace(/[\r\n]+/g, " ").replace(/\b[a-zA-Z]-?\d+\b/g, "");
             const bMatch = s.match(/breite\s*(?:bis|tür)?\s*(\d+(?:[\.,]\d+)?)\s*cm/);
             if (bMatch) return parseFloat(bMatch[1].replace(",", "."));
             const mmMatch = s.match(/breite\s*(?:bis|tür)?\s*(\d+(?:[\.,]\d+)?)\s*(?:-\s*\d+(?:[\.,]\d+)?\s*)?mm/);
@@ -1022,7 +1064,7 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 // Color & Glass & Height matching
                 if (doorColor && this.getExactColor(t) !== doorColor) return false;
                 if (doorGlas && this.getExactGlasart(t) !== doorGlas) return false;
-                if (doorHeight && this.extractHeight(t) !== doorHeight) return false;
+                if (doorHeight && !this.heightsCompatible(tray, doorHeight, this.extractHeight(t))) return false;
 
                 // Band (hinge) direction matching (must be opposite if specified)
                 const doorBand = this.extractBand(tray);

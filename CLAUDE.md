@@ -71,6 +71,25 @@ When editing a factory, each file imports the **full** shared set from `./_share
 - **Prod (single-file):** there is no server; state persists in `localStorage`
   (e.g. `sanitas_wishlist`).
 
+## GLOBAL RULE — full-text classification (no exceptions without a comment)
+
+**Any logic that classifies, matches, or filters a product** (type, situation,
+series, dimensions, config keywords, service selection) **must read the FULL
+product text — `label` AND `description` AND `specs` values — never the label
+alone.** ERP labels are truncated; the distinguishing keyword regularly lives
+only in the description. Use `productText()` from `_shared.js` (or explicit
+label+description concatenation) as the source for such checks.
+
+- The **only** permitted exception: product-**identity** prefix checks (a label
+  literally *starting with* "Seitenwand"/"Montagepauschale" states what the
+  product IS). These must carry a `// label-prefix by design` comment.
+- Beware the **partner-reference trap**: descriptions mention what a product
+  *pairs with* ("zur Kombination mit Gleittüre") — strip/guard those before
+  keyword-classifying, or an accessory becomes a door.
+- Enforced by `tests/verify-fulltext-rule.js` (static source guard + behavioral
+  fixtures; part of `npm test`, so `npm run build` fails on regression). When
+  adding/migrating a classification function, ADD IT to the `GUARDED` list there.
+
 ## Conventions & gotchas
 
 - **`window.*` is the cross-module bus.** `app.js` exposes ~55 functions/state on
