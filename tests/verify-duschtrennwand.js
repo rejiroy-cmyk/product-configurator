@@ -256,14 +256,18 @@ const tests = [
                 throw new Error(`Expected Koralle variant to be 1372 666.599.130, got ${koralleVariant.artNr}`);
             }
 
-            // 2. Duscholux/Alterna Flat Products:
-            // Liva Schiebetür 1541 612.597.118 (Standard) vs 1541 662.597.119 (CareTec Pro)
-            // Let's check that if we run app.filterResults, only the CareTec Pro one is returned
+            // 2. Alterna liva sliding doors — the glass filter must be VARIANT-AWARE.
+            //    1541 612.597.118 has Standard own-glass but a real CareTec Pro (Easy-Clean) VARIANT;
+            //    1541 662.597.119 is CareTec Pro itself. Both must SURVIVE an Easy-Clean filter, and
+            //    both must be DROPPED by a glass type they don't offer (Korrosionsgeschützt / Duschguard).
+            //    NOTE: an earlier version asserted 1541 612 was "Standard-only, filtered out" — that only
+            //    held because its CareTec variants had been dropped by a catalog-parse bug. Every real liva
+            //    door offers CareTec Pro, so there is no standard-only liva door to filter out.
             app.currentColor = "Chrom";
             app.currentBand = "rechts";
             app.currentType = "Schiebetür";
             app.currentManufacturer = "Alterna";
-            
+
             // Mock elements used by filterResults
             const originalGetElementById = global.document.getElementById;
             global.document.getElementById = (id) => {
@@ -271,40 +275,44 @@ const tests = [
                 return null;
             };
 
-            // Capture results
-            const results = trays.filter(l => {
-                const o = (l.label || "").toLowerCase();
-                return !(
-                    o.includes("massaufnahme") || o.includes("anfahrt") || (o.includes("badewanne") && !o.includes("duschwanne")) || 
-                    app.extractType(l) === null || 
-                    (app.currentManufacturer !== "all" && (l.manufacturer || "") !== app.currentManufacturer) ||
-                    (app.currentType !== "all" && app.extractType(l) !== app.currentType) || 
-                    (app.currentSituation !== "all" && app.extractSituation(l) !== app.currentSituation) || 
-                    (app.currentColor !== "all" && app.extractColor(l) !== app.currentColor && !(l.variants || []).some(v => app.extractColor(v) === app.currentColor)) || 
-                    (app.currentBand !== "all" && app.extractBand(l) !== app.currentBand) || 
-                    (app.currentOption !== "all" && app.extractOption(l) !== app.currentOption) || 
-                    (app.currentGlasart !== "all" && app.getVirtualGlasart(app.extractGlasart(l)) !== app.currentGlasart && !(l.variants || []).some(v => app.getVirtualGlasart(app.extractGlasart(v)) === app.currentGlasart)) || 
-                    (app.currentSeries !== "all" && app.extractSeries(l) !== app.currentSeries) ||
-                    (app.currentHeight !== "all" && app.extractHeightCm(l) !== app.currentHeight) ||
-                    (app.currentWidthBucket !== "all" && app.getWidthBucket(l) !== app.currentWidthBucket)
-                );
-            });
+            const runGlassFilter = (glasart) => {
+                app.currentGlasart = glasart;
+                return trays.filter(l => {
+                    const o = (l.label || "").toLowerCase();
+                    return !(
+                        o.includes("massaufnahme") || o.includes("anfahrt") || (o.includes("badewanne") && !o.includes("duschwanne")) ||
+                        app.extractType(l) === null ||
+                        (app.currentManufacturer !== "all" && (l.manufacturer || "") !== app.currentManufacturer) ||
+                        (app.currentType !== "all" && app.extractType(l) !== app.currentType) ||
+                        (app.currentSituation !== "all" && app.extractSituation(l) !== app.currentSituation) ||
+                        (app.currentColor !== "all" && app.extractColor(l) !== app.currentColor && !(l.variants || []).some(v => app.extractColor(v) === app.currentColor)) ||
+                        (app.currentBand !== "all" && app.extractBand(l) !== app.currentBand) ||
+                        (app.currentOption !== "all" && app.extractOption(l) !== app.currentOption) ||
+                        (app.currentGlasart !== "all" && app.getVirtualGlasart(app.extractGlasart(l)) !== app.currentGlasart && !(l.variants || []).some(v => app.getVirtualGlasart(app.extractGlasart(v)) === app.currentGlasart)) ||
+                        (app.currentSeries !== "all" && app.extractSeries(l) !== app.currentSeries) ||
+                        (app.currentHeight !== "all" && app.extractHeightCm(l) !== app.currentHeight) ||
+                        (app.currentWidthBucket !== "all" && app.getWidthBucket(l) !== app.currentWidthBucket)
+                    );
+                }).map(r => r.artNr);
+            };
 
-            // Restore mock
+            const easyClean = runGlassFilter("Pflegeleicht (Easy-Clean)");
+            const duschguard = runGlassFilter("Korrosionsgeschützt");
+
+            // Restore mock + clean up filters
             global.document.getElementById = originalGetElementById;
-
-            // Clean up filters
             app.currentGlasart = "all";
             app.currentColor = "all";
             app.currentBand = "all";
             app.currentType = "all";
             app.currentManufacturer = "all";
 
-            const hasStandard = results.some(r => r.artNr === "1541 612.597.118");
-            const hasCareTec = results.some(r => r.artNr === "1541 662.597.119");
-
-            if (hasStandard) throw new Error("Standard glass product 1541 612.597.118 was NOT filtered out by Easy-Clean filter!");
-            if (!hasCareTec) throw new Error("CareTec Pro product 1541 662.597.119 was incorrectly filtered out by Easy-Clean filter!");
+            // KEEP path — both doors offer an Easy-Clean option (own glass or a variant) -> survive.
+            if (!easyClean.includes("1541 612.597.118")) throw new Error("Variant-aware Easy-Clean filter dropped 1541 612.597.118, which has a real CareTec Pro variant!");
+            if (!easyClean.includes("1541 662.597.119")) throw new Error("CareTec Pro product 1541 662.597.119 was incorrectly filtered out by Easy-Clean filter!");
+            // DROP path — neither door offers a Duschguard/Korrosionsgeschützt option -> filtered out.
+            if (duschguard.includes("1541 612.597.118")) throw new Error("Korrosionsgeschützt filter kept 1541 612.597.118, which has no Duschguard variant!");
+            if (duschguard.includes("1541 662.597.119")) throw new Error("Korrosionsgeschützt filter kept 1541 662.597.119, which has no Duschguard variant!");
         }
     },
     {
