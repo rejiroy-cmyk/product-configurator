@@ -787,6 +787,8 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                               ? "X88"
                               : s.match(/libero \d+/)
                                 ? "Libero"
+                                : s.match(/gallery \d+/)
+                                  ? "Gallery"
                                 : s.match(/acqua \d+/)
                                   ? "Acqua"
                                   : s.match(/multi-s \d+/)
@@ -1029,13 +1031,16 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             const doorHeight = this.extractHeight(tray);
             const doorTypes = this.extractDoorTypes(tray.label + ' ' + (tray.description || ''));
 
-            // Alterna liva side walls come in two mount types: STANDARD (fitted on a shower
-            // tray — no mounting keyword) and BODENMONTAGE (fitted directly on the floor,
-            // no tray — carries "Bodenmontage"). A liva Gleittüre must pair only with side
-            // walls of its OWN mount type (user rule 2026-07-04; liva-scoped so other series
-            // are untouched). FULL-TEXT: the keyword may live in label OR description.
-            const isLiva = (mfg || '').toLowerCase() === 'alterna' && (series || '').toLowerCase() === 'liva';
-            const doorIsBoden = isLiva && /bodenmontage/i.test((tray.label || '') + ' ' + (tray.description || ''));
+            // MOUNT-TYPE brands: side walls come in two mount types — STANDARD (fitted on a
+            // shower tray, no keyword = Wannenmontage) and BODENMONTAGE (fitted directly on the
+            // floor, carries "Bodenmontage"). A door must pair ONLY with walls of its OWN mount
+            // type. Applies to Alterna liva and to Duka (Gallery 3000 / Natura 4000 / Multi-S,
+            // which ship both mounts per series) — user rules 2026-07-04/06. FULL-TEXT: the
+            // keyword may live in label OR description. Other series are untouched.
+            const mfgL = (mfg || '').toLowerCase(), serL = (series || '').toLowerCase();
+            const needsMountMatch = (mfgL === 'alterna' && serL === 'liva') ||
+                (mfgL === 'duka' && /gallery|natura|multi-?s/.test(serL));
+            const doorIsBoden = needsMountMatch && /bodenmontage/i.test((tray.label || '') + ' ' + (tray.description || ''));
 
             const findWalls = (enforceGlass) => this.trays.filter(t => {
                 if (t.manufacturer !== mfg || this.extractSeries(t) !== series) return false;
@@ -1043,7 +1048,7 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 const l = (t.label || '').toLowerCase();
                 const form = (t.form || '').toLowerCase();
 
-                if (isLiva) {
+                if (needsMountMatch) {
                     const wallIsBoden = /bodenmontage/i.test((t.label || '') + ' ' + (t.description || ''));
                     if (wallIsBoden !== doorIsBoden) return false;
                 }
@@ -1094,7 +1099,7 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             // leave the door unconfigurable (glass is a coating, visually identical). Mount type
             // and opposite-band stay strict either way (user rule 2026-07-04).
             let walls = findWalls(true);
-            if (isLiva && walls.length === 0) walls = findWalls(false);
+            if (needsMountMatch && walls.length === 0) walls = findWalls(false);
             return walls.sort((a, b) => this.extractSizeScore(a) - this.extractSizeScore(b));
         },
 
