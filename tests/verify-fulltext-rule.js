@@ -52,7 +52,7 @@ console.log('--------------------------------------------------\n');
 // reading `description` in its body. Add functions here as factories migrate.
 const GUARDED = {
     'modules/factories/createGlassApp.js': [
-        'extractType', 'extractSituation', 'extractBand', 'extractSeries',
+        'extractType', 'extractTeile', 'extractSituation', 'extractBand', 'extractSeries',
         'extractHeight', 'extractWidthCm', 'extractSizeScore',
         'statesCeilingHeight', 'checkSideWallSupport', 'checkIsMustSideWall',
         'isAlternaOrDuscholuxSideWallIncluded', 'getMatchingSideWalls', 'updateBOM',
@@ -129,6 +129,18 @@ check('extractType: partner door reference in description does NOT make it a doo
         label: 'Nischenfüllstück Alterna',
         description: 'zur Kombination mit Gleittüre 2-teilig, Höhe 200 cm'
     }) === null);
+
+// Part-count only in the (truncated) description -> extractTeile must still find it
+check('extractTeile: part-count only in description -> 3-teilig',
+    app.extractTeile({
+        label: 'Gleittüre Koralle S400 Plus, Höhe 2000 mm, Band links',
+        description: 'Gleittüre 3-teilig, in Nische, inkl. Schwallprofil'
+    }) === '3-teilig');
+check('extractTeile: no part-count anywhere -> ohne Angabe',
+    app.extractTeile({
+        label: 'Pendeltüre Duka Natura 4000 für Seitenwand, Höhe 200 cm',
+        description: 'Band links, Breite 77,8 - 80,3 cm'
+    }) === 'ohne Angabe');
 
 // Real parser miss: series lives in the description after the brand
 check('extractSeries: series only in description -> Bella Vita',

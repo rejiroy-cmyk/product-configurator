@@ -249,12 +249,14 @@ const tests = [
             const koralleParent = trays.find(t => t.artNr === "1372 666.599.118");
             if (!koralleParent) throw new Error("Could not find Koralle parent");
             
-            app.currentGlasart = "Pflegeleicht (Easy-Clean)";
+            // Glasart filter is now code-based ("<finishCode> <name>"); finish 130 = Echtglas klar Glasplus.
+            app.currentGlasart = "130 Echtglas klar Glasplus";
             app.currentColor = "all";
             const koralleVariant = app.getMatchedVariant(koralleParent);
             if (koralleVariant.artNr !== "1372 666.599.130") {
                 throw new Error(`Expected Koralle variant to be 1372 666.599.130, got ${koralleVariant.artNr}`);
             }
+            app.currentGlasart = "all";
 
             // 2. Alterna liva sliding doors — the glass filter must be VARIANT-AWARE.
             //    1541 612.597.118 has Standard own-glass but a real CareTec Pro (Easy-Clean) VARIANT;
@@ -263,7 +265,8 @@ const tests = [
             //    NOTE: an earlier version asserted 1541 612 was "Standard-only, filtered out" — that only
             //    held because its CareTec variants had been dropped by a catalog-parse bug. Every real liva
             //    door offers CareTec Pro, so there is no standard-only liva door to filter out.
-            app.currentColor = "Chrom";
+            // Farbe filter is now code-based; both fixtures are colour code 597 = Silber hochglanzeloxiert.
+            app.currentColor = "597 Silber hochglanzeloxiert";
             app.currentBand = "rechts";
             app.currentType = "Schiebetür";
             app.currentManufacturer = "Alterna";
@@ -285,10 +288,10 @@ const tests = [
                         (app.currentManufacturer !== "all" && (l.manufacturer || "") !== app.currentManufacturer) ||
                         (app.currentType !== "all" && app.extractType(l) !== app.currentType) ||
                         (app.currentSituation !== "all" && app.extractSituation(l) !== app.currentSituation) ||
-                        (app.currentColor !== "all" && app.extractColor(l) !== app.currentColor && !(l.variants || []).some(v => app.extractColor(v) === app.currentColor)) ||
+                        (app.currentColor !== "all" && app.colorFilterValue(l) !== app.currentColor && !(l.variants || []).some(v => app.colorFilterValue(v) === app.currentColor)) ||
                         (app.currentBand !== "all" && app.extractBand(l) !== app.currentBand) ||
                         (app.currentOption !== "all" && app.extractOption(l) !== app.currentOption) ||
-                        (app.currentGlasart !== "all" && app.getVirtualGlasart(app.extractGlasart(l)) !== app.currentGlasart && !(l.variants || []).some(v => app.getVirtualGlasart(app.extractGlasart(v)) === app.currentGlasart)) ||
+                        (app.currentGlasart !== "all" && app.glassFilterValue(l) !== app.currentGlasart && !(l.variants || []).some(v => app.glassFilterValue(v) === app.currentGlasart)) ||
                         (app.currentSeries !== "all" && app.extractSeries(l) !== app.currentSeries) ||
                         (app.currentHeight !== "all" && app.extractHeightCm(l) !== app.currentHeight) ||
                         (app.currentWidthBucket !== "all" && app.getWidthBucket(l) !== app.currentWidthBucket)
@@ -296,8 +299,9 @@ const tests = [
                 }).map(r => r.artNr);
             };
 
-            const easyClean = runGlassFilter("Pflegeleicht (Easy-Clean)");
-            const duschguard = runGlassFilter("Korrosionsgeschützt");
+            // Glasart is now per-finish-code: 119 = CareTec Pro (Easy-Clean), 134 = Duschguard.
+            const easyClean = runGlassFilter("119 Echtglas klar CareTec Pro");
+            const duschguard = runGlassFilter("134 Echtglas klar Duschguard");
 
             // Restore mock + clean up filters
             global.document.getElementById = originalGetElementById;

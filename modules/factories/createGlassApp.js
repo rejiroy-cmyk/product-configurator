@@ -10,6 +10,7 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
         selectedTray: null,
         includeServices: false,
         currentType: "all",
+        currentTeile: "all",
         currentSituation: "all",
         currentColor: "all",
         currentBand: "all",
@@ -21,10 +22,11 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
         currentWidthBucket: "all",
         currentBreite: "",
         currentLaenge: "",
-        
+
         init: function() {
             this.selectedTray = null;
             this.currentType = "all";
+            this.currentTeile = "all";
             this.currentSituation = "all";
             this.currentColor = "all";
             this.currentBand = "all";
@@ -276,7 +278,68 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             
             return "Standard";
         },
-        
+
+        // ---- Code-based Farbe / Glasart filters ----
+        // An art-Nr's triplet ("1544 187.599.150" -> colour 599, finish 150) is the authoritative
+        // colour/finish code. The Farbe & Glasart filters render "<code> <name>" pills, where the name
+        // is the canonical (case-normalised, most-frequent) spec name for that code across the catalogue.
+        _triplet: function(m) {
+            const parts = (m && m.artNr ? String(m.artNr) : "").split(".");
+            return [parts[1] || "", parts[2] || ""];
+        },
+        buildCodeMaps: function() {
+            if (this._colorNameByCode && this._glassNameByCode) return;
+            const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+            // Codes whose spec name is only ever the placeholder "Standard" but which denote a real
+            // colour. Kept minimal — extend if another code surfaces mislabelled.
+            const COLOR_HINT = { '350': 'Schwarz' };
+            const build = (idx, getName, hint) => {
+                const informative = {}, total = {};
+                const add = m => {
+                    const code = this._triplet(m)[idx];
+                    if (!code) return;
+                    total[code] = (total[code] || 0) + 1;
+                    const n = (getName(m) || "").trim();
+                    if (!n || /^standard$/i.test(n)) return;
+                    const k = n.toLowerCase();
+                    informative[code] = informative[code] || {};
+                    informative[code][k] = { name: n, count: ((informative[code][k] || {}).count || 0) + 1 };
+                };
+                for (const t of this.trays) { add(t); for (const v of (t.variants || [])) add(v); }
+                const map = {};
+                for (const code of Object.keys(total)) {
+                    const best = informative[code] ? Object.values(informative[code]).sort((a, b) => b.count - a.count)[0] : null;
+                    // accept a name only if it covers a real share of the code (ignore stray mislabels)
+                    if (best && best.count >= Math.max(3, total[code] * 0.25)) map[code] = cap(best.name);
+                    else if (hint[code]) map[code] = hint[code];
+                }
+                return map;
+            };
+            this._colorNameByCode = build(0, m => this.getSpec(m, "farbe") || m.farbe || m.colorName || "", COLOR_HINT);
+            this._glassNameByCode = build(1, m => this.getSpec(m, "ausführung") || m.glasart || "", {});
+        },
+        colorFilterValue: function(m) {
+            this.buildCodeMaps();
+            const code = this._triplet(m)[0];
+            const name = code && this._colorNameByCode[code];
+            return name ? `${code} ${name}` : "Standard";
+        },
+        glassFilterValue: function(m) {
+            this.buildCodeMaps();
+            const code = this._triplet(m)[1];
+            const name = code && this._glassNameByCode[code];
+            return name ? `${code} ${name}` : "Standard";
+        },
+        // FULL-TEXT RULE: the part-count ("2-teilig") may live in the label OR the truncated
+        // description — read both. Returns "1-teilig".."4-teilig" or "ohne Angabe".
+        extractTeile: function(m) {
+            const parent = this.getParent(m);
+            const labelObj = parent ? parent : m;
+            const text = `${m.label || ""} ${parent ? parent.label : ""} ${m.description || labelObj.description || ""}`.toLowerCase();
+            const mt = text.match(/(\d)\s*[-\s]?\s*(?:teilige|teilig|teilg|tlg)\b/);
+            return mt ? `${mt[1]}-teilig` : "ohne Angabe";
+        },
+
         extractSizeScore: function(m) {
             // FULL-TEXT RULE: dimensions may only survive in the description when the label
             // is truncated — fall back to it when the label yields no usable number.
@@ -314,14 +377,20 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             const Ae = document.getElementById("configSidebar");
             if (!Ae) return;
             
+            // Farbe/Glasart pills sort by art-Nr code ascending, with the "Standard" (code-less) bucket last.
+            const codeSort = (a, b) => a === 'Standard' ? 1 : b === 'Standard' ? -1 : (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0);
             const m = [...new Set(this.trays.map(n => this.extractSituation(n)))].filter(Boolean).sort();
             const s = [...new Set(this.trays.map(n => this.extractType(n)))].filter(Boolean).sort();
-            const r = [...new Set(this.trays.flatMap(n => [this.extractColor(n), ...(n.variants || []).map(v => this.extractColor(v))]))].filter(Boolean).sort();
+            // Farbe/Glasart pills are built from VISIBLE products (+ their variants) only, so the pill
+            // list matches the counts — no code that lives only on hidden add-on walls leaks in.
+            const visible = this.trays.filter(n => this.extractType(n) !== null);
+            const r = [...new Set(visible.flatMap(n => [this.colorFilterValue(n), ...(n.variants || []).map(v => this.colorFilterValue(v))]))].filter(Boolean).sort(codeSort);
             const e = [...new Set(this.trays.map(n => this.extractBand(n)))].filter(Boolean).sort();
             const opts = [...new Set(this.trays.map(n => this.extractOption(n)))].filter(Boolean).sort();
-            const rawGlassTypes = [...new Set(this.trays.flatMap(n => [this.extractGlasart(n), ...(n.variants || []).map(v => this.extractGlasart(v))]))].filter(Boolean);
-            const availableVirtual = new Set(rawGlassTypes.map(g => this.getVirtualGlasart(g)));
-            const glassTypes = ['Standard', 'Pflegeleicht (Easy-Clean)', 'Korrosionsgeschützt'].filter(g => availableVirtual.has(g));
+            const glassTypes = [...new Set(visible.flatMap(n => [this.glassFilterValue(n), ...(n.variants || []).map(v => this.glassFilterValue(v))]))].filter(Boolean).sort(codeSort);
+            // Teile (part-count) is its own filter row; fixed order, only counts present among visible products.
+            const teilePresent = new Set(visible.map(n => this.extractTeile(n)));
+            const teileList = ['1-teilig', '2-teilig', '3-teilig', '4-teilig', 'ohne Angabe'].filter(t => teilePresent.has(t));
             const manufacturers = [...new Set(this.trays.map(n => n.manufacturer).filter(n => n && n !== 'Andere'))].sort();
             
             const seriesList = [...new Set(this.trays.map(n => this.extractSeries(n)))].filter(Boolean);
@@ -378,7 +447,15 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                             ${s.map(n => `<button class="pill-btn ${this.currentType === n ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Type', '${n}')">${n} <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Type', n)}</span></button>`).join("")}
                         </div>
                     </div>
-                    
+
+                    <div class="filter-group" style="margin-top:0.75rem; ${teileList.length === 0 ? 'display:none;' : ''}">
+                        <label>Teile</label>
+                        <div class="pill-group" id="pill_teile_${N}">
+                            <button class="pill-btn ${this.currentTeile === "all" ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Teile', 'all')">Alle <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Teile', 'all')}</span></button>
+                            ${teileList.map(n => `<button class="pill-btn ${this.currentTeile === n ? "active" : ""}" onclick="window.currentActiveApp.setFilter('Teile', '${n}')">${n} <span class="badge" style="font-size:0.7rem; opacity:0.6; margin-left:4px;">${this.getFilteredCount('Teile', n)}</span></button>`).join("")}
+                        </div>
+                    </div>
+
                     <div class="filter-group" style="margin-top:0.75rem; ${opts.length === 0 ? 'display:none;' : ''}">
                         <label>Optionen</label>
                         <div class="pill-group" id="pill_option_${N}">
@@ -472,12 +549,13 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                     o.includes("massaufnahme") || o.includes("anfahrt") || (o.includes("badewanne") && !o.includes("duschwanne")) || 
                     (this.extractType(l) === null && !m) || 
                     (this.currentManufacturer !== "all" && (l.manufacturer || "") !== this.currentManufacturer) ||
-                    (this.currentType !== "all" && this.extractType(l) !== this.currentType) || 
-                    (this.currentSituation !== "all" && this.extractSituation(l) !== this.currentSituation) || 
-                    (this.currentColor !== "all" && this.extractColor(l) !== this.currentColor && !(l.variants || []).some(v => this.extractColor(v) === this.currentColor)) || 
-                    (this.currentBand !== "all" && this.extractBand(l) !== this.currentBand) || 
-                    (this.currentOption !== "all" && this.extractOption(l) !== this.currentOption) || 
-                    (this.currentGlasart !== "all" && this.getVirtualGlasart(this.extractGlasart(l)) !== this.currentGlasart && !(l.variants || []).some(v => this.getVirtualGlasart(this.extractGlasart(v)) === this.currentGlasart)) || 
+                    (this.currentType !== "all" && this.extractType(l) !== this.currentType) ||
+                    (this.currentTeile !== "all" && this.extractTeile(l) !== this.currentTeile) ||
+                    (this.currentSituation !== "all" && this.extractSituation(l) !== this.currentSituation) ||
+                    (this.currentColor !== "all" && this.colorFilterValue(l) !== this.currentColor && !(l.variants || []).some(v => this.colorFilterValue(v) === this.currentColor)) ||
+                    (this.currentBand !== "all" && this.extractBand(l) !== this.currentBand) ||
+                    (this.currentOption !== "all" && this.extractOption(l) !== this.currentOption) ||
+                    (this.currentGlasart !== "all" && this.glassFilterValue(l) !== this.currentGlasart && !(l.variants || []).some(v => this.glassFilterValue(v) === this.currentGlasart)) ||
                     (this.currentSeries !== "all" && this.extractSeries(l) !== this.currentSeries) ||
                     (this.currentHeight !== "all" && this.extractHeightCm(l) !== this.currentHeight) ||
                     (this.currentWidthBucket !== "all" && this.getWidthBucket(l) !== this.currentWidthBucket) ||
@@ -567,16 +645,16 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
         getMatchedVariant: function(tray) {
             if (!tray || !tray.variants || tray.variants.length === 0) return tray;
             const matched = tray.variants.find(v => {
-                const matchesColor = this.currentColor === "all" || this.extractColor(v) === this.currentColor;
-                const matchesGlas = this.currentGlasart === "all" || this.getVirtualGlasart(this.extractGlasart(v)) === this.currentGlasart;
+                const matchesColor = this.currentColor === "all" || this.colorFilterValue(v) === this.currentColor;
+                const matchesGlas = this.currentGlasart === "all" || this.glassFilterValue(v) === this.currentGlasart;
                 return matchesColor && matchesGlas;
             });
             if (matched) return { ...tray, ...matched };
-            
-            const matchedGlas = tray.variants.find(v => this.currentGlasart === "all" || this.getVirtualGlasart(this.extractGlasart(v)) === this.currentGlasart);
+
+            const matchedGlas = tray.variants.find(v => this.currentGlasart === "all" || this.glassFilterValue(v) === this.currentGlasart);
             if (matchedGlas) return { ...tray, ...matchedGlas };
-            
-            const matchedColor = tray.variants.find(v => this.currentColor === "all" || this.extractColor(v) === this.currentColor);
+
+            const matchedColor = tray.variants.find(v => this.currentColor === "all" || this.colorFilterValue(v) === this.currentColor);
             if (matchedColor) return { ...tray, ...matchedColor };
             
             return tray;
@@ -928,6 +1006,7 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
 
         resetAllFilters: function() {
             this.currentType = "all";
+            this.currentTeile = "all";
             this.currentSituation = "all";
             this.currentColor = "all";
             this.currentBand = "all";
@@ -967,11 +1046,12 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 
                 if (this.currentManufacturer !== "all" && (l.manufacturer || "") !== this.currentManufacturer) return false;
                 if (this.currentType !== "all" && this.extractType(l) !== this.currentType) return false;
+                if (this.currentTeile !== "all" && this.extractTeile(l) !== this.currentTeile) return false;
                 if (this.currentSituation !== "all" && this.extractSituation(l) !== this.currentSituation) return false;
-                if (this.currentColor !== "all" && this.extractColor(l) !== this.currentColor && !(l.variants || []).some(v => this.extractColor(v) === this.currentColor)) return false;
+                if (this.currentColor !== "all" && this.colorFilterValue(l) !== this.currentColor && !(l.variants || []).some(v => this.colorFilterValue(v) === this.currentColor)) return false;
                 if (this.currentBand !== "all" && this.extractBand(l) !== this.currentBand) return false;
                 if (this.currentOption !== "all" && this.extractOption(l) !== this.currentOption) return false;
-                if (this.currentGlasart !== "all" && this.getVirtualGlasart(this.extractGlasart(l)) !== this.currentGlasart && !(l.variants || []).some(v => this.getVirtualGlasart(this.extractGlasart(v)) === this.currentGlasart)) return false;
+                if (this.currentGlasart !== "all" && this.glassFilterValue(l) !== this.currentGlasart && !(l.variants || []).some(v => this.glassFilterValue(v) === this.currentGlasart)) return false;
                 
                 if (this.currentSeries !== "all" && this.extractSeries(l) !== this.currentSeries) return false;
                 if (this.currentHeight !== "all" && this.extractHeightCm(l) !== this.currentHeight) return false;
