@@ -146,8 +146,8 @@ const tests = [
             const parent = trays.find(t => t.artNr === "1372 666.599.118"); // Eckeinstieg Koralle S300 parent
             if (!parent) throw new Error("Could not find parent 1372 666.599.118");
             
-            // Simulating Pflegeleicht (Easy-Clean) filter
-            app.currentGlasart = "Pflegeleicht (Easy-Clean)";
+            // Simulating a code-based Glasart filter (finish 130 = Echtglas klar Glasplus)
+            app.currentGlasart = "130 Echtglas klar Glasplus";
             app.currentColor = "all";
             
             const variant = app.getMatchedVariant(parent);
@@ -157,6 +157,42 @@ const tests = [
             
             // Clean up filter
             app.currentGlasart = "all";
+        }
+    },
+    {
+        name: "getMatchedVariant surfaces the CHEAPEST finish when unfiltered (Duschtrennwand safety-net)",
+        fn: () => {
+            const cheapApp = createGlassApp("DUSCHTRENNWAND", "Test", "img", { cheapestWhenUnfiltered: true });
+            cheapApp.trays = trays;
+            const parent = trays.find(t => t.artNr === "1372 666.599.118");
+            if (!parent || !(parent.variants || []).length) throw new Error("Could not find a multi-variant parent");
+
+            const cands = [parent, ...parent.variants];
+            const cheapest = cands[cands.length - 1]; // force a NON-first candidate to be cheapest
+            const prev = global.window.__PRICES__;
+            const priceMap = {};
+            cands.forEach((c, i) => { priceMap[c.artNr] = 1000 + i; });
+            priceMap[cheapest.artNr] = 1;
+            global.window.__PRICES__ = priceMap;
+            try {
+                cheapApp.currentColor = "all"; cheapApp.currentGlasart = "all";
+                const picked = cheapApp.getMatchedVariant(parent);
+                if (picked.artNr !== cheapest.artNr) throw new Error(`Expected cheapest ${cheapest.artNr}, got ${picked.artNr}`);
+
+                // A colour/glass filter must OVERRIDE the cheapest default.
+                cheapApp.currentGlasart = "130 Echtglas klar Glasplus";
+                const filtered = cheapApp.getMatchedVariant(parent);
+                if (filtered.artNr !== "1372 666.599.130") throw new Error(`Glass filter must override cheapest; got ${filtered.artNr}`);
+
+                // The default app (no flag) must NOT force cheapest — keeps first-match behaviour.
+                app.currentColor = "all"; app.currentGlasart = "all";
+                const plain = app.getMatchedVariant(parent);
+                if (plain.artNr === cheapest.artNr && cheapest.artNr !== parent.variants[0].artNr) {
+                    throw new Error("Default app must not apply cheapest-when-unfiltered");
+                }
+            } finally {
+                global.window.__PRICES__ = prev;
+            }
         }
     },
     {
@@ -382,7 +418,7 @@ const tests = [
 
             app.selectTray("1372 666.599.118");
 
-            app.setFilter("Glasart", "Pflegeleicht (Easy-Clean)");
+            app.setFilter("Glasart", "130 Echtglas klar Glasplus");
 
             const html = globalMockElements.bomTableBody.innerHTML || "";
             if (!html.includes("1372 666.599.130")) {

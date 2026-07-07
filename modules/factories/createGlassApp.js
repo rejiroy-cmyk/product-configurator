@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, productText } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, getPrice, priceBOM, productText } from './_shared.js';
 
 export function createGlassApp(title, desc, mainImgUrl, config = {}) {
     const appConfig = { enableGalleryUX: true, ...config };
@@ -644,6 +644,18 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
         
         getMatchedVariant: function(tray) {
             if (!tray || !tray.variants || tray.variants.length === 0) return tray;
+            // SAFETY-NET DEFAULT (Duschtrennwand only): with no colour/glass filter set, surface the
+            // CHEAPEST finish so the grid shows a ready-to-copy lowest-price art-Nr without the user
+            // touching any filter. A colour/glass filter overrides this (handled below).
+            if (appConfig.cheapestWhenUnfiltered && this.currentColor === "all" && this.currentGlasart === "all") {
+                let best = null, bestPrice = Infinity;
+                for (const c of [tray, ...tray.variants]) {
+                    const p = getPrice(c.artNr);
+                    if (p != null && p < bestPrice) { bestPrice = p; best = c; }
+                }
+                if (best) return best === tray ? tray : { ...tray, ...best };
+                // no priced candidate -> fall through to the default first-match behaviour
+            }
             const matched = tray.variants.find(v => {
                 const matchesColor = this.currentColor === "all" || this.colorFilterValue(v) === this.currentColor;
                 const matchesGlas = this.currentGlasart === "all" || this.glassFilterValue(v) === this.currentGlasart;
