@@ -537,32 +537,63 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             this.filterResults();
         },
         
+        // Per-tray classification is a pure function of the (static) tray content, but the extract*
+        // helpers run ~10 regexes over label+description+specs on every call. With 6,581 trays and
+        // ~75 pill counts re-scanning the whole list on each filter click, that was ~2.3s of regex per
+        // sidebar render. Cache the derived fields once per tray (WeakMap, GC-friendly, auto-fresh if
+        // the dataset object is ever replaced) so filtering/counting reads plain values.
+        derived: function(l) {
+            if (!this._dcache) this._dcache = new WeakMap();
+            let d = this._dcache.get(l);
+            if (d) return d;
+            const lbl = (l.label || "").toLowerCase();
+            d = {
+                excluded: lbl.includes("massaufnahme") || lbl.includes("anfahrt") || (lbl.includes("badewanne") && !lbl.includes("duschwanne")),
+                manufacturer: l.manufacturer || "",
+                type: this.extractType(l),
+                teile: this.extractTeile(l),
+                situation: this.extractSituation(l),
+                band: this.extractBand(l),
+                option: this.extractOption(l),
+                series: this.extractSeries(l),
+                heightCm: this.extractHeightCm(l),
+                widthBucket: this.getWidthBucket(l),
+                colorFilter: this.colorFilterValue(l),
+                glassFilter: this.glassFilterValue(l),
+                variantColors: (l.variants || []).map(v => this.colorFilterValue(v)),
+                variantGlass: (l.variants || []).map(v => this.glassFilterValue(v)),
+            };
+            this._dcache.set(l, d);
+            return d;
+        },
+        // Single source of truth for the result/pill filter (was duplicated in filterResults and
+        // getFilteredCount). searchVal + size are dynamic; everything else reads the cached derived().
+        passesFilters: function(l, searchVal, s, r) {
+            const d = this.derived(l);
+            if (d.excluded) return false;
+            if (d.type === null && !searchVal) return false;
+            if (this.currentManufacturer !== "all" && d.manufacturer !== this.currentManufacturer) return false;
+            if (this.currentType !== "all" && d.type !== this.currentType) return false;
+            if (this.currentTeile !== "all" && d.teile !== this.currentTeile) return false;
+            if (this.currentSituation !== "all" && d.situation !== this.currentSituation) return false;
+            if (this.currentColor !== "all" && d.colorFilter !== this.currentColor && !d.variantColors.includes(this.currentColor)) return false;
+            if (this.currentBand !== "all" && d.band !== this.currentBand) return false;
+            if (this.currentOption !== "all" && d.option !== this.currentOption) return false;
+            if (this.currentGlasart !== "all" && d.glassFilter !== this.currentGlasart && !d.variantGlass.includes(this.currentGlasart)) return false;
+            if (this.currentSeries !== "all" && d.series !== this.currentSeries) return false;
+            if (this.currentHeight !== "all" && d.heightCm !== this.currentHeight) return false;
+            if (this.currentWidthBucket !== "all" && d.widthBucket !== this.currentWidthBucket) return false;
+            if ((this.currentBreite || this.currentLaenge) && !this.checkCompatibility(l, s, r)) return false;
+            if (searchVal && !matchesSearchQuery(l, searchVal)) return false;
+            return true;
+        },
         filterResults: function() {
             const N = this.title.replace(/\s+/g, "").toLowerCase();
             var a;
             const m = (((a = document.getElementById(`input_search_${N}`)) == null ? void 0 : a.value) || "").toLowerCase();
             const s = parseFloat(this.currentBreite);
             const r = parseFloat(this.currentLaenge);
-            const e = this.trays.filter(l => {
-                const o = (l.label || "").toLowerCase();
-                return !(
-                    o.includes("massaufnahme") || o.includes("anfahrt") || (o.includes("badewanne") && !o.includes("duschwanne")) || 
-                    (this.extractType(l) === null && !m) || 
-                    (this.currentManufacturer !== "all" && (l.manufacturer || "") !== this.currentManufacturer) ||
-                    (this.currentType !== "all" && this.extractType(l) !== this.currentType) ||
-                    (this.currentTeile !== "all" && this.extractTeile(l) !== this.currentTeile) ||
-                    (this.currentSituation !== "all" && this.extractSituation(l) !== this.currentSituation) ||
-                    (this.currentColor !== "all" && this.colorFilterValue(l) !== this.currentColor && !(l.variants || []).some(v => this.colorFilterValue(v) === this.currentColor)) ||
-                    (this.currentBand !== "all" && this.extractBand(l) !== this.currentBand) ||
-                    (this.currentOption !== "all" && this.extractOption(l) !== this.currentOption) ||
-                    (this.currentGlasart !== "all" && this.glassFilterValue(l) !== this.currentGlasart && !(l.variants || []).some(v => this.glassFilterValue(v) === this.currentGlasart)) ||
-                    (this.currentSeries !== "all" && this.extractSeries(l) !== this.currentSeries) ||
-                    (this.currentHeight !== "all" && this.extractHeightCm(l) !== this.currentHeight) ||
-                    (this.currentWidthBucket !== "all" && this.getWidthBucket(l) !== this.currentWidthBucket) ||
-                    ((this.currentBreite || this.currentLaenge) && !this.checkCompatibility(l, s, r)) || 
-                    (m && !matchesSearchQuery(l, m))
-                );
-            });
+            const e = this.trays.filter(l => this.passesFilters(l, m, s, r));
             let t = e;
             if (this.currentBreite || this.currentLaenge) {
                 t = e.sort((a, b) => this.extractSizeScore(a) - this.extractSizeScore(b));
@@ -1051,29 +1082,7 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             const s = parseFloat(this.currentBreite);
             const r = parseFloat(this.currentLaenge);
 
-            const count = this.trays.filter(l => {
-                const o = (l.label || "").toLowerCase();
-                if (o.includes("massaufnahme") || o.includes("anfahrt") || (o.includes("badewanne") && !o.includes("duschwanne"))) return false;
-                if (this.extractType(l) === null && !searchVal) return false;
-                
-                if (this.currentManufacturer !== "all" && (l.manufacturer || "") !== this.currentManufacturer) return false;
-                if (this.currentType !== "all" && this.extractType(l) !== this.currentType) return false;
-                if (this.currentTeile !== "all" && this.extractTeile(l) !== this.currentTeile) return false;
-                if (this.currentSituation !== "all" && this.extractSituation(l) !== this.currentSituation) return false;
-                if (this.currentColor !== "all" && this.colorFilterValue(l) !== this.currentColor && !(l.variants || []).some(v => this.colorFilterValue(v) === this.currentColor)) return false;
-                if (this.currentBand !== "all" && this.extractBand(l) !== this.currentBand) return false;
-                if (this.currentOption !== "all" && this.extractOption(l) !== this.currentOption) return false;
-                if (this.currentGlasart !== "all" && this.glassFilterValue(l) !== this.currentGlasart && !(l.variants || []).some(v => this.glassFilterValue(v) === this.currentGlasart)) return false;
-                
-                if (this.currentSeries !== "all" && this.extractSeries(l) !== this.currentSeries) return false;
-                if (this.currentHeight !== "all" && this.extractHeightCm(l) !== this.currentHeight) return false;
-                if (this.currentWidthBucket !== "all" && this.getWidthBucket(l) !== this.currentWidthBucket) return false;
-                
-                if ((this.currentBreite || this.currentLaenge) && !this.checkCompatibility(l, s, r)) return false;
-                if (searchVal && !matchesSearchQuery(l, searchVal)) return false;
-                
-                return true;
-            }).length;
+            const count = this.trays.filter(l => this.passesFilters(l, searchVal, s, r)).length;
 
             this[`current${category}`] = originalVal;
             return count;
