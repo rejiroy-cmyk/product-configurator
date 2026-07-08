@@ -808,6 +808,18 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
             const isLivaNischeExclusion = this.extractSeries(tray) === "Liva" && (lower.includes("in nische") || d.includes("in nische"));
             if (isLivaNischeExclusion) return false;
 
+            // A door with an INTEGRATED fixed side element ("Seitenteil fest") and no pairing reference
+            // is an in-Nische unit: the door + its fixed front glass span a wall recess, and the
+            // perpendicular surfaces are masonry walls, not glass (catalog p.1.291). It takes NO add-on
+            // glass Seitenwand. The "für Seitenwand" / "für Eckeinstieg" variants of the same series DO
+            // pair with a real glass wall, so only exclude when no such pairing keyword is present.
+            // FULL-TEXT: read label + description together.
+            const fullText = lower + ' ' + d;
+            if (/seitenteil fest/.test(fullText) &&
+                !/für seitenwand|fuer seitenwand|für eckeinstieg|fuer eckeinstieg|mit seitenwand|mit einer seitenwand|zur kombination|eckeinstieg/.test(fullText)) {
+                return false;
+            }
+
             // Complete corner entry enclosures and other specific layouts do not get side walls
             const isCornerEntry = lower.startsWith('eckeinstieg') || lower.startsWith('viertelkreis') || lower.startsWith('fünfeck') || lower.startsWith('fuenfeck');
             if (isCornerEntry) return false;
