@@ -82,6 +82,12 @@ export const catalog = [
                 "name": "Mix & Match",
                 "appId": "mixandmatch",
                 "hasApp": true
+            },
+            {
+                "id": "waschtrog",
+                "name": "Waschtröge",
+                "appId": "waschtrog",
+                "hasApp": true
             }
         ]
     },
