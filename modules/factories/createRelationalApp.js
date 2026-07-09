@@ -393,10 +393,12 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         </div>
                         `}
                         
+                        ${config.hideMontageart ? '' : `
                         <div class="filter-group">
                             <div class="finder-sub-header" id="head_rel_montage_${suffix}">${systemLabel}</div>
                             <div class="pill-group" id="list_rel_montage_${suffix}"></div>
                         </div>
+                        `}
 
                         ${(hideSizeForm || isToiletApp || config.hideManualSizeInputs) ? '' : `
                         <div style="display:flex; gap:1rem; margin-top: 1rem;">
@@ -680,6 +682,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             const val2 = label2.toLowerCase();
             const val3 = label3 ? label3.toLowerCase() : '';
 
+            if (monList) {
             monList.innerHTML = `
                     <button class="pill-btn ${this.currentMontageart === 'alle' ? 'active' : ''}" data-val="alle">Alle</button>
                     <button class="pill-btn ${this.currentMontageart === val1 ? 'active' : ''}" data-val="${val1}">${label1}</button>
@@ -703,6 +706,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     this.updateBOM();
                 }
             }));
+            }
             if (!hideSizeForm) this.updateManualInputs();
         },
         bindFilters: function () {

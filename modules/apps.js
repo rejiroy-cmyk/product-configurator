@@ -1,4 +1,4 @@
-import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp } from './factories.js?v=2.6.33';
+import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp } from './factories.js?v=2.6.35';
 
 const configSidebar = document.getElementById('configSidebar');
 const bomTableBody = document.getElementById('bomTableBody');
@@ -400,7 +400,7 @@ const bomCountCounter = document.getElementById('bomCount');
         "duschenmischer": createDuschenmischerApp("Duschenmischer", "Duscharmaturen und Sets", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06113661_501_000.png", { enableGalleryUX: true }),
         "duschtrennwand": createGlassApp("Duschtrennwand", "Duschwände und Kabinen", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01510403_000_000.png", { cheapestWhenUnfiltered: true }),
         "badeabtrennung": createGlassApp("Badeabtrennung", "Glastrennwand für Badewanne", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311872_100_181.png"),
-        "waschtrog": createRelationalApp("Waschtröge", "Waschtröge, Waschrinnen, Ausgussbecken & Zubehör", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/07211801_104_000.png", { isMixer: false }),
+        "waschtrog": createRelationalApp("Waschtröge", "Waschtröge, Waschrinnen, Ausgussbecken & Zubehör", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/07211801_104_000.png", { isMixer: false, hideSizeForm: true, hideMontageart: true }),
 
         "badewanne": Object.assign(createBadewanneApp("Badewanne", "Wannensystem mit passendem Zubehör", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01113324.png", { montageLabel1: "Mit Wannenträger", montageLabel2: "Mit Wannenfüssen", }), {
             trays: [
