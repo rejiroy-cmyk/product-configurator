@@ -1000,6 +1000,12 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
 
             bomTableBody.innerHTML = '<tr><td colspan="5" style="padding:0; border:none; background:transparent;"><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px; padding:12px; background:var(--bg-body); border-radius:8px;">' + cards + '</div></td></tr>';
         },
+        // "Waschrinne Romay … für N Wandmischer" → N wall mixers (each with its own 2× Verschraubung).
+        // FULL-TEXT RULE: read label AND description. Default 1 for every other trough.
+        wandmischerCount: function (basin) {
+            const m = ((basin.label || '') + ' ' + (basin.description || '')).toLowerCase().match(/für\s*(\d+)\s*wandmischer/);
+            return m ? parseInt(m[1], 10) : 1;
+        },
         // Wash-station builder: from the chosen basin, assemble the ordered slot list
         // (faucet, 2× Abstellverschraubung, Anschlussstutzen, Siphon, add-ons) out of the parts pool,
         // applying the drain/brand rules. Rendered as BOM dropdowns by the existing mountingMaterials engine.
@@ -1011,17 +1017,20 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             const basinBase = (basin.artNr || '').replace(/[^0-9]/g, '').slice(0, 7);
             const slots = [];
 
+            // Multi-mixer troughs: "Waschrinne Romay … für N Wandmischer" → N faucets + 2N Verschraubung.
+            const nMixer = this.wandmischerCount(basin);
+
             // 1. Wandbatterie / Ventil — tapless troughs accept any faucet
             const faucets = parts.filter(p => p.role === 'faucet');
-            if (faucets.length) slots.push({ id: 'ws_faucet', name: '1 · Wandbatterie / Ventil', options: faucets.map(f => toOpt(f)) });
+            if (faucets.length) slots.push({ id: 'ws_faucet', name: nMixer > 1 ? `1 · Wandmischer (${nMixer}×)` : '1 · Wandbatterie / Ventil', options: faucets.map(f => toOpt(f, nMixer)) });
 
-            // 2. Abstellverschraubung (2×) — only for Wandbatterien that don't already bundle it.
+            // 2. Abstellverschraubung (2× per mixer) — only for Wandbatterien that don't already bundle it.
             //    Ventile (Auslaufventil / Standventil) are single-outlet valves → NO Abstellverschraubung.
             const versch = parts.find(p => p.role === 'verschraubung');
             if (versch && faucets.length) slots.push({
-                id: 'ws_verschraubung', name: '2 · Abstellverschraubung (2×)', dependsOn: 'ws_faucet',
+                id: 'ws_verschraubung', name: `2 · Abstellverschraubung (${2 * nMixer}×)`, dependsOn: 'ws_faucet',
                 optionRules: faucets.map(f => ({ whenArtNr: f.artNr, optionArtNrs: (f.bundlesVerschraubung || f.faucetType === 'Ventil') ? [] : [versch.artNr] })),
-                options: [toOpt(versch, 2)]
+                options: [toOpt(versch, 2 * nMixer)]
             });
 
             // 3. basin = the anchor product itself (rendered by updateBOM)
