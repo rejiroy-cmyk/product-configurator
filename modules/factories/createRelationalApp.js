@@ -1006,7 +1006,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
         buildWashStationSlots: function (basin) {
             const parts = this.parts || [];
             const toOpt = (p, menge) => ({ artNr: p.artNr, label: p.label, type: p.faucetType || p.accType || 'Zubehör', imgUrl: p.imgUrl, menge: menge || p.menge || 1 });
-            const NONE = { artNr: '', label: '— keine —', type: '', imgUrl: '', menge: 0 };
+            const NONE = { artNr: 'none', label: '— keine —', type: '', imgUrl: '', menge: 0 };
             const brand = (basin.manufacturer || '').toLowerCase();
             const basinBase = (basin.artNr || '').replace(/[^0-9]/g, '').slice(0, 7);
             const slots = [];
@@ -2168,6 +2168,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     const selectedArtNr = this.selectedTray.selections[mat.id];
                     const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
                     if (!selectedOption) return;
+                    if (!selectedOption.artNr || selectedOption.artNr === 'none') return; // "— keine —" -> no BOM line
 
                     // Check against active Montageart filter
                     const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
