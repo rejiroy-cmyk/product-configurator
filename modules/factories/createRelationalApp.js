@@ -607,10 +607,10 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     return String(a).localeCompare(String(b));
                 });
                 sList.innerHTML = `<button class="pill-btn ${this.currentSize === 'all' ? 'active' : ''}" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Size', 'all')}</span></button>` + sizes2D.map(s => {
-                    const btnLabel = config.sizeLabel === 'Breite' ? `bis ${s} cm` : s;
+                    const btnLabel = (config.sizeLabel === 'Breite' && !config.exactSizes) ? `bis ${s} cm` : s;
                     return `<button class="pill-btn ${this.currentSize === s ? 'active' : ''}" data-val="${s}">${btnLabel} <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount('Size', s)}</span></button>`;
                 }).join('');
-                const displaySizeVal = config.sizeLabel === 'Breite' ? `bis ${this.currentSize} cm` : this.currentSize;
+                const displaySizeVal = (config.sizeLabel === 'Breite' && !config.exactSizes) ? `bis ${this.currentSize} cm` : this.currentSize;
                 applyPillUI(`head_rel_size_${suffix}`, `list_rel_size_${suffix}`, this.currentSize, config.sizeLabel || 'Grösse', () => {
                     this.currentSize = 'all';
                     this.currentTiefe = 'all';
@@ -931,7 +931,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         <div class="result-info">
                             <strong>${t.label}</strong>
                             <div class="result-meta">
-                                <span>${t.manufacturer}</span> ${hideSizeForm ? '' : `| <span>${config.sizeLabel === 'Breite' ? `bis ${t.size} cm` : t.size}</span>`}
+                                <span>${t.manufacturer}</span> ${hideSizeForm ? '' : `| <span>${(config.sizeLabel === 'Breite' && !config.exactSizes) ? `bis ${t.size} cm` : t.size}</span>`}
                             </div>
                             <span class="finish-artnr">${t.artNr}</span>
                         </div>
