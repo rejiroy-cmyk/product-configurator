@@ -1017,21 +1017,44 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             const basinBase = (basin.artNr || '').replace(/[^0-9]/g, '').slice(0, 7);
             const slots = [];
 
-            // Multi-mixer troughs: "Waschrinne Romay … für N Wandmischer" → N faucets + 2N Verschraubung.
-            const nMixer = this.wandmischerCount(basin);
-
-            // 1. Wandbatterie / Ventil — tapless troughs accept any faucet
-            const faucets = parts.filter(p => p.role === 'faucet');
-            if (faucets.length) slots.push({ id: 'ws_faucet', name: nMixer > 1 ? `1 · Wandmischer (${nMixer}×)` : '1 · Wandbatterie / Ventil', options: faucets.map(f => toOpt(f, nMixer)) });
-
-            // 2. Abstellverschraubung (2× per mixer) — only for Wandbatterien that don't already bundle it.
-            //    Ventile (Auslaufventil / Standventil) are single-outlet valves → NO Abstellverschraubung.
-            const versch = parts.find(p => p.role === 'verschraubung');
-            if (versch && faucets.length) slots.push({
-                id: 'ws_verschraubung', name: `2 · Abstellverschraubung (${2 * nMixer}×)`, dependsOn: 'ws_faucet',
-                optionRules: faucets.map(f => ({ whenArtNr: f.artNr, optionArtNrs: (f.bundlesVerschraubung || f.faucetType === 'Ventil') ? [] : [versch.artNr] })),
-                options: [toOpt(versch, 2 * nMixer)]
-            });
+            // Deck (Armaturenbank) mode — Waschrinne mit Armaturenbank, ohne Armaturenloch:
+            // Einlochmischer (deck) + drilled Armaturenlöcher, instead of Wandmischer + Verschraubung.
+            // N (how many mixers/holes/Einbaukosten) is chosen via the Lochanzahl dropdown and
+            // applied in updateBOM's deck-injection block (see there).
+            if (basin.armaturenbank === true) {
+                // Faucet pool = the Waschtischmischer Einlochmischer (reused, like Mix & Match).
+                const pool = ((window.productApps && window.productApps.waschtischmischer && window.productApps.waschtischmischer.trays) || [])
+                    .filter(t => /einlochmischer|einloch|einhebelmischer/.test(((t.label || '') + ' ' + (t.description || '')).toLowerCase()));
+                if (pool.length) slots.push({
+                    id: 'ws_faucet', name: '1 · Einlochmischer', deckManaged: true,
+                    options: pool.map(m => ({ artNr: m.artNr, label: m.label, type: 'Einlochmischer', imgUrl: m.imgUrl, menge: 1 }))
+                });
+                // Lochanzahl / drilling. Planox has real Bohrung SKUs; Romay Romex has none (count-only).
+                const isPlanox = /planox/.test((basin.label || '').toLowerCase());
+                const bohr = isPlanox
+                    ? [{ artNr: '7521 393.000.000', label: '2 Bohrungen KWC Ø 35 mm', holes: 2 },
+                       { artNr: '7521 394.000.000', label: '3 Bohrungen KWC Ø 35 mm', holes: 3 },
+                       { artNr: '7521 395.000.000', label: '4 Bohrungen KWC Ø 35 mm', holes: 4 }]
+                    : [{ artNr: 'loch_2', label: '2 Armaturenlöcher', holes: 2 },
+                       { artNr: 'loch_3', label: '3 Armaturenlöcher', holes: 3 },
+                       { artNr: 'loch_4', label: '4 Armaturenlöcher', holes: 4 }];
+                slots.push({
+                    id: 'ws_lochanzahl', name: isPlanox ? '2 · Lochbohrungen' : '2 · Armaturenlöcher (Anzahl)', deckManaged: true,
+                    options: bohr.map(b => ({ artNr: b.artNr, label: b.label, type: 'Lochbohrung', imgUrl: '', menge: 1, holes: b.holes }))
+                });
+            } else {
+                // Wall mode: Wandbatterie / Ventil (+ N× for "für N Wandmischer") + 2N Abstellverschraubung.
+                const nMixer = this.wandmischerCount(basin);
+                const faucets = parts.filter(p => p.role === 'faucet');
+                if (faucets.length) slots.push({ id: 'ws_faucet', name: nMixer > 1 ? `1 · Wandmischer (${nMixer}×)` : '1 · Wandbatterie / Ventil', options: faucets.map(f => toOpt(f, nMixer)) });
+                // Abstellverschraubung (2× per mixer) — not for bundled faucets nor Ventile (single-outlet valves).
+                const versch = parts.find(p => p.role === 'verschraubung');
+                if (versch && faucets.length) slots.push({
+                    id: 'ws_verschraubung', name: `2 · Abstellverschraubung (${2 * nMixer}×)`, dependsOn: 'ws_faucet',
+                    optionRules: faucets.map(f => ({ whenArtNr: f.artNr, optionArtNrs: (f.bundlesVerschraubung || f.faucetType === 'Ventil') ? [] : [versch.artNr] })),
+                    options: [toOpt(versch, 2 * nMixer)]
+                });
+            }
 
             // 3. basin = the anchor product itself (rendered by updateBOM)
 
@@ -1794,6 +1817,33 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 matId: '__variant__'
             });
 
+            // Wash-station DECK mode (Waschrinne mit Armaturenbank): G1 → N× Einlochmischer →
+            // N× Einbaukosten → Lochbohrung. N from the Lochanzahl dropdown. The ws_faucet /
+            // ws_lochanzahl slots are deckManaged (skipped by the generic loop) and materialised here.
+            if (config.washStation && this.selectedTray.armaturenbank) {
+                const sel = this.selectedTray.selections || {};
+                const mm = this.selectedTray.mountingMaterials || [];
+                const faucetSlot = mm.find(s => s.id === 'ws_faucet');
+                const lochSlot = mm.find(s => s.id === 'ws_lochanzahl');
+                const mixer = faucetSlot && (faucetSlot.options.find(o => o.artNr === sel['ws_faucet']) || faucetSlot.options[0]);
+                const lochOpt = lochSlot && (lochSlot.options.find(o => o.artNr === sel['ws_lochanzahl']) || lochSlot.options[0]);
+                const N = (lochOpt && lochOpt.holes) || 2;
+                if (mixer) {
+                    finalBOM.push({ artNr: 'G1', label: 'Gürtelset', typ: 'Service', menge: 1, img: '', note: 'Deck-Setup', priority: 2.5 });
+                    finalBOM.push({ artNr: mixer.artNr, label: mixer.label, typ: 'Einlochmischer', menge: N, img: mixer.imgUrl, note: 'Einlochmischer', priority: 3.2 });
+                    const hasAblauf = /ablaufventil/.test((mixer.label || '').toLowerCase());
+                    finalBOM.push({
+                        artNr: hasAblauf ? '6000 011.000.000' : '6000 013.000.000',
+                        label: hasAblauf ? 'Einbaukosten, Einlocharmatur mit Ablaufventil, Zugventil, Nettopreis' : 'Einbaukosten, Einlocharmatur ohne Exzenterventil, Nettopreis',
+                        typ: 'Service', menge: N, img: '', note: 'Einbaukosten', priority: 3.4
+                    });
+                    // Lochbohrung line — Planox has a real SKU; Romay Romex is count-only (pseudo 'loch_*' → no line).
+                    if (lochOpt && !String(lochOpt.artNr).startsWith('loch_')) {
+                        finalBOM.push({ artNr: lochOpt.artNr, label: lochOpt.label, typ: 'Lochbohrung', menge: 1, img: '', note: 'Lochbohrung', priority: 3.6 });
+                    }
+                }
+            }
+
             if (this.useMontageset) {
                 const mSet = materials.find(m => m.id === 'mat_montageset');
                 if (mSet) {
@@ -2175,6 +2225,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 // ─── WANDKLOSETT / OTHER: Original Priority Engine ────────────────
                 materials.forEach(mat => {
                     if (!isMatActive(mat)) return;
+                    if (mat.deckManaged) return; // deck-mode ws_faucet / ws_lochanzahl → handled by the wash-station deck injection below
                     const selectedArtNr = this.selectedTray.selections[mat.id];
                     const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
                     if (!selectedOption) return;
