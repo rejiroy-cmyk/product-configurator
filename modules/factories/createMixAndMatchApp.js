@@ -185,6 +185,23 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             return 'unknown';
         },
 
+        // Number of wash bowls (positions) on the basin → how many faucets /
+        // Ablaufventile / Siphons the set needs. This is the BOWL count, NOT the
+        // Armaturenloch (drill-hole) count: a single wide basin "mit 3 Armaturenlöcher"
+        // is one bowl drilled for one 3-hole widespread mixer (→ 1), whereas a
+        // "Reihenwaschtisch … mit 3 Armaturenlöcher" is three separate bowls (→ 3).
+        // FULL-TEXT RULE: read label AND description.
+        positionCount: function (obj) {
+            const text = ((obj.label || '') + ' ' + (obj.description || '')).toLowerCase();
+            if (text.includes('reihenwaschtisch')) {
+                // A row: one bowl per Armaturenloch, e.g. "mit 3 Armaturenlöcher" → 3.
+                const m = text.match(/(\d+)\s*(?:armaturenl|hahnl)/);
+                return m ? parseInt(m[1], 10) : 1; // "ohne Armaturenlöcher" row → count unknown, fall back to 1
+            }
+            if (text.includes('doppelwaschtisch')) return 2; // always 2 bowls, regardless of hole count
+            return 1;
+        },
+
         extractUeberlauf: function (obj) {
             const lbl = (obj.label || '').toLowerCase();
             const text = (obj.description || '').toLowerCase() + ' ' + lbl;
@@ -1410,20 +1427,25 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         getBOMPreviewItems: function () {
             if (!this.selectedBasin) return [];
             const hLochStatus = this.extractHahnloch(this.selectedBasin);
-            const isDoppel = (this.selectedBasin.label || '').toLowerCase().includes('doppel');
+            // N = number of wash bowls (positions). Single basin = 1, Doppelwaschtisch = 2,
+            // Reihenwaschtisch = one per Armaturenloch. Each bowl gets its own faucet /
+            // Ablaufventil / Siphon; the per-faucet Verschraubung, Regulierventil and
+            // Einbaukosten already derive from faucetQty, so they scale automatically.
+            const N = this.positionCount(this.selectedBasin);
 
             const label = (this.selectedFaucet?.label || '').toLowerCase();
             const isSelectedWandModel = label.includes('wandmischer') || label.includes('wandbatterie');
 
             // Quantity rules:
-            // - Doppelwaschtisch        → 2 faucets
-            // - Single basin, 2 Löcher  → 2 faucets
-            // - Single basin, 3 Löcher  → 1 faucet
-            // - Single basin, 1 Loch    → 1 faucet
-            let faucetQty = (isDoppel || hLochStatus === '2') ? 2 : 1;
+            // - Multi-bowl (Doppel / Reihe) → N faucets (one per bowl)
+            // - Single basin, 2 Löcher      → 2 faucets (wide basin, two tap positions)
+            // - Single basin, 3 Löcher      → 1 faucet (one 3-hole widespread mixer)
+            // - Single basin, 1 Loch        → 1 faucet
+            let faucetQty = (N >= 2) ? N : (hLochStatus === '2' ? 2 : 1);
             // Special rule: If no holes, we only have a faucet if it's a wall-mounted one
             if (hLochStatus === 'ohne' && !isSelectedWandModel) faucetQty = 0;
-            const valveQty = isDoppel ? 2 : 1;
+            // Ablaufventil scales by bowl count (one drain per bowl); single basin = 1.
+            const valveQty = (N >= 2) ? N : 1;
 
             const items = [];
             const faucetItems = [];
@@ -1614,7 +1636,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             const faucetDesc = (this.selectedFaucet?.description || '').toLowerCase();
             const isMischwasser = faucetDesc.includes('mischwasser');
             const regQty = isSelectedWandModel ? 0 : (isMischwasser ? 1 : 2) * faucetQty;
-            const siphonQty = (this.selectedBasin.label || '').toLowerCase().includes('doppelwaschtisch') ? 2 : 1;
+            const siphonQty = (N >= 2) ? N : 1; // one Siphon per bowl (Doppel = 2, Reihe = N)
 
             if (hasCabinet) {
                 // Find cabinet object
