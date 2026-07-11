@@ -1015,11 +1015,12 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             const faucets = parts.filter(p => p.role === 'faucet');
             if (faucets.length) slots.push({ id: 'ws_faucet', name: '1 · Wandbatterie / Ventil', options: faucets.map(f => toOpt(f)) });
 
-            // 2. Abstellverschraubung (2×) — only when the chosen faucet does NOT already bundle it
+            // 2. Abstellverschraubung (2×) — only for Wandbatterien that don't already bundle it.
+            //    Ventile (Auslaufventil / Standventil) are single-outlet valves → NO Abstellverschraubung.
             const versch = parts.find(p => p.role === 'verschraubung');
             if (versch && faucets.length) slots.push({
                 id: 'ws_verschraubung', name: '2 · Abstellverschraubung (2×)', dependsOn: 'ws_faucet',
-                optionRules: faucets.map(f => ({ whenArtNr: f.artNr, optionArtNrs: f.bundlesVerschraubung ? [] : [versch.artNr] })),
+                optionRules: faucets.map(f => ({ whenArtNr: f.artNr, optionArtNrs: (f.bundlesVerschraubung || f.faucetType === 'Ventil') ? [] : [versch.artNr] })),
                 options: [toOpt(versch, 2)]
             });
 
