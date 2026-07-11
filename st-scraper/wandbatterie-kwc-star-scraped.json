@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "source": "profishop.sanitastroesch.ch/business/search?q=wandbatterie kwc star (rows=48)",
+    "scrapedFor": "waschtrog KWC Star split — individual battery Art-Nrs missing from catalogue",
+    "priceBasis": "URP exkl. MwSt (CHF)",
+    "note": "AD 153 'ohne Verschraubungen' six = KWC parallel of the Alterna Wandbatterie six"
+  },
+  "products": [
+    { "artNr": "6116 164.502.000", "name": "Wandbatterie KWC Star, A 125 mm, AD 153 mm, ohne Verschraubungen, Chromeline", "price": 247, "ad": "153", "a": "125" },
+    { "artNr": "6116 165.502.000", "name": "Wandbatterie KWC Star, A 175 mm, AD 153 mm, ohne Verschraubungen, Chromeline", "price": 248, "ad": "153", "a": "175" },
+    { "artNr": "6116 166.502.000", "name": "Wandbatterie KWC Star, A 225 mm, AD 153 mm, ohne Verschraubungen, Chromeline", "price": 249, "ad": "153", "a": "225" },
+    { "artNr": "6116 170.502.000", "name": "Wandbatterie KWC Star, A 200 mm, AD 153 mm, ohne Verschraubungen, Schwenkauslauf unten, Chromeline", "price": 323, "ad": "153", "a": "200" },
+    { "artNr": "6116 171.502.000", "name": "Wandbatterie KWC Star, A 250 mm, AD 153 mm, ohne Verschraubungen, Schwenkauslauf unten, Chromeline", "price": 325, "ad": "153", "a": "250" },
+    { "artNr": "6116 175.502.000", "name": "Wandbatterie KWC Star, A 225 mm, AD 153 mm, ohne Verschraubungen, Schwenkauslauf oben, Chromeline", "price": 323, "ad": "153", "a": "225" },
+    { "artNr": "6116 216.502.000", "name": "Wandbatterie KWC Star, A 125 mm, AD 120 mm, ohne Verschraubungen, Chromeline", "price": 247, "ad": "120", "a": "125" },
+    { "artNr": "6116 217.502.000", "name": "Wandbatterie KWC Star, A 175 mm, AD 120 mm, ohne Verschraubungen, Chromeline", "price": 248, "ad": "120", "a": "175" },
+    { "artNr": "6116 218.502.000", "name": "Wandbatterie KWC Star, A 225 mm, AD 120 mm, ohne Verschraubungen, Chromeline", "price": 249, "ad": "120", "a": "225" },
+    { "artNr": "6116 226.502.000", "name": "Wandbatterie KWC Star, A 200 mm, AD 120 mm, Schwenkauslauf unten, ohne Verschraubungen, Chromeline", "price": 323, "ad": "120", "a": "200" },
+    { "artNr": "6116 227.502.000", "name": "Wandbatterie KWC Star, A 250 mm, AD 120 mm, Schwenkauslauf unten, ohne Verschraubungen, Chromeline", "price": 325, "ad": "120", "a": "250" },
+    { "artNr": "6116 183.502.000", "name": "Wandbatterie KWC Star-Verso, A 185 mm, Abstellverschraubung ½\" x ¾\", Schwenkauslauf unten, für Niederdruckspeicher, Chromeline", "price": 378, "ad": "verso", "a": "185" },
+    { "artNr": "6116 184.502.000", "name": "Wandbatterie KWC Star-Verso, A 225 mm, Abstellverschraubung ½\" x ¾\", Schwenkauslauf unten, für Niederdruckspeicher, Chromeline", "price": 378, "ad": "verso", "a": "225" },
+    { "artNr": "6725 556.501.000", "name": "Wandbatterie KWC F4LT1005, AD 132-168 mm, A 200 mm, Thermostat-Einhebelmischer, Aufputzmontage, Verchromt", "price": 1022, "ad": "thermostat", "a": "200" }
+  ]
+}
