@@ -1033,9 +1033,13 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 if (pick) slots.push({ id: 'ws_anschluss', name: '4 · Anschlussstutzen ' + (basin.drainThread || ''), options: [toOpt(pick)] });
             }
 
-            // 5. Siphon — fixed Ø50/56 (waagrecht/senkrecht) for utility troughs
-            //    (washbasin-style Schulwandbrunnen/KWC-Quadro use a 1¼" siphon — not yet in parts)
-            if (basin.drainStyle !== 'washbasin') {
+            // 5. Siphon — utility troughs: fixed Ø50/56 (waagrecht/senkrecht).
+            //    Washbasin-style (Schulwandbrunnen / KWC Quadro): the usual Geberit 1¼" pair from
+            //    Waschplatz Mix & Match (Weiss 3163 105 / Chrom 3163 115, Chrom default).
+            if (basin.drainStyle === 'washbasin') {
+                const wbSiphons = parts.filter(p => p.accType === 'SiphonWashbasin');
+                if (wbSiphons.length) slots.push({ id: 'ws_siphon', name: '5 · Siphon 1¼"', options: [...wbSiphons.map(s => toOpt(s))].sort((a, b) => /chrom/i.test(a.label) ? -1 : 1) });
+            } else {
                 const siphons = parts.filter(p => p.accType === 'Siphon');
                 if (siphons.length) slots.push({ id: 'ws_siphon', name: '5 · Siphon (waagrecht / senkrecht)', options: siphons.map(s => toOpt(s)) });
             }
