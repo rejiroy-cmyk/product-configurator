@@ -1000,6 +1000,54 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
 
             bomTableBody.innerHTML = '<tr><td colspan="5" style="padding:0; border:none; background:transparent;"><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px; padding:12px; background:var(--bg-body); border-radius:8px;">' + cards + '</div></td></tr>';
         },
+        // Wash-station builder: from the chosen basin, assemble the ordered slot list
+        // (faucet, 2× Abstellverschraubung, Anschlussstutzen, Siphon, add-ons) out of the parts pool,
+        // applying the drain/brand rules. Rendered as BOM dropdowns by the existing mountingMaterials engine.
+        buildWashStationSlots: function (basin) {
+            const parts = this.parts || [];
+            const toOpt = (p, menge) => ({ artNr: p.artNr, label: p.label, type: p.faucetType || p.accType || 'Zubehör', imgUrl: p.imgUrl, menge: menge || p.menge || 1 });
+            const NONE = { artNr: '', label: '— keine —', type: '', imgUrl: '', menge: 0 };
+            const brand = (basin.manufacturer || '').toLowerCase();
+            const basinBase = (basin.artNr || '').replace(/[^0-9]/g, '').slice(0, 7);
+            const slots = [];
+
+            // 1. Wandbatterie / Ventil — tapless troughs accept any faucet
+            const faucets = parts.filter(p => p.role === 'faucet');
+            if (faucets.length) slots.push({ id: 'ws_faucet', name: '1 · Wandbatterie / Ventil', options: faucets.map(f => toOpt(f)) });
+
+            // 2. Abstellverschraubung (2×) — only when the chosen faucet does NOT already bundle it
+            const versch = parts.find(p => p.role === 'verschraubung');
+            if (versch && faucets.length) slots.push({
+                id: 'ws_verschraubung', name: '2 · Abstellverschraubung (2×)', dependsOn: 'ws_faucet',
+                optionRules: faucets.map(f => ({ whenArtNr: f.artNr, optionArtNrs: f.bundlesVerschraubung ? [] : [versch.artNr] })),
+                options: [toOpt(versch, 2)]
+            });
+
+            // 3. basin = the anchor product itself (rendered by updateBOM)
+
+            // 4. Anschlussstutzen — utility drains only, sized by the basin's drain thread
+            if (basin.drainStyle !== 'washbasin') {
+                const thr = (basin.drainThread || '1½"').replace(/[^0-9¼½]/g, '');
+                const stutzen = parts.filter(p => p.accType === 'Anschlussstutzen');
+                const pick = stutzen.find(p => ((p.connThread || p.label) || '').replace(/[^0-9¼½]/g, '').startsWith(thr)) || stutzen.find(p => /1½/.test(p.label));
+                if (pick) slots.push({ id: 'ws_anschluss', name: '4 · Anschlussstutzen ' + (basin.drainThread || ''), options: [toOpt(pick)] });
+            }
+
+            // 5. Siphon — fixed Ø50/56 (waagrecht/senkrecht) for utility troughs
+            //    (washbasin-style Schulwandbrunnen/KWC-Quadro use a 1¼" siphon — not yet in parts)
+            if (basin.drainStyle !== 'washbasin') {
+                const siphons = parts.filter(p => p.accType === 'Siphon');
+                if (siphons.length) slots.push({ id: 'ws_siphon', name: '5 · Siphon (waagrecht / senkrecht)', options: siphons.map(s => toOpt(s)) });
+            }
+
+            // 6. Add-ons — brand match (+ explicit "zu artNr" override), all optional
+            const linked = (p) => (p.parentBases && p.parentBases.includes(basinBase)) || (brand && (p.manufacturer || '').toLowerCase() === brand);
+            for (const [at, nm] of [['Waschtrogunterbau', 'Unterbau'], ['Rückwand', 'Rückwand'], ['Tablar', 'Tablar'], ['Auflagerost', 'Auflagerost'], ['Handtuchstange', 'Handtuchstange']]) {
+                const opts = parts.filter(p => p.accType === at && linked(p));
+                if (opts.length) slots.push({ id: 'ws_addon_' + at, name: '6 · ' + nm, options: [NONE, ...opts.map(p => toOpt(p))] });
+            }
+            return slots;
+        },
         selectTray: function (id) {
             if (!id) {
                 this.selectedTray = null;
@@ -1012,6 +1060,11 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 return;
             }
             this.selectedTray = this.trays.find(t => t.id === id);
+
+            // Wash-station builder: (re)compute the basin's assembly slots from the parts pool.
+            if (config.washStation && this.selectedTray) {
+                this.selectedTray.mountingMaterials = this.buildWashStationSlots(this.selectedTray);
+            }
 
             // Do NOT auto-change currentMontageart when a tray is selected.
             // This would re-filter the results and collapse the list to only matching trays,
@@ -1705,7 +1758,8 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             }
 
             const isAufputz = activeTrayArtNr === '2111 845.100.000' || activeTrayArtNr === '3231 113.100.000';
-            const ceramicPriority = isAufputz ? 2 : 1;
+            // Wash-station BOM order: 1 faucet, 2 Abstellverschraubung, 3 BASIN, 4 Anschlussstutzen, 5 Siphon, 6 add-ons
+            const ceramicPriority = config.washStation ? 3 : (isAufputz ? 2 : 1);
 
             let variantInline = false;
             let variantOpts = [];
@@ -2136,6 +2190,11 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = isAufputz ? 5 : 4;
                     else if (combinedLbl.includes('reservoir') || combinedLbl.includes('spülkasten') || combinedLbl.includes('ap128') || combinedLbl.includes('ap116')) priority = 1;
                     else if (combinedLbl.includes('manschette') || combinedLbl.includes('garnitur') || combinedLbl.includes('ablaufanschluss') || selectedOption.artNr.includes('3241 116') || selectedOption.artNr.includes('3241 101') || selectedOption.artNr.includes('3241 102')) priority = 5;
+
+                    // Wash-station: enforce the required BOM order (basin is priority 3)
+                    if (config.washStation && mat.id && mat.id.indexOf('ws_') === 0) {
+                        priority = mat.id === 'ws_faucet' ? 1 : mat.id === 'ws_verschraubung' ? 2 : mat.id === 'ws_anschluss' ? 4 : mat.id === 'ws_siphon' ? 5 : 6;
+                    }
 
                     finalBOM.push({
                         artNr: selectedOption.artNr,
