@@ -1244,13 +1244,29 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 const brandListEl = document.getElementById(`list_${target}_brand`);
                 const serieListEl = document.getElementById(`list_${target}_serie`);
 
+                // Cross-filter the facet pills (faceted search): each of Breite / Marke / Serie lists only
+                // the values still available under the OTHER two selections — so picking Breite 62 narrows
+                // the Serie pills to series that have a 62cm product, and vice versa. Selections combine
+                // (no reset-on-click); a selection that is no longer available is auto-cleared.
+                const wStr = c => { const w = this.extractMirrorWidth(c); return w !== null ? w.toString() : null; };
+                const passBreite = c => S('Breite') === 'all' || wStr(c) === S('Breite');
+                const passBrand = c => S('Brand') === 'all' || c.manufacturer === S('Brand');
+                const passSerie = c => S('Serie') === 'all' || this.extractSerie(c) === S('Serie');
+
+                const availBreite = new Set(baseCandidates.filter(c => passBrand(c) && passSerie(c)).map(wStr).filter(Boolean));
+                if (S('Breite') !== 'all' && !availBreite.has(S('Breite'))) setS('Breite', 'all');
+                const availBrand = new Set(baseCandidates.filter(c => passBreite(c) && passSerie(c)).map(c => c.manufacturer).filter(Boolean));
+                if (S('Brand') !== 'all' && !availBrand.has(S('Brand'))) setS('Brand', 'all');
+                const availSerie = new Set(baseCandidates.filter(c => passBreite(c) && passBrand(c)).map(c => this.extractSerie(c)).filter(s => s && s !== 'Andere'));
+                if (S('Serie') !== 'all' && !availSerie.has(S('Serie'))) setS('Serie', 'all');
+
                 if (breiteHeaderEl && breiteListEl) {
                     if (showBreite) {
                         breiteHeaderEl.style.display = 'block';
                         breiteListEl.style.display = 'flex';
 
-                        // Extract precise raw widths from the candidates (mirror-aware: Ø / N×N / Breite)
-                        const widths = [...new Set(baseCandidates.map(c => this.extractMirrorWidth(c)).filter(w => w !== null))].sort((a, b) => a - b);
+                        // Widths available under the current Marke + Serie (mirror-aware: Ø / N×N / Breite)
+                        const widths = [...new Set(baseCandidates.filter(c => passBrand(c) && passSerie(c)).map(c => this.extractMirrorWidth(c)).filter(w => w !== null))].sort((a, b) => a - b);
 
                         breiteListEl.innerHTML = `<button class="pill-btn ${S('Breite') === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
                             widths.map(w => `<button class="pill-btn ${S('Breite') === w.toString() ? 'active' : ''}" data-val="${w}">${w} cm</button>`).join('');
@@ -1258,8 +1274,6 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         breiteListEl.querySelectorAll('.pill-btn').forEach(btn => {
                             btn.addEventListener('click', () => {
                                 setS('Breite', btn.dataset.val);
-                                setS('Brand', 'all');
-                                setS('Serie', 'all');
                                 this.populateAddonPanel(target);
                             });
                         });
@@ -1271,23 +1285,20 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 }
 
                 if (brandListEl && serieListEl) {
-                    // Gather brands from base candidates
-                    const brands = [...new Set(baseCandidates.map(c => c.manufacturer).filter(Boolean))].sort();
+                    // Brands available under the current Breite + Serie
+                    const brands = [...new Set(baseCandidates.filter(c => passBreite(c) && passSerie(c)).map(c => c.manufacturer).filter(Boolean))].sort();
                     brandListEl.innerHTML = `<button class="pill-btn ${S('Brand') === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
                         brands.map(b => `<button class="pill-btn ${S('Brand') === b ? 'active' : ''}" data-val="${b}">${b}</button>`).join('');
 
                     brandListEl.querySelectorAll('.pill-btn').forEach(btn => {
                         btn.addEventListener('click', () => {
                             setS('Brand', btn.dataset.val);
-                            setS('Serie', 'all');
                             this.populateAddonPanel(target);
                         });
                     });
 
-                    // Gather series from filtered brands
-                    let fSeries = baseCandidates;
-                    if (S('Brand') !== 'all') fSeries = fSeries.filter(c => c.manufacturer === S('Brand'));
-                    const series = [...new Set(fSeries.map(c => this.extractSerie(c)))].filter(s => s !== 'Andere').sort();
+                    // Series available under the current Breite + Marke
+                    const series = [...new Set(baseCandidates.filter(c => passBreite(c) && passBrand(c)).map(c => this.extractSerie(c)))].filter(s => s !== 'Andere').sort();
 
                     serieListEl.innerHTML = `<button class="pill-btn ${S('Serie') === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
                         series.map(s => `<button class="pill-btn ${S('Serie') === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
