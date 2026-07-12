@@ -316,6 +316,19 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             return match ? match[1].replace(',', '.') : 'unknown';
         },
 
+        // Width in cm for MIRRORS (Spiegelschrank/Lichtspiegel/Spiegel). Handles "Breite N",
+        // "N x N cm" (W×H → width is first) and "Ø N cm" (round → diameter is the width).
+        // extractBreite can't read Ø/N×N, so use this for all mirror width logic. Returns null if unknown.
+        extractMirrorWidth: function (obj) {
+            const text = (obj.label || obj.name || '') + ' ' + (obj.description || '');
+            let w = null;
+            let m = text.match(/(?:Breite|B)[:\s]+([\d.,]+)\s*(cm|mm)?/i);
+            if (m) { let v = parseFloat(m[1].replace(',', '.')); const u = (m[2] || '').toLowerCase(); if (u === 'mm' || v > 250) v = v / 10; w = Math.round(v); } // NB: no unit → cm (a "50" is 50 cm, not 5)
+            else if ((m = text.match(/(\d+(?:[.,]\d+)?)\s*x\s*\d+(?:[.,]\d+)?\s*cm/i))) w = Math.round(parseFloat(m[1].replace(',', '.')));
+            else if ((m = text.match(/ø\s*(\d+(?:[.,]\d+)?)\s*cm/i))) w = Math.round(parseFloat(m[1].replace(',', '.')));
+            return (w !== null && w >= 20) ? w : null; // floor: nothing legit is < 20 cm (guards mis-parses)
+        },
+
 
 
         renderFinder: function () {
@@ -1145,32 +1158,29 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                                 }
                             }
 
-                            // 1.5 Rule for Spiegelschrank ONLY: match basin width (a cabinet sits above
-                            // the basin). Free-standing Lichtspiegel / Spiegel are any size → no width or
-                            // series restriction; they show all of their type, narrowed by the pill filters.
-                            if (target === 'spiegelschrank') {
-                                const basinWStr = this.extractBreite(this.selectedBasin);
-                                const cabinetWStr = this.extractBreite(t);
+                            // 1.5 Rule for ALL mirror toggles: match the basin width. Perfect matches (±3cm)
+                            // are collected here; the next-smaller/larger NEIGHBOUR sizes are supplemented
+                            // after the scan (see 1.8). Uses extractMirrorWidth (Ø / N×N / Breite).
+                            if (isMirror) {
+                                const bW = this.extractMirrorWidth(this.selectedBasin);
+                                const cW = this.extractMirrorWidth(t);
 
-                                if (basinWStr !== 'unknown' && cabinetWStr !== 'unknown') {
-                                    const bW = parseFloat(basinWStr);
-                                    const cW = parseFloat(cabinetWStr);
-
-                                    // Save all valid cabinets for potential fallback
+                                if (bW !== null && cW !== null) {
+                                    // Save all valid mirrors (with a width) for the neighbour supplement
                                     allSpiegelschrankCandidates.push({ item: t, width: cW });
 
                                     // Allow up to 3cm difference (e.g. 78cm quattro luci for 80cm basin)
                                     if (Math.abs(bW - cW) > 3) return;
                                     // If width matches or is close, we consider it a found match
                                     matchFound = true;
-                                } else if (basinWStr !== 'unknown') {
-                                    // Basin has a width, but cabinet doesn't? Skip it to be safe.
+                                } else if (bW !== null) {
+                                    // Basin has a width, but the mirror width is unreadable? Skip it to be safe.
                                     return;
                                 }
                             }
 
-                            // 2. Fallback to Series match — Möbel + Spiegelschrank only (mirrors are free-standing)
-                            if (!matchFound && (target === 'moebel' || target === 'spiegelschrank')) {
+                            // 2. Fallback to Series match — Möbel only (mirrors are matched by width)
+                            if (!matchFound && target === 'moebel') {
                                 const basinSerie = this.extractSerie(this.selectedBasin).toLowerCase();
                                 const tSerie = this.extractSerie(t).toLowerCase();
                                 if (!tSerie.includes(basinSerie) && !basinSerie.includes(tSerie)) return;
@@ -1182,30 +1192,31 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             });
 
 
-            // 1.8 Fallback logic for mirror toggles if NO exact match was found
+            // 1.8 Neighbour-size supplement for mirror toggles.
+            //  - HALF-SIZE basin width (not a multiple of 10 → 45/48/52/…): ALWAYS add the next-smaller
+            //    AND next-larger available size, on top of any perfect (±3cm) match. Don't ditch the match.
+            //  - ROUND basin width (40/50/60/…): only fall back to neighbours when there is NO perfect match.
             let isOffsetMatch = false;
-            if (isMirror && this.selectedBasin && baseCandidates.length === 0 && allSpiegelschrankCandidates.length > 0) {
-                const basinWStr = this.extractBreite(this.selectedBasin);
-                if (basinWStr !== 'unknown') {
-                    const bW = Math.round(parseFloat(basinWStr));
-                    
-                    // Find all unique available mirror widths
-                    const uniqueWidths = [...new Set(allSpiegelschrankCandidates.map(c => Math.round(c.width)))].sort((a, b) => a - b);
-                    
-                    // Find closest smaller and closest larger
-                    let smallerWidth = -1;
-                    let largerWidth = Infinity;
-                    
-                    for (let w of uniqueWidths) {
-                        if (w < bW && w > smallerWidth) smallerWidth = w;
-                        if (w > bW && w < largerWidth) largerWidth = w;
-                    }
-                    
-                    // Add all cabinets that match the smaller or larger width (Bypass series filter just like exact match)
-                    const fallbackItems = allSpiegelschrankCandidates.filter(c => Math.round(c.width) === smallerWidth || Math.round(c.width) === largerWidth);
-                    if (fallbackItems.length > 0) {
-                        isOffsetMatch = true;
-                        fallbackItems.forEach(c => baseCandidates.push(c.item));
+            if (isMirror && this.selectedBasin && allSpiegelschrankCandidates.length > 0) {
+                const bW = this.extractMirrorWidth(this.selectedBasin);
+                if (bW !== null) {
+                    const isHalfSize = (bW % 10) !== 0;
+                    if (baseCandidates.length === 0 || isHalfSize) {
+                        // Nearest distinct available size BELOW / ABOVE the perfect (±3cm) window.
+                        const uniqueWidths = [...new Set(allSpiegelschrankCandidates.map(c => Math.round(c.width)))].sort((a, b) => a - b);
+                        let smallerWidth = -1;
+                        let largerWidth = Infinity;
+                        for (let w of uniqueWidths) {
+                            if (w < bW - 3 && w > smallerWidth) smallerWidth = w;
+                            if (w > bW + 3 && w < largerWidth) largerWidth = w;
+                        }
+                        const seen = new Set(baseCandidates.map(c => c.artNr));
+                        const neighbours = allSpiegelschrankCandidates.filter(c =>
+                            (Math.round(c.width) === smallerWidth || Math.round(c.width) === largerWidth) && !seen.has(c.item.artNr));
+                        if (neighbours.length > 0) {
+                            isOffsetMatch = true; // enables the Breite pill so the user can pick the size bracket
+                            neighbours.forEach(c => baseCandidates.push(c.item));
+                        }
                     }
                 }
             }
@@ -1224,9 +1235,9 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 const cap = MIRROR_PTYPE[target];                 // 'Spiegelschrank' | 'Spiegel' | 'Lichtspiegel'
                 const S = (k) => this['current' + cap + k];        // getter for the per-target filter state
                 const setS = (k, v) => { this['current' + cap + k] = v; };
-                // Breite pill: Spiegelschrank only, in offset-fallback mode. Free mirrors skip it —
-                // extractBreite is unreliable on mirror labels (Ø / thickness), so they narrow by
-                // Marke / Serie / Band / Steckdose / Lichtfarbe instead.
+                // Breite pill shows whenever neighbour sizes were supplemented (isOffsetMatch) — i.e. a
+                // half-size basin or a no-perfect-match fallback — so the user can pick the size bracket
+                // (40 / 45 / 50 …). Widths read via extractMirrorWidth (Ø / N×N / Breite).
                 const showBreite = isOffsetMatch;
                 const breiteHeaderEl = document.getElementById(`${target}_breite_header`);
                 const breiteListEl = document.getElementById(`list_${target}_breite`);
@@ -1238,11 +1249,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         breiteHeaderEl.style.display = 'block';
                         breiteListEl.style.display = 'flex';
 
-                        // Extract precise raw widths from the fallback candidates
-                        const widths = [...new Set(baseCandidates.map(c => {
-                            const wStr = this.extractBreite(c);
-                            return wStr !== 'unknown' ? parseFloat(wStr) : null;
-                        }).filter(w => w !== null))].sort((a, b) => a - b);
+                        // Extract precise raw widths from the candidates (mirror-aware: Ø / N×N / Breite)
+                        const widths = [...new Set(baseCandidates.map(c => this.extractMirrorWidth(c)).filter(w => w !== null))].sort((a, b) => a - b);
 
                         breiteListEl.innerHTML = `<button class="pill-btn ${S('Breite') === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
                             widths.map(w => `<button class="pill-btn ${S('Breite') === w.toString() ? 'active' : ''}" data-val="${w}">${w} cm</button>`).join('');
@@ -1311,8 +1319,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     // Final display filtering
                     if (S('Breite') !== 'all') {
                         displayCandidates = displayCandidates.filter(c => {
-                            const wStr = this.extractBreite(c);
-                            return wStr !== 'unknown' && parseFloat(wStr).toString() === S('Breite');
+                            const w = this.extractMirrorWidth(c);
+                            return w !== null && w.toString() === S('Breite');
                         });
                     }
                     if (S('Brand') !== 'all') displayCandidates = displayCandidates.filter(c => c.manufacturer === S('Brand'));
