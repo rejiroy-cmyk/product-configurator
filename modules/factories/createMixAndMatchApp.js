@@ -1145,8 +1145,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                                 }
                             }
 
-                            // 1.5 Rule for mirror toggles: Match Basin width (Rounded)
-                            if (isMirror) {
+                            // 1.5 Rule for Spiegelschrank ONLY: match basin width (a cabinet sits above
+                            // the basin). Free-standing Lichtspiegel / Spiegel are any size → no width or
+                            // series restriction; they show all of their type, narrowed by the pill filters.
+                            if (target === 'spiegelschrank') {
                                 const basinWStr = this.extractBreite(this.selectedBasin);
                                 const cabinetWStr = this.extractBreite(t);
 
@@ -1161,14 +1163,14 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                                     if (Math.abs(bW - cW) > 3) return;
                                     // If width matches or is close, we consider it a found match
                                     matchFound = true;
-                                } else if (isMirror && basinWStr !== 'unknown') {
+                                } else if (basinWStr !== 'unknown') {
                                     // Basin has a width, but cabinet doesn't? Skip it to be safe.
                                     return;
                                 }
                             }
 
-                            // 2. Fallback to Series match if no specific rule matched
-                            if (!matchFound && !target.startsWith('accessoires')) {
+                            // 2. Fallback to Series match — Möbel + Spiegelschrank only (mirrors are free-standing)
+                            if (!matchFound && (target === 'moebel' || target === 'spiegelschrank')) {
                                 const basinSerie = this.extractSerie(this.selectedBasin).toLowerCase();
                                 const tSerie = this.extractSerie(t).toLowerCase();
                                 if (!tSerie.includes(basinSerie) && !basinSerie.includes(tSerie)) return;
@@ -1222,13 +1224,17 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 const cap = MIRROR_PTYPE[target];                 // 'Spiegelschrank' | 'Spiegel' | 'Lichtspiegel'
                 const S = (k) => this['current' + cap + k];        // getter for the per-target filter state
                 const setS = (k, v) => { this['current' + cap + k] = v; };
+                // Breite pill: Spiegelschrank only, in offset-fallback mode. Free mirrors skip it —
+                // extractBreite is unreliable on mirror labels (Ø / thickness), so they narrow by
+                // Marke / Serie / Band / Steckdose / Lichtfarbe instead.
+                const showBreite = isOffsetMatch;
                 const breiteHeaderEl = document.getElementById(`${target}_breite_header`);
                 const breiteListEl = document.getElementById(`list_${target}_breite`);
                 const brandListEl = document.getElementById(`list_${target}_brand`);
                 const serieListEl = document.getElementById(`list_${target}_serie`);
 
                 if (breiteHeaderEl && breiteListEl) {
-                    if (isOffsetMatch) {
+                    if (showBreite) {
                         breiteHeaderEl.style.display = 'block';
                         breiteListEl.style.display = 'flex';
 
@@ -1296,7 +1302,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         this.populateAddonPanel(target);
                     };
 
-                    if (isOffsetMatch) {
+                    if (showBreite) {
                         applyPillUI(`${target}_breite_header`, `list_${target}_breite`, S('Breite'), 'Breite', resetMirrorFn, S('Breite') !== 'all' ? S('Breite') + ' cm' : 'all');
                     }
                     applyPillUI(`${target}_brand_header`, `list_${target}_brand`, S('Brand'), 'Marke', resetMirrorFn);
