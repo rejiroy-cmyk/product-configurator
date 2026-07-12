@@ -1022,9 +1022,16 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             // N (how many mixers/holes/Einbaukosten) is chosen via the Lochanzahl dropdown and
             // applied in updateBOM's deck-injection block (see there).
             if (basin.armaturenbank === true) {
-                // Faucet pool = the Waschtischmischer Einlochmischer (reused, like Mix & Match).
+                // Faucet pool = the Waschtischmischer Einlochmischer (reused, like Mix & Match),
+                // but ONLY ohne Ablaufventil — the trough's built-in Siebventil is the waste, so a
+                // pop-up Ablaufventil would conflict with it.
                 const pool = ((window.productApps && window.productApps.waschtischmischer && window.productApps.waschtischmischer.trays) || [])
-                    .filter(t => /einlochmischer|einloch|einhebelmischer/.test(((t.label || '') + ' ' + (t.description || '')).toLowerCase()));
+                    .filter(t => {
+                        const s = ((t.label || '') + ' ' + (t.description || '')).toLowerCase();
+                        if (!/einlochmischer|einloch|einhebelmischer/.test(s)) return false;
+                        const hasWaste = /ablaufventil|zugstange|ablaufgarnitur/.test(s) && !/ohne (ablaufventil|zugstange|ablaufgarnitur)/.test(s);
+                        return !hasWaste;
+                    });
                 if (pool.length) slots.push({
                     id: 'ws_faucet', name: '1 · Einlochmischer', deckManaged: true,
                     options: pool.map(m => ({ artNr: m.artNr, label: m.label, type: 'Einlochmischer', imgUrl: m.imgUrl, menge: 1 }))
@@ -1831,10 +1838,10 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 if (mixer) {
                     finalBOM.push({ artNr: 'G1', label: 'Gürtelset', typ: 'Service', menge: 1, img: '', note: 'Deck-Setup', priority: 2.5 });
                     finalBOM.push({ artNr: mixer.artNr, label: mixer.label, typ: 'Einlochmischer', menge: N, img: mixer.imgUrl, note: 'Einlochmischer', priority: 3.2 });
-                    const hasAblauf = /ablaufventil/.test((mixer.label || '').toLowerCase());
+                    // Deck mixers are always ohne Ablaufventil (trough has a Siebventil) → Einbaukosten ohne Exzenterventil.
                     finalBOM.push({
-                        artNr: hasAblauf ? '6000 011.000.000' : '6000 013.000.000',
-                        label: hasAblauf ? 'Einbaukosten, Einlocharmatur mit Ablaufventil, Zugventil, Nettopreis' : 'Einbaukosten, Einlocharmatur ohne Exzenterventil, Nettopreis',
+                        artNr: '6000 013.000.000',
+                        label: 'Einbaukosten, Einlocharmatur ohne Exzenterventil, Nettopreis',
                         typ: 'Service', menge: N, img: '', note: 'Einbaukosten', priority: 3.4
                     });
                     // Lochbohrung line — Planox has a real SKU; Romay Romex is count-only (pseudo 'loch_*' → no line).
@@ -2382,6 +2389,26 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
 
             console.log(`[BOM] Deduped BOM:`, dedupedBOM.map(i => i.artNr).join(', '));
 
+            // Wash-station DECK mode: split the BOM for the two copy buttons (G1-set vs loose),
+            // mirroring Mix & Match. G1-set = priority < 4 (G1 → Waschrinne → Einlochmischer →
+            // Einbaukosten → Lochbohrung); loose = the rest (Anschlussstutzen, Siphon, add-ons).
+            const deckActive = config.washStation && this.selectedTray && this.selectedTray.armaturenbank === true;
+            if (deckActive) {
+                const copyable = it => it.artNr && it.artNr !== 'none' && (it.menge || 0) > 0 && !(it.label || '').toLowerCase().startsWith('ohne');
+                const line = it => ({ artNr: it.artNr.toString().replace(/\t/g, '').trim(), menge: it.menge || 1 });
+                this._deckCopy = {
+                    g1: dedupedBOM.filter(it => it.priority < 4 && copyable(it)).map(line),
+                    loose: dedupedBOM.filter(it => it.priority >= 4 && copyable(it)).map(line)
+                };
+            } else {
+                this._deckCopy = null;
+            }
+            // Per-tray copy buttons: deck mode → "G1 kopieren" + the Lose Artikel button; otherwise single copy.
+            const looseBtn = document.getElementById('copyLooseBtn');
+            const copyBtnText = document.getElementById('copyBtnText');
+            if (looseBtn) looseBtn.style.display = deckActive ? '' : 'none';
+            if (copyBtnText) copyBtnText.textContent = deckActive ? 'G1 kopieren' : 'Artikelnummern kopieren';
+
             // Render
             let totalCount = 0;
             const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
@@ -2833,7 +2860,28 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             bomCountCounter.textContent = `${totalCount} Artikel benötigt`;
             priceBOM(bomTableBody);
         },
-        copyToClipboard: window.copyBOMToClipboard
+        // Deck (Armaturenbank) mode → two buttons like Mix & Match: G1-set vs loose.
+        // Every other case → the shared single-copy of the whole BOM.
+        copyToClipboard: function () {
+            if (this._deckCopy && this._deckCopy.g1 && this._deckCopy.g1.length) {
+                const text = this._deckCopy.g1.map(l => l.artNr + '\t' + l.menge).join('\n');
+                window.copyTextToClipboard(text).then(() => {
+                    alert('✅ G1-Set kopiert für SAP (' + this._deckCopy.g1.length + ' Zeilen):\n\n' + text.replace(/\t/g, '    '));
+                }).catch(() => alert('Kopieren fehlgeschlagen.'));
+                return;
+            }
+            window.copyBOMToClipboard();
+        },
+        copyLooseItemsToClipboard: function () {
+            if (!this._deckCopy || !this._deckCopy.loose || !this._deckCopy.loose.length) {
+                alert('Keine losen Artikel vorhanden.');
+                return;
+            }
+            const text = this._deckCopy.loose.map(l => l.artNr + '\t' + l.menge).join('\n');
+            window.copyTextToClipboard(text).then(() => {
+                alert('✅ Lose Artikel kopiert für SAP (' + this._deckCopy.loose.length + ' Zeilen):\n\nBitte NACH dem G1-Set einfügen!\n\n' + text.replace(/\t/g, '    '));
+            }).catch(() => alert('Kopieren fehlgeschlagen.'));
+        }
     };
 }
 

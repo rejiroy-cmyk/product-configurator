@@ -1,5 +1,5 @@
 import { DATA_VERSION, catalog } from './modules/data.js?v=2.5.5';
-import { productApps } from './modules/apps.js?v=2.6.44';
+import { productApps } from './modules/apps.js?v=2.6.45';
 import { setupAdmin } from './modules/admin.js?v=2.5.6';
 // Price table (art-Nr → ‹without taxes› CHF). Vite inlines this JSON into the bundle.
 import pricesData from './prices.json';
