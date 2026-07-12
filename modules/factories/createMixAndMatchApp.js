@@ -13,10 +13,14 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         // Addon Toggles
         showMoebel: false,
         showSpiegelschrank: false,
+        showSpiegel: false,
+        showLichtspiegel: false,
         showAccessoires: false,
         currentAccessoiresSerie: 'all',
         selectedMoebel: null,
         selectedSpiegelschrank: null,
+        selectedSpiegel: null,
+        selectedLichtspiegel: null,
         selectedAccessoires: [],
         selectedSiphon: null, // New: track user choice for Siphon
 
@@ -58,9 +62,13 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             this.showMoebel = false;
             this.showSpiegelschrank = false;
+            this.showSpiegel = false;
+            this.showLichtspiegel = false;
             this.showAccessoires = false;
             this.selectedMoebel = null;
             this.selectedSpiegelschrank = null;
+            this.selectedSpiegel = null;
+            this.selectedLichtspiegel = null;
             this.selectedAccessoires = [];
 
             this.currentBasinType = 'all';
@@ -78,12 +86,14 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             this.currentFaucetAusladung = 'all';
             this.currentFaucetSerie = 'all';
 
-            this.currentSpiegelschrankBrand = 'all';
-            this.currentSpiegelschrankSerie = 'all';
-            this.currentSpiegelschrankBreite = 'all';
-            this.currentSpiegelschrankBand = 'all';
-            this.currentSpiegelschrankSteckdose = 'all';
-            this.currentSpiegelschrankLichtfarbe = 'all';
+            ['Spiegelschrank', 'Spiegel', 'Lichtspiegel'].forEach(m => {
+                this['current' + m + 'Brand'] = 'all';
+                this['current' + m + 'Serie'] = 'all';
+                this['current' + m + 'Breite'] = 'all';
+                this['current' + m + 'Band'] = 'all';
+                this['current' + m + 'Steckdose'] = 'all';
+                this['current' + m + 'Lichtfarbe'] = 'all';
+            });
 
             this.basinSearchQuery = '';
             this.faucetSearchQuery = '';
@@ -393,6 +403,14 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                                 <span class="addon-toggle-label"><i class="ri-contrast-2-line"></i> Spiegelschrank</span>
                                 <button class="ios-toggle" data-target="spiegelschrank" aria-label="Spiegelschrank ein/aus"><span class="ios-toggle-knob"></span></button>
                             </div>
+                            <div class="addon-toggle-row" id="toggle_lichtspiegel">
+                                <span class="addon-toggle-label"><i class="ri-lightbulb-line"></i> Lichtspiegel</span>
+                                <button class="ios-toggle" data-target="lichtspiegel" aria-label="Lichtspiegel ein/aus"><span class="ios-toggle-knob"></span></button>
+                            </div>
+                            <div class="addon-toggle-row" id="toggle_spiegel">
+                                <span class="addon-toggle-label"><i class="ri-square-line"></i> Spiegel</span>
+                                <button class="ios-toggle" data-target="spiegel" aria-label="Spiegel ein/aus"><span class="ios-toggle-knob"></span></button>
+                            </div>
                             <div class="addon-toggle-row" id="toggle_accessoires">
                                 <span class="addon-toggle-label"><i class="ri-archive-line"></i> Accessoires</span>
                                 <button class="ios-toggle" data-target="accessoires" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
@@ -424,6 +442,38 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
                             <div class="finder-sub-header">Modell wählen</div>
                             <div class="finder-list" id="list_addon_spiegelschrank"></div>
+                        </div>
+                        <div id="addon_lichtspiegel_panel" class="addon-panel" style="display:none;">
+                            <div class="finder-sub-header" id="lichtspiegel_breite_header" style="display:none;">Breite</div>
+                            <div class="pill-group" id="list_lichtspiegel_breite" style="margin-bottom: 0.75rem; display:none;"></div>
+                            <div class="finder-sub-header" id="lichtspiegel_brand_header">Marke</div>
+                            <div class="pill-group" id="list_lichtspiegel_brand" style="margin-bottom: 0.75rem;"></div>
+                            <div class="finder-sub-header" id="lichtspiegel_serie_header">Serie</div>
+                            <div class="pill-group" id="list_lichtspiegel_serie" style="margin-bottom: 0.75rem;"></div>
+                            <div class="finder-sub-header" id="lichtspiegel_band_header" style="display:none;">Band</div>
+                            <div class="pill-group" id="list_lichtspiegel_band" style="margin-bottom: 0.75rem; display:none;"></div>
+                            <div class="finder-sub-header" id="lichtspiegel_steckdose_header" style="display:none;">Steckdose</div>
+                            <div class="pill-group" id="list_lichtspiegel_steckdose" style="margin-bottom: 0.75rem; display:none;"></div>
+                            <div class="finder-sub-header" id="lichtspiegel_lichtfarbe_header" style="display:none;">Lichtfarbe</div>
+                            <div class="pill-group" id="list_lichtspiegel_lichtfarbe" style="margin-bottom: 0.75rem; display:none;"></div>
+                            <div class="finder-sub-header">Modell wählen</div>
+                            <div class="finder-list" id="list_addon_lichtspiegel"></div>
+                        </div>
+                        <div id="addon_spiegel_panel" class="addon-panel" style="display:none;">
+                            <div class="finder-sub-header" id="spiegel_breite_header" style="display:none;">Breite</div>
+                            <div class="pill-group" id="list_spiegel_breite" style="margin-bottom: 0.75rem; display:none;"></div>
+                            <div class="finder-sub-header" id="spiegel_brand_header">Marke</div>
+                            <div class="pill-group" id="list_spiegel_brand" style="margin-bottom: 0.75rem;"></div>
+                            <div class="finder-sub-header" id="spiegel_serie_header">Serie</div>
+                            <div class="pill-group" id="list_spiegel_serie" style="margin-bottom: 0.75rem;"></div>
+                            <div class="finder-sub-header" id="spiegel_band_header" style="display:none;">Band</div>
+                            <div class="pill-group" id="list_spiegel_band" style="margin-bottom: 0.75rem; display:none;"></div>
+                            <div class="finder-sub-header" id="spiegel_steckdose_header" style="display:none;">Steckdose</div>
+                            <div class="pill-group" id="list_spiegel_steckdose" style="margin-bottom: 0.75rem; display:none;"></div>
+                            <div class="finder-sub-header" id="spiegel_lichtfarbe_header" style="display:none;">Lichtfarbe</div>
+                            <div class="pill-group" id="list_spiegel_lichtfarbe" style="margin-bottom: 0.75rem; display:none;"></div>
+                            <div class="finder-sub-header">Modell wählen</div>
+                            <div class="finder-list" id="list_addon_spiegel"></div>
                         </div>
                         <div id="addon_accessoires_panel" class="addon-panel" style="display:none;">
                             <div class="finder-sub-header" id="addon_accessoires_serie_header">Serie</div>
@@ -973,7 +1023,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
         updateAddonToggles: function () {
             // Sync toggle active states from app state
-            const targets = ['moebel', 'spiegelschrank', 'accessoires'];
+            const targets = ['moebel', 'spiegelschrank', 'lichtspiegel', 'spiegel', 'accessoires'];
             targets.forEach(t => {
                 const btn = document.querySelector(`.ios-toggle[data-target="${t}"]`);
                 const panel = document.getElementById(`addon_${t}_panel`);
@@ -995,6 +1045,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             // Clear selection when toggled off
                             if (t === 'moebel') this.selectedMoebel = null;
                             if (t === 'spiegelschrank') this.selectedSpiegelschrank = null;
+                            if (t === 'spiegel') this.selectedSpiegel = null;
+                            if (t === 'lichtspiegel') this.selectedLichtspiegel = null;
                             if (t === 'accessoires') {
                                 this.selectedAccessoires = [];
                                 this.currentAccessoiresSerie = 'all';
@@ -1023,24 +1075,34 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             const keywordMap = {
                 moebel: ['möbel', 'meuble', 'unterschrank', 'waschtischunterschrank', 'schrankunterschrank'],
                 spiegelschrank: ['spiegelschrank', 'spiegelkabinett', 'miroir', 'mirror', ' mirror '],
+                lichtspiegel: ['lichtspiegel'],
+                spiegel: [], // matched purely by productType tag (avoids catching Spiegelschrank/Lichtspiegel)
                 accessoires: ['accessoire', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'hakenleiste'],
                 accessoires_wc: ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste'],
                 accessoires_dusche: ['drahtseifenhalter', 'duschkorb', 'badetuchstange', 'schwammhalter']
             };
 
             const keywords = keywordMap[target] || [];
+            // Mirror toggles share one code path; candidates are matched by the productType tag
+            // (with a keyword fallback so the legacy CSV Spiegelschränke without a tag still match).
+            const MIRROR_TARGETS = ['spiegelschrank', 'spiegel', 'lichtspiegel'];
+            const MIRROR_PTYPE = { spiegelschrank: 'Spiegelschrank', spiegel: 'Spiegel', lichtspiegel: 'Lichtspiegel' };
+            const isMirror = MIRROR_TARGETS.includes(target);
 
             // 1. Search all app data for matching products (Gather Base Candidates)
             let baseCandidates = [];
-            let allSpiegelschrankCandidates = []; // For width fallback logic
+            let allSpiegelschrankCandidates = []; // For width fallback logic (per mirror target)
             const allApps = window.productApps || {};
             Object.values(allApps).forEach(app => {
                 // Relational apps use 'trays', Mix & Match uses 'basinTrays'/'faucets'
                 const items = app.trays || app.basinTrays || app.faucets || [];
                 items.forEach(t => {
                     const lbl = (t.label || t.name || '').toLowerCase();
-                    if (keywords.some(k => lbl.includes(k))) {
-                        if (target === 'spiegelschrank') {
+                    const matched = isMirror
+                        ? (t.productType === MIRROR_PTYPE[target] || (keywords.length > 0 && keywords.some(k => lbl.includes(k))))
+                        : keywords.some(k => lbl.includes(k));
+                    if (matched) {
+                        if (isMirror) {
                             if (lbl.includes('schallschutz')) return;
                         }
                         if (target === 'accessoires' || target === 'accessoires_wc' || target === 'accessoires_dusche') {
@@ -1083,15 +1145,15 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                                 }
                             }
 
-                            // 1.5 Rule for Spiegelschrank: Match Basin width (Rounded)
-                            if (target === 'spiegelschrank') {
+                            // 1.5 Rule for mirror toggles: Match Basin width (Rounded)
+                            if (isMirror) {
                                 const basinWStr = this.extractBreite(this.selectedBasin);
                                 const cabinetWStr = this.extractBreite(t);
 
                                 if (basinWStr !== 'unknown' && cabinetWStr !== 'unknown') {
                                     const bW = parseFloat(basinWStr);
                                     const cW = parseFloat(cabinetWStr);
-                                    
+
                                     // Save all valid cabinets for potential fallback
                                     allSpiegelschrankCandidates.push({ item: t, width: cW });
 
@@ -1099,7 +1161,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                                     if (Math.abs(bW - cW) > 3) return;
                                     // If width matches or is close, we consider it a found match
                                     matchFound = true;
-                                } else if (target === 'spiegelschrank' && basinWStr !== 'unknown') {
+                                } else if (isMirror && basinWStr !== 'unknown') {
                                     // Basin has a width, but cabinet doesn't? Skip it to be safe.
                                     return;
                                 }
@@ -1118,9 +1180,9 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             });
 
 
-            // 1.8 Fallback logic for Spiegelschrank if NO exact match was found
+            // 1.8 Fallback logic for mirror toggles if NO exact match was found
             let isOffsetMatch = false;
-            if (target === 'spiegelschrank' && this.selectedBasin && baseCandidates.length === 0 && allSpiegelschrankCandidates.length > 0) {
+            if (isMirror && this.selectedBasin && baseCandidates.length === 0 && allSpiegelschrankCandidates.length > 0) {
                 const basinWStr = this.extractBreite(this.selectedBasin);
                 if (basinWStr !== 'unknown') {
                     const bW = Math.round(parseFloat(basinWStr));
@@ -1155,97 +1217,100 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             let displayCandidates = baseCandidates;
 
-            // 2. Handle Pill Filters for Spiegelschrank
-            if (target === 'spiegelschrank') {
-                const breiteHeaderEl = document.getElementById('spiegelschrank_breite_header');
-                const breiteListEl = document.getElementById('list_spiegelschrank_breite');
-                const brandListEl = document.getElementById('list_spiegelschrank_brand');
-                const serieListEl = document.getElementById('list_spiegelschrank_serie');
+            // 2. Handle Pill Filters for mirror toggles (Spiegelschrank / Spiegel / Lichtspiegel)
+            if (isMirror) {
+                const cap = MIRROR_PTYPE[target];                 // 'Spiegelschrank' | 'Spiegel' | 'Lichtspiegel'
+                const S = (k) => this['current' + cap + k];        // getter for the per-target filter state
+                const setS = (k, v) => { this['current' + cap + k] = v; };
+                const breiteHeaderEl = document.getElementById(`${target}_breite_header`);
+                const breiteListEl = document.getElementById(`list_${target}_breite`);
+                const brandListEl = document.getElementById(`list_${target}_brand`);
+                const serieListEl = document.getElementById(`list_${target}_serie`);
 
                 if (breiteHeaderEl && breiteListEl) {
                     if (isOffsetMatch) {
                         breiteHeaderEl.style.display = 'block';
                         breiteListEl.style.display = 'flex';
-                        
+
                         // Extract precise raw widths from the fallback candidates
                         const widths = [...new Set(baseCandidates.map(c => {
                             const wStr = this.extractBreite(c);
                             return wStr !== 'unknown' ? parseFloat(wStr) : null;
                         }).filter(w => w !== null))].sort((a, b) => a - b);
-                        
-                        breiteListEl.innerHTML = `<button class="pill-btn ${this.currentSpiegelschrankBreite === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
-                            widths.map(w => `<button class="pill-btn ${this.currentSpiegelschrankBreite === w.toString() ? 'active' : ''}" data-val="${w}">${w} cm</button>`).join('');
-                            
+
+                        breiteListEl.innerHTML = `<button class="pill-btn ${S('Breite') === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                            widths.map(w => `<button class="pill-btn ${S('Breite') === w.toString() ? 'active' : ''}" data-val="${w}">${w} cm</button>`).join('');
+
                         breiteListEl.querySelectorAll('.pill-btn').forEach(btn => {
                             btn.addEventListener('click', () => {
-                                this.currentSpiegelschrankBreite = btn.dataset.val;
-                                this.currentSpiegelschrankBrand = 'all';
-                                this.currentSpiegelschrankSerie = 'all';
-                                this.populateAddonPanel('spiegelschrank');
+                                setS('Breite', btn.dataset.val);
+                                setS('Brand', 'all');
+                                setS('Serie', 'all');
+                                this.populateAddonPanel(target);
                             });
                         });
                     } else {
                         breiteHeaderEl.style.display = 'none';
                         breiteListEl.style.display = 'none';
-                        this.currentSpiegelschrankBreite = 'all'; // Reset if not in offset mode
+                        setS('Breite', 'all'); // Reset if not in offset mode
                     }
                 }
 
                 if (brandListEl && serieListEl) {
                     // Gather brands from base candidates
                     const brands = [...new Set(baseCandidates.map(c => c.manufacturer).filter(Boolean))].sort();
-                    brandListEl.innerHTML = `<button class="pill-btn ${this.currentSpiegelschrankBrand === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
-                        brands.map(b => `<button class="pill-btn ${this.currentSpiegelschrankBrand === b ? 'active' : ''}" data-val="${b}">${b}</button>`).join('');
+                    brandListEl.innerHTML = `<button class="pill-btn ${S('Brand') === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                        brands.map(b => `<button class="pill-btn ${S('Brand') === b ? 'active' : ''}" data-val="${b}">${b}</button>`).join('');
 
                     brandListEl.querySelectorAll('.pill-btn').forEach(btn => {
                         btn.addEventListener('click', () => {
-                            this.currentSpiegelschrankBrand = btn.dataset.val;
-                            this.currentSpiegelschrankSerie = 'all';
-                            this.populateAddonPanel('spiegelschrank');
+                            setS('Brand', btn.dataset.val);
+                            setS('Serie', 'all');
+                            this.populateAddonPanel(target);
                         });
                     });
 
                     // Gather series from filtered brands
                     let fSeries = baseCandidates;
-                    if (this.currentSpiegelschrankBrand !== 'all') fSeries = fSeries.filter(c => c.manufacturer === this.currentSpiegelschrankBrand);
+                    if (S('Brand') !== 'all') fSeries = fSeries.filter(c => c.manufacturer === S('Brand'));
                     const series = [...new Set(fSeries.map(c => this.extractSerie(c)))].filter(s => s !== 'Andere').sort();
 
-                    serieListEl.innerHTML = `<button class="pill-btn ${this.currentSpiegelschrankSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
-                        series.map(s => `<button class="pill-btn ${this.currentSpiegelschrankSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
+                    serieListEl.innerHTML = `<button class="pill-btn ${S('Serie') === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                        series.map(s => `<button class="pill-btn ${S('Serie') === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
 
                     serieListEl.querySelectorAll('.pill-btn').forEach(btn => {
                         btn.addEventListener('click', () => {
-                            this.currentSpiegelschrankSerie = btn.dataset.val;
-                            this.populateAddonPanel('spiegelschrank');
+                            setS('Serie', btn.dataset.val);
+                            this.populateAddonPanel(target);
                         });
                     });
 
                     // APPLY UI RESET BUTTONS
-                    const resetSpiegelschrankFn = () => {
-                        this.currentSpiegelschrankBreite = 'all';
-                        this.currentSpiegelschrankBrand = 'all';
-                        this.currentSpiegelschrankSerie = 'all';
-                        this.currentSpiegelschrankBand = 'all';
-                        this.currentSpiegelschrankSteckdose = 'all';
-                        this.currentSpiegelschrankLichtfarbe = 'all';
-                        this.populateAddonPanel('spiegelschrank');
+                    const resetMirrorFn = () => {
+                        setS('Breite', 'all');
+                        setS('Brand', 'all');
+                        setS('Serie', 'all');
+                        setS('Band', 'all');
+                        setS('Steckdose', 'all');
+                        setS('Lichtfarbe', 'all');
+                        this.populateAddonPanel(target);
                     };
 
                     if (isOffsetMatch) {
-                        applyPillUI('spiegelschrank_breite_header', 'list_spiegelschrank_breite', this.currentSpiegelschrankBreite, 'Breite', resetSpiegelschrankFn, this.currentSpiegelschrankBreite !== 'all' ? this.currentSpiegelschrankBreite + ' cm' : 'all');
+                        applyPillUI(`${target}_breite_header`, `list_${target}_breite`, S('Breite'), 'Breite', resetMirrorFn, S('Breite') !== 'all' ? S('Breite') + ' cm' : 'all');
                     }
-                    applyPillUI('spiegelschrank_brand_header', 'list_spiegelschrank_brand', this.currentSpiegelschrankBrand, 'Marke', resetSpiegelschrankFn);
-                    applyPillUI('spiegelschrank_serie_header', 'list_spiegelschrank_serie', this.currentSpiegelschrankSerie, 'Serie', resetSpiegelschrankFn);
+                    applyPillUI(`${target}_brand_header`, `list_${target}_brand`, S('Brand'), 'Marke', resetMirrorFn);
+                    applyPillUI(`${target}_serie_header`, `list_${target}_serie`, S('Serie'), 'Serie', resetMirrorFn);
 
                     // Final display filtering
-                    if (this.currentSpiegelschrankBreite !== 'all') {
+                    if (S('Breite') !== 'all') {
                         displayCandidates = displayCandidates.filter(c => {
                             const wStr = this.extractBreite(c);
-                            return wStr !== 'unknown' && parseFloat(wStr).toString() === this.currentSpiegelschrankBreite;
+                            return wStr !== 'unknown' && parseFloat(wStr).toString() === S('Breite');
                         });
                     }
-                    if (this.currentSpiegelschrankBrand !== 'all') displayCandidates = displayCandidates.filter(c => c.manufacturer === this.currentSpiegelschrankBrand);
-                    if (this.currentSpiegelschrankSerie !== 'all') displayCandidates = displayCandidates.filter(c => this.extractSerie(c) === this.currentSpiegelschrankSerie);
+                    if (S('Brand') !== 'all') displayCandidates = displayCandidates.filter(c => c.manufacturer === S('Brand'));
+                    if (S('Serie') !== 'all') displayCandidates = displayCandidates.filter(c => this.extractSerie(c) === S('Serie'));
 
                     // NEW FILTERS: BAND, STECKDOSE, LICHTFARBE
                     const getProp = (c, type) => {
@@ -1272,7 +1337,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         return null;
                     };
 
-                    const renderFilter = (type, currentVal, headerId, listId, titleLabel) => {
+                    const stateKeyOf = { band: 'Band', steckdose: 'Steckdose', lichtfarbe: 'Lichtfarbe' };
+                    const renderFilter = (type, headerId, listId, titleLabel) => {
                         const header = document.getElementById(headerId);
                         const list = document.getElementById(listId);
                         if (!header || !list) return;
@@ -1287,28 +1353,27 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         header.style.display = 'block';
                         list.style.display = 'flex';
 
+                        const currentVal = S(stateKeyOf[type]);
                         list.innerHTML = `<button class="pill-btn ${currentVal === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
                             options.map(o => `<button class="pill-btn ${currentVal === o ? 'active' : ''}" data-val="${o}">${o}</button>`).join('');
-                        
+
                         list.querySelectorAll('.pill-btn').forEach(btn => {
                             btn.addEventListener('click', () => {
-                                if (type === 'band') this.currentSpiegelschrankBand = btn.dataset.val;
-                                if (type === 'steckdose') this.currentSpiegelschrankSteckdose = btn.dataset.val;
-                                if (type === 'lichtfarbe') this.currentSpiegelschrankLichtfarbe = btn.dataset.val;
-                                this.populateAddonPanel('spiegelschrank');
+                                setS(stateKeyOf[type], btn.dataset.val);
+                                this.populateAddonPanel(target);
                             });
                         });
-                        
-                        applyPillUI(headerId, listId, currentVal, titleLabel, resetSpiegelschrankFn);
+
+                        applyPillUI(headerId, listId, currentVal, titleLabel, resetMirrorFn);
                     };
 
-                    renderFilter('band', this.currentSpiegelschrankBand, 'spiegelschrank_band_header', 'list_spiegelschrank_band', 'Band');
-                    renderFilter('steckdose', this.currentSpiegelschrankSteckdose, 'spiegelschrank_steckdose_header', 'list_spiegelschrank_steckdose', 'Steckdose');
-                    renderFilter('lichtfarbe', this.currentSpiegelschrankLichtfarbe, 'spiegelschrank_lichtfarbe_header', 'list_spiegelschrank_lichtfarbe', 'Lichtfarbe');
+                    renderFilter('band', `${target}_band_header`, `list_${target}_band`, 'Band');
+                    renderFilter('steckdose', `${target}_steckdose_header`, `list_${target}_steckdose`, 'Steckdose');
+                    renderFilter('lichtfarbe', `${target}_lichtfarbe_header`, `list_${target}_lichtfarbe`, 'Lichtfarbe');
 
-                    if (this.currentSpiegelschrankBand !== 'all') displayCandidates = displayCandidates.filter(c => getProp(c, 'band') === this.currentSpiegelschrankBand);
-                    if (this.currentSpiegelschrankSteckdose !== 'all') displayCandidates = displayCandidates.filter(c => getProp(c, 'steckdose') === this.currentSpiegelschrankSteckdose);
-                    if (this.currentSpiegelschrankLichtfarbe !== 'all') displayCandidates = displayCandidates.filter(c => getProp(c, 'lichtfarbe') === this.currentSpiegelschrankLichtfarbe);
+                    if (S('Band') !== 'all') displayCandidates = displayCandidates.filter(c => getProp(c, 'band') === S('Band'));
+                    if (S('Steckdose') !== 'all') displayCandidates = displayCandidates.filter(c => getProp(c, 'steckdose') === S('Steckdose'));
+                    if (S('Lichtfarbe') !== 'all') displayCandidates = displayCandidates.filter(c => getProp(c, 'lichtfarbe') === S('Lichtfarbe'));
                 }
             }
 
@@ -1342,7 +1407,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             listEl.innerHTML = displayCandidates.map(c => {
                 const isSelected = isMulti
                     ? this.selectedAccessoires.includes(c.artNr)
-                    : (target === 'moebel' ? this.selectedMoebel === c.artNr : this.selectedSpiegelschrank === c.artNr);
+                    : (target === 'moebel' ? this.selectedMoebel === c.artNr : this['selected' + MIRROR_PTYPE[target]] === c.artNr);
                 return `
                     <div class="finder-item ${isSelected ? 'active' : ''}" data-artnr="${c.artNr}" data-target="${target}" title="${c.artNr}">
                         <div style="display:flex; align-items:center; gap:0.5rem; overflow:hidden;">
@@ -1367,7 +1432,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     } else if (t === 'moebel') {
                         this.selectedMoebel = this.selectedMoebel === artNr ? null : artNr;
                     } else {
-                        this.selectedSpiegelschrank = this.selectedSpiegelschrank === artNr ? null : artNr;
+                        const sk = 'selected' + MIRROR_PTYPE[t];
+                        this[sk] = this[sk] === artNr ? null : artNr;
                     }
                     this.populateAddonPanel(t);
                     this.updatePreview();
@@ -1700,6 +1766,19 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 // Mandatory Isolation for Mirror Cabinet
                 items.push({ qty: 1, label: 'Alterna Isolations-Set für Spiegelschränke', artNr: '5299 910.000.000' });
             }
+
+            // 6b. Add Spiegel / Lichtspiegel (plain mirrors — no cabinet isolation set)
+            [['showLichtspiegel', 'selectedLichtspiegel'], ['showSpiegel', 'selectedSpiegel']].forEach(([showKey, selKey]) => {
+                if (!this[showKey] || !this[selKey]) return;
+                const allApps = window.productApps || {};
+                let obj = null;
+                Object.values(allApps).forEach(app => {
+                    if (obj) return;
+                    const its = app.trays || app.basinTrays || app.faucets || [];
+                    obj = its.find(t => t.artNr === this[selKey]);
+                });
+                items.push({ qty: 1, label: obj ? (obj.label || obj.name) : this[selKey], artNr: this[selKey] });
+            });
 
             // 7. Add Accessories
             if (this.showAccessoires && this.selectedAccessoires.length > 0) {
