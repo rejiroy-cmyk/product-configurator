@@ -2396,9 +2396,11 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             if (deckActive) {
                 const copyable = it => it.artNr && it.artNr !== 'none' && (it.menge || 0) > 0 && !(it.label || '').toLowerCase().startsWith('ohne');
                 const line = it => ({ artNr: it.artNr.toString().replace(/\t/g, '').trim(), menge: it.menge || 1 });
+                // Drilling (Lochbohrung) is a service billed separately — keep it OUT of the G1 set,
+                // in the loose list, even though it renders right after Einbaukosten (priority 3.6).
                 this._deckCopy = {
-                    g1: dedupedBOM.filter(it => it.priority < 4 && copyable(it)).map(line),
-                    loose: dedupedBOM.filter(it => it.priority >= 4 && copyable(it)).map(line)
+                    g1: dedupedBOM.filter(it => it.priority < 4 && it.note !== 'Lochbohrung' && copyable(it)).map(line),
+                    loose: dedupedBOM.filter(it => (it.priority >= 4 || it.note === 'Lochbohrung') && copyable(it)).map(line)
                 };
             } else {
                 this._deckCopy = null;
