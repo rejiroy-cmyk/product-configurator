@@ -1803,6 +1803,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     obj = its.find(t => t.artNr === this[selKey]);
                 });
                 items.push({ qty: 1, label: obj ? (obj.label || obj.name) : this[selKey], artNr: this[selKey] });
+                // Büchlerglas mirrors need the concealed mounting kit (1× each) — right after the mirror.
+                if (obj && /büchlerglas/i.test((obj.manufacturer || '') + ' ' + (obj.label || ''))) {
+                    items.push({ qty: 1, label: 'Spiegelbefestigung Büchlerglas verdeckt', artNr: '5111 514.000.000' });
+                }
             });
 
             // 7. Add Accessories
