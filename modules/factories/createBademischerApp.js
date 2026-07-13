@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel } from './_shared.js';
 
 export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
   function transformBademischerUPTrays(trays) {
@@ -437,119 +437,9 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
             }
       },
       populateAccessoires: function () {
-            const listId = `list_addon_accessoires_${s}`;
-            const serieListId = `list_addon_accessoires_serie_${s}`;
-            const listEl = document.getElementById(listId);
-            const serieListEl = document.getElementById(serieListId);
-            if (!listEl || !serieListEl) return;
-            
-            let candidates = [];
-            const allApps = window.productApps || {};
-            const keywords = ['badetuchstange', 'schwammhalter', 'eckseifenhalter', 'drahtseifenhalter', 'duschkorb'];
-            
-            Object.keys(allApps).forEach(appKey => {
-                const a = allApps[appKey];
-                if (a.trays) {
-                    a.trays.forEach(t => {
-                        // FULL-TEXT RULE: an accessory keyword may live only in the description.
-                        const lbl = (t.label || t.name || '').toLowerCase() + ' ' + (t.description || '').toLowerCase();
-                        if (keywords.some(kw => lbl.includes(kw))) {
-                            candidates.push(t);
-                        }
-                    });
-                }
-            });
-            const seen = new Set();
-            candidates = candidates.filter(c => {
-                if (seen.has(c.artNr)) return false;
-                seen.add(c.artNr);
-                return true;
-            });
-
-            const extractAccessoireSerie = (t) => {
-                if (t.serie) return t.serie;
-                // FULL-TEXT RULE: parse the label for the leading series token; fall back to
-                // the description when the label is truncated to nothing usable.
-                const parse = (raw) => {
-                    let label = (raw || '').toLowerCase();
-                    if (t.manufacturer) {
-                        const m = t.manufacturer.toLowerCase();
-                        if (label.startsWith(m)) label = label.slice(m.length).trim();
-                    }
-                    for (const kw of keywords) {
-                        if (label.startsWith(kw)) { label = label.slice(kw.length).trim(); break; }
-                    }
-                    if (t.manufacturer) {
-                        const m = t.manufacturer.toLowerCase();
-                        if (label.startsWith(m)) label = label.slice(m.length).trim();
-                    }
-                    const match = label.match(/^(.*?)(?:\s+\d+\s*[xX]\s*\d+|\s*,|\s*\(|\s+-|\s+\d+mm|\s+\d+\s*mm)/);
-                    let serie = match && match[1] ? match[1].trim() : label.trim();
-                    if (serie.includes(' ')) serie = serie.split(' ')[0];
-                    return serie;
-                };
-                let serie = parse(t.label) || parse(t.description);
-                return serie ? serie.charAt(0).toUpperCase() + serie.slice(1) : 'Andere';
-            };
-
-            // Filters
-            const seriesList = ['Alle'];
-            candidates.forEach(c => {
-                const s = extractAccessoireSerie(c);
-                if (!seriesList.includes(s)) seriesList.push(s);
-            });
-            
-            serieListEl.innerHTML = seriesList.map(sx => 
-                `<button class="pill-btn ${this.currentAccessoireSerie === sx ? 'active' : ''}" data-val="${sx}">${sx}</button>`
-            ).join('');
-            
-            serieListEl.querySelectorAll('.pill-btn').forEach(b => {
-                b.addEventListener('click', () => {
-                    this.currentAccessoireSerie = b.dataset.val;
-                    this.populateAccessoires();
-                });
-            });
-
-            let filtered = candidates;
-            if (this.currentAccessoireSerie !== 'Alle') {
-                filtered = filtered.filter(c => extractAccessoireSerie(c) === this.currentAccessoireSerie);
-            }
-
-            listEl.innerHTML = '';
-            if (filtered.length === 0) {
-                listEl.innerHTML = '<div class="finder-empty-state" style="font-size:0.8rem;">Keine Accessoires gefunden.</div>';
-                return;
-            }
-
-            filtered.forEach(c => {
-                const btn = document.createElement('div');
-                const isSelected = this.selectedAddonAccessoires.some(x => x.artNr === c.artNr);
-                btn.className = `finder-item ${isSelected ? 'active' : ''}`;
-                btn.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:0.5rem;">
-                        ${c.imgUrl ? `<img src="${c.imgUrl}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
-                        <div>
-                            <div style="font-size:0.8rem; font-weight:500; line-height:1.3;">${c.label || c.name}</div>
-                            <div style="font-size:0.7rem; color:var(--st-gray); margin-top:0.25rem;">
-                                ${c.manufacturer || ''} ${extractAccessoireSerie(c) !== 'Andere' ? '· ' + extractAccessoireSerie(c) : ''}
-                            </div>
-                        </div>
-                    </div>
-                    <div style="font-size:0.75rem; color:var(--st-gray); font-family:var(--st-font-mono); margin-top:0.5rem; text-align:right;">${c.artNr}</div>
-                `;
-                btn.addEventListener('click', () => {
-                    if (isSelected) {
-                        this.selectedAddonAccessoires = this.selectedAddonAccessoires.filter(x => x.artNr !== c.artNr);
-                    } else {
-                        this.selectedAddonAccessoires.push({ ...c, qty: 1, origin: 'Zusatzoptionen' });
-                    }
-                    this.populateAccessoires();
-                    this.updateBOM();
-                });
-                listEl.appendChild(btn);
-            });
+            renderAccessoiresPanel(this, s);
       },
-      
+
       renderGridInMainPanel: function (filtered) {
             const bomTableBody = document.getElementById("bomTableBody");
             const bomCountCounter = document.getElementById("bomCount");

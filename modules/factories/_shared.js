@@ -1,3 +1,5 @@
+import { COLOR_NAMES } from './_colorCodes.js';
+
 window.copyTextToClipboard = function(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         return navigator.clipboard.writeText(text).catch(err => {
@@ -274,4 +276,141 @@ const priceBOM = (tbody, cols = 5) => {
     }
 };
 
-export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText };
+// ---------------------------------------------------------------------------
+// Shared "Accessoires" add-on panel (Ch4 zubehoer_pool). Used by every configurator
+// that exposes the toggle so the wiring stays in ONE place. Reads the shared
+// zubehoer_pool, filtering products whose `targetSubcats` include THIS app's
+// registry key, with productType primary pills + adaptive Serie/Breite/Farbe
+// secondary pills. `app` is the configurator instance, `s` its element-id slug.
+// Expects on `app`: currentAccessoireSerie, accSecondary, selectedAddonAccessoires,
+// populateAccessoires(), updateBOM(). Panel DOM ids follow `*_${s}`.
+const DROPDOWN_TYPES = ['Duschgleitstange'];   // handled by the mischer's own dropdown groups, not here
+const SIZE_TYPES = ['Badetuchstange'];         // only these expose the Breite secondary filter
+const renderAccessoiresPanel = (app, s) => {
+    const listEl = document.getElementById(`list_addon_accessoires_${s}`);
+    const serieListEl = document.getElementById(`list_addon_accessoires_serie_${s}`);
+    if (!listEl || !serieListEl) return;
+
+    const subcatKey = Object.keys(window.productApps || {}).find(k => window.productApps[k] === app);
+    const pool = (window.productApps && window.productApps.zubehoer_pool && window.productApps.zubehoer_pool.trays) || [];
+    let candidates = pool.filter(t => Array.isArray(t.targetSubcats) && t.targetSubcats.includes(subcatKey)
+        && !DROPDOWN_TYPES.includes(t.productType));
+    const seen = new Set();
+    candidates = candidates.filter(c => { if (seen.has(c.artNr)) return false; seen.add(c.artNr); return true; });
+
+    // Primary pills by productType
+    const typeList = ['Alle'];
+    candidates.forEach(c => { if (c.productType && !typeList.includes(c.productType)) typeList.push(c.productType); });
+    serieListEl.innerHTML = typeList.map(tx =>
+        `<button class="pill-btn ${app.currentAccessoireSerie === tx ? 'active' : ''}" data-val="${tx}">${tx}</button>`).join('');
+    serieListEl.querySelectorAll('.pill-btn').forEach(b => b.addEventListener('click', () => {
+        app.currentAccessoireSerie = b.dataset.val;
+        app.accSecondary = {};
+        app.populateAccessoires();
+    }));
+
+    let filtered = candidates;
+    if (app.currentAccessoireSerie !== 'Alle') filtered = filtered.filter(c => c.productType === app.currentAccessoireSerie);
+
+    // Secondary adaptive filters (Serie / Breite / Farbe)
+    if (!app.accSecondary) app.accSecondary = {};
+    // COLOUR RULE: colour derives ONLY from the art-Nr finish code (the 3-digit triplet in
+    // BASE.«COLOUR».VARIANT), mapped via COLOR_NAMES. Never parse the label text.
+    // See INSTRUCTIONS.md § Colour codes.
+    const farbeOf = (c) => {
+        const m = String(c.artNr || '').match(/\.(\d{3})(?:\.|$)/);
+        return m ? (COLOR_NAMES[m[1]] || null) : null;
+    };
+    const breiteOf = (c) => (c.size && c.size !== 'Standard' && /\d/.test(c.size)) ? c.size : null;
+    const serieOf = (c) => {
+        let head = (c.label || '').split(',')[0].trim();
+        const parts = head.split(/\s+/); parts.shift();
+        let rest = parts.join(' ');
+        if (c.manufacturer && rest.startsWith(c.manufacturer)) rest = rest.slice(c.manufacturer.length).trim();
+        rest = rest.replace(/\s+\d+([.,]\d+)?\s*(?:x|cm|mm|Ø|Liter|l)\b.*$/i, '').trim();
+        if (rest.split(' ').length > 3) rest = rest.split(' ').slice(0, 3).join(' ');
+        return rest || null;
+    };
+    let secWrap = document.getElementById(`list_addon_accessoires_secondary_${s}`);
+    if (!secWrap) {
+        secWrap = document.createElement('div');
+        secWrap.id = `list_addon_accessoires_secondary_${s}`;
+        secWrap.style.marginBottom = '0.75rem';
+        serieListEl.parentNode.insertBefore(secWrap, listEl);
+    }
+    if (app.currentAccessoireSerie === 'Alle') {
+        secWrap.innerHTML = ''; app.accSecondary = {};
+    } else {
+        const base = filtered;   // primary (productType) filtered set
+        const dims = [['Serie', serieOf], ['Breite', breiteOf], ['Farbe', farbeOf]]
+            .filter(([name]) => name !== 'Breite' || SIZE_TYPES.includes(app.currentAccessoireSerie));
+        // ADAPTIVE (faceted): a dimension's available values are those left after applying every
+        // OTHER dimension's current selection — so Serie=piana narrows Breite/Farbe to piana's only.
+        const availFor = (name) => {
+            let subset = base;
+            dims.forEach(([nm, f]) => {
+                const sel = app.accSecondary[nm];
+                if (nm !== name && sel && sel !== 'Alle') subset = subset.filter(c => f(c) === sel);
+            });
+            const fn = dims.find(([n]) => n === name)[1];
+            return [...new Set(subset.map(fn).filter(Boolean))];
+        };
+        let html = '';
+        dims.forEach(([name]) => {
+            const vals = availFor(name);
+            // a selection the other filters just made impossible → reset it so we never show empty
+            if (app.accSecondary[name] && app.accSecondary[name] !== 'Alle' && !vals.includes(app.accSecondary[name]))
+                app.accSecondary[name] = 'Alle';
+            if (vals.length > 1) {
+                const cur = app.accSecondary[name] || 'Alle';
+                html += `<div class="pill-group" style="margin-bottom:0.4rem;">`
+                    + `<button class="pill-btn ${cur === 'Alle' ? 'active' : ''}" data-dim="${name}" data-val="Alle">${name}: Alle</button>`
+                    + vals.sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })).map(v =>
+                        `<button class="pill-btn ${cur === v ? 'active' : ''}" data-dim="${name}" data-val="${v}">${v}</button>`).join('')
+                    + `</div>`;
+            }
+        });
+        Object.keys(app.accSecondary).forEach(k => { if (!dims.some(([n]) => n === k)) delete app.accSecondary[k]; });
+        secWrap.innerHTML = html;
+        secWrap.querySelectorAll('.pill-btn').forEach(b => b.addEventListener('click', () => {
+            app.accSecondary[b.dataset.dim] = b.dataset.val;
+            app.populateAccessoires();
+        }));
+        dims.forEach(([name, fn]) => {
+            const sel = app.accSecondary[name];
+            if (sel && sel !== 'Alle') filtered = filtered.filter(c => fn(c) === sel);
+        });
+    }
+
+    listEl.innerHTML = '';
+    if (filtered.length === 0) {
+        listEl.innerHTML = '<div class="finder-empty-state" style="font-size:0.8rem;">Keine Accessoires gefunden.</div>';
+        return;
+    }
+    filtered.forEach(c => {
+        const btn = document.createElement('div');
+        const isSelected = app.selectedAddonAccessoires.some(x => x.artNr === c.artNr);
+        btn.className = `finder-item ${isSelected ? 'active' : ''}`;
+        btn.innerHTML = `
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                ${c.imgUrl ? `<img src="${c.imgUrl}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
+                <div>
+                    <div style="font-size:0.8rem; font-weight:500; line-height:1.3;">${c.label || c.name}</div>
+                    <div style="font-size:0.7rem; color:var(--st-gray); margin-top:0.25rem;">
+                        ${c.manufacturer || ''} ${c.productType ? '· ' + c.productType : ''}
+                    </div>
+                </div>
+            </div>
+            <div style="font-size:0.75rem; color:var(--st-gray); font-family:var(--st-font-mono); margin-top:0.5rem; text-align:right;">${c.artNr}</div>
+        `;
+        btn.addEventListener('click', () => {
+            if (isSelected) app.selectedAddonAccessoires = app.selectedAddonAccessoires.filter(x => x.artNr !== c.artNr);
+            else app.selectedAddonAccessoires.push({ ...c, qty: 1, origin: 'Zusatzoptionen' });
+            app.populateAccessoires();
+            app.updateBOM();
+        });
+        listEl.appendChild(btn);
+    });
+};
+
+export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel };

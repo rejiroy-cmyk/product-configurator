@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel } from './_shared.js';
 
 export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {}) {
     const suffix = title.replace(/\s/g, '');
@@ -7,8 +7,16 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
         trays: [],
         mainImgUrl: mainImgUrl,
         selectedTray: null,
+        showAccessoires: false,
+        selectedAddonAccessoires: [],
+        currentAccessoireSerie: 'Alle',
+        accSecondary: {},
         init: function () {
             this.selectedTray = null;
+            this.showAccessoires = false;
+            this.selectedAddonAccessoires = [];
+            this.currentAccessoireSerie = 'Alle';
+            this.accSecondary = {};
 
             // Auto-fix brands if they are "Andere" or missing
             if (this.trays) {
@@ -207,6 +215,20 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                 <div class="sidebar-section results-section">
                     <h2>Suchergebnisse <span id="resultCount_${suffix}" class="badge">0</span></h2>
                     <div id="searchResults_${suffix}" class="finder-list" style="max-height: 400px; overflow-y: auto;"></div>
+                </div>
+
+                <div class="sidebar-section addon-toggles-section" id="addon_toggles_section_${suffix}" style="display:none; margin-top:2rem;">
+                    <div class="finder-sub-header">Zusatzoptionen</div>
+                    <div class="addon-toggle-row" id="toggle_accessoires_${suffix}">
+                        <span class="addon-toggle-label"><i class="ri-archive-line"></i> Accessoires</span>
+                        <button class="ios-toggle" data-target="accessoires_mischer_${suffix}" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
+                    </div>
+                    <div id="addon_accessoires_mischer_panel_${suffix}" class="addon-panel" style="display:none;">
+                        <div class="finder-sub-header">Serie</div>
+                        <div class="pill-group" id="list_addon_accessoires_serie_${suffix}" style="margin-bottom: 0.75rem;"></div>
+                        <div class="finder-sub-header">Accessoires wählen</div>
+                        <div class="finder-list" id="list_addon_accessoires_${suffix}"></div>
+                    </div>
                 </div>
 
                 <div id="trayConfigurator_${suffix}" class="tray-configurator" style="display: none; margin-top: 2rem;">
@@ -518,6 +540,36 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             inner.innerHTML = '';
 
             this.renderConfigurator();
+            this.updateAccessoiresToggles();
+            this.populateAccessoires();
+        },
+        updateAccessoiresToggles: function () {
+            const btn = document.querySelector(`#toggle_accessoires_${suffix} .ios-toggle`);
+            const panel = document.getElementById(`addon_accessoires_mischer_panel_${suffix}`);
+            if (btn) btn.classList.toggle('active', this.showAccessoires);
+            if (panel) panel.style.display = this.showAccessoires ? 'block' : 'none';
+
+            const section = document.getElementById(`addon_toggles_section_${suffix}`);
+            if (section) {
+                if (this.selectedTray) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                    this.showAccessoires = false;
+                }
+                const toggleBtn = section.querySelector('.ios-toggle');
+                if (toggleBtn && !toggleBtn.dataset.bound) {
+                    toggleBtn.dataset.bound = 'true';
+                    toggleBtn.addEventListener('click', () => {
+                        this.showAccessoires = !this.showAccessoires;
+                        this.updateAccessoiresToggles();
+                        this.updateBOM();
+                    });
+                }
+            }
+        },
+        populateAccessoires: function () {
+            renderAccessoiresPanel(this, suffix);
         },
         renderConfigurator: function () {
             const confContainer = document.getElementById(`trayConfigurator_${suffix}`);
@@ -702,6 +754,22 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                     }
                 }
             });
+
+            // Zusatzoptionen: pool accessories chosen via the Accessoires toggle
+            if (this.showAccessoires && this.selectedAddonAccessoires && this.selectedAddonAccessoires.length > 0) {
+                this.selectedAddonAccessoires.forEach(acc => {
+                    const accMenge = acc.menge || 1;
+                    bomHtml += `
+                        <tr>
+                            <td><div class="img-cell"><img src="${acc.imgUrl || ''}" onerror="this.src='https://placehold.co/40x40?text=N/A'"></div></td>
+                            <td><span class="bom-code">${acc.artNr}</span></td>
+                            <td><div class="bom-desc">${acc.label || acc.name}</div><div style="font-size:0.8rem;color:#9e9e9e;margin-top:0.25rem;">${acc.productType || 'Accessoire'}</div></td>
+                            <td><strong>${accMenge}</strong></td>
+                        </tr>
+                    `;
+                    count += accMenge;
+                });
+            }
 
             bomTableBody.innerHTML = bomHtml;
             bomCountCounter.textContent = `${count} Artikel`;
