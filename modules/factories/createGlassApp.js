@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, getPrice, priceBOM, productText } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, priceBOM, productText } from './_shared.js';
 
 export function createGlassApp(title, desc, mainImgUrl, config = {}) {
     const appConfig = { enableGalleryUX: true, ...config };

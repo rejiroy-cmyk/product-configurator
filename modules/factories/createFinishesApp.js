@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
 
 export function createFinishesApp(title, desc, mainImgUrl, baseBodyLabel, baseBodyArtNr, baseBodyImg) {
     return {
@@ -39,7 +39,7 @@ export function createFinishesApp(title, desc, mainImgUrl, baseBodyLabel, baseBo
                 const btn = document.createElement('button');
                 btn.className = `finish-row-btn ${finish.id === this.currentFinishId ? 'active' : ''}`;
 
-                const imgUrl = getSanitasImgUrl(finish.artNr);
+                const imgUrl = imgOf(finish);
                 const fallbackColor = finish.color || getVariantColor(finish.label, finish.artNr);
 
                 btn.style.width = '100%';

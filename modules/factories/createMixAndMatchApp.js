@@ -1,4 +1,5 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
+import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createMixAndMatchApp(title, desc, mainImgUrl) {
     const suffix = 'MixMatch';
@@ -15,12 +16,16 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         showSpiegelschrank: false,
         showSpiegel: false,
         showLichtspiegel: false,
+        showSchraenke: false,
         showAccessoires: false,
         currentAccessoiresSerie: 'all',
+        currentSchraenkeFilter: 'all',   // 'all' | 'Hochschrank' | 'Seitenschrank'
+        currentMoebelFarbe: 'all',       // colour name from the art-Nr finish code (COLOR_NAMES)
         selectedMoebel: null,
         selectedSpiegelschrank: null,
         selectedSpiegel: null,
         selectedLichtspiegel: null,
+        selectedSchraenke: null,
         selectedAccessoires: [],
         selectedSiphon: null, // New: track user choice for Siphon
 
@@ -64,11 +69,15 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             this.showSpiegelschrank = false;
             this.showSpiegel = false;
             this.showLichtspiegel = false;
+            this.showSchraenke = false;
             this.showAccessoires = false;
             this.selectedMoebel = null;
             this.selectedSpiegelschrank = null;
             this.selectedSpiegel = null;
             this.selectedLichtspiegel = null;
+            this.selectedSchraenke = null;
+            this.currentSchraenkeFilter = 'all';
+            this.currentMoebelFarbe = 'all';
             this.selectedAccessoires = [];
 
             this.currentBasinType = 'all';
@@ -133,6 +142,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             // 1. Strip product-type prefixes
             const typeWords = [
+                // furniture / basin prefixes FIRST (longest-match) so "Waschtischmöbel Alterna Calea S"
+                // and "Auflegebecken Alterna Dinea" both reduce to the shared model series ("Calea"/"Dinea").
+                'waschtischmöbel', 'waschtischunterschrank', 'waschtischunterbau', 'unterschrank', 'unterbau',
+                'hochschrank', 'seitenschrank', 'mittelschrank', 'auflegewandbecken', 'auflegebecken',
                 'spiegelschrank', 'spiegelkabinett', 'miroir', 'mirror',
                 'doppelwaschtisch', 'möbelwaschtisch', 'aufsatzwaschbecken', 'aufsatzbecken',
                 'auflegewaschtisch', 'wandbecken', 'handwaschbecken', 'waschtisch', 'becken', 'waschbecken',
@@ -424,6 +437,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                                 <span class="addon-toggle-label"><i class="ri-square-line"></i> Spiegel</span>
                                 <button class="ios-toggle" data-target="spiegel" aria-label="Spiegel ein/aus"><span class="ios-toggle-knob"></span></button>
                             </div>
+                            <div class="addon-toggle-row" id="toggle_schraenke">
+                                <span class="addon-toggle-label"><i class="ri-archive-drawer-line"></i> Hochschrank / Seitenschrank</span>
+                                <button class="ios-toggle" data-target="schraenke" aria-label="Hochschrank / Seitenschrank ein/aus"><span class="ios-toggle-knob"></span></button>
+                            </div>
                             <div class="addon-toggle-row" id="toggle_accessoires">
                                 <span class="addon-toggle-label"><i class="ri-archive-line"></i> Accessoires</span>
                                 <button class="ios-toggle" data-target="accessoires" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
@@ -431,8 +448,16 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         </div>
 
                         <div id="addon_moebel_panel" class="addon-panel" style="display:none;">
+                            <div class="finder-sub-header" id="moebel_farbe_header">Farbe</div>
+                            <div class="pill-group" id="list_moebel_farbe" style="margin-bottom: 0.75rem;"></div>
                             <div class="finder-sub-header">Möbel wählen</div>
                             <div class="finder-list" id="list_addon_moebel"></div>
+                        </div>
+                        <div id="addon_schraenke_panel" class="addon-panel" style="display:none;">
+                            <div class="finder-sub-header">Typ</div>
+                            <div class="pill-group" id="list_schraenke_filter" style="margin-bottom: 0.75rem;"></div>
+                            <div class="finder-sub-header">Schrank wählen</div>
+                            <div class="finder-list" id="list_addon_schraenke"></div>
                         </div>
                         <div id="addon_spiegelschrank_panel" class="addon-panel" style="display:none;">
                             <div class="finder-sub-header" id="spiegelschrank_breite_header" style="display:none;">Breite</div>
@@ -1036,7 +1061,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
         updateAddonToggles: function () {
             // Sync toggle active states from app state
-            const targets = ['moebel', 'spiegelschrank', 'lichtspiegel', 'spiegel', 'accessoires'];
+            const targets = ['moebel', 'spiegelschrank', 'lichtspiegel', 'spiegel', 'schraenke', 'accessoires'];
             targets.forEach(t => {
                 const btn = document.querySelector(`.ios-toggle[data-target="${t}"]`);
                 const panel = document.getElementById(`addon_${t}_panel`);
@@ -1056,10 +1081,11 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         this[key] = !this[key];
                         if (!this[key]) {
                             // Clear selection when toggled off
-                            if (t === 'moebel') this.selectedMoebel = null;
+                            if (t === 'moebel') { this.selectedMoebel = null; this.currentMoebelFarbe = 'all'; }
                             if (t === 'spiegelschrank') this.selectedSpiegelschrank = null;
                             if (t === 'spiegel') this.selectedSpiegel = null;
                             if (t === 'lichtspiegel') this.selectedLichtspiegel = null;
+                            if (t === 'schraenke') { this.selectedSchraenke = null; this.currentSchraenkeFilter = 'all'; }
                             if (t === 'accessoires') {
                                 this.selectedAccessoires = [];
                                 this.currentAccessoiresSerie = 'all';
@@ -1083,6 +1109,47 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         populateAddonPanel: function (target) {
             const listEl = document.getElementById(`list_addon_${target}`);
             if (!listEl) return;
+
+            // Hochschrank / Seitenschrank — self-contained (free-standing furniture by productType tag,
+            // with a 2-value Typ filter pill). Independent of the mirror/moebel basin-matching logic.
+            if (target === 'schraenke') {
+                const pool = (window.productApps.zubehoer_pool && window.productApps.zubehoer_pool.trays) || [];
+                let cands = pool.filter(t => t.productType === 'Hochschrank' || t.productType === 'Seitenschrank');
+                const pillEl = document.getElementById('list_schraenke_filter');
+                if (pillEl) {
+                    const opts = [['all', 'Alle'], ['Hochschrank', 'Hochschrank'], ['Seitenschrank', 'Seitenschrank']];
+                    pillEl.innerHTML = opts.map(([v, l]) => `<button class="pill-btn ${this.currentSchraenkeFilter === v ? 'active' : ''}" data-val="${v}">${l}</button>`).join('');
+                    pillEl.querySelectorAll('.pill-btn').forEach(b => b.addEventListener('click', () => {
+                        this.currentSchraenkeFilter = b.dataset.val;
+                        this.populateAddonPanel('schraenke');
+                    }));
+                }
+                if (this.currentSchraenkeFilter !== 'all') cands = cands.filter(t => t.productType === this.currentSchraenkeFilter);
+                const seen = new Set();
+                cands = cands.filter(c => { if (!c.artNr || seen.has(c.artNr)) return false; seen.add(c.artNr); return true; });
+                if (!cands.length) { listEl.innerHTML = '<div class="finder-empty-state" style="font-size:0.8rem;">Keine Schränke gefunden.</div>'; return; }
+                listEl.innerHTML = cands.map(c => {
+                    const sel = this.selectedSchraenke === c.artNr;
+                    const img = imgOf(c);
+                    return `<div class="finder-item ${sel ? 'active' : ''}" data-artnr="${c.artNr}" title="${c.artNr}">
+                        <div style="display:flex; align-items:center; gap:0.5rem; overflow:hidden;">
+                            ${img ? `<img src="${img}" style="width:32px;height:32px;object-fit:contain;background:#fff;border-radius:4px;padding:2px;flex-shrink:0;" onerror="this.style.visibility='hidden'">` : `<div style="width:32px;height:32px;background:var(--bg-surface);border-radius:4px;flex-shrink:0;"></div>`}
+                            <div style="min-width:0; overflow:hidden;">
+                                <div style="font-size:0.8rem;font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${this.cleanLabel(c)}</div>
+                                <div style="font-size:0.7rem;color:var(--text-secondary);font-family:monospace;margin-top:2px;">${c.artNr} · ${c.productType}</div>
+                            </div>
+                        </div>
+                        ${sel ? '<i class="ri-check-line" style="margin-left:auto;color:var(--accent);flex-shrink:0;"></i>' : ''}
+                    </div>`;
+                }).join('');
+                listEl.querySelectorAll('.finder-item').forEach(el => el.addEventListener('click', () => {
+                    const a = el.dataset.artnr;
+                    this.selectedSchraenke = this.selectedSchraenke === a ? null : a;
+                    this.populateAddonPanel('schraenke');
+                    this.updatePreview();
+                }));
+                return;
+            }
 
             // Build the keyword map for each toggle category
             const keywordMap = {
@@ -1130,8 +1197,9 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             if (target === 'moebel') {
                                 const basinId7 = (this.selectedBasin.artNr || '').replace(/[^\d]/g, '').substring(0, 7);
 
-                                // Parse label for "zu 2112 409 / 410 / ..."
-                                const zuMatch = t.label.match(/zu\s+([\d\s\/]+)/i);
+                                // Parse for "zu 2112 409 / 410 / ..." — FULL-TEXT RULE: the zu-reference
+                                // regularly lives only in the description (labels are truncated).
+                                const zuMatch = ((t.label || '') + ' ' + (t.description || '')).match(/zu\s+([\d\s\/]+)/i);
                                 if (zuMatch && basinId7.length === 7) {
                                     const digits = zuMatch[1].match(/\d+/g);
                                     let validIds = [];
@@ -1402,6 +1470,32 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 }
             }
 
+            // Möbel Farbe pill — COLOUR RULE: colour derives ONLY from the art-Nr finish code
+            // (COLOR_NAMES), never from label text. See INSTRUCTIONS.md § Colour codes.
+            if (target === 'moebel') {
+                const farbeOf = (c) => { const m = String(c.artNr || '').match(/\.(\d{3})(?:\.|$)/); return m ? (COLOR_NAMES[m[1]] || null) : null; };
+                const farbeEl = document.getElementById('list_moebel_farbe');
+                if (farbeEl) {
+                    const vals = [...new Set(displayCandidates.map(farbeOf).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+                    if (this.currentMoebelFarbe !== 'all' && !vals.includes(this.currentMoebelFarbe)) this.currentMoebelFarbe = 'all';
+                    farbeEl.innerHTML = `<button class="pill-btn ${this.currentMoebelFarbe === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                        vals.map(v => `<button class="pill-btn ${this.currentMoebelFarbe === v ? 'active' : ''}" data-val="${v}">${v}</button>`).join('');
+                    farbeEl.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
+                        this.currentMoebelFarbe = btn.dataset.val;
+                        this.populateAddonPanel('moebel');
+                    }));
+                    const hdr = document.getElementById('moebel_farbe_header');
+                    const show = vals.length > 1;
+                    if (hdr) hdr.style.display = show ? '' : 'none';
+                    farbeEl.style.display = show ? '' : 'none';
+                    applyPillUI('moebel_farbe_header', 'list_moebel_farbe', this.currentMoebelFarbe, 'Farbe', () => {
+                        this.currentMoebelFarbe = 'all';
+                        this.populateAddonPanel('moebel');
+                    });
+                }
+                if (this.currentMoebelFarbe !== 'all') displayCandidates = displayCandidates.filter(c => farbeOf(c) === this.currentMoebelFarbe);
+            }
+
             if (displayCandidates.length === 0) {
                 const serieInfo = this.selectedBasin ? ` für "${this.extractSerie(this.selectedBasin)}"` : '';
                 listEl.innerHTML = `<div class="finder-empty-state" style="font-size:0.8rem;">Keine passenden Produkte${serieInfo} gefunden.</div>`;
@@ -1436,7 +1530,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 return `
                     <div class="finder-item ${isSelected ? 'active' : ''}" data-artnr="${c.artNr}" data-target="${target}" title="${c.artNr}">
                         <div style="display:flex; align-items:center; gap:0.5rem; overflow:hidden;">
-                            ${(c.imgUrl || getSanitasImgUrl(c.artNr)) ? `<img src="${c.imgUrl || getSanitasImgUrl(c.artNr)}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;" onerror="this.outerHTML='<div style=&quot;width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;&quot;><i class=&quot;ri-image-line placeholder-icon&quot;></i></div>'">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
+                            ${(imgOf(c)) ? `<img src="${imgOf(c)}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;" onerror="this.outerHTML='<div style=&quot;width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;&quot;><i class=&quot;ri-image-line placeholder-icon&quot;></i></div>'">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
                             <div style="min-width:0; overflow:hidden;">
                                 <div style="font-size:0.8rem; font-weight:500; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis;">${this.cleanLabel(c)}</div>
                                 <div style="font-size:0.7rem; color:var(--text-secondary); font-family:monospace; margin-top:2px;">${c.artNr}</div>
@@ -1808,6 +1902,18 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     items.push({ qty: 1, label: 'Spiegelbefestigung Büchlerglas verdeckt', artNr: '5111 514.000.000' });
                 }
             });
+
+            // 6c. Add Hochschrank / Seitenschrank (free-standing furniture, no isolation set)
+            if (this.showSchraenke && this.selectedSchraenke) {
+                const allApps = window.productApps || {};
+                let obj = null;
+                Object.values(allApps).forEach(app => {
+                    if (obj) return;
+                    const its = app.trays || app.basinTrays || app.faucets || [];
+                    obj = its.find(t => t.artNr === this.selectedSchraenke);
+                });
+                items.push({ qty: 1, label: obj ? (obj.label || obj.name) : this.selectedSchraenke, artNr: this.selectedSchraenke });
+            }
 
             // 7. Add Accessories
             if (this.showAccessoires && this.selectedAccessoires.length > 0) {

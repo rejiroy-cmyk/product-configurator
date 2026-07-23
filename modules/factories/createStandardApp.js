@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
 
 export function createStandardApp(title, desc, mainImgUrl) {
     const suffix = title.replace(/\s/g, '');
@@ -41,7 +41,7 @@ export function createStandardApp(title, desc, mainImgUrl) {
             container.innerHTML = filtered.map(t => `
                 <div class="result-item-card ${this.selectedTray?.id === t.id ? 'active' : ''}" onclick="window.currentActiveApp.selectItem('${t.id}')">
                     <div class="card-img-wrapper">
-                        ${(t.imgUrl || getSanitasImgUrl(t.artNr)) ? `<img src="${t.imgUrl || getSanitasImgUrl(t.artNr)}">` : '<i class="ri-image-line placeholder-icon"></i>'}
+                        ${(imgOf(t)) ? `<img src="${imgOf(t)}">` : '<i class="ri-image-line placeholder-icon"></i>'}
                     </div>
                     <div class="result-info">
                         <strong>${t.label}</strong>

@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
 
 export function createWCApp(title, desc, mainImgUrl, config = {}) {
     const isMixer = config.isMixer || title.toLowerCase().includes('mischer') || title.toLowerCase().includes('armatur');
@@ -606,7 +606,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 btn.className = `result-item-card ${this.selectedTray && this.selectedTray.id === t.id ? 'active' : ''}`;
                 btn.innerHTML = `
                         <div class="card-img-wrapper">
-                            ${(t.imgUrl || getSanitasImgUrl(t.artNr)) ? `<img src="${t.imgUrl || getSanitasImgUrl(t.artNr)}">` : '<i class="ri-image-line placeholder-icon"></i>'}
+                            ${(imgOf(t)) ? `<img src="${imgOf(t)}">` : '<i class="ri-image-line placeholder-icon"></i>'}
                         </div>
                         <div class="result-info">
                             <strong>${t.label}</strong>
@@ -738,7 +738,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 swatchGrid.className = 'finish-buttons-grid';
                 swatchGrid.style.marginTop = '0.5rem';
 
-                const renderVariantSwatch = (artNr, label) => {
+                const renderVariantSwatch = (artNr, label, variantImgUrl) => {
                     const btn = document.createElement('button');
                     const isActive = this.selectedTray.selections['__variant__'] === artNr;
                     btn.className = `finish-row-btn ${isActive ? 'active' : ''}`;
@@ -746,7 +746,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     btn.style.display = 'flex';
                     btn.style.alignItems = 'center';
 
-                    const imgUrl = getSanitasImgUrl(artNr);
+                    const imgUrl = isRealImg(variantImgUrl) ? variantImgUrl : '';
                     const fallbackColor = getVariantColor(label, artNr);
 
                     btn.innerHTML = `
@@ -817,11 +817,11 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
 
                 // Add base item (Standard)
                 const standardLabel = `Standard ${this.selectedTray.label.split(',').pop().trim()}`;
-                swatchGrid.appendChild(renderVariantSwatch(this.selectedTray.artNr, standardLabel));
+                swatchGrid.appendChild(renderVariantSwatch(this.selectedTray.artNr, standardLabel, this.selectedTray.imgUrl));
 
                 // Add all specific variants
                 this.selectedTray.variants.forEach(v => {
-                    swatchGrid.appendChild(renderVariantSwatch(v.artNr, v.label));
+                    swatchGrid.appendChild(renderVariantSwatch(v.artNr, v.label, v.imgUrl));
                 });
 
                 variantDiv.appendChild(vLabel);
@@ -916,7 +916,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 btn.className = `finder-item ${this.selectedAccessoires.includes(c.artNr) ? 'active' : ''}`;
                 btn.innerHTML = `
                     <div style="display:flex; align-items:center; gap:0.5rem;">
-                        ${(c.imgUrl || getSanitasImgUrl(c.artNr)) ? `<img src="${c.imgUrl || getSanitasImgUrl(c.artNr)}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;" onerror="this.outerHTML='<div style=&quot;width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;&quot;><i class=&quot;ri-image-line placeholder-icon&quot;></i></div>'">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
+                        ${(imgOf(c)) ? `<img src="${imgOf(c)}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;" onerror="this.outerHTML='<div style=&quot;width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;&quot;><i class=&quot;ri-image-line placeholder-icon&quot;></i></div>'">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
                         <div>
                             <div style="font-size:0.8rem; font-weight:500; line-height:1.3;">${c.label}</div>
                             <div style="font-size:0.7rem; color:var(--st-gray); margin-top:0.25rem;">

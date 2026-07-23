@@ -25,6 +25,10 @@ node_modules/
 *.log
 *.bak
 
+# ── Secrets — live SAP/profishop session cookies (never commit) ─
+cookie.txt
+**/cookie.txt
+
 # ── Scraper experiments & run-output dumps (regenerable) ─────
 #   The real scraper tools (scrape-*.js, inject-*.js, etc.) stay
 #   tracked; only throwaway probes and screenshots are ignored.

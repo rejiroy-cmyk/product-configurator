@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
 
 export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
     const w = title;
@@ -926,7 +926,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 btn.className = `result-item-card ${this.selectedTray && this.selectedTray.id === t.id ? 'active' : ''}`;
                 btn.innerHTML = `
                         <div class="card-img-wrapper">
-                            ${(t.imgUrl || getSanitasImgUrl(t.artNr)) ? `<img src="${t.imgUrl || getSanitasImgUrl(t.artNr)}">` : '<i class="ri-image-line placeholder-icon"></i>'}
+                            ${(imgOf(t)) ? `<img src="${imgOf(t)}">` : '<i class="ri-image-line placeholder-icon"></i>'}
                         </div>
                         <div class="result-info">
                             <strong>${t.label}</strong>
@@ -981,7 +981,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 return `
                     <div class="result-item-card catalog-preview-card" onclick="window.currentActiveApp.selectTray('${t.id}')" style="display:flex; flex-direction:row; align-items:center; gap:1rem; border:1px solid var(--border); border-radius:8px; padding:1rem; background:var(--bg-surface); cursor:pointer; transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
                         <div class="card-img-wrapper" style="width:70px; height:90px; display:flex; align-items:center; justify-content:center; border-radius:6px; overflow:hidden; background:var(--bg-subtle); flex-shrink:0;">
-                            ${(t.imgUrl || getSanitasImgUrl(t.artNr)) ? `<img src="${t.imgUrl || getSanitasImgUrl(t.artNr)}" loading="lazy" style="max-height:100%; max-width:100%; object-fit:contain;">` : '<i class="ri-image-line placeholder-icon" style="font-size:2rem; color:var(--text-secondary);"></i>'}
+                            ${(imgOf(t)) ? `<img src="${imgOf(t)}" loading="lazy" style="max-height:100%; max-width:100%; object-fit:contain;">` : '<i class="ri-image-line placeholder-icon" style="font-size:2rem; color:var(--text-secondary);"></i>'}
                         </div>
                         <div class="result-info" style="display:flex; flex-direction:column; flex:1; min-width:0;">
                             <span style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">${t.manufacturer || "Marke unbekannt"}</span>
@@ -1207,7 +1207,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 swatchGrid.className = 'finish-buttons-grid';
                 swatchGrid.style.marginTop = '0.5rem';
 
-                const renderVariantSwatch = (artNr, label) => {
+                const renderVariantSwatch = (artNr, label, variantImgUrl) => {
                     const btn = document.createElement('button');
                     const isActive = this.selectedTray.selections['__variant__'] === artNr;
                     btn.className = `finish-row-btn ${isActive ? 'active' : ''}`;
@@ -1215,7 +1215,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     btn.style.display = 'flex';
                     btn.style.alignItems = 'center';
 
-                    const imgUrl = getSanitasImgUrl(artNr);
+                    const imgUrl = isRealImg(variantImgUrl) ? variantImgUrl : '';
                     const fallbackColor = getVariantColor(label, artNr);
 
                     btn.innerHTML = `
@@ -1319,11 +1319,11 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
 
                 // Add base item (Standard)
                 const standardLabel = `Standard ${this.selectedTray.label.split(',').pop().trim()}`;
-                swatchGrid.appendChild(renderVariantSwatch(this.selectedTray.artNr, standardLabel));
+                swatchGrid.appendChild(renderVariantSwatch(this.selectedTray.artNr, standardLabel, this.selectedTray.imgUrl));
 
                 // Add all specific variants
                 this.selectedTray.variants.forEach(v => {
-                    swatchGrid.appendChild(renderVariantSwatch(v.artNr, v.label));
+                    swatchGrid.appendChild(renderVariantSwatch(v.artNr, v.label, v.imgUrl));
                 });
 
                 variantDiv.appendChild(vLabel);
@@ -1665,7 +1665,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 btn.className = `finder-item ${this.selectedAccessoires.includes(c.artNr) ? 'active' : ''}`;
                 btn.innerHTML = `
                     <div style="display:flex; align-items:center; gap:0.5rem;">
-                        ${(c.imgUrl || getSanitasImgUrl(c.artNr)) ? `<img src="${c.imgUrl || getSanitasImgUrl(c.artNr)}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;" onerror="this.outerHTML='<div style=&quot;width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;&quot;><i class=&quot;ri-image-line placeholder-icon&quot;></i></div>'">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
+                        ${(imgOf(c)) ? `<img src="${imgOf(c)}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;" onerror="this.outerHTML='<div style=&quot;width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;&quot;><i class=&quot;ri-image-line placeholder-icon&quot;></i></div>'">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
                         <div>
                             <div style="font-size:0.8rem; font-weight:500; line-height:1.3;">${c.label}</div>
                             <div style="font-size:0.7rem; color:var(--st-gray); margin-top:0.25rem;">

@@ -132,27 +132,18 @@ const getVariantColor = (label, artNr) => {
     return '#4FC3F7';
 };
 
-const getSanitasImgUrl = (artNr) => {
-    if (!artNr) return '';
-    // Strip everything except numbers and dots
-    const cleanArt = String(artNr).replace(/[^0-9.]/g, '');
-    if (!cleanArt) return '';
+// Placeholder / broken CDN URL signals. A URL containing any of these is NOT a real
+// product photo: _nV serves a generic grey box (200), _000_000/_100_000 are 404s.
+const PLACEHOLDER_IMG = ['_nV', 'no-image', 'placeholder', '_100_000', '_000_000'];
 
-    const parts = cleanArt.split('.');
-    let p1 = parts[0];
+// True only for a confirmed, real CDN image URL. Guards every <img src> so the app
+// never requests a fabricated or placeholder URL (that traffic got the account
+// shadow-banned). Confirmed URLs are baked into custom-data.json via st-scraper.
+const isRealImg = (u) => !!(u && String(u).trim()) && !PLACEHOLDER_IMG.some(s => u.includes(s));
 
-    // Sanitas usually uses 8-digit codes. If 7 digits, it almost always needs a leading 0.
-    // If 4 digits (old style), we keep it as is.
-    if (p1.length === 7) p1 = '0' + p1;
-
-    // Full triplet format (Standard for Kaldewei/Laufen/Schmidlin)
-    if (parts.length >= 3) {
-        return `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${p1}_${parts[1]}_${parts[2]}.png`;
-    }
-
-    // Fallback to single block (Common for Wannenträger and Accessories)
-    return `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${p1}.png`;
-};
+// Real image URL for a product object, or '' → callers fall back to the local
+// placeholder icon. Replaces the old getSanitasImgUrl guesser (which fabricated URLs).
+const imgOf = (o) => (o && isRealImg(o.imgUrl)) ? o.imgUrl : '';
 
 const applyPillUI = (headId, listId, currentVal, title, resetFn, displayVal) => {
     const head = document.getElementById(headId);
@@ -180,7 +171,7 @@ const Ae = configSidebar;
 const re = bomTableBody;
 const me = bomCountCounter;
 const ke = getVariantColor;
-const Be = getSanitasImgUrl;
+const Be = imgOf; // legacy alias retained for any inline callers
 const X = applyPillUI;
 
 // ── Pricing (additive, read-only) ─────────────────────────────────────────────
@@ -413,4 +404,4 @@ const renderAccessoiresPanel = (app, s) => {
     });
 };
 
-export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, getSanitasImgUrl, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel };
+export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel };
