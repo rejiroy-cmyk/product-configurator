@@ -677,7 +677,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 if (sA !== sB) return sA.localeCompare(sB);
                 return (a.size || '').localeCompare(b.size || '');
             }).map(t => {
-                const imgHTML = t.imgUrl ? `<img src="${t.imgUrl}" style="width:36px; height:36px; object-fit:contain; background:white; border-radius:4px; border:1px solid rgba(0,0,0,0.1);" onerror="this.style.display='none'">` : '';
+                const imgHTML = t.imgUrl ? `<img loading="lazy" decoding="async" src="${t.imgUrl}" style="width:36px; height:36px; object-fit:contain; background:white; border-radius:4px; border:1px solid rgba(0,0,0,0.1);" onerror="this.style.display='none'">` : '';
                 return `
                 <div class="finder-item ${this.selectedBasin && this.selectedBasin.id === t.id ? 'active' : ''}" data-id="${t.id}">
                     <div style="display:flex; align-items:center; gap: 0.75rem;">
@@ -959,7 +959,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 if (ablauf === 'ohne') tags.push(`<span style="background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">ohne Ablaufventil</span>`);
                 const tagsHTML = tags.length > 0 ? `<div style="display:flex; flex-wrap:wrap; gap: 0.3rem; font-size: 0.65rem; color: var(--text-secondary); margin-top: 0.3rem;">${tags.join('')}</div>` : '';
 
-                const imgHTML = t.imgUrl ? `<img src="${t.imgUrl}" style="width:54px; height:54px; object-fit:contain; background:white; border-radius:6px; border:1px solid rgba(0,0,0,0.1); padding: 2px; flex-shrink: 0;" onerror="this.style.display='none'">` : '';
+                const imgHTML = t.imgUrl ? `<img loading="lazy" decoding="async" src="${t.imgUrl}" style="width:54px; height:54px; object-fit:contain; background:white; border-radius:6px; border:1px solid rgba(0,0,0,0.1); padding: 2px; flex-shrink: 0;" onerror="this.style.display='none'">` : '';
                 return `
                 <div class="finder-item ${this.selectedFaucet && this.selectedFaucet.id === t.id ? 'active' : ''}" data-id="${t.id}" style="padding: 0.75rem;">
                     <div style="display:flex; align-items:flex-start; gap: 0.75rem;">
@@ -1133,7 +1133,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     const img = imgOf(c);
                     return `<div class="finder-item ${sel ? 'active' : ''}" data-artnr="${c.artNr}" title="${c.artNr}">
                         <div style="display:flex; align-items:center; gap:0.5rem; overflow:hidden;">
-                            ${img ? `<img src="${img}" style="width:32px;height:32px;object-fit:contain;background:#fff;border-radius:4px;padding:2px;flex-shrink:0;" onerror="this.style.visibility='hidden'">` : `<div style="width:32px;height:32px;background:var(--bg-surface);border-radius:4px;flex-shrink:0;"></div>`}
+                            ${img ? `<img loading="lazy" decoding="async" src="${img}" style="width:32px;height:32px;object-fit:contain;background:#fff;border-radius:4px;padding:2px;flex-shrink:0;" onerror="this.style.visibility='hidden'">` : `<div style="width:32px;height:32px;background:var(--bg-surface);border-radius:4px;flex-shrink:0;"></div>`}
                             <div style="min-width:0; overflow:hidden;">
                                 <div style="font-size:0.8rem;font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${this.cleanLabel(c)}</div>
                                 <div style="font-size:0.7rem;color:var(--text-secondary);font-family:monospace;margin-top:2px;">${c.artNr} · ${c.productType}</div>
@@ -1530,7 +1530,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 return `
                     <div class="finder-item ${isSelected ? 'active' : ''}" data-artnr="${c.artNr}" data-target="${target}" title="${c.artNr}">
                         <div style="display:flex; align-items:center; gap:0.5rem; overflow:hidden;">
-                            ${(imgOf(c)) ? `<img src="${imgOf(c)}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;" onerror="this.outerHTML='<div style=&quot;width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;&quot;><i class=&quot;ri-image-line placeholder-icon&quot;></i></div>'">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
+                            ${(imgOf(c)) ? `<img loading="lazy" decoding="async" src="${imgOf(c)}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;" onerror="this.outerHTML='<div style=&quot;width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;&quot;><i class=&quot;ri-image-line placeholder-icon&quot;></i></div>'">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
                             <div style="min-width:0; overflow:hidden;">
                                 <div style="font-size:0.8rem; font-weight:500; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis;">${this.cleanLabel(c)}</div>
                                 <div style="font-size:0.7rem; color:var(--text-secondary); font-family:monospace; margin-top:2px;">${c.artNr}</div>
@@ -1578,7 +1578,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             const html = `
                 <div class="finder-preview-card slide-in" style="width: 100%; margin: 0;">
                     <div class="finder-preview-header" style="margin-bottom: 1.5rem;">
-                        <img src="${this.selectedBasin.imgUrl}" class="preview-thumbnail">
+                        <img loading="lazy" decoding="async" src="${this.selectedBasin.imgUrl}" class="preview-thumbnail">
                         <div class="preview-header-info">
                             <h2 style="margin: 0 0 4px 0; font-size: 1.1rem; font-weight: 700;">${this.selectedBasin.label}</h2>
                             <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 10px;">Art-Nr: ${this.selectedBasin.artNr}</p>

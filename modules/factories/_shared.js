@@ -136,10 +136,17 @@ const getVariantColor = (label, artNr) => {
 // product photo: _nV serves a generic grey box (200), _000_000/_100_000 are 404s.
 const PLACEHOLDER_IMG = ['_nV', 'no-image', 'placeholder', '_100_000', '_000_000'];
 
-// True only for a confirmed, real CDN image URL. Guards every <img src> so the app
-// never requests a fabricated or placeholder URL (that traffic got the account
-// shadow-banned). Confirmed URLs are baked into custom-data.json via st-scraper.
-const isRealImg = (u) => !!(u && String(u).trim()) && !PLACEHOLDER_IMG.some(s => u.includes(s));
+// Non-photo image banks: SAP/YM1 = technical drawings / Schallschutz diagrams,
+// Energieetiketten = EU energy labels. Real product photos live only in Web/PG1|PS1.
+const NON_PHOTO_IMG = ['/multimedia/SAP/', '/Energieetiketten/'];
+
+// True only for a confirmed, real product PHOTO URL. Guards every <img src> so the
+// app never requests a fabricated/placeholder URL (that traffic got the account
+// shadow-banned) and never shows a drawing/label as the product image. Confirmed
+// URLs are baked into custom-data.json via st-scraper.
+const isRealImg = (u) => !!(u && String(u).trim())
+    && !PLACEHOLDER_IMG.some(s => u.includes(s))
+    && !NON_PHOTO_IMG.some(s => u.includes(s));
 
 // Real image URL for a product object, or '' → callers fall back to the local
 // placeholder icon. Replaces the old getSanitasImgUrl guesser (which fabricated URLs).

@@ -27,7 +27,11 @@ const CONC = 4;
 const MAX = parseInt(process.argv[2] || '9999999', 10);
 
 const PLACEHOLDER = ['_nV', 'no-image', 'placeholder', '_100_000', '_000_000'];
-const isDistinctive = u => !!(u && u.trim()) && !PLACEHOLDER.some(s => u.includes(s));
+// Non-photo banks: SAP/YM1 = technical drawings/Schallschutz, Energieetiketten = EU labels.
+const NON_PHOTO = ['/multimedia/SAP/', '/Energieetiketten/'];
+const isDistinctive = u => !!(u && u.trim())
+  && !PLACEHOLDER.some(s => u.includes(s))
+  && !NON_PHOTO.some(s => u.includes(s));
 const digits = a => String(a).replace(/[^0-9]/g, '');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
