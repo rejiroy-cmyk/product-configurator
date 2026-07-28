@@ -284,6 +284,44 @@ const priceBOM = (tbody, cols = 5) => {
 // populateAccessoires(), updateBOM(). Panel DOM ids follow `*_${s}`.
 const DROPDOWN_TYPES = ['Duschgleitstange'];   // handled by the mischer's own dropdown groups, not here
 const SIZE_TYPES = ['Badetuchstange'];         // only these expose the Breite secondary filter
+
+// ── Accessory Hersteller / Serie ───────────────────────────────────────────────
+// Accessory labels read "<type words…> <Brand> <Line>, <attributes>". Deriving the
+// series by front-stripping the type word grabs adjectives / dimensions / connectors
+// as noise (Zweiarmig, Elektronischer, Für, Höhe, Edelstahl, Eck …). Instead anchor
+// on the BRAND (the clean manufacturer field) and take the model token right after it.
+const accessoryHersteller = (t) => ((t && t.manufacturer) || '').trim() || 'Andere';
+
+// Tokens that are attributes/materials/connectors, never a real model line.
+const ACC_SERIE_NOISE = new Set([
+    'für', 'zur', 'und', 'mit', 'ohne', 'set', 'aus', 'bis', 'per', 'à', 'im', 'am',
+    'höhe', 'breite', 'tiefe', 'länge', 'ausladung', 'auslauf', 'inhalt', 'durchmesser',
+    'füllmenge', 'grösse', 'gross', 'klein', 'wandmodell', 'standmodell', 'wandmontage',
+    'bodenmontage', 'selbstklebend', 'eck', 'doppelt', 'einfach', 'zweiarmig', 'einarmig',
+    'edelstahl', 'stainless', 'steel', 'chrom', 'verchromt', 'messing', 'kunststoff',
+    'glas', 'klarglas', 'aluminium', 'matt', 'glanz', 'hochglanz', 'poliert', 'gebürstet',
+    'a', 'b', 'h', 'ø'
+]);
+const accessorySerie = (t) => {
+    if (!t) return 'Andere';
+    const cap = w => w ? w.charAt(0).toUpperCase() + w.slice(1) : w;
+    const mfr = (t.manufacturer || '').trim();
+    if (mfr && mfr.toLowerCase() !== 'andere') {
+        // FULL-TEXT RULE: look in the label, then the description if the label is truncated.
+        for (const raw of [t.label || t.name || '', t.description || '']) {
+            const text = String(raw);
+            const bi = text.toLowerCase().indexOf(mfr.toLowerCase());
+            if (bi < 0) continue;
+            const after = text.substring(bi + mfr.length).replace(/^[\s\-:,/]+/, '');
+            const m = after.match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9.\-]*)/);
+            const tok = m ? m[1] : '';
+            if (tok && tok.length > 1 && !ACC_SERIE_NOISE.has(tok.toLowerCase())) return cap(tok);
+            break;   // brand found but no clean model line → group under the brand
+        }
+        return mfr;
+    }
+    return 'Andere';
+};
 const renderAccessoiresPanel = (app, s) => {
     const listEl = document.getElementById(`list_addon_accessoires_${s}`);
     const serieListEl = document.getElementById(`list_addon_accessoires_serie_${s}`);
@@ -320,15 +358,9 @@ const renderAccessoiresPanel = (app, s) => {
         return m ? (COLOR_NAMES[m[1]] || null) : null;
     };
     const breiteOf = (c) => (c.size && c.size !== 'Standard' && /\d/.test(c.size)) ? c.size : null;
-    const serieOf = (c) => {
-        let head = (c.label || '').split(',')[0].trim();
-        const parts = head.split(/\s+/); parts.shift();
-        let rest = parts.join(' ');
-        if (c.manufacturer && rest.startsWith(c.manufacturer)) rest = rest.slice(c.manufacturer.length).trim();
-        rest = rest.replace(/\s+\d+([.,]\d+)?\s*(?:x|cm|mm|Ø|Liter|l)\b.*$/i, '').trim();
-        if (rest.split(' ').length > 3) rest = rest.split(' ').slice(0, 3).join(' ');
-        return rest || null;
-    };
+    // Brand-anchored (shared with Mix&Match). 'Andere' -> null so it isn't offered as a facet value.
+    const herstellerOf = (c) => { const h = accessoryHersteller(c); return h === 'Andere' ? null : h; };
+    const serieOf = (c) => { const sr = accessorySerie(c); return sr === 'Andere' ? null : sr; };
     let secWrap = document.getElementById(`list_addon_accessoires_secondary_${s}`);
     if (!secWrap) {
         secWrap = document.createElement('div');
@@ -340,7 +372,7 @@ const renderAccessoiresPanel = (app, s) => {
         secWrap.innerHTML = ''; app.accSecondary = {};
     } else {
         const base = filtered;   // primary (productType) filtered set
-        const dims = [['Serie', serieOf], ['Breite', breiteOf], ['Farbe', farbeOf]]
+        const dims = [['Hersteller', herstellerOf], ['Serie', serieOf], ['Breite', breiteOf], ['Farbe', farbeOf]]
             .filter(([name]) => name !== 'Breite' || SIZE_TYPES.includes(app.currentAccessoireSerie));
         // ADAPTIVE (faceted): a dimension's available values are those left after applying every
         // OTHER dimension's current selection — so Serie=piana narrows Breite/Farbe to piana's only.
@@ -411,4 +443,4 @@ const renderAccessoiresPanel = (app, s) => {
     });
 };
 
-export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel };
+export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryHersteller, accessorySerie };

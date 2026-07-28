@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, accessoryHersteller, accessorySerie } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createMixAndMatchApp(title, desc, mainImgUrl) {
@@ -18,8 +18,12 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         showLichtspiegel: false,
         showSchraenke: false,
         showAccessoires: false,
+        currentAccessoiresHersteller: 'all',
         currentAccessoiresSerie: 'all',
         currentSchraenkeFilter: 'all',   // 'all' | 'Hochschrank' | 'Seitenschrank'
+        currentSchraenkeFarbe: 'all',    // colour name from the art-Nr finish code (COLOR_NAMES)
+        currentSchraenkeBreite: 'all',   // width in cm (extractBreite)
+        currentSchraenkeHoehe: 'all',    // height in cm (extractHoehe)
         currentMoebelFarbe: 'all',       // colour name from the art-Nr finish code (COLOR_NAMES)
         selectedMoebel: null,
         selectedSpiegelschrank: null,
@@ -77,6 +81,9 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             this.selectedLichtspiegel = null;
             this.selectedSchraenke = null;
             this.currentSchraenkeFilter = 'all';
+            this.currentSchraenkeFarbe = 'all';
+            this.currentSchraenkeBreite = 'all';
+            this.currentSchraenkeHoehe = 'all';
             this.currentMoebelFarbe = 'all';
             this.selectedAccessoires = [];
 
@@ -329,6 +336,20 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             return match ? match[1].replace(',', '.') : 'unknown';
         },
 
+        extractHoehe: function (obj) {
+            // FULL-TEXT RULE: height can be truncated off the label — read label AND description.
+            const label = (obj.label || obj.name || '') + ' ' + (obj.description || '');
+            // "Höhe 168 cm" / "Höhe 1680 mm" / "H 1680"
+            const hMatch = label.match(/(?:Höhe|Hoehe|H)[:\s]+([\d,.]+)\s*(cm|mm)?/i);
+            if (hMatch) {
+                let val = hMatch[1].replace(',', '.');
+                let unit = (hMatch[2] || 'mm').toLowerCase();
+                if (unit === 'mm' || parseFloat(val) > 250) return (parseFloat(val) / 10).toString(); // mm or large val -> cm
+                return val;
+            }
+            return 'unknown';
+        },
+
         // Width in cm for MIRRORS (Spiegelschrank/Lichtspiegel/Spiegel). Handles "Breite N",
         // "N x N cm" (W×H → width is first) and "Ø N cm" (round → diameter is the width).
         // extractBreite can't read Ø/N×N, so use this for all mirror width logic. Returns null if unknown.
@@ -456,6 +477,12 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         <div id="addon_schraenke_panel" class="addon-panel" style="display:none;">
                             <div class="finder-sub-header">Typ</div>
                             <div class="pill-group" id="list_schraenke_filter" style="margin-bottom: 0.75rem;"></div>
+                            <div class="finder-sub-header" id="schraenke_farbe_header" style="display:none;">Farbe</div>
+                            <div class="pill-group" id="list_schraenke_farbe" style="margin-bottom: 0.75rem; display:none;"></div>
+                            <div class="finder-sub-header" id="schraenke_breite_header" style="display:none;">Breite</div>
+                            <div class="pill-group" id="list_schraenke_breite" style="margin-bottom: 0.75rem; display:none;"></div>
+                            <div class="finder-sub-header" id="schraenke_hoehe_header" style="display:none;">Höhe</div>
+                            <div class="pill-group" id="list_schraenke_hoehe" style="margin-bottom: 0.75rem; display:none;"></div>
                             <div class="finder-sub-header">Schrank wählen</div>
                             <div class="finder-list" id="list_addon_schraenke"></div>
                         </div>
@@ -514,6 +541,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             <div class="finder-list" id="list_addon_spiegel"></div>
                         </div>
                         <div id="addon_accessoires_panel" class="addon-panel" style="display:none;">
+                            <div class="finder-sub-header" id="addon_accessoires_hersteller_header" style="display:none;">Hersteller</div>
+                            <div class="pill-group" id="list_addon_accessoires_hersteller" style="margin-bottom: 0.75rem; display:none;"></div>
                             <div class="finder-sub-header" id="addon_accessoires_serie_header">Serie</div>
                             <div class="pill-group" id="list_addon_accessoires_serie" style="margin-bottom: 0.75rem;"></div>
                             <div class="finder-sub-header">Accessoires wählen</div>
@@ -1085,9 +1114,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             if (t === 'spiegelschrank') this.selectedSpiegelschrank = null;
                             if (t === 'spiegel') this.selectedSpiegel = null;
                             if (t === 'lichtspiegel') this.selectedLichtspiegel = null;
-                            if (t === 'schraenke') { this.selectedSchraenke = null; this.currentSchraenkeFilter = 'all'; }
+                            if (t === 'schraenke') { this.selectedSchraenke = null; this.currentSchraenkeFilter = 'all'; this.currentSchraenkeFarbe = 'all'; this.currentSchraenkeBreite = 'all'; this.currentSchraenkeHoehe = 'all'; }
                             if (t === 'accessoires') {
                                 this.selectedAccessoires = [];
+                                this.currentAccessoiresHersteller = 'all';
                                 this.currentAccessoiresSerie = 'all';
                             }
                         }
@@ -1127,6 +1157,33 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 if (this.currentSchraenkeFilter !== 'all') cands = cands.filter(t => t.productType === this.currentSchraenkeFilter);
                 const seen = new Set();
                 cands = cands.filter(c => { if (!c.artNr || seen.has(c.artNr)) return false; seen.add(c.artNr); return true; });
+
+                // Farbe / Breite / Höhe filters — cascade in order. Farbe derives from the art-Nr
+                // finish code (COLOR_NAMES), exactly like the Möbel Farbe filter (colour RULE: never
+                // from label text). Each pill shows only when >1 value exists; choosing one narrows
+                // the next filter's options.
+                const schrankFarbeOf = (c) => { const m = String(c.artNr || '').match(/\.(\d{3})(?:\.|$)/); return m ? (COLOR_NAMES[m[1]] || null) : null; };
+                const renderSchrankFilter = (getVal, stateKey, listId, headerId, label, numeric, suffix) => {
+                    const vals = [...new Set(cands.map(getVal).filter(v => v && v !== 'unknown'))]
+                        .sort((a, b) => numeric ? (parseFloat(a) - parseFloat(b)) : a.localeCompare(b));
+                    if (this[stateKey] !== 'all' && !vals.includes(this[stateKey])) this[stateKey] = 'all';
+                    const el = document.getElementById(listId);
+                    const hdr = document.getElementById(headerId);
+                    const show = vals.length > 1;
+                    if (el) {
+                        el.innerHTML = `<button class="pill-btn ${this[stateKey] === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                            vals.map(v => `<button class="pill-btn ${this[stateKey] === v ? 'active' : ''}" data-val="${v}">${v}${suffix || ''}</button>`).join('');
+                        el.querySelectorAll('.pill-btn').forEach(b => b.addEventListener('click', () => { this[stateKey] = b.dataset.val; this.populateAddonPanel('schraenke'); }));
+                        el.style.display = show ? '' : 'none';
+                    }
+                    if (hdr) hdr.style.display = show ? '' : 'none';
+                    if (show) applyPillUI(headerId, listId, this[stateKey], label, () => { this[stateKey] = 'all'; this.populateAddonPanel('schraenke'); });
+                    if (this[stateKey] !== 'all') cands = cands.filter(c => getVal(c) === this[stateKey]);
+                };
+                renderSchrankFilter(schrankFarbeOf, 'currentSchraenkeFarbe', 'list_schraenke_farbe', 'schraenke_farbe_header', 'Farbe', false, '');
+                renderSchrankFilter((c) => this.extractBreite(c), 'currentSchraenkeBreite', 'list_schraenke_breite', 'schraenke_breite_header', 'Breite', true, ' cm');
+                renderSchrankFilter((c) => this.extractHoehe(c), 'currentSchraenkeHoehe', 'list_schraenke_hoehe', 'schraenke_hoehe_header', 'Höhe', true, ' cm');
+
                 if (!cands.length) { listEl.innerHTML = '<div class="finder-empty-state" style="font-size:0.8rem;">Keine Schränke gefunden.</div>'; return; }
                 listEl.innerHTML = cands.map(c => {
                     const sel = this.selectedSchraenke === c.artNr;
@@ -1504,22 +1561,34 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             const isMulti = target === 'accessoires';
             if (target === 'accessoires') {
+                // Hersteller (brand) — from the clean manufacturer field. Cascades into Serie.
+                const herEl = document.getElementById('list_addon_accessoires_hersteller');
+                const herHdr = document.getElementById('addon_accessoires_hersteller_header');
+                const brands = [...new Set(displayCandidates.map(accessoryHersteller))].filter(Boolean).sort();
+                if (this.currentAccessoiresHersteller !== 'all' && !brands.includes(this.currentAccessoiresHersteller)) this.currentAccessoiresHersteller = 'all';
+                const showHer = brands.length > 1;
+                if (herEl) {
+                    herEl.innerHTML = `<button class="pill-btn ${this.currentAccessoiresHersteller === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                        brands.map(b => `<button class="pill-btn ${this.currentAccessoiresHersteller === b ? 'active' : ''}" data-val="${b}">${b}</button>`).join('');
+                    herEl.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => { this.currentAccessoiresHersteller = btn.dataset.val; this.currentAccessoiresSerie = 'all'; this.populateAddonPanel(target); }));
+                    herEl.style.display = showHer ? '' : 'none';
+                }
+                if (herHdr) herHdr.style.display = showHer ? '' : 'none';
+                if (this.currentAccessoiresHersteller !== 'all') displayCandidates = displayCandidates.filter(c => accessoryHersteller(c) === this.currentAccessoiresHersteller);
+
+                // Serie (model line) — brand-anchored, noise-guarded (accessorySerie in _shared.js).
                 const serieListEl = document.getElementById('list_addon_accessoires_serie');
                 if (serieListEl) {
-                    const series = [...new Set(displayCandidates.map(c => this.extractSerie(c)))].filter(Boolean).sort();
+                    const series = [...new Set(displayCandidates.map(c => accessorySerie(c)))].filter(Boolean).sort();
                     serieListEl.innerHTML = `<button class="pill-btn ${this.currentAccessoiresSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
                         series.map(s => `<button class="pill-btn ${this.currentAccessoiresSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
-                    
-                    serieListEl.querySelectorAll('.pill-btn').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            this.currentAccessoiresSerie = btn.dataset.val;
-                            this.populateAddonPanel(target);
-                        });
-                    });
+                    serieListEl.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
+                        this.currentAccessoiresSerie = btn.dataset.val;
+                        this.populateAddonPanel(target);
+                    }));
                 }
-                
                 if (this.currentAccessoiresSerie !== 'all') {
-                    displayCandidates = displayCandidates.filter(c => this.extractSerie(c) === this.currentAccessoiresSerie);
+                    displayCandidates = displayCandidates.filter(c => accessorySerie(c) === this.currentAccessoiresSerie);
                 }
             }
             
