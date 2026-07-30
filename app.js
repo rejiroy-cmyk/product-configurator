@@ -1,9 +1,23 @@
 import { DATA_VERSION, catalog } from './modules/data.js?v=2.5.5';
 import { productApps } from './modules/apps.js?v=2.6.51';
 import { setupAdmin } from './modules/admin.js?v=2.5.6';
-// Price table (art-Nr → ‹without taxes› CHF). Vite inlines this JSON into the bundle.
-import pricesData from './prices.json';
-window.__PRICES__ = (pricesData && pricesData.prices) || pricesData || {};
+// Catalog + price table are embedded as gzip+base64 (see vite.config.js) and inflated at
+// runtime, so the shipped single-file build stays small and the catalog/prices are not
+// casually readable in the file. Code is untouched — this only changes how DATA is stored.
+import bundledDataGz from 'virtual:bundled-data-gz';       // custom-data.json (build only)
+import bundledPricesGz from 'virtual:bundled-prices-gz';   // prices.json (dev + build)
+window.__PRICES__ = {};   // populated during boot, after inflating bundledPricesGz
+
+// Inflate a gzip+base64 string into a parsed JSON object. DecompressionStream is built into
+// modern browsers (Chrome 80+, Firefox 113+, Safari 16.4+). Returns null for an empty blob.
+async function inflateGzB64(b64) {
+    if (!b64) return null;
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return JSON.parse(await new Response(stream).text());
+}
 
 window.copyTextToClipboard = function(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -77,52 +91,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         return img;
     };
 
-    // --- Image Auto-Heal Engine ---
+    // --- Image Error Handler ---
     document.addEventListener('error', (e) => {
         if (e.target && e.target.tagName === 'IMG') {
             const img = e.target;
             if (img.src.includes('placeholder.com') || img.src.includes('data:image')) return;
             
-            if (img.getAttribute('data-healed') === 'true') {
-                img.style.display = 'none';
-                return;
-            }
-
-            // Temporarily suppress the inline onerror handler 
-            img.onerror = null;
-            img.removeAttribute('onerror');
-            img.style.display = '';
-
-            const match = img.src.match(/\/PG1\/0*(\d{7,8})/);
-            if (match) {
-                const prefixId = match[1].padStart(8, '0');
-                
-                let variants = [
-                    `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${prefixId}_nV_000.png`,
-                    `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${prefixId}_nV.png`,
-                    `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${prefixId}.png`,
-                    `https://profishop.sanitastroesch.ch/multimedia/Web/PG1/${prefixId}_100_000.png`
-                ];
-                
-                const attempt = parseInt(img.dataset.attempt || "0", 10);
-                if (attempt < variants.length) {
-                    img.dataset.attempt = attempt + 1;
-                    if (img.src !== variants[attempt]) {
-                        img.src = variants[attempt]; 
-                    } else {
-                        img.src = variants[attempt + 1] || 'about:blank';
-                        img.dataset.attempt = attempt + 2;
-                    }
-                } else {
-                    img.setAttribute('data-healed', 'true');
-                    img.style.display = 'none';
-                    if (img.parentNode && img.parentNode.classList.contains('img-cell')) {
-                        img.parentNode.style.background = 'transparent';
-                        img.parentNode.style.border = '1px dashed var(--border)';
-                    }
-                }
-            } else {
-                img.style.display = 'none';
+            // Just hide the image and style the container if it fails to load
+            img.style.display = 'none';
+            if (img.parentNode && img.parentNode.classList.contains('img-cell')) {
+                img.parentNode.style.background = 'transparent';
+                img.parentNode.style.border = '1px dashed var(--border)';
             }
         }
     }, true);
@@ -767,6 +746,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // Inflate the bundled (compressed) price table into window.__PRICES__ (read at render time).
+    try {
+        const pj = await inflateGzB64(bundledPricesGz);
+        if (pj) window.__PRICES__ = pj.prices || pj || {};
+    } catch (e) { console.warn('[Konfigurator] price table inflate failed:', e.message); }
+
     let dataLoaded = false;
 
     // 1. Fetch fresh live data from Mac filesystem via Vite dev server
@@ -789,20 +774,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn('[Konfigurator] /api/data unavailable (not in dev server?):', e.message);
     }
 
-    // 2. Fetch from bundled data (for static build)
+    // 2. Bundled data (for the static build) — stored gzip+base64, inflated at runtime.
     if (!dataLoaded) {
         try {
-            const files = import.meta.glob('./custom-data.json', { eager: true });
-            if (files['./custom-data.json']) {
-                const bundledData = files['./custom-data.json'].default;
-                if (bundledData && Object.keys(bundledData).length > 0) {
-                    applyDataToApps(bundledData);
-                    dataLoaded = true;
-                    console.log('[Konfigurator] Loaded data from Vite bundled JSON.');
-                }
+            const bundledData = await inflateGzB64(bundledDataGz);
+            if (bundledData && Object.keys(bundledData).length > 0) {
+                applyDataToApps(bundledData);
+                dataLoaded = true;
+                console.log('[Konfigurator] Loaded data from bundled compressed blob.');
             }
         } catch(e) {
-            console.warn('[Konfigurator] Failed to load bundled JSON:', e.message);
+            console.warn('[Konfigurator] Failed to load bundled compressed data:', e.message);
         }
     }
 
