@@ -1726,12 +1726,18 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         // label} for a same-brand part available in the faucet's colour, else null so the caller
         // keeps its default. Only fires for a coloured faucet; plain Verchromt / no colour keeps
         // the default. Furniture (hidden) never calls this.
+        // The faucet's effective finish: the Farbe filter choice, else the faucet's own base colour.
+        faucetEffectiveColour: function () {
+            if (!this.selectedFaucet) return null;
+            const colourOf = (art) => { const m = String(art || '').match(/\.(\d{3})(?:\.|$)/); return m ? (COLOR_NAMES[m[1]] || null) : null; };
+            return (this.currentFaucetFarbe && this.currentFaucetFarbe !== 'all')
+                ? this.currentFaucetFarbe : colourOf(this.selectedFaucet.artNr);
+        },
+
         matchColouredAccessory: function (productType) {
             if (!this.selectedFaucet) return null;
             const colourOf = (art) => { const m = String(art || '').match(/\.(\d{3})(?:\.|$)/); return m ? (COLOR_NAMES[m[1]] || null) : null; };
-            // Effective faucet colour = the Farbe filter choice, else the faucet's own base colour.
-            const colour = (this.currentFaucetFarbe && this.currentFaucetFarbe !== 'all')
-                ? this.currentFaucetFarbe : colourOf(this.selectedFaucet.artNr);
+            const colour = this.faucetEffectiveColour();
             if (!colour || colour === 'Verchromt') return null;   // chrome == the default already
             const brand = (this.selectedFaucet.manufacturer || '').toLowerCase();
             if (!brand) return null;
@@ -2029,11 +2035,23 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     items.push({ qty: siphonQty, label: sLabelMap[this.selectedSiphon] || 'Sifon', artNr: this.selectedSiphon });
                 }
 
-                // Regulierventil — colour-match to the faucet (same brand + finish) when the
-                // faucet is a coloured one and a match exists; otherwise the Laufen chrome default.
+                // Regulierventil.
                 if (regQty > 0) {
-                    const reg = this.matchColouredAccessory('Regulierventil') || { artNr: '6511 201.501.000', label: 'Regulierventil Laufen ½" Verchromt' };
-                    items.push({ qty: regQty, label: reg.label, artNr: reg.artNr });
+                    const fbrand = ((this.selectedFaucet && this.selectedFaucet.manufacturer) || '').toLowerCase();
+                    if (fbrand === 'hansgrohe' || fbrand === 'axor') {
+                        // Hansgrohe / Axor model: the valve stays chrome (6418 206.501.000) and a
+                        // colour-matching Schuber COVER (6418 202) is slipped over it. Add the cover
+                        // only when the faucet finish is one the Schuber comes in; else valve only.
+                        items.push({ qty: regQty, label: 'Regulierventil Hansgrohe/Axor ½"', artNr: '6418 206.501.000' });
+                        const HG_COVER = { 'Schwarz matt': '535', 'Weiss matt': '536', 'Gold optic': '420', 'Brushed bronze': '461', 'Brushed black chrome': '462' };
+                        const fc = this.faucetEffectiveColour();
+                        if (fc && HG_COVER[fc]) items.push({ qty: regQty, label: `Schuber Hansgrohe ${fc}, für Eckventil`, artNr: `6418 202.${HG_COVER[fc]}.000` });
+                    } else {
+                        // Other brands: colour-match the Regulierventil itself (same brand + finish)
+                        // when the faucet is coloured and a match exists; else the Laufen chrome default.
+                        const reg = this.matchColouredAccessory('Regulierventil') || { artNr: '6511 201.501.000', label: 'Regulierventil Laufen ½" Verchromt' };
+                        items.push({ qty: regQty, label: reg.label, artNr: reg.artNr });
+                    }
                 }
             }
 
