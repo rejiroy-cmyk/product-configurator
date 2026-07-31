@@ -48,6 +48,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         currentFaucetAblauf: 'all',
         currentFaucetAusladung: 'all',
         currentFaucetSerie: 'all',
+        currentFaucetFarbe: 'all',
 
         init: function (basins, faucets) {
             this.basinTrays = basins || [];
@@ -101,6 +102,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             this.currentFaucetAblauf = 'all';
             this.currentFaucetAusladung = 'all';
             this.currentFaucetSerie = 'all';
+            this.currentFaucetFarbe = 'all';
 
             ['Spiegelschrank', 'Spiegel', 'Lichtspiegel'].forEach(m => {
                 this['current' + m + 'Brand'] = 'all';
@@ -417,6 +419,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         
                         <div class="finder-sub-header" id="head_faucet_type">Typ</div>
                         <div class="pill-group" id="list_faucet_type"></div>
+                        <div class="finder-sub-header" id="head_faucet_farbe">Farbe</div>
+                        <div class="pill-group" id="list_faucet_farbe"></div>
                         
                         <div class="finder-sub-header" id="head_faucet_serie">Serie</div>
                         <div class="pill-group" id="list_faucet_serie" style="zoom: 0.85;"></div>
@@ -543,7 +547,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         <div id="addon_accessoires_panel" class="addon-panel" style="display:none;">
                             <div class="finder-sub-header" id="addon_accessoires_hersteller_header" style="display:none;">Hersteller</div>
                             <div class="pill-group" id="list_addon_accessoires_hersteller" style="margin-bottom: 0.75rem; display:none;"></div>
-                            <div class="finder-sub-header" id="addon_accessoires_serie_header">Serie</div>
+                            <div class="finder-sub-header" id="addon_accessoires_serie_header">Kategorie</div>
                             <div class="pill-group" id="list_addon_accessoires_serie" style="margin-bottom: 0.75rem;"></div>
                             <div class="finder-sub-header">Accessoires wählen</div>
                             <div class="finder-list" id="list_addon_accessoires"></div>
@@ -811,6 +815,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         updateFaucetTiers: function () {
             const brandList = document.getElementById('list_faucet_brand');
             const typeList = document.getElementById('list_faucet_type');
+            const farbeList = document.getElementById('list_faucet_farbe');
             const serieList = document.getElementById('list_faucet_serie');
             const auslList = document.getElementById('list_faucet_ausl');
             const auslaufList = document.getElementById('list_faucet_auslauf');
@@ -898,8 +903,28 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             let f2 = f1;
             if (this.currentFaucetType !== 'all') f2 = f2.filter(t => this.extractFaucetAusfuehrung(t) === this.currentFaucetType);
 
+            // 2b. Farbe — the colour(s) a faucet is available in (base + variants), from the
+            // art-Nr finish code (COLOR_NAMES). Placed under Typ; cascades into the rest.
+            const faucetColours = (t) => {
+                const codeOf = (art) => { const m = String(art || '').match(/\.(\d{3})(?:\.|$)/); return m ? (COLOR_NAMES[m[1]] || null) : null; };
+                return [...new Set([codeOf(t.artNr), ...((t.variants || []).map(v => codeOf(v.artNr)))].filter(Boolean))];
+            };
+            const farben = [...new Set(f2.flatMap(faucetColours))].sort((a, b) => a.localeCompare(b));
+            if (this.currentFaucetFarbe !== 'all' && !farben.includes(this.currentFaucetFarbe)) this.currentFaucetFarbe = 'all';
+            if (farbeList) {
+                farbeList.innerHTML = `<button class="pill-btn ${this.currentFaucetFarbe === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + farben.map(c => `
+                <button class="pill-btn ${this.currentFaucetFarbe === c ? 'active' : ''}" data-val="${c}">${c}</button>
+            `).join('');
+                applyPillUI('head_faucet_farbe', 'list_faucet_farbe', this.currentFaucetFarbe, 'Farbe', () => {
+                    this.currentFaucetFarbe = 'all';
+                    this.updateFaucetTiers();
+                });
+            }
+            let f2b = f2;
+            if (this.currentFaucetFarbe !== 'all') f2b = f2b.filter(t => faucetColours(t).includes(this.currentFaucetFarbe));
+
             // 3. Serie
-            const series = [...new Set(f2.map(t => this.extractFaucetSerie(t)))].filter(s => s !== 'Andere').sort();
+            const series = [...new Set(f2b.map(t => this.extractFaucetSerie(t)))].filter(s => s !== 'Andere').sort();
             serieList.innerHTML = `<button class="pill-btn ${this.currentFaucetSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + series.map(s => `
                 <button class="pill-btn ${this.currentFaucetSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>
             `).join('');
@@ -908,7 +933,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 this.updateFaucetTiers();
             });
 
-            let f3 = f2;
+            let f3 = f2b;
             if (this.currentFaucetSerie !== 'all') f3 = f3.filter(t => this.extractFaucetSerie(t) === this.currentFaucetSerie);
 
             // 4. Ausladung
@@ -951,13 +976,15 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             if (this.currentFaucetAblauf !== 'all') f6 = f6.filter(t => this.extractAblauf(t) === this.currentFaucetAblauf);
 
             // Bind Events
-            [brandList, typeList, serieList, auslList, auslaufList, ablaufList].forEach(list => {
+            [brandList, typeList, farbeList, serieList, auslList, auslaufList, ablaufList].forEach(list => {
+                if (!list) return;
                 list.querySelectorAll('.pill-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
                         const target = list.id.replace('list_faucet_', '');
                         const val = btn.dataset.val;
                         if (target === 'brand') this.currentFaucetBrand = val;
                         else if (target === 'type') this.currentFaucetType = val;
+                        else if (target === 'farbe') this.currentFaucetFarbe = val;
                         else if (target === 'serie') this.currentFaucetSerie = val;
                         else if (target === 'ausl') this.currentFaucetAusladung = val;
                         else if (target === 'auslauf') this.currentFaucetAuslauf = val;

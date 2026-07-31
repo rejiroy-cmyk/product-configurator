@@ -435,7 +435,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                             <button class="ios-toggle" data-target="accessoires_dusche" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
                         </div>
                         <div id="addon_accessoires_dusche_panel_${suffix}" class="addon-panel" style="display:none;">
-                            <div class="finder-sub-header">Serie</div>
+                            <div class="finder-sub-header">Kategorie</div>
                             <div class="pill-group" id="list_addon_accessoires_serie_dusche_${suffix}" style="margin-bottom: 0.75rem;"></div>
                             <div class="finder-sub-header">Accessoires wählen</div>
                             <div class="finder-list" id="list_addon_accessoires_dusche_${suffix}"></div>

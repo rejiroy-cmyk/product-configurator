@@ -40,3 +40,6 @@ cookie.txt
 /st-scraper/*.png
 /st-scraper/*.html
 /st-scraper/*.log
+
+# Local pre-injection data backups (large; use git history instead)
+custom-data.json.bak*
