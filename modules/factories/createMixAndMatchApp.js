@@ -991,6 +991,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         else if (target === 'ablauf') this.currentFaucetAblauf = val;
 
                         this.updateFaucetTiers();
+                        // Colour change must re-emit the selected faucet's SKU in the BOM.
+                        if (target === 'farbe' && this.selectedFaucet) this.updatePreview();
                     });
                 });
             });
@@ -1738,8 +1740,20 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 const fullText = label + ' ' + desc;
                 const isWandModel = label.includes('wandmischer') || label.includes('wandbatterie');
 
+                // Resolve the emitted SKU to the colour chosen in the Armatur Farbe filter:
+                // if a Farbe is active and the base art-Nr isn't that colour, swap in the
+                // matching finish variant's SKU + label. (Structural logic below still keys off
+                // the base art-Nr — colour never changes type/accessories.)
+                const _colourOf = (art) => { const m = String(art || '').match(/\.(\d{3})(?:\.|$)/); return m ? (COLOR_NAMES[m[1]] || null) : null; };
+                let _faucetArt = this.selectedFaucet.artNr;
+                let _faucetLabel = this.selectedFaucet.label;
+                if (this.currentFaucetFarbe && this.currentFaucetFarbe !== 'all' && _colourOf(_faucetArt) !== this.currentFaucetFarbe) {
+                    const _v = (this.selectedFaucet.variants || []).find(v => _colourOf(v.artNr) === this.currentFaucetFarbe);
+                    if (_v) { _faucetArt = _v.artNr; _faucetLabel = _v.label || _faucetLabel; }
+                }
+
                 // Add main faucet
-                faucetItems.push({ qty: faucetQty, label: this.selectedFaucet.label, artNr: this.selectedFaucet.artNr });
+                faucetItems.push({ qty: faucetQty, label: _faucetLabel, artNr: _faucetArt });
 
                 if (isWandModel) {
                     // Wandmischer Logic: No Einbaukosten
