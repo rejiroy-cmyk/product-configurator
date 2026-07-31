@@ -1862,6 +1862,16 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         }
                     }
                 }
+
+                // De-dupe accidental repeats within the faucet block — e.g. an Einbaukörper
+                // added by BOTH the brand mapping and the Endmontageset mounting list. Keep the
+                // first occurrence (richer label) per art-Nr; never inflate its quantity.
+                const _seenFaucetArt = new Set();
+                for (let i = 0; i < faucetItems.length; i++) {
+                    const k = String(faucetItems[i].artNr || '').replace(/\s/g, '');
+                    if (!k) continue;
+                    if (_seenFaucetArt.has(k)) { faucetItems.splice(i, 1); i--; } else _seenFaucetArt.add(k);
+                }
             }
 
             // 2. Assemble the final item list in the correct order
