@@ -1,4 +1,5 @@
 import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel } from './_shared.js';
+import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
   function transformDuschenmischerTrays(trays) {
@@ -437,7 +438,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                         <button class="ios-toggle" data-target="accessoires_mischer_${s}" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
                     </div>
                     <div id="addon_accessoires_mischer_panel_${s}" class="addon-panel" style="display:none;">
-                        <div class="finder-sub-header">Serie</div>
+                        <div class="finder-sub-header">Kategorie</div>
                         <div class="pill-group" id="list_addon_accessoires_serie_${s}" style="margin-bottom: 0.75rem;"></div>
                         <div class="finder-sub-header">Accessoires wählen</div>
                         <div class="finder-list" id="list_addon_accessoires_${s}"></div>
@@ -801,11 +802,25 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           return;
         }
         let t = 1;
+        // Finish/colour variant selector (InlineBOM). Reset on tray change; the active SKU is the
+        // chosen finish (default = the tray itself). Colour name derives from the art-Nr code.
+        if (this._variantTrayId !== this.selectedTray.id) { this._variantTrayId = this.selectedTray.id; this.selectedVariantIdx = 0; }
+        const _variants = this.selectedTray.variants || [];
+        const _active = (this.selectedVariantIdx > 0 && _variants[this.selectedVariantIdx - 1]) ? _variants[this.selectedVariantIdx - 1] : this.selectedTray;
+        const _finishName = (art) => { const m = String(art || '').match(/\.(\d{3})(?:\.|$)/); return (m && COLOR_NAMES[m[1]]) || (art || ''); };
+        let _mainDesc = `<div class="bom-desc">${_active.label}</div>`;
+        if (config.enableGalleryUX && _variants.length) {
+            const _opts = [this.selectedTray, ..._variants].map((sk, idx) =>
+                `<option value="${idx}" ${this.selectedVariantIdx === idx ? 'selected' : ''}>${_finishName(sk.artNr)} (${sk.artNr})</option>`).join('');
+            _mainDesc += `
+                <div class="bom-desc" style="margin-top:0.35rem; margin-bottom:0.25rem; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">Ausführung / Farbe</div>
+                <select class="inline-bom-select" data-variant="1" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid var(--border); background:var(--bg-surface); color:var(--text-primary); font-size:0.9rem; font-family:inherit; font-weight:500; cursor:pointer; outline:none;">${_opts}</select>`;
+        }
         ((r.innerHTML += `
                 <tr class="bom-main-item">
-                    <td><div class="img-cell"><img src="${this.selectedTray.imgUrl || ""}"></div></td>
-                    <td><span class="bom-code">${this.selectedTray.artNr}</span></td>
-                    <td><div class="bom-desc">${this.selectedTray.label}</div></td>
+                    <td><div class="img-cell"><img src="${imgOf(_active) || _active.imgUrl || ""}"></div></td>
+                    <td><span class="bom-code">${_active.artNr}</span></td>
+                    <td>${_mainDesc}</td>
 
                     <td><strong>1</strong></td>
                 </tr>
@@ -875,10 +890,11 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         if (config.enableGalleryUX) {
             r.querySelectorAll('.inline-bom-select').forEach(sel => {
                 sel.addEventListener('change', (ev) => {
-                    const midx = parseInt(ev.target.dataset.midx);
-                    const newVal = parseInt(ev.target.value);
-                    this.mischerOptionsState[midx] = newVal;
-                    
+                    if (ev.target.dataset.variant) {
+                        this.selectedVariantIdx = parseInt(ev.target.value) || 0;
+                    } else {
+                        this.mischerOptionsState[parseInt(ev.target.dataset.midx)] = parseInt(ev.target.value);
+                    }
                     this.showAccessoires = false;
                     this.selectedAddonAccessoires = [];
                     this.updateAccessoiresToggles();
