@@ -398,6 +398,7 @@ const bomCountCounter = document.getElementById('bomCount');
         // ==========================================
 
         "duschenmischer": createDuschenmischerApp("Duschenmischer", "Duscharmaturen und Sets", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06113661_501_000.png", { enableGalleryUX: true }),
+        "bidet": createWaschtischMischerApp("Bidet", "Bidetmischer und Bidetbatterien", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06111143_501_000.png"),
         "duschtrennwand": createGlassApp("Duschtrennwand", "Duschwände und Kabinen", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01510403_000_000.png", { cheapestWhenUnfiltered: true }),
         "badeabtrennung": createGlassApp("Badeabtrennung", "Glastrennwand für Badewanne", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311872_100_181.png"),
         "waschtrog": createRelationalApp("Waschtröge", "Waschtröge, Waschrinnen, Ausgussbecken & Zubehör", "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/07211801_104_000.png", { isMixer: false, hideMontageart: true, hideManualSizeInputs: true, hideForm: true, sizeLabel: "Breite", exactSizes: true, washStation: true }),

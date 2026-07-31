@@ -154,6 +154,12 @@ export const catalog = [
                 "name": "Standklosett",
                 "appId": "standklosett",
                 "hasApp": true
+            },
+            {
+                "id": "bidet",
+                "name": "Bidet",
+                "appId": "bidet",
+                "hasApp": true
             }
         ]
     },
