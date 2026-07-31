@@ -598,8 +598,33 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             if (!typeList || !brandList || !serieList || !hahnlochList || !ueberlaufList || !abstellList) return;
 
+            // Faceted filtering: each pill group offers only values that still yield results
+            // given ALL OTHER active basin filters — so Serie ⇄ Breite ⇄ Hahnloch ⇄ … all narrow
+            // each other (both directions), not just top-down. facetSet(k) = the trays passing
+            // every active filter EXCEPT k (so group k keeps its own options while the rest prune).
+            const facetFns = {
+                brand: t => (t.manufacturer || 'Andere') === this.currentBasinBrand,
+                type: t => this.extractBasinTyp(t) === this.currentBasinType,
+                serie: t => this.extractSerie(t) === this.currentBasinSerie,
+                breite: t => this.extractBreite(t) === this.currentBasinBreite,
+                hahnloch: t => this.extractHahnloch(t) === this.currentBasinHahnloch,
+                ueberlauf: t => this.extractUeberlauf(t) === this.currentBasinUeberlauf,
+                abstell: t => this.extractAbstellflaeche(t) === this.currentBasinAbstell,
+            };
+            const curKey = { brand: 'currentBasinBrand', type: 'currentBasinType', serie: 'currentBasinSerie', breite: 'currentBasinBreite', hahnloch: 'currentBasinHahnloch', ueberlauf: 'currentBasinUeberlauf', abstell: 'currentBasinAbstell' };
+            const facetSet = (except) => this.basinTrays.filter(t => Object.keys(facetFns).every(k => k === except || this[curKey[k]] === 'all' || facetFns[k](t)));
+            const valOf = { brand: t => (t.manufacturer || 'Andere'), type: t => this.extractBasinTyp(t), serie: t => this.extractSerie(t), breite: t => this.extractBreite(t), hahnloch: t => this.extractHahnloch(t), ueberlauf: t => this.extractUeberlauf(t), abstell: t => this.extractAbstellflaeche(t) };
+            // Drop any active selection another filter has made impossible (validate vs all
+            // OTHERS). The just-clicked facet (_lastBasinFacet) is protected — it stays and the
+            // OTHER conflicting filters reset instead, so a fresh click always takes effect.
+            Object.keys(facetFns).forEach(k => {
+                if (k === this._lastBasinFacet) return;
+                const cur = this[curKey[k]];
+                if (cur !== 'all' && !facetSet(k).some(t => valOf[k](t) === cur)) this[curKey[k]] = 'all';
+            });
+
             // 1. Hersteller (Brand)
-            const brands = [...new Set(this.basinTrays.map(t => t.manufacturer || 'Andere'))].sort();
+            const brands = [...new Set(facetSet('brand').map(t => t.manufacturer || 'Andere'))].sort();
             brandList.innerHTML = `<button class="pill-btn ${this.currentBasinBrand === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + brands.map(b => `
                 <button class="pill-btn ${this.currentBasinBrand === b ? 'active' : ''}" data-val="${b}">${b}</button>
             `).join('');
@@ -608,11 +633,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 this.updateBasinTiers();
             });
 
-            let f1 = this.basinTrays;
-            if (this.currentBasinBrand !== 'all') f1 = f1.filter(t => (t.manufacturer || 'Andere') === this.currentBasinBrand);
-
             // 2. Ausführung (Typ)
-            const types = [...new Set(f1.map(t => this.extractBasinTyp(t)))].sort();
+            const types = [...new Set(facetSet('type').map(t => this.extractBasinTyp(t)))].sort();
             typeList.innerHTML = `<button class="pill-btn ${this.currentBasinType === 'all' ? 'active' : ''}" data-val="all">Alle</button>` + types.map(t => `
                 <button class="pill-btn ${this.currentBasinType === t ? 'active' : ''}" data-val="${t}">${t}</button>
             `).join('');
@@ -621,12 +643,9 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 this.updateBasinTiers();
             });
 
-            let f2 = f1;
-            if (this.currentBasinType !== 'all') f2 = f2.filter(t => this.extractBasinTyp(t) === this.currentBasinType);
-
             // 3. Serie
             if (serieFilterList) {
-                const series = [...new Set(f2.map(t => this.extractSerie(t)))].sort();
+                const series = [...new Set(facetSet('serie').map(t => this.extractSerie(t)))].sort();
                 serieFilterList.innerHTML = `<button class="pill-btn ${this.currentBasinSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
                     series.map(s => `<button class="pill-btn ${this.currentBasinSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
                 applyPillUI('head_basin_serie_filter', 'list_basin_serie_filter', this.currentBasinSerie, 'Serie', () => {
@@ -635,12 +654,9 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 });
             }
 
-            let f3 = f2;
-            if (this.currentBasinSerie !== 'all') f3 = f3.filter(t => this.extractSerie(t) === this.currentBasinSerie);
-
             // 4. Breite
             if (breiteList) {
-                const breiten = [...new Set(f3.map(t => this.extractBreite(t)))].filter(b => b !== 'unknown').sort((a, b) => parseFloat(a) - parseFloat(b));
+                const breiten = [...new Set(facetSet('breite').map(t => this.extractBreite(t)))].filter(b => b !== 'unknown').sort((a, b) => parseFloat(a) - parseFloat(b));
                 breiteList.innerHTML = `<button class="pill-btn ${this.currentBasinBreite === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
                     breiten.map(b => `<button class="pill-btn ${this.currentBasinBreite === b ? 'active' : ''}" data-val="${b}">${b} cm</button>`).join('');
                 applyPillUI('head_basin_breite', 'list_basin_breite', this.currentBasinBreite, 'Breite', () => {
@@ -649,12 +665,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 });
             }
 
-            let f4 = f3;
-            if (this.currentBasinBreite !== 'all') f4 = f4.filter(t => this.extractBreite(t) === this.currentBasinBreite);
-
-            // 5. Hahnloch — cascade: only offer hole-counts present in the narrowed set.
-            const hahnAvail = new Set(f4.map(t => this.extractHahnloch(t)));
-            if (this.currentBasinHahnloch !== 'all' && !hahnAvail.has(this.currentBasinHahnloch)) this.currentBasinHahnloch = 'all';
+            // 5. Hahnloch
+            const hahnAvail = new Set(facetSet('hahnloch').map(t => this.extractHahnloch(t)));
             const HAHN = [['ohne', 'Ohne'], ['1', '1 Loch'], ['2', '2 Löcher'], ['3', '3 Löcher']];
             hahnlochList.innerHTML = `<button class="pill-btn ${this.currentBasinHahnloch === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
                 HAHN.filter(([v]) => hahnAvail.has(v)).map(([v, l]) => `<button class="pill-btn ${this.currentBasinHahnloch === v ? 'active' : ''}" data-val="${v}">${l}</button>`).join('');
@@ -663,12 +675,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 this.updateBasinTiers();
             });
 
-            let f5 = f4;
-            if (this.currentBasinHahnloch !== 'all') f5 = f5.filter(t => this.extractHahnloch(t) === this.currentBasinHahnloch);
-
-            // 6. Überlauf — cascade: only offer values present in the narrowed set.
-            const uebAvail = new Set(f5.map(t => this.extractUeberlauf(t)));
-            if (this.currentBasinUeberlauf !== 'all' && !uebAvail.has(this.currentBasinUeberlauf)) this.currentBasinUeberlauf = 'all';
+            // 6. Überlauf
+            const uebAvail = new Set(facetSet('ueberlauf').map(t => this.extractUeberlauf(t)));
             const UEB = [['mit', 'Mit'], ['ohne', 'Ohne']];
             ueberlaufList.innerHTML = `<button class="pill-btn ${this.currentBasinUeberlauf === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
                 UEB.filter(([v]) => uebAvail.has(v)).map(([v, l]) => `<button class="pill-btn ${this.currentBasinUeberlauf === v ? 'active' : ''}" data-val="${v}">${l}</button>`).join('');
@@ -677,12 +685,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 this.updateBasinTiers();
             });
 
-            let f6 = f5;
-            if (this.currentBasinUeberlauf !== 'all') f6 = f6.filter(t => this.extractUeberlauf(t) === this.currentBasinUeberlauf);
-
-            // 7. Abstellflaeche — cascade: only offer values present in the narrowed set.
-            const abstAvail = new Set(f6.map(t => this.extractAbstellflaeche(t)));
-            if (this.currentBasinAbstell !== 'all' && !abstAvail.has(this.currentBasinAbstell)) this.currentBasinAbstell = 'all';
+            // 7. Abstellflaeche
+            const abstAvail = new Set(facetSet('abstell').map(t => this.extractAbstellflaeche(t)));
             const ABST = [['ohne', 'Standard'], ['links', 'Links'], ['rechts', 'Rechts'], ['beidseitig', 'Beidseitig']];
             abstellList.innerHTML = `<button class="pill-btn ${this.currentBasinAbstell === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
                 ABST.filter(([v]) => abstAvail.has(v)).map(([v, l]) => `<button class="pill-btn ${this.currentBasinAbstell === v ? 'active' : ''}" data-val="${v}">${l}</button>`).join('');
@@ -691,10 +695,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 this.updateBasinTiers();
             });
 
-            let f7 = f6;
-            if (this.currentBasinAbstell !== 'all') f7 = f7.filter(t => this.extractAbstellflaeche(t) === this.currentBasinAbstell);
-
-            let f8 = f7;
+            // Final result list = all active filters applied.
+            let f8 = facetSet(null);
             if (this.basinSearchQuery && this.basinSearchQuery.trim() !== '') {
                 f8 = f8.filter(t => matchesSearchQuery(t, this.basinSearchQuery));
             }
@@ -720,23 +722,24 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 </div>
             `}).join('');
 
-            // Bind Clicks
+            // Bind Clicks. Record which facet the user just clicked so the faceted validation
+            // keeps THAT choice and clears any older filter it conflicts with (the click wins).
             typeList.querySelectorAll('.pill-btn').forEach(el => {
                 el.addEventListener('click', () => {
-                    this.currentBasinType = el.dataset.val;
+                    this.currentBasinType = el.dataset.val; this._lastBasinFacet = 'type';
                     this.updateBasinTiers();
                 });
             });
             brandList.querySelectorAll('.pill-btn').forEach(el => {
                 el.addEventListener('click', () => {
-                    this.currentBasinBrand = el.dataset.val;
+                    this.currentBasinBrand = el.dataset.val; this._lastBasinFacet = 'brand';
                     this.updateBasinTiers();
                 });
             });
             if (serieFilterList) {
                 serieFilterList.querySelectorAll('.pill-btn').forEach(el => {
                     el.addEventListener('click', () => {
-                        this.currentBasinSerie = el.dataset.val;
+                        this.currentBasinSerie = el.dataset.val; this._lastBasinFacet = 'serie';
                         this.updateBasinTiers();
                     });
                 });
@@ -744,26 +747,26 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             if (breiteList) {
                 breiteList.querySelectorAll('.pill-btn').forEach(el => {
                     el.addEventListener('click', () => {
-                        this.currentBasinBreite = el.dataset.val;
+                        this.currentBasinBreite = el.dataset.val; this._lastBasinFacet = 'breite';
                         this.updateBasinTiers();
                     });
                 });
             }
             hahnlochList.querySelectorAll('.pill-btn').forEach(el => {
                 el.addEventListener('click', () => {
-                    this.currentBasinHahnloch = el.dataset.val;
+                    this.currentBasinHahnloch = el.dataset.val; this._lastBasinFacet = 'hahnloch';
                     this.updateBasinTiers();
                 });
             });
             ueberlaufList.querySelectorAll('.pill-btn').forEach(el => {
                 el.addEventListener('click', () => {
-                    this.currentBasinUeberlauf = el.dataset.val;
+                    this.currentBasinUeberlauf = el.dataset.val; this._lastBasinFacet = 'ueberlauf';
                     this.updateBasinTiers();
                 });
             });
             abstellList.querySelectorAll('.pill-btn').forEach(el => {
                 el.addEventListener('click', () => {
-                    this.currentBasinAbstell = el.dataset.val;
+                    this.currentBasinAbstell = el.dataset.val; this._lastBasinFacet = 'abstell';
                     this.updateBasinTiers();
                 });
             });
