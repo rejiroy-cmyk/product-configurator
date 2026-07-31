@@ -652,14 +652,12 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             let f4 = f3;
             if (this.currentBasinBreite !== 'all') f4 = f4.filter(t => this.extractBreite(t) === this.currentBasinBreite);
 
-            // 5. Hahnloch
-            hahnlochList.innerHTML = `
-                <button class="pill-btn ${this.currentBasinHahnloch === 'all' ? 'active' : ''}" data-val="all">Alle</button>
-                <button class="pill-btn ${this.currentBasinHahnloch === 'ohne' ? 'active' : ''}" data-val="ohne">Ohne</button>
-                <button class="pill-btn ${this.currentBasinHahnloch === '1' ? 'active' : ''}" data-val="1">1 Loch</button>
-                <button class="pill-btn ${this.currentBasinHahnloch === '2' ? 'active' : ''}" data-val="2">2 Löcher</button>
-                <button class="pill-btn ${this.currentBasinHahnloch === '3' ? 'active' : ''}" data-val="3">3 Löcher</button>
-            `;
+            // 5. Hahnloch — cascade: only offer hole-counts present in the narrowed set.
+            const hahnAvail = new Set(f4.map(t => this.extractHahnloch(t)));
+            if (this.currentBasinHahnloch !== 'all' && !hahnAvail.has(this.currentBasinHahnloch)) this.currentBasinHahnloch = 'all';
+            const HAHN = [['ohne', 'Ohne'], ['1', '1 Loch'], ['2', '2 Löcher'], ['3', '3 Löcher']];
+            hahnlochList.innerHTML = `<button class="pill-btn ${this.currentBasinHahnloch === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                HAHN.filter(([v]) => hahnAvail.has(v)).map(([v, l]) => `<button class="pill-btn ${this.currentBasinHahnloch === v ? 'active' : ''}" data-val="${v}">${l}</button>`).join('');
             applyPillUI('head_basin_hahnloch', 'list_basin_hahnloch', this.currentBasinHahnloch, 'Armaturenloch', () => {
                 this.currentBasinHahnloch = 'all';
                 this.updateBasinTiers();
@@ -668,12 +666,12 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             let f5 = f4;
             if (this.currentBasinHahnloch !== 'all') f5 = f5.filter(t => this.extractHahnloch(t) === this.currentBasinHahnloch);
 
-            // 6. Überlauf
-            ueberlaufList.innerHTML = `
-                <button class="pill-btn ${this.currentBasinUeberlauf === 'all' ? 'active' : ''}" data-val="all">Alle</button>
-                <button class="pill-btn ${this.currentBasinUeberlauf === 'mit' ? 'active' : ''}" data-val="mit">Mit</button>
-                <button class="pill-btn ${this.currentBasinUeberlauf === 'ohne' ? 'active' : ''}" data-val="ohne">Ohne</button>
-            `;
+            // 6. Überlauf — cascade: only offer values present in the narrowed set.
+            const uebAvail = new Set(f5.map(t => this.extractUeberlauf(t)));
+            if (this.currentBasinUeberlauf !== 'all' && !uebAvail.has(this.currentBasinUeberlauf)) this.currentBasinUeberlauf = 'all';
+            const UEB = [['mit', 'Mit'], ['ohne', 'Ohne']];
+            ueberlaufList.innerHTML = `<button class="pill-btn ${this.currentBasinUeberlauf === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                UEB.filter(([v]) => uebAvail.has(v)).map(([v, l]) => `<button class="pill-btn ${this.currentBasinUeberlauf === v ? 'active' : ''}" data-val="${v}">${l}</button>`).join('');
             applyPillUI('head_basin_ueberlauf', 'list_basin_ueberlauf', this.currentBasinUeberlauf, 'Überlauf', () => {
                 this.currentBasinUeberlauf = 'all';
                 this.updateBasinTiers();
@@ -682,14 +680,12 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             let f6 = f5;
             if (this.currentBasinUeberlauf !== 'all') f6 = f6.filter(t => this.extractUeberlauf(t) === this.currentBasinUeberlauf);
 
-            // 7. Abstellflaeche
-            abstellList.innerHTML = `
-                <button class="pill-btn ${this.currentBasinAbstell === 'all' ? 'active' : ''}" data-val="all">Alle</button>
-                <button class="pill-btn ${this.currentBasinAbstell === 'ohne' ? 'active' : ''}" data-val="ohne">Standard</button>
-                <button class="pill-btn ${this.currentBasinAbstell === 'links' ? 'active' : ''}" data-val="links">Links</button>
-                <button class="pill-btn ${this.currentBasinAbstell === 'rechts' ? 'active' : ''}" data-val="rechts">Rechts</button>
-                <button class="pill-btn ${this.currentBasinAbstell === 'beidseitig' ? 'active' : ''}" data-val="beidseitig">Beidseitig</button>
-            `;
+            // 7. Abstellflaeche — cascade: only offer values present in the narrowed set.
+            const abstAvail = new Set(f6.map(t => this.extractAbstellflaeche(t)));
+            if (this.currentBasinAbstell !== 'all' && !abstAvail.has(this.currentBasinAbstell)) this.currentBasinAbstell = 'all';
+            const ABST = [['ohne', 'Standard'], ['links', 'Links'], ['rechts', 'Rechts'], ['beidseitig', 'Beidseitig']];
+            abstellList.innerHTML = `<button class="pill-btn ${this.currentBasinAbstell === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
+                ABST.filter(([v]) => abstAvail.has(v)).map(([v, l]) => `<button class="pill-btn ${this.currentBasinAbstell === v ? 'active' : ''}" data-val="${v}">${l}</button>`).join('');
             applyPillUI('head_basin_abstell', 'list_basin_abstell', this.currentBasinAbstell, 'Abstellfläche', () => {
                 this.currentBasinAbstell = 'all';
                 this.updateBasinTiers();
@@ -905,10 +901,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             // 2b. Farbe — the colour(s) a faucet is available in (base + variants), from the
             // art-Nr finish code (COLOR_NAMES). Placed under Typ; cascades into the rest.
-            const faucetColours = (t) => {
-                const codeOf = (art) => { const m = String(art || '').match(/\.(\d{3})(?:\.|$)/); return m ? (COLOR_NAMES[m[1]] || null) : null; };
-                return [...new Set([codeOf(t.artNr), ...((t.variants || []).map(v => codeOf(v.artNr)))].filter(Boolean))];
-            };
+            const faucetColourOf = (art) => { const m = String(art || '').match(/\.(\d{3})(?:\.|$)/); return m ? (COLOR_NAMES[m[1]] || null) : null; };
+            const faucetColours = (t) => [...new Set([faucetColourOf(t.artNr), ...((t.variants || []).map(v => faucetColourOf(v.artNr)))].filter(Boolean))];
             const farben = [...new Set(f2.flatMap(faucetColours))].sort((a, b) => a.localeCompare(b));
             if (this.currentFaucetFarbe !== 'all' && !farben.includes(this.currentFaucetFarbe)) this.currentFaucetFarbe = 'all';
             if (farbeList) {
@@ -1011,20 +1005,29 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 const ausladung = this.extractAusladung(t);
                 const ablauf = this.extractAblauf(t);
 
+                // Show the art-Nr (+ image) for the colour picked in the Farbe filter, so the
+                // tile matches what the BOM will emit. Falls back to the base when Farbe='Alle'
+                // or the tile has no variant in that colour. (Serie/tags are colour-invariant.)
+                let dispArt = t.artNr, dispImg = t.imgUrl;
+                if (this.currentFaucetFarbe && this.currentFaucetFarbe !== 'all' && faucetColourOf(t.artNr) !== this.currentFaucetFarbe) {
+                    const dv = (t.variants || []).find(v => faucetColourOf(v.artNr) === this.currentFaucetFarbe);
+                    if (dv) { dispArt = dv.artNr; if (dv.imgUrl) dispImg = dv.imgUrl; }
+                }
+
                 const tags = [];
                 if (ausladung !== 'unknown') tags.push(`<span style="background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">${ausladung} mm</span>`);
                 if (ablauf === 'mit') tags.push(`<span style="background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">mit Ablaufventil</span>`);
                 if (ablauf === 'ohne') tags.push(`<span style="background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">ohne Ablaufventil</span>`);
                 const tagsHTML = tags.length > 0 ? `<div style="display:flex; flex-wrap:wrap; gap: 0.3rem; font-size: 0.65rem; color: var(--text-secondary); margin-top: 0.3rem;">${tags.join('')}</div>` : '';
 
-                const imgHTML = t.imgUrl ? `<img loading="lazy" decoding="async" src="${t.imgUrl}" style="width:54px; height:54px; object-fit:contain; background:white; border-radius:6px; border:1px solid rgba(0,0,0,0.1); padding: 2px; flex-shrink: 0;" onerror="this.style.display='none'">` : '';
+                const imgHTML = dispImg ? `<img loading="lazy" decoding="async" src="${dispImg}" style="width:54px; height:54px; object-fit:contain; background:white; border-radius:6px; border:1px solid rgba(0,0,0,0.1); padding: 2px; flex-shrink: 0;" onerror="this.style.display='none'">` : '';
                 return `
                 <div class="finder-item ${this.selectedFaucet && this.selectedFaucet.id === t.id ? 'active' : ''}" data-id="${t.id}" style="padding: 0.75rem;">
                     <div style="display:flex; align-items:flex-start; gap: 0.75rem;">
                         ${imgHTML}
                         <div style="display:flex; flex-direction:column; gap: 0.15rem; flex: 1;">
                             <span style="font-weight:600; font-size:0.9rem;">${this.extractFaucetSerie(t)}</span>
-                            <span style="font-size:0.75rem; color:var(--text-secondary); font-family:monospace;">${t.artNr}</span>
+                            <span style="font-size:0.75rem; color:var(--text-secondary); font-family:monospace;">${dispArt}</span>
                             ${tagsHTML}
                         </div>
                     </div>
