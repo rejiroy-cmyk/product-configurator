@@ -1720,6 +1720,33 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             container.innerHTML = html;
         },
 
+        // Colour-match a VISIBLE accessory (Regulierventil) to the faucet's brand + colour,
+        // the way the Dusch-/Bademischer accessory panel matches by brand + finish. Returns
+        // {artNr,label} for a same-brand part available in the faucet's colour, else null so
+        // the caller keeps its default (chrome). Only meaningful when the faucet is a coloured
+        // one; plain Verchromt / no colour keeps the default. Furniture (hidden) never calls this.
+        matchColouredRegulierventil: function () {
+            if (!this.selectedFaucet) return null;
+            const colourOf = (art) => { const m = String(art || '').match(/\.(\d{3})(?:\.|$)/); return m ? (COLOR_NAMES[m[1]] || null) : null; };
+            // Effective faucet colour = the Farbe filter choice, else the faucet's own base colour.
+            const colour = (this.currentFaucetFarbe && this.currentFaucetFarbe !== 'all')
+                ? this.currentFaucetFarbe : colourOf(this.selectedFaucet.artNr);
+            if (!colour || colour === 'Verchromt') return null;   // chrome == the default already
+            const brand = (this.selectedFaucet.manufacturer || '').toLowerCase();
+            if (!brand) return null;
+            if (!this._regPool || !this._regPool.length) {   // retry until the pool has loaded
+                const pool = (window.productApps && window.productApps.zubehoer_pool && window.productApps.zubehoer_pool.trays) || [];
+                this._regPool = pool.filter(t => t.productType === 'Regulierventil');
+            }
+            for (const c of this._regPool) {
+                if ((c.manufacturer || '').toLowerCase() !== brand) continue;   // same brand as the faucet
+                if (colourOf(c.artNr) === colour) return { artNr: c.artNr, label: c.label };
+                const v = (c.variants || []).find(x => colourOf(x.artNr) === colour);
+                if (v) return { artNr: v.artNr, label: v.label || c.label };
+            }
+            return null;   // no same-brand colour match -> caller uses the default
+        },
+
         getBOMPreviewItems: function () {
             if (!this.selectedBasin) return [];
             const hLochStatus = this.extractHahnloch(this.selectedBasin);
@@ -1995,8 +2022,12 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     items.push({ qty: siphonQty, label: sLabelMap[this.selectedSiphon] || 'Sifon', artNr: this.selectedSiphon });
                 }
 
-                // Regulierventil (Standard)
-                if (regQty > 0) items.push({ qty: regQty, label: 'Regulierventil Laufen ½" Verchromt', artNr: '6511 201.501.000' });
+                // Regulierventil — colour-match to the faucet (same brand + finish) when the
+                // faucet is a coloured one and a match exists; otherwise the Laufen chrome default.
+                if (regQty > 0) {
+                    const reg = this.matchColouredRegulierventil() || { artNr: '6511 201.501.000', label: 'Regulierventil Laufen ½" Verchromt' };
+                    items.push({ qty: regQty, label: reg.label, artNr: reg.artNr });
+                }
             }
 
             // 6. Add Spiegelschrank
