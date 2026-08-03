@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
@@ -29,6 +29,11 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         ...m,
         options: m.options ? m.options.map(o => ({ ...o })) : []
       }));
+
+      // ERP-injected mixers often ship WITHOUT their Brauseschlauch / Handbrause. Add the
+      // house-standard groups when missing (skips self-contained Duschsysteme/Showerpipes).
+      // The AP/UP BOM-order sorts below then place them per INSTRUCTIONS.md §2.
+      materials = ensureShowerGroups(materials, tray, { isBath: false });
 
       // The Aufputz BOM rules below (Abstellverschraubung, 1600/brand option defaults,
       // BOM-order sort, guaranteed Gleitstange) apply to AUFPUTZ mixers ONLY. Unterputz
@@ -62,10 +67,10 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       } else if (gleitIdx !== -1) {
         materials[gleitIdx].name = "Duschengleitstange";
         materials[gleitIdx].options = standardOptions.map(o => ({ ...o }));
-      } else if (isAufputz) {
+      } else if (needsShowerAccessories(tray, { isBath: false })) {
         // No Brausehalter/Gleitstange group in the scraped data — but the Alterna
-        // Gleitstange is a standard line for every Aufputz Duschenmischer (INSTRUCTIONS.md
-        // §2). Add it. Unterputz Endmontagesets stay without one.
+        // Gleitstange is a standard line for every Duschenmischer (INSTRUCTIONS.md §2,
+        // AP order item 5 / UP order item 7). Add it. Self-contained Duschsysteme are skipped.
         materials.push({
           name: "Duschengleitstange",
           options: standardOptions.map(o => ({ ...o }))

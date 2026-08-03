@@ -443,4 +443,76 @@ const renderAccessoiresPanel = (app, s) => {
     });
 };
 
-export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryHersteller, accessorySerie };
+// ============================================================================
+//  Standard shower accessories (INSTRUCTIONS.md §2)
+//  Many ERP-injected Bade-/Duschmischer ship WITHOUT their Brauseschlauch /
+//  Handbrause / Brausehalter in the API data. These house-standard Alterna parts
+//  are added by rule to any AP/UP mixer that lacks them, so the copied Stückliste
+//  is complete. Brauseschlauch standard = flexline 1600 mm (options[0]); Handbrause
+//  standard = Alterna saveline 3 (the caller's reorder step brand-matches it).
+// ============================================================================
+const SHOWER_STD = {
+    brauseschlauch: [
+        { artNr: "6542 317.501.000", label: 'Brauseschlauch Alterna flexline, 1600 mm, ½"x½", Kunststoff mit Metalleffekt', menge: 1, type: "Zubehör", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06542317_501_000.png" },
+        { artNr: "6542 318.501.000", label: 'Brauseschlauch Alterna flexline, 1800 mm, ½"x½", Kunststoff mit Metalleffekt', menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06542318_501_000.png" },
+        { artNr: "ohne_schlauch", label: "Ohne Brauseschlauch", menge: 0, type: "Option", imgUrl: "" }
+    ],
+    handbrause: [
+        { artNr: "6541 336.501.000", label: "Handbrause Alterna saveline 3, Ø 120 mm, 3-jet, umstellbar, Verchromt", menge: 1, type: "Zubehör", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06541336_501_000.png" },
+        { artNr: "6541 333.501.000", label: "Handbrause Alterna saveline, Ø 120 mm, 1-jet, IntensiveRain, Verchromt", menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06541333_501_000.png" },
+        { artNr: "6541 326.501.000", label: "Handbrause Alterna easyline, Ø 101 mm, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06541326_501_000.png" },
+        { artNr: "6541 329.501.000", label: "Handbrause Alterna streamline, rund, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06541329_501_000.png" },
+        { artNr: "6541 324.501.000", label: "Handbrause Alterna smartline, Ø 93 mm, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06541324_501_000.png" },
+        { artNr: "6541 337.501.000", label: "Handbrause Alterna cosyline, Ø 120 mm, 3-jet, umstellbar, Verchromt", menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06541337_501_000.png" },
+        { artNr: "6541 328.501.000", label: "Handbrause Alterna squareline, eckig, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06541328_501_000.png" }
+    ],
+    brausehalter: [
+        { artNr: "6543 132.501.000", label: "Brausehalter Alterna, Rosette rund, Verchromt", menge: 1, type: "Zubehör", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06543132_501_000.png" },
+        { artNr: "ohne_halter", label: "Ohne Brausehalter", menge: 0, type: "Option", imgUrl: "" }
+    ]
+};
+const _cloneOpts = (arr) => arr.map(o => ({ ...o }));
+
+// A mixer needs shower accessories UNLESS it is a self-contained shower system
+// (Duschsystem / Showerpipe / Paneel — the brause is already part of the unit) or a
+// bath-only filler with no shower outlet. FULL-TEXT RULE: read label AND description.
+const _SELF_CONTAINED = /duschsystem|showerpipe|shower\s*pipe|duschpaneel|duschs[äa]ule|showerstation|duschset|brauseset|duschgarnitur|kopfbrausenset/i;
+const _BATH_ONLY = /wanneneinlauf|wannenf[üu]ll|einlaufgarnitur|wannenrandgarnitur|wannenrandarmatur|wannenzulauf/i;
+function needsShowerAccessories(tray, opts = {}) {
+    const t = productText(tray).toLowerCase();
+    if (_SELF_CONTAINED.test(t)) return false;
+    if (opts.isBath && _BATH_ONLY.test(t) && !/brause|dusch/.test(t)) return false;
+    return true;
+}
+
+// Ensure a qualifying AP/UP mixer carries Brauseschlauch + Handbrause (+ Brausehalter for
+// baths). Only ADDS groups that are missing — curated trays that already have them are left
+// untouched (so their established order is preserved). When something is added, the whole
+// list is re-ranked to the INSTRUCTIONS.md §2 order. Returns the (possibly new) array.
+function ensureShowerGroups(materials, tray, opts = {}) {
+    if (!Array.isArray(materials)) materials = [];
+    if (!needsShowerAccessories(tray, opts)) return materials;
+    const hasGroup = (re) => materials.some(m => re.test((m.name || "")));
+    let added = false;
+    if (!hasGroup(/brauseschlauch/i)) { materials.push({ name: "Brauseschlauch", options: _cloneOpts(SHOWER_STD.brauseschlauch) }); added = true; }
+    if (!hasGroup(/handbrause/i)) { materials.push({ name: "Handbrause", options: _cloneOpts(SHOWER_STD.handbrause) }); added = true; }
+    if (opts.isBath && !hasGroup(/brausehalter/i)) { materials.push({ name: "Brausehalter", options: _cloneOpts(SHOWER_STD.brausehalter) }); added = true; }
+    if (added) {
+        const rank = (name) => {
+            const x = (name || "").toLowerCase();
+            if (/grundk[öo]rper|einbauk[öo]rper|ibox|homebox/.test(x)) return 0;
+            if (/montageschiene|montageset/.test(x)) return 1;
+            if (/anschlussbogen/.test(x)) return 2;
+            if (/abstellverschraubung/.test(x)) return 3;
+            if (/brauseschlauch/.test(x)) return 4;
+            if (/handbrause/.test(x)) return 5;
+            if (/brausehalter/.test(x)) return 6;
+            if (/gleitstange/.test(x)) return 7;
+            return 8;
+        };
+        materials = materials.map((m, i) => ({ m, i })).sort((a, b) => (rank(a.m.name) - rank(b.m.name)) || (a.i - b.i)).map(x => x.m);
+    }
+    return materials;
+}
+
+export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryHersteller, accessorySerie, SHOWER_STD, needsShowerAccessories, ensureShowerGroups };

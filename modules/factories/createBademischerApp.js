@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
@@ -16,6 +16,13 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
           m => !(m.name || "").toLowerCase().includes("abstellverschraubung")
         );
       }
+
+      // Shower set (AP + UP): ERP-injected Bademischer often ship WITHOUT their
+      // Brauseschlauch / Handbrause / Brausehalter. Add the house-standard groups when
+      // missing so the copied Stückliste is complete — skips bath-only fillers
+      // (Wanneneinlauf/Wannenfüll) and self-contained systems. Runs before the UP-only
+      // logic below so Aufputz Bademischer are covered too.
+      tray.mountingMaterials = ensureShowerGroups(tray.mountingMaterials || [], tray, { isBath: true });
 
       // Only apply to UP products
       if (!tray.label || (!trayFull.includes('UP') && !trayFull.includes('Endmontage'))) return tray;
