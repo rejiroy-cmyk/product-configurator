@@ -22,7 +22,8 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
       // missing so the copied Stückliste is complete — skips bath-only fillers
       // (Wanneneinlauf/Wannenfüll) and self-contained systems. Runs before the UP-only
       // logic below so Aufputz Bademischer are covered too.
-      tray.mountingMaterials = ensureShowerGroups(tray.mountingMaterials || [], tray, { isBath: true });
+      const _isUPbath = /unterputz|endmontage|einbau|grundk[öo]rper/i.test(trayFull.toLowerCase());
+      tray.mountingMaterials = ensureShowerGroups(tray.mountingMaterials || [], tray, { isBath: true, isUP: _isUPbath });
 
       // Only apply to UP products
       if (!tray.label || (!trayFull.includes('UP') && !trayFull.includes('Endmontage'))) return tray;
@@ -43,7 +44,10 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
         const mfr = (tray.manufacturer || "").toLowerCase();
         let bracket = null;
         if (mfr === "kwc") {
-          bracket = { artNr: "6118 149.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Homebox", menge: 1, type: "Zubehör", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06118149_000_000.png" };
+          const eLabel = (tray.mountingMaterials.find(m => /einbaukörper|grundkörper/i.test(m.name || ""))?.options?.[0]?.label || "").toLowerCase();
+          bracket = /bluebox/.test(eLabel)
+            ? { artNr: "6118 122.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Bluebox", menge: 1, type: "Zubehör", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06118122_000_000.png" }
+            : { artNr: "6118 149.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Homebox", menge: 1, type: "Zubehör", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06118149_000_000.png" };
         } else if (mfr === "hansgrohe") {
           bracket = { artNr: "6418 111.000.000", label: "Montageset Hansgrohe iBox Universal, 2 Montageschienen 550 mm, Befestigungsmaterial", menge: 1, type: "Zubehör", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06418111_000_000.png" };
         }

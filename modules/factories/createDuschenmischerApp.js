@@ -37,10 +37,11 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       // is bathtub-filling — never valid on a shower mixer.
       materials = materials.filter(m => !/wannen|einlaufgarnitur/i.test(m.name || ""));
 
-      // ERP-injected mixers often ship WITHOUT their Brauseschlauch / Handbrause. Add the
-      // house-standard groups when missing (skips self-contained Duschsysteme/Showerpipes).
-      // The AP/UP BOM-order sorts below then place them per INSTRUCTIONS.md §2.
-      materials = ensureShowerGroups(materials, tray, { isBath: false });
+      // ERP-injected mixers often ship WITHOUT their Anschlussbogen (UP) / Brauseschlauch /
+      // Handbrause. Add the house-standard groups when missing (skips self-contained
+      // Duschsysteme/Showerpipes). The AP/UP BOM-order sorts below place them per INSTRUCTIONS §2.
+      const _isUPmix = /unterputz|endmontage|einbau|grundk[öo]rper/i.test(((tray.label || "") + " " + (tray.description || "")).toLowerCase());
+      materials = ensureShowerGroups(materials, tray, { isBath: false, isUP: _isUPmix });
 
       // Regenbrause is ALWAYS optional: default "Ohne Regenbrause", with a dropdown to pick a
       // head. Ensure the group exists with "Ohne" as options[0] (the app's default selection);
@@ -190,7 +191,11 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           const mfr = (tray.manufacturer || "").toLowerCase();
           let bracket = null;
           if (mfr === "kwc") {
-            bracket = { artNr: "6118 149.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Homebox", menge: 1, type: "Zubehör", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06118149_000_000.png" };
+            // KWC Montageschiene depends on the Einbaukörper: Bluebox -> 6118 122, Homebox -> 6118 149.
+            const eLabel = (materials.find(m => /einbaukörper|grundkörper/i.test(m.name || ""))?.options?.[0]?.label || "").toLowerCase();
+            bracket = /bluebox/.test(eLabel)
+              ? { artNr: "6118 122.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Bluebox", menge: 1, type: "Zubehör", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06118122_000_000.png" }
+              : { artNr: "6118 149.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Homebox", menge: 1, type: "Zubehör", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06118149_000_000.png" };
           } else if (mfr === "hansgrohe") {
             bracket = { artNr: "6418 111.000.000", label: "Montageset Hansgrohe iBox Universal, 2 Montageschienen 550 mm, Befestigungsmaterial", menge: 1, type: "Zubehör", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06418111_000_000.png" };
           }
@@ -799,6 +804,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         if (/gleitstange/.test(n)) return "Gleitstange";
         if (/regenbrause|kopfbrause/.test(n)) return "Regenbrause";
         if (/brausearm|deckenanschluss/.test(n)) return "Brausearm";
+        if (/anschlussbogen/.test(n)) return "Anschlussbogen";
         return null;
       },
       // Colour-match a mandatory accessory to the main mixer's brand + finish, like the MM

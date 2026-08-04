@@ -42,6 +42,7 @@ const FAMILIES = [
     [/^(regenbrause|kopfbrause|regenpaneel|doppelkopfbrause|seitenbrause|schulterbrause)/i, 'Regenbrause'],
     [/^(brausearm|brausenwandarm|brausewandarm|deckenanschluss|brausekopfhalter)/i, 'Brausearm'],
     [/^(duschengleitstange|duschgleitstange|gleitstange)/i, 'Gleitstange'],
+    [/^anschlussbogen/i, 'Anschlussbogen'],
 ];
 const familyOf = (label) => { for (const [re, t] of FAMILIES) if (re.test(label || '')) return t; return null; };
 

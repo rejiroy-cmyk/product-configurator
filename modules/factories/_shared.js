@@ -469,6 +469,12 @@ const SHOWER_STD = {
     brausehalter: [
         { artNr: "6543 132.501.000", label: "Brausehalter Alterna, Rosette rund, Verchromt", menge: 1, type: "Zubehör", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06543132_501_000.png" },
         { artNr: "ohne_halter", label: "Ohne Brausehalter", menge: 0, type: "Option", imgUrl: "" }
+    ],
+    // Unterputz only (INSTRUCTIONS.md §2 UP item 4). Standard = "für Handbrause" (ohne
+    // Brausehalter); "mit integriertem Brausehalter" as a dropdown option.
+    anschlussbogen: [
+        { artNr: "6544 100.501.000", label: 'Anschlussbogen Alterna ½", Rosette rund, für Handbrause', menge: 1, type: "Zubehör", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06544100_501_000.png" },
+        { artNr: "6544 102.501.000", label: 'Anschlussbogen Alterna ½", mit integriertem Brausehalter, Rosette rund', menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06544102_501_000.png" }
     ]
 };
 const _cloneOpts = (arr) => arr.map(o => ({ ...o }));
@@ -494,6 +500,9 @@ function ensureShowerGroups(materials, tray, opts = {}) {
     if (!needsShowerAccessories(tray, opts)) return materials;
     const hasGroup = (re) => materials.some(m => re.test((m.name || "")));
     let added = false;
+    // Unterputz mixers need the Anschlussbogen (the concealed connection to the hose) — a
+    // house-standard part (§2 UP item 4), added when the ERP data omits it.
+    if (opts.isUP && !hasGroup(/anschlussbogen/i)) { materials.push({ name: "Anschlussbogen", options: _cloneOpts(SHOWER_STD.anschlussbogen) }); added = true; }
     if (!hasGroup(/brauseschlauch/i)) { materials.push({ name: "Brauseschlauch", options: _cloneOpts(SHOWER_STD.brauseschlauch) }); added = true; }
     if (!hasGroup(/handbrause/i)) { materials.push({ name: "Handbrause", options: _cloneOpts(SHOWER_STD.handbrause) }); added = true; }
     if (opts.isBath && !hasGroup(/brausehalter/i)) { materials.push({ name: "Brausehalter", options: _cloneOpts(SHOWER_STD.brausehalter) }); added = true; }
