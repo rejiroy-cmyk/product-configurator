@@ -42,6 +42,21 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       // The AP/UP BOM-order sorts below then place them per INSTRUCTIONS.md §2.
       materials = ensureShowerGroups(materials, tray, { isBath: false });
 
+      // Regenbrause is ALWAYS optional: default "Ohne Regenbrause", with a dropdown to pick a
+      // head. Ensure the group exists with "Ohne" as options[0] (the app's default selection);
+      // when a head is chosen and the mixer is a coloured brand product, colour-match swaps it
+      // to that brand's Regenbrause in the finish. (Holder co-reaction = follow-up.)
+      if (needsShowerAccessories(tray, { isBath: false })) {
+        const OHNE_REGEN = { artNr: "ohne_regenbrause", label: "Ohne Regenbrause", menge: 0, type: "Option", imgUrl: "" };
+        const STD_REGEN = { artNr: "6545 102.501.000", label: 'Regenbrause Alterna rainshower ½", Ø 300 mm, Kugelgelenk, Verchromt', menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06545102_501_000.png" };
+        let rg = materials.find(m => /regenbrause|kopfbrause/i.test(m.name || ""));
+        if (rg) {
+          if (!/^ohne/i.test(((rg.options || [])[0] || {}).label || "")) rg.options.unshift({ ...OHNE_REGEN });
+        } else {
+          materials.push({ name: "Regenbrause", options: [{ ...OHNE_REGEN }, { ...STD_REGEN }] });
+        }
+      }
+
       // The Aufputz BOM rules below (Abstellverschraubung, 1600/brand option defaults,
       // BOM-order sort, guaranteed Gleitstange) apply to AUFPUTZ mixers ONLY. Unterputz
       // Endmontagesets keep their established numbered group order untouched.
