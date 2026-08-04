@@ -30,6 +30,13 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         options: m.options ? m.options.map(o => ({ ...o })) : []
       }));
 
+      // Wanneneinlauf is bathtub-filling ONLY — never a Duschmischer accessory. Hybrid
+      // "Bade- und Duschmischer" (mostly Gessi) carry it in their set; strip it here so the
+      // Duschmischer app never offers it. (It stays available in the Bademischer app.)
+      // Any "Wannen…" group (Wanneneinlauf, Wannen-Schwalleinlauf, Wannenrand, Wannenfüll…)
+      // is bathtub-filling — never valid on a shower mixer.
+      materials = materials.filter(m => !/wannen|einlaufgarnitur/i.test(m.name || ""));
+
       // ERP-injected mixers often ship WITHOUT their Brauseschlauch / Handbrause. Add the
       // house-standard groups when missing (skips self-contained Duschsysteme/Showerpipes).
       // The AP/UP BOM-order sorts below then place them per INSTRUCTIONS.md §2.
