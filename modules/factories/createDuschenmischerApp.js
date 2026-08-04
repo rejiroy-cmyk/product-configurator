@@ -775,6 +775,37 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
             });
           }));
       },
+      // Map a mounting-group name to the accessory pool's productType tag.
+      _accFamily: function (groupName) {
+        const n = (groupName || "").toLowerCase();
+        if (/brauseschlauch/.test(n)) return "Brauseschlauch";
+        if (/handbrause/.test(n)) return "Handbrause";
+        if (/brausehalter/.test(n)) return "Brausehalter";
+        if (/gleitstange/.test(n)) return "Gleitstange";
+        if (/regenbrause|kopfbrause/.test(n)) return "Regenbrause";
+        if (/brausearm|deckenanschluss/.test(n)) return "Brausearm";
+        return null;
+      },
+      // Colour-match a mandatory accessory to the main mixer's brand + finish, like the MM
+      // Regulierventil/Siphon: same-brand accessory of the same family in the mixer's colour
+      // (Ch6 accessory pool). Returns {artNr,label,imgUrl} or null (chrome/no match -> default).
+      matchAccessory: function (family, brand, colourCode) {
+        if (!family || !brand || brand.toLowerCase() === "andere" || !colourCode || colourCode === "501") return null;
+        const codeOf = (a) => { const m = String(a || "").match(/\.(\d{3})(?:\.|$)/); return m ? m[1] : null; };
+        this._accPool = this._accPool || {};
+        if (!this._accPool[family] || !this._accPool[family].length) {
+          const pool = (window.productApps && window.productApps.zubehoer_pool && window.productApps.zubehoer_pool.trays) || [];
+          this._accPool[family] = pool.filter((t) => t.productType === family);
+        }
+        const bl = brand.toLowerCase();
+        for (const t of this._accPool[family]) {
+          if ((t.manufacturer || "").toLowerCase() !== bl) continue;
+          if (codeOf(t.artNr) === colourCode) return { artNr: t.artNr, label: t.label, imgUrl: t.imgUrl };
+          const v = (t.variants || []).find((x) => codeOf(x.artNr) === colourCode);
+          if (v) return { artNr: v.artNr, label: v.label || t.label, imgUrl: v.imgUrl || "" };
+        }
+        return null;
+      },
       updateBOM: function () {
         let backBtn = document.getElementById("backToCatalogBtn");
         if (config.enableGalleryUX) {
@@ -820,6 +851,9 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         const _variants = this.selectedTray.variants || [];
         const _active = (this.selectedVariantIdx > 0 && _variants[this.selectedVariantIdx - 1]) ? _variants[this.selectedVariantIdx - 1] : this.selectedTray;
         const _finishName = (art) => { const m = String(art || '').match(/\.(\d{3})(?:\.|$)/); return (m && COLOR_NAMES[m[1]]) || (art || ''); };
+        // Effective finish of the main mixer — mandatory accessories colour-match to it.
+        const _mainCode = (String(_active.artNr).match(/\.(\d{3})(?:\.|$)/) || [])[1] || null;
+        const _mixerBrand = this.selectedTray.manufacturer || '';
         let _mainDesc = `<div class="bom-desc">${_active.label}</div>`;
         if (config.enableGalleryUX && _variants.length) {
             const _opts = [this.selectedTray, ..._variants].map((sk, idx) =>
@@ -844,32 +878,47 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
               if (a !== void 0) {
                 const l = n.options[a];
                 const isOhne = l && l.label.toLowerCase().startsWith("ohne");
-                
+
                 let isInlineDropdown = config.enableGalleryUX && n.options.length > 1;
-                
+
                 if (!isInlineDropdown && isOhne) return;
 
-                let descHTML = `<div class="bom-desc">${l ? l.label : ''}</div>`;
-                if (isInlineDropdown) {
-                    const optionsHTML = n.options.map((opt, idx) => {
-                        const selected = (a === idx) ? 'selected' : '';
-                        return `<option value="${idx}" ${selected}>${opt.label} (${opt.artNr})</option>`;
-                    }).join('');
-                    
-                    descHTML = `
-                        <div class="bom-desc" style="margin-bottom:0.25rem; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">${n.name || 'Zubehör'}</div>
-                        <select class="inline-bom-select" data-midx="${i}" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.9rem; margin-bottom: 0.25rem; font-family: inherit; font-weight: 500; cursor: pointer; outline: none; transition: border-color 0.2s ease;">
-                            ${optionsHTML}
-                        </select>
-                    `;
+                const o = l ? (l.menge || 1) : 1;
+
+                // Colour-match: when the main mixer is a coloured brand product, a mandatory
+                // accessory becomes that brand's part in the matching finish (the Alterna
+                // standard parts are chrome-only). Overrides the emitted line + drops the model
+                // dropdown for that group (colour is dictated by the Armatur). Skipped for "ohne".
+                const _fam = this._accFamily(n.name);
+                const _cm = (_fam && !isOhne) ? this.matchAccessory(_fam, _mixerBrand, _mainCode) : null;
+
+                let descHTML, artNrDisplay, imgSrc;
+                if (_cm) {
+                    artNrDisplay = _cm.artNr;
+                    imgSrc = _cm.imgUrl || '';
+                    descHTML = `<div class="bom-desc">${_cm.label}</div>
+                        <div class="bom-desc" style="margin-top:0.2rem; font-size:0.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.03em;">${n.name || 'Zubehör'} · Farbe passend zur Armatur</div>`;
+                } else {
+                    descHTML = `<div class="bom-desc">${l ? l.label : ''}</div>`;
+                    if (isInlineDropdown) {
+                        const optionsHTML = n.options.map((opt, idx) => {
+                            const selected = (a === idx) ? 'selected' : '';
+                            return `<option value="${idx}" ${selected}>${opt.label} (${opt.artNr})</option>`;
+                        }).join('');
+                        descHTML = `
+                            <div class="bom-desc" style="margin-bottom:0.25rem; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">${n.name || 'Zubehör'}</div>
+                            <select class="inline-bom-select" data-midx="${i}" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.9rem; margin-bottom: 0.25rem; font-family: inherit; font-weight: 500; cursor: pointer; outline: none; transition: border-color 0.2s ease;">
+                                ${optionsHTML}
+                            </select>
+                        `;
+                    }
+                    artNrDisplay = isOhne ? '-' : (l ? l.artNr : '');
+                    imgSrc = l ? (imgOf(l)) : '';
                 }
 
-                const o = l ? (l.menge || 1) : 1;
                 if (!isOhne) t += o;
 
                 const rowOpacity = isOhne ? 'opacity: 0.6; background: rgba(0,0,0,0.02);' : '';
-                const artNrDisplay = isOhne ? '-' : (l ? l.artNr : '');
-                const imgSrc = l ? (imgOf(l)) : '';
                 const imgDisplay = imgSrc ? `<img src="${imgSrc}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>';
 
                 r.innerHTML += `
