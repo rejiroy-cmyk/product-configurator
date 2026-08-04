@@ -869,6 +869,9 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         // Effective finish of the main mixer — mandatory accessories colour-match to it.
         const _mainCode = (String(_active.artNr).match(/\.(\d{3})(?:\.|$)/) || [])[1] || null;
         const _mixerBrand = this.selectedTray.manufacturer || '';
+        // Derive a thumbnail from an art-Nr when a line carries none (real catalogue SKU →
+        // canonical CDN image, wsrv-proxied; a rare 404 is hidden by <img onerror>).
+        const _imgDerive = (art) => { const dg = String(art || '').replace(/[^0-9]/g, ''); if (dg.length < 12) return ''; const a = dg.slice(0, dg.length - 6).padStart(8, '0'), f = dg.slice(dg.length - 6, dg.length - 3), s = dg.slice(dg.length - 3); return 'https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/' + a + '_' + f + '_' + s + '.png'; };
         let _mainDesc = `<div class="bom-desc">${_active.label}</div>`;
         if (config.enableGalleryUX && _variants.length) {
             const _opts = [this.selectedTray, ..._variants].map((sk, idx) =>
@@ -910,7 +913,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                 let descHTML, artNrDisplay, imgSrc;
                 if (_cm) {
                     artNrDisplay = _cm.artNr;
-                    imgSrc = _cm.imgUrl || '';
+                    imgSrc = _cm.imgUrl || _imgDerive(_cm.artNr);
                     descHTML = `<div class="bom-desc">${_cm.label}</div>
                         <div class="bom-desc" style="margin-top:0.2rem; font-size:0.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.03em;">${n.name || 'Zubehör'} · Farbe passend zur Armatur</div>`;
                 } else {
@@ -928,7 +931,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                         `;
                     }
                     artNrDisplay = isOhne ? '-' : (l ? l.artNr : '');
-                    imgSrc = l ? (imgOf(l)) : '';
+                    imgSrc = l ? (imgOf(l) || (isOhne ? '' : _imgDerive(l.artNr))) : '';
                 }
 
                 if (!isOhne) t += o;
