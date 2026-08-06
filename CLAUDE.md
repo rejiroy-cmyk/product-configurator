@@ -16,7 +16,13 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
 
 - **Vanilla JS SPA**, no framework. ES modules, bundled by **Vite** into a single
   `dist/index.html` via `vite-plugin-singlefile` (everything inlined).
-- `npm run dev` — Vite dev server on **port 5175** (see `.claude/launch.json`).
+- `npm run dev` — Vite dev server on **port 5175** (see `.claude/launch.json`). Binds
+  `0.0.0.0` (`host: true`), so it also prints a `Network:` URL — open that on a phone on
+  the same Wi-Fi. Keep `host: true`; without it Vite is localhost-only and the phone just
+  times out.
+- `npm run preview` — serves the built single-file `dist/` on **4175**, also LAN-exposed.
+  This is what to test on a phone before shipping, since `dev` and the inlined build load
+  data differently (`/api/data` vs. the embedded gzip blob).
 - `npm test` — runs `tests/verify-duschtrennwand.js` (jsdom-based; ~37 assertions
   over the relational BOM rules). **Run this after any change to `modules/factories/`.**
 - `npm run build` — `test` → `backup` → `vite build` → copies `dist` to `backups/`.
