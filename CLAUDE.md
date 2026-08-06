@@ -23,6 +23,9 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
 - `npm run preview` — serves the built single-file `dist/` on **4175**, also LAN-exposed.
   This is what to test on a phone before shipping, since `dev` and the inlined build load
   data differently (`/api/data` vs. the embedded gzip blob).
+- `npm run serve:tailscale` — publishes the built `dist/` to your **tailnet** over HTTPS,
+  so the phone works off Wi-Fi (5G, other networks) without exposing anything publicly.
+  See "Remote access" below. `--off` stops it, `--status` shows current state.
 - `npm test` — runs **7 suites, 175 assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
   `verify-fulltext-rule` (70), `verify-product-display` (30),
@@ -33,6 +36,33 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
 - `npm run build` — `test` → `backup` → `vite build` → copies `dist` to `backups/`.
 - `npm run backup` — snapshots `modules/`, `index.html`, `index.css` into `backups/`
   (now git-ignored; prefer git history).
+
+## Remote access (phone, off-Wi-Fi)
+
+`scripts/serve-tailscale.sh` serves the built `dist/index.html` over
+`tailscale serve` — reachable at `https://<machine>.<tailnet>.ts.net/` from any device
+signed into the same tailnet, and from nowhere else.
+
+**Never switch this to `tailscale funnel`.** Serve is tailnet-only; Funnel publishes to
+the open internet, and `custom-data.json` carries internal article numbers *and prices*.
+The script refuses Funnel by design.
+
+One-time prerequisites:
+
+1. Tailscale installed on the Mac and on the phone, both signed into the **same** account.
+2. HTTPS certificates enabled for the tailnet — admin console → **DNS → HTTPS
+   Certificates**. Without it `tailscale serve` cannot get a cert; the script checks this
+   and tells you.
+
+Gotchas:
+
+- **A sleeping Mac serves nothing.** This is host-based serving, so the Mac must be awake
+  (`caffeinate -dims &`) for the phone to load anything. If you need genuine always-on,
+  the app has to move to an always-on host — that's a different setup, not this script.
+- Static serving means the production data path: no `/api/data`, so **admin edits persist
+  to `localStorage` on the phone only** and never reach `custom-data.json`. Edit the
+  catalog on the Mac via `npm run dev`, rebuild, then re-serve.
+- The script rebuilds automatically when `dist/` is older than the sources.
 
 ## Architecture
 
