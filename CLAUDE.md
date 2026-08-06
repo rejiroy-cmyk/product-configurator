@@ -16,7 +16,13 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
 
 - **Vanilla JS SPA**, no framework. ES modules, bundled by **Vite** into a single
   `dist/index.html` via `vite-plugin-singlefile` (everything inlined).
-- `npm run dev` — Vite dev server on **port 5175** (see `.claude/launch.json`).
+- `npm run dev` — Vite dev server on **port 5175** (see `.claude/launch.json`). Binds
+  `0.0.0.0` (`host: true`), so it also prints a `Network:` URL — open that on a phone on
+  the same Wi-Fi. Keep `host: true`; without it Vite is localhost-only and the phone just
+  times out.
+- `npm run preview` — serves the built single-file `dist/` on **4175**, also LAN-exposed.
+  This is what to test on a phone before shipping, since `dev` and the inlined build load
+  data differently (`/api/data` vs. the embedded gzip blob).
 - `npm test` — runs **7 suites, 175 assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
   `verify-fulltext-rule` (70), `verify-product-display` (30),
