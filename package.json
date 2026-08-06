@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 5175",
-    "test": "node tests/verify-duschtrennwand.js && node tests/verify-all-apps.js && node tests/verify-shower-rules.js && node tests/verify-servicepaket.mjs && node tests/verify-fulltext-rule.js && node tests/verify-product-display.js && node tests/verify-no-kitchen-in-waschtischmischer.js && node tests/verify-scraper-maktx2.js",
+    "test": "node tests/verify-duschtrennwand.js && node tests/verify-all-apps.js && node tests/verify-shower-rules.js && node tests/verify-servicepaket.mjs && node tests/verify-fulltext-rule.js && node tests/verify-product-display.js && node tests/verify-no-kitchen-in-waschtischmischer.js && node tests/verify-scraper-maktx2.js && node tests/verify-offline-fonts.js",
     "replay:tape": "node scripts/replay-shower-rules.js",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -22,6 +22,7 @@
     "eslint": "^10.5.0",
     "globals": "^17.7.0",
     "prettier": "^3.8.4",
+    "remixicon": "^3.5.0",
     "vite": "^5.0.0",
     "vite-plugin-singlefile": "^2.3.2"
   },
