@@ -13,6 +13,7 @@
     "backup": "mkdir -p backups/$(date +%Y%m%d_%H%M%S) && cp -r modules index.html index.css backups/$(date +%Y%m%d_%H%M%S)/",
     "build": "npm run test && npm run backup && vite build && cp -r dist backups/$(date +%Y%m%d_%H%M%S)_dist",
     "preview": "vite preview",
+    "serve:tailscale": "./scripts/serve-tailscale.sh",
     "pdf": "node st-scraper/pdf-to-csv.js",
     "heal-images": "node scripts/verify-and-heal-images.cjs"
   },
