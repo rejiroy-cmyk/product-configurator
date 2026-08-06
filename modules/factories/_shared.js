@@ -479,6 +479,30 @@ const SHOWER_STD = {
 };
 const _cloneOpts = (arr) => arr.map(o => ({ ...o }));
 
+// ============================================================================
+//  Abgang budget (outlet count) — the spine of mixer configuration.
+//  The number of outlets the mixer/diverter can serve = the number of functions
+//  it supports. 1 Abgang -> Handbrause OR Regenbrause (never both); 2 -> both;
+//  3 -> plus a third. A function beyond the budget cannot be plumbed, so the
+//  configurator must not offer it.
+//  FULL-TEXT RULE: the count is stated in the description ("1 Abgang",
+//  "2 Abgänge", "2-Wege-Umsteller"), which is often truncated out of the label —
+//  so read label + description + specs via productText().
+// ============================================================================
+function outletCount(tray) {
+    const x = productText(tray);
+    const m = x.match(/(\d)\s*abg(?:ä|ae)nge/);           // "2 Abgänge", "3 Abgänge"
+    if (m) return Math.max(1, Math.min(3, +m[1]));
+    if (/\b1\s*abgang\b/.test(x)) return 1;                // explicit single outlet
+    if (/3[-\s]?wege|3[-\s]?fach[-\s]?umstell/.test(x)) return 3;
+    if (/2[-\s]?wege|umstell/.test(x)) return 2;           // any Umsteller => >= 2 outlets
+    // A bath+shower mixer inherently serves two (spout + shower).
+    if (/bade[-\s]*(?:und|\/|&|\+)\s*dusch|dusch[-\s]*(?:und|\/|&|\+)\s*bade/.test(x)) return 2;
+    return 1;                                              // plain mixer = single outlet
+}
+// A self-contained system already includes its heads — the budget doesn't apply.
+function isShowerSystem(tray) { return _SELF_CONTAINED.test(productText(tray)); }
+
 // A mixer needs shower accessories UNLESS it is a self-contained shower system
 // (Duschsystem / Showerpipe / Paneel — the brause is already part of the unit) or a
 // bath-only filler with no shower outlet. FULL-TEXT RULE: read label AND description.
@@ -524,4 +548,4 @@ function ensureShowerGroups(materials, tray, opts = {}) {
     return materials;
 }
 
-export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryHersteller, accessorySerie, SHOWER_STD, needsShowerAccessories, ensureShowerGroups };
+export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryHersteller, accessorySerie, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem };

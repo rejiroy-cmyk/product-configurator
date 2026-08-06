@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
@@ -44,10 +44,10 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       materials = ensureShowerGroups(materials, tray, { isBath: false, isUP: _isUPmix });
 
       // Regenbrause is ALWAYS optional: default "Ohne Regenbrause", with a dropdown to pick a
-      // head. Ensure the group exists with "Ohne" as options[0] (the app's default selection);
-      // when a head is chosen and the mixer is a coloured brand product, colour-match swaps it
-      // to that brand's Regenbrause in the finish. (Holder co-reaction = follow-up.)
-      if (needsShowerAccessories(tray, { isBath: false })) {
+      // head. ABGANG BUDGET: only offer it when the mixer has a free outlet — a 1-Abgang mixer
+      // serves Handbrause OR Regenbrause, never both, so a second head cannot be plumbed.
+      // (Users who need both pick a 2-Abgang mixer via the Funktionen filter.)
+      if (needsShowerAccessories(tray, { isBath: false }) && outletCount(tray) >= 2) {
         const OHNE_REGEN = { artNr: "ohne_regenbrause", label: "Ohne Regenbrause", menge: 0, type: "Option", imgUrl: "" };
         const STD_REGEN = { artNr: "6545 102.501.000", label: 'Regenbrause Alterna rainshower ½", Ø 300 mm, Kugelgelenk, Verchromt', menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06545102_501_000.png" };
         let rg = materials.find(m => /regenbrause|kopfbrause/i.test(m.name || ""));
@@ -243,6 +243,9 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       currentHersteller: "all",
       currentMontage: "all",
       currentSerie: "all",
+      // Abgang budget as a FUNCTION filter: "1" = nur Handbrause (single outlet),
+      // "2" = Handbrause + Regenbrause (needs a free second outlet).
+      currentFunktion: "all",
       showAccessoires: false,
       selectedAddonAccessoires: [],
       currentAccessoireSerie: 'Alle',
@@ -252,6 +255,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           (this.currentHersteller = "all"),
           (this.currentMontage = "all"),
           (this.currentSerie = "all"),
+          (this.currentFunktion = "all"),
           (this.showAccessoires = false),
           (this.selectedAddonAccessoires = []),
           (this.currentAccessoireSerie = 'Alle'),
@@ -425,6 +429,15 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                     </h2>
 
                     <div class="filter-group">
+                        <label id="head_funktion_${s}" class="filter-label">Funktionen</label>
+                        <div class="pill-group" id="list_funktion_${s}">
+                            <button class="pill-btn ${this.currentFunktion === "all" ? "active" : ""}" data-key="Funktion" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount("Funktion", "all")}</span></button>
+                            <button class="pill-btn ${this.currentFunktion === "1" ? "active" : ""}" data-key="Funktion" data-val="1" title="1 Abgang — Handbrause oder Regenbrause, nicht beides">Nur Handbrause <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount("Funktion", "1")}</span></button>
+                            <button class="pill-btn ${this.currentFunktion === "2" ? "active" : ""}" data-key="Funktion" data-val="2" title="2+ Abgänge — Handbrause und Regenbrause gleichzeitig">+ Regenbrause <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount("Funktion", "2")}</span></button>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
                         <label id="head_hersteller_${s}" class="filter-label">Hersteller</label>
                         <div class="pill-group" id="list_hersteller_${s}">
                             <button class="pill-btn ${this.currentHersteller === "all" ? "active" : ""}" data-key="Hersteller" data-val="all">Alle <span class="badge" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">${this.getFilteredCount("Hersteller", "all")}</span></button>
@@ -489,6 +502,14 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
               this.setFilter(o.dataset.key, o.dataset.val);
             });
           }),
+          X(
+            `head_funktion_${s}`,
+            `list_funktion_${s}`,
+            this.currentFunktion,
+            "Funktionen",
+            () => this.setFilter("Funktion", "all"),
+            this.currentFunktion === "2" ? "+ Regenbrause" : this.currentFunktion === "1" ? "Nur Handbrause" : this.currentFunktion,
+          ),
           X(
             `head_hersteller_${s}`,
             `list_hersteller_${s}`,
@@ -586,6 +607,14 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       },
       // Faceted count for a filter pill value — mirrors the filterResults predicate
       // below (Hersteller / Serie / Montage + search). Keep the two in sync.
+      // Does a tray satisfy the selected Funktion (Abgang budget)? A self-contained
+      // Duschsystem already includes its heads, so it always qualifies for "+ Regenbrause".
+      matchesFunktion: function (t) {
+        if (this.currentFunktion === "all") return true;
+        if (isShowerSystem(t)) return this.currentFunktion === "2";
+        const n = outletCount(t);
+        return this.currentFunktion === "2" ? n >= 2 : n === 1;
+      },
       getFilteredCount: function (key, value) {
         var i;
         const prop = `current${key}`;
@@ -596,6 +625,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         if (this.currentHersteller !== "all") n = n.filter((a) => a.manufacturer === this.currentHersteller);
         if (this.currentSerie !== "all") n = n.filter((a) => this.extractSerie(a) === this.currentSerie);
         if (this.currentMontage !== "all") n = n.filter((a) => this.extractMontage(a) === this.currentMontage);
+        if (this.currentFunktion !== "all") n = n.filter((a) => this.matchesFunktion(a));
         if (t) n = n.filter((a) => matchesSearchQuery(a, t));
         this[prop] = orig;
         return n.length;
@@ -621,6 +651,8 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
             (n = n.filter(
               (a) => this.extractMontage(a) === this.currentMontage,
             )),
+          this.currentFunktion !== "all" &&
+            (n = n.filter((a) => this.matchesFunktion(a))),
           t &&
             (n = n.filter((a) => matchesSearchQuery(a, t))),
           (e.textContent = n.length),

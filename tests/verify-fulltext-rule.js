@@ -74,6 +74,9 @@ const GUARDED = {
     'modules/factories/createRelationalApp.js': [
         'extractSerie', 'extractMontage', 'extractTrayMontage', 'classifyAccessory',
     ],
+    // Abgang budget + system detection: the outlet count is stated in the description
+    // ("1 Abgang", "2 Abgänge") and is regularly truncated out of the label.
+    'modules/factories/_shared.js': ['outletCount', 'isShowerSystem', 'needsShowerAccessories'],
 };
 
 // Strip line and block comments so a comment mentioning "description" can't satisfy the
@@ -83,18 +86,39 @@ const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^
 // the shared `productText()` helper (which reads label+description+specs internally).
 const readsFullText = (body) => /\.description\b/.test(body) || /\bproductText\s*\(/.test(body);
 
+// Extract a function body by brace matching from its header — works for both the
+// object-method style (`name: function (…) {`) used in the factories and plain
+// declarations (`function name (…) {`) used in _shared.js.
+const bodyOf = (src, fn) => {
+    const start = [`${fn}: function`, `function ${fn}(`, `function ${fn} (`]
+        .map(sig => src.indexOf(sig)).filter(i => i !== -1).sort((a, b) => a - b)[0];
+    if (start === undefined) return null;
+    // Skip the parameter list before looking for the body brace — a default value like
+    // `opts = {}` would otherwise be mistaken for the function body.
+    const paren = src.indexOf('(', start);
+    if (paren === -1) return null;
+    let pd = 0, afterParams = -1;
+    for (let i = paren; i < src.length; i++) {
+        if (src[i] === '(') pd++;
+        else if (src[i] === ')' && --pd === 0) { afterParams = i; break; }
+    }
+    if (afterParams === -1) return null;
+    const open = src.indexOf('{', afterParams);
+    if (open === -1) return null;
+    let depth = 0;
+    for (let i = open; i < src.length; i++) {
+        if (src[i] === '{') depth++;
+        else if (src[i] === '}' && --depth === 0) return src.slice(start, i + 1);
+    }
+    return src.slice(start);
+};
+
 for (const [file, fns] of Object.entries(GUARDED)) {
     const src = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
-    // A method body runs from its own header to the NEXT method header at ANY indent
-    // (indent varies across factory files, so match on any leading whitespace).
-    const headerRe = /\n\s+[A-Za-z_$][\w$]*: function/g;
-    const headers = [...src.matchAll(headerRe)].map(m => m.index);
     for (const fn of fns) {
-        const start = src.indexOf(`${fn}: function`);
-        if (start === -1) { check(`static-guard ${file}#${fn}`, false, 'function not found — update GUARDED list'); continue; }
-        const next = headers.find(i => i > start);
-        const body = stripComments(src.slice(start, next === undefined ? src.length : next));
-        check(`static-guard ${file}#${fn} reads description`, readsFullText(body),
+        const raw = bodyOf(src, fn);
+        if (raw === null) { check(`static-guard ${file}#${fn}`, false, 'function not found — update GUARDED list'); continue; }
+        check(`static-guard ${file}#${fn} reads description`, readsFullText(stripComments(raw)),
             `${fn} no longer reads .description (or productText) — full-text rule violated`);
     }
 }
