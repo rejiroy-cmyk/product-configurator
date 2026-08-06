@@ -62,7 +62,7 @@ export const catalog = [
     {
         "id": "waschplatz",
         "name": "Waschplatz",
-        "icon": "ri-hand-wash-fill",
+        "icon": "ri-hand-sanitizer-fill",
         "thumbnail": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/02112736_100_000.png",
         "subcategories": [
             {

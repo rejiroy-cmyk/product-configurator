@@ -27,6 +27,22 @@ export default [
     },
   },
 
+  // Node-side tooling (.mjs): build scripts and test harnesses. Without this block
+  // nothing matches them — they'd inherit no globals at all, so console/process/fetch
+  // all read as undefined.
+  {
+    files: ['**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.node },
+    },
+    rules: {
+      'no-unused-vars': 'warn',
+      'no-undef': 'warn',
+    },
+  },
+
   // The split factories each import the full shared toolkit on purpose
   // (see CLAUDE.md) — don't flag the deliberately-unused imports.
   {

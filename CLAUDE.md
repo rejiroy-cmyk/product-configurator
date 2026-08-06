@@ -26,11 +26,35 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
 - `npm run serve:tailscale` — publishes the built `dist/` to your **tailnet** over HTTPS,
   so the phone works off Wi-Fi (5G, other networks) without exposing anything publicly.
   See "Remote access" below. `--off` stops it, `--status` shows current state.
+- `node scripts/build-offline-assets.mjs` — regenerates `assets/offline-fonts.css`.
+  Only needed when you add a new `ri-*` icon or change fonts; see "Offline assets".
 - `npm test` — runs `tests/verify-duschtrennwand.js` (jsdom-based; ~37 assertions
   over the relational BOM rules). **Run this after any change to `modules/factories/`.**
 - `npm run build` — `test` → `backup` → `vite build` → copies `dist` to `backups/`.
 - `npm run backup` — snapshots `modules/`, `index.html`, `index.css` into `backups/`
   (now git-ignored; prefer git history).
+
+## Offline assets (fonts & icons)
+
+The build used to `<link>` Google Fonts (Outfit/Inter) and the RemixIcon face from
+jsdelivr, so with no connection **every icon rendered as a blank box**. Both are now
+embedded as base64 `data:` URIs in **`assets/offline-fonts.css`** — a generated file,
+checked in, inlined into `dist/index.html` by Vite like any other stylesheet.
+
+- Regenerate with `node scripts/build-offline-assets.mjs` (needs `pip3 install fonttools
+  brotli`, plus network for Google Fonts). A normal `npm run build` needs neither.
+- The icon font is **subset to only the glyphs the app references** — 4.3 KB instead of
+  the 140 KB full face. Adding a new `ri-*` icon therefore requires a regeneration, or it
+  renders as nothing. `tests/verify-offline-fonts.js` fails `npm test` (and so
+  `npm run build`) if any referenced icon has no glyph rule.
+- The scan is static — it assumes no `'ri-' + name` string building anywhere. If you ever
+  construct an icon class dynamically, the subset will silently miss it.
+- **Inter is deliberately not bundled.** `index.css` names it, but Outfit covers Latin
+  fully so it never renders, and it cost more than everything else combined. The
+  Offertanfrage print window (`app.js`) is a separate `document.write()` document that
+  can't see these `@font-face` rules at all, so it uses a system stack.
+- Product thumbnails still load from `profishop.sanitastroesch.ch`, so they remain blank
+  offline. Embedding those would mean thousands of images — deliberately not done.
 
 ## Remote access (phone, off-Wi-Fi)
 

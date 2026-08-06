@@ -1000,8 +1000,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <head>
                     <title>Offertanfrage - Sanitas Troesch</title>
                     <style>
-                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-                        body { font-family: 'Inter', -apple-system, sans-serif; color: #1a1d1f; padding: 40px; line-height: 1.5; }
+                        /* System stack, no webfont @import: this window is opened offline as
+                           often as not, and a failed font fetch just delays the print dialog. */
+                        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1a1d1f; padding: 40px; line-height: 1.5; }
                         .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #ed1b24; padding-bottom: 20px; margin-bottom: 30px; }
                         .brand { font-size: 24px; font-weight: 800; color: #ed1b24; text-transform: uppercase; letter-spacing: -0.5px; }
                         .doc-type { font-size: 14px; color: #6f767e; text-transform: uppercase; font-weight: 600; }
