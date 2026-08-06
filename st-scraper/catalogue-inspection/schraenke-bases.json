@@ -1,0 +1,1007 @@
+{
+ "2116491": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna universale S",
+  "base": "2116 491",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2116495": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna universale S",
+  "base": "2116 495",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2112345": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna totale",
+  "base": "2112 345",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2112346": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna totale",
+  "base": "2112 346",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2116421": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna universale slim",
+  "base": "2116 421",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2116423": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna universale slim",
+  "base": "2116 423",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2116424": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna universale slim",
+  "base": "2116 424",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2234128": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna elena plus",
+  "base": "2234 128",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1006,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2234158": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna elena plus",
+  "base": "2234 158",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1254,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2234188": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna elena plus",
+  "base": "2234 188",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1254,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2234218": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna elena plus",
+  "base": "2234 218",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1254,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2234248": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna elena plus",
+  "base": "2234 248",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1254,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2234278": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna elena plus",
+  "base": "2234 278",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1254,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2234308": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna elena plus",
+  "base": "2234 308",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1254,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2234027": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna elena plus",
+  "base": "2234 027",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1103,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2234028": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna elena plus",
+  "base": "2234 028",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 887,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2234029": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna elena plus",
+  "base": "2234 029",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2234057": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna elena plus",
+  "base": "2234 057",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1183,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2234058": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna elena plus",
+  "base": "2234 058",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1159,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2234059": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna elena plus",
+  "base": "2234 059",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2113312": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Laufen Meda",
+  "base": "2113 312",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2113313": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Laufen Meda",
+  "base": "2113 313",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2111511": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Laufen Moderna R",
+  "base": "2111 511",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2111512": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Laufen Moderna R",
+  "base": "2111 512",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2112052": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna pro S",
+  "base": "2112 052",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2112911": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Laufen Space",
+  "base": "2112 911",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2112313": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Laufen Juna",
+  "base": "2112 313",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2112314": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Laufen Juna",
+  "base": "2112 314",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2118722": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Laufen Ino",
+  "base": "2118 722",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2118724": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Laufen Ino",
+  "base": "2118 724",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2118723": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Laufen Ino",
+  "base": "2118 723",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2118725": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Laufen Ino",
+  "base": "2118 725",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2142932": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Duravit D‐Neo",
+  "base": "2142 932",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2142933": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Duravit D‐Neo",
+  "base": "2142 933",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2142934": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Duravit D‐Neo",
+  "base": "2142 934",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2142935": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Duravit D‐Neo",
+  "base": "2142 935",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2236281": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Alterna universale plus",
+  "base": "2236 281",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 606,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2236282": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Alterna universale plus",
+  "base": "2236 282",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 712,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2236283": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Alterna universale plus",
+  "base": "2236 283",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2236284": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Alterna universale plus",
+  "base": "2236 284",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 606,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2236285": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Alterna universale plus",
+  "base": "2236 285",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 712,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2236286": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Alterna universale plus",
+  "base": "2236 286",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2236287": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna universale plus",
+  "base": "2236 287",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 821,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2236288": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna universale plus",
+  "base": "2236 288",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1003,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2236289": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna universale plus",
+  "base": "2236 289",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2236290": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna universale plus",
+  "base": "2236 290",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 821,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2236291": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna universale plus",
+  "base": "2236 291",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1003,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2236292": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna universale plus",
+  "base": "2236 292",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2231789": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna green plus",
+  "base": "2231 789",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 899,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2231790": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna green plus",
+  "base": "2231 790",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1041,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2231791": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Alterna green plus",
+  "base": "2231 791",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311809": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 809",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 984,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311812": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 812",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 984,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311810": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 810",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 984,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311813": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 813",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 984,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311811": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 811",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311814": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 814",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311815": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 815",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1044,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311818": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 818",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1044,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311816": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 816",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1044,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311819": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 819",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1044,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311817": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 817",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311820": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 820",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311821": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 821",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1187,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311824": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 824",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1187,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311822": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 822",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1187,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311825": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 825",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1187,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311823": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 823",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311826": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 826",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311827": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 827",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1197,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311830": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 830",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1197,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311828": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 828",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1197,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311831": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 831",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1197,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311829": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 829",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311832": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 832",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311833": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 833",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 898,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311836": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 836",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 898,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311834": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 834",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 898,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311837": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 837",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 898,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311835": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 835",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311838": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 838",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311839": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 839",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1140,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311842": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 842",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1140,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311840": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 840",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1140,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311843": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 843",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1140,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311841": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 841",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311844": {
+  "pt": "Seitenschrank",
+  "series": "Seitenschrank Villeroy & Boch Subway 3.0",
+  "base": "2311 844",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311153": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Antao",
+  "base": "2311 153",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1634,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311154": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Antao",
+  "base": "2311 154",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311940": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Antao",
+  "base": "2311 940",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1634,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311941": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Antao",
+  "base": "2311 941",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311155": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Antao",
+  "base": "2311 155",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1634,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311156": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Antao",
+  "base": "2311 156",
+  "api": false,
+  "img": false,
+  "price": null
+ },
+ "2311942": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Antao",
+  "base": "2311 942",
+  "api": true,
+  "img": true,
+  "price": {
+   "price": 1634,
+   "currency": "CHF",
+   "costUnit": 1,
+   "volumeUnit": "ST"
+  }
+ },
+ "2311943": {
+  "pt": "Hochschrank",
+  "series": "Hochschrank Villeroy & Boch Antao",
+  "base": "2311 943",
+  "api": false,
+  "img": false,
+  "price": null
+ }
+}
