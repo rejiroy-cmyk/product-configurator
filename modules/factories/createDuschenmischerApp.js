@@ -11,14 +11,14 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         label: "Duschengleitstange Alterna fit Gelenkhalter Arretierungshebel, 1100 mm Verchromt",
         menge: 1,
         type: "Zubehör",
-        imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06531404_501_000.png"
+        imgUrl: "img/PG1_06531404_501_000_371b9158.webp"
       },
       {
         artNr: "6531 403.501.000",
         label: "Duschengleitstange Alterna fit Gelenkhalter Arretierungshebel, 610 mm Verchromt",
         menge: 1,
         type: "Option",
-        imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06531403_501_000.png"
+        imgUrl: "img/PG1_06531403_501_000_7cf400fd.webp"
       }
     ];
 
@@ -49,7 +49,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       // (Users who need both pick a 2-Abgang mixer via the Funktionen filter.)
       if (needsShowerAccessories(tray, { isBath: false }) && outletCount(tray) >= 2) {
         const OHNE_REGEN = { artNr: "ohne_regenbrause", label: "Ohne Regenbrause", menge: 0, type: "Option", imgUrl: "" };
-        const STD_REGEN = { artNr: "6545 102.501.000", label: 'Regenbrause Alterna rainshower ½", Ø 300 mm, Kugelgelenk, Verchromt', menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06545102_501_000.png" };
+        const STD_REGEN = { artNr: "6545 102.501.000", label: 'Regenbrause Alterna rainshower ½", Ø 300 mm, Kugelgelenk, Verchromt', menge: 1, type: "Option", imgUrl: "img/PG1_06545102_501_000_350a10d0.webp" };
         let rg = materials.find(m => /regenbrause|kopfbrause/i.test(m.name || ""));
         if (rg) {
           if (!/^ohne/i.test(((rg.options || [])[0] || {}).label || "")) rg.options.unshift({ ...OHNE_REGEN });
@@ -165,7 +165,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
               label: 'Abstellverschraubung, ½" x ½", mit flacher Rosette, Verchromt',
               menge: 2,
               type: "Zubehör",
-              imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06521108_501_000.png"
+              imgUrl: "img/PG1_06521108_501_000_a53f0369.webp"
             }]
           });
         }
@@ -194,10 +194,10 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
             // KWC Montageschiene depends on the Einbaukörper: Bluebox -> 6118 122, Homebox -> 6118 149.
             const eLabel = (materials.find(m => /einbaukörper|grundkörper/i.test(m.name || ""))?.options?.[0]?.label || "").toLowerCase();
             bracket = /bluebox/.test(eLabel)
-              ? { artNr: "6118 122.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Bluebox", menge: 1, type: "Zubehör", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06118122_000_000.png" }
-              : { artNr: "6118 149.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Homebox", menge: 1, type: "Zubehör", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06118149_000_000.png" };
+              ? { artNr: "6118 122.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Bluebox", menge: 1, type: "Zubehör", imgUrl: "img/PG1_06118122_000_000_4b6378f7.webp" }
+              : { artNr: "6118 149.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Homebox", menge: 1, type: "Zubehör", imgUrl: "img/PG1_06118149_000_000_2c2ac83a.webp" };
           } else if (mfr === "hansgrohe") {
-            bracket = { artNr: "6418 111.000.000", label: "Montageset Hansgrohe iBox Universal, 2 Montageschienen 550 mm, Befestigungsmaterial", menge: 1, type: "Zubehör", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06418111_000_000.png" };
+            bracket = { artNr: "6418 111.000.000", label: "Montageset Hansgrohe iBox Universal, 2 Montageschienen 550 mm, Befestigungsmaterial", menge: 1, type: "Zubehör", imgUrl: "img/PG1_06418111_000_000_79a07b3f.webp" };
           }
           if (bracket) materials.push({ name: "Montageschiene", options: [bracket] });
         }
@@ -907,9 +907,13 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         // Effective finish of the main mixer — mandatory accessories colour-match to it.
         const _mainCode = (String(_active.artNr).match(/\.(\d{3})(?:\.|$)/) || [])[1] || null;
         const _mixerBrand = this.selectedTray.manufacturer || '';
-        // Derive a thumbnail from an art-Nr when a line carries none (real catalogue SKU →
-        // canonical CDN image, wsrv-proxied; a rare 404 is hidden by <img onerror>).
-        const _imgDerive = (art) => { const dg = String(art || '').replace(/[^0-9]/g, ''); if (dg.length < 12) return ''; const a = dg.slice(0, dg.length - 6).padStart(8, '0'), f = dg.slice(dg.length - 6, dg.length - 3), s = dg.slice(dg.length - 3); return 'https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/' + a + '_' + f + '_' + s + '.png'; };
+        // NOTE: a _imgDerive() helper used to sit here, fabricating a vendor CDN URL from
+        // the art-Nr at render time and letting <img onerror> swallow the 404s. That is
+        // live third-party traffic on every render and the exact pattern that got the
+        // account shadow-banned. Removed: every URL it could resolve was fetched once,
+        // offline, and baked into custom-data.json as a local img/*.webp (961 items), so
+        // imgOf() now covers them. Items with no real photo fall back to the local icon.
+        // Do not reintroduce a URL guesser — bake images in the scraper instead.
         let _mainDesc = `<div class="bom-desc">${_active.label}</div>`;
         if (config.enableGalleryUX && _variants.length) {
             const _opts = [this.selectedTray, ..._variants].map((sk, idx) =>
@@ -920,7 +924,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         }
         ((r.innerHTML += `
                 <tr class="bom-main-item">
-                    <td><div class="img-cell"><img src="${imgOf(_active) || _active.imgUrl || ""}"></div></td>
+                    <td><div class="img-cell">${imgOf(_active) ? `<img src="${imgOf(_active)}">` : '<i class="ri-image-line placeholder-icon" style="opacity:0.3;"></i>'}</div></td>
                     <td><span class="bom-code">${_active.artNr}</span></td>
                     <td>${_mainDesc}</td>
 
@@ -951,7 +955,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                 let descHTML, artNrDisplay, imgSrc;
                 if (_cm) {
                     artNrDisplay = _cm.artNr;
-                    imgSrc = _cm.imgUrl || _imgDerive(_cm.artNr);
+                    imgSrc = imgOf(_cm);
                     descHTML = `<div class="bom-desc">${_cm.label}</div>
                         <div class="bom-desc" style="margin-top:0.2rem; font-size:0.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.03em;">${n.name || 'Zubehör'} · Farbe passend zur Armatur</div>`;
                 } else {
@@ -969,7 +973,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                         `;
                     }
                     artNrDisplay = isOhne ? '-' : (l ? l.artNr : '');
-                    imgSrc = l ? (imgOf(l) || (isOhne ? '' : _imgDerive(l.artNr))) : '';
+                    imgSrc = l ? imgOf(l) : '';
                 }
 
                 if (!isOhne) t += o;

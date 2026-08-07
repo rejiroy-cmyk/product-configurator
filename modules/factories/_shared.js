@@ -133,8 +133,16 @@ const getVariantColor = (label, artNr) => {
 };
 
 // Placeholder / broken CDN URL signals. A URL containing any of these is NOT a real
-// product photo: _nV serves a generic grey box (200), _000_000/_100_000 are 404s.
-const PLACEHOLDER_IMG = ['_nV', 'no-image', 'placeholder', '_100_000', '_000_000'];
+// product photo: _nV serves a generic grey box (200).
+//
+// NOTE: _100_000 / _000_000 used to be listed here on the assumption they were 404s.
+// They are not — they are the colour-code half of the art-Nr (`.100.000` ->
+// `_100_000`), and 2000 of the 2004 such URLs in custom-data.json are live product
+// photos. Listing them suppressed ~7.5k real images. The four genuine 404s were
+// blanked to '' in the data instead (st-scraper/revalidate-colourcode-images.cjs).
+// A URL suffix tells you nothing about existence — only a CDN HEAD check does, so
+// validate in the scraper and keep this list to true no-image markers.
+const PLACEHOLDER_IMG = ['_nV', 'no-image', 'placeholder'];
 
 // Non-photo image banks: SAP/YM1 = technical drawings / Schallschutz diagrams,
 // Energieetiketten = EU energy labels. Real product photos live only in Web/PG1|PS1.
@@ -453,28 +461,28 @@ const renderAccessoiresPanel = (app, s) => {
 // ============================================================================
 const SHOWER_STD = {
     brauseschlauch: [
-        { artNr: "6542 317.501.000", label: 'Brauseschlauch Alterna flexline, 1600 mm, ½"x½", Kunststoff mit Metalleffekt', menge: 1, type: "Zubehör", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06542317_501_000.png" },
-        { artNr: "6542 318.501.000", label: 'Brauseschlauch Alterna flexline, 1800 mm, ½"x½", Kunststoff mit Metalleffekt', menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06542318_501_000.png" },
+        { artNr: "6542 317.501.000", label: 'Brauseschlauch Alterna flexline, 1600 mm, ½"x½", Kunststoff mit Metalleffekt', menge: 1, type: "Zubehör", imgUrl: "img/PG1_06542317_501_000_bc717193.webp" },
+        { artNr: "6542 318.501.000", label: 'Brauseschlauch Alterna flexline, 1800 mm, ½"x½", Kunststoff mit Metalleffekt', menge: 1, type: "Option", imgUrl: "img/PG1_06542318_501_000_b9ca03b5.webp" },
         { artNr: "ohne_schlauch", label: "Ohne Brauseschlauch", menge: 0, type: "Option", imgUrl: "" }
     ],
     handbrause: [
-        { artNr: "6541 336.501.000", label: "Handbrause Alterna saveline 3, Ø 120 mm, 3-jet, umstellbar, Verchromt", menge: 1, type: "Zubehör", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06541336_501_000.png" },
-        { artNr: "6541 333.501.000", label: "Handbrause Alterna saveline, Ø 120 mm, 1-jet, IntensiveRain, Verchromt", menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06541333_501_000.png" },
-        { artNr: "6541 326.501.000", label: "Handbrause Alterna easyline, Ø 101 mm, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06541326_501_000.png" },
-        { artNr: "6541 329.501.000", label: "Handbrause Alterna streamline, rund, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06541329_501_000.png" },
-        { artNr: "6541 324.501.000", label: "Handbrause Alterna smartline, Ø 93 mm, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06541324_501_000.png" },
-        { artNr: "6541 337.501.000", label: "Handbrause Alterna cosyline, Ø 120 mm, 3-jet, umstellbar, Verchromt", menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06541337_501_000.png" },
-        { artNr: "6541 328.501.000", label: "Handbrause Alterna squareline, eckig, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06541328_501_000.png" }
+        { artNr: "6541 336.501.000", label: "Handbrause Alterna saveline 3, Ø 120 mm, 3-jet, umstellbar, Verchromt", menge: 1, type: "Zubehör", imgUrl: "img/PG1_06541336_501_000_6c612826.webp" },
+        { artNr: "6541 333.501.000", label: "Handbrause Alterna saveline, Ø 120 mm, 1-jet, IntensiveRain, Verchromt", menge: 1, type: "Option", imgUrl: "img/PG1_06541333_501_000_ec72b6b1.webp" },
+        { artNr: "6541 326.501.000", label: "Handbrause Alterna easyline, Ø 101 mm, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "img/PG1_06541326_501_000_a6b9a8ef.webp" },
+        { artNr: "6541 329.501.000", label: "Handbrause Alterna streamline, rund, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "img/PG1_06541329_501_000_c8293ee3.webp" },
+        { artNr: "6541 324.501.000", label: "Handbrause Alterna smartline, Ø 93 mm, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "img/PG1_06541324_501_000_c5075f1c.webp" },
+        { artNr: "6541 337.501.000", label: "Handbrause Alterna cosyline, Ø 120 mm, 3-jet, umstellbar, Verchromt", menge: 1, type: "Option", imgUrl: "img/PG1_06541337_501_000_a491c21e.webp" },
+        { artNr: "6541 328.501.000", label: "Handbrause Alterna squareline, eckig, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "img/PG1_06541328_501_000_80b03659.webp" }
     ],
     brausehalter: [
-        { artNr: "6543 132.501.000", label: "Brausehalter Alterna, Rosette rund, Verchromt", menge: 1, type: "Zubehör", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06543132_501_000.png" },
+        { artNr: "6543 132.501.000", label: "Brausehalter Alterna, Rosette rund, Verchromt", menge: 1, type: "Zubehör", imgUrl: "img/PG1_06543132_501_000_8287472d.webp" },
         { artNr: "ohne_halter", label: "Ohne Brausehalter", menge: 0, type: "Option", imgUrl: "" }
     ],
     // Unterputz only (INSTRUCTIONS.md §2 UP item 4). Standard = "für Handbrause" (ohne
     // Brausehalter); "mit integriertem Brausehalter" as a dropdown option.
     anschlussbogen: [
-        { artNr: "6544 100.501.000", label: 'Anschlussbogen Alterna ½", Rosette rund, für Handbrause', menge: 1, type: "Zubehör", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06544100_501_000.png" },
-        { artNr: "6544 102.501.000", label: 'Anschlussbogen Alterna ½", mit integriertem Brausehalter, Rosette rund', menge: 1, type: "Option", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06544102_501_000.png" }
+        { artNr: "6544 100.501.000", label: 'Anschlussbogen Alterna ½", Rosette rund, für Handbrause', menge: 1, type: "Zubehör", imgUrl: "img/PG1_06544100_501_000_7791d623.webp" },
+        { artNr: "6544 102.501.000", label: 'Anschlussbogen Alterna ½", mit integriertem Brausehalter, Rosette rund', menge: 1, type: "Option", imgUrl: "img/PG1_06544102_501_000_d4ab2245.webp" }
     ]
 };
 const _cloneOpts = (arr) => arr.map(o => ({ ...o }));

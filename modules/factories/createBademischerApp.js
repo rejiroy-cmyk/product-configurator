@@ -46,10 +46,10 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
         if (mfr === "kwc") {
           const eLabel = (tray.mountingMaterials.find(m => /einbaukörper|grundkörper/i.test(m.name || ""))?.options?.[0]?.label || "").toLowerCase();
           bracket = /bluebox/.test(eLabel)
-            ? { artNr: "6118 122.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Bluebox", menge: 1, type: "Zubehör", imgUrl: "https://wsrv.nl/?url=profishop.sanitastroesch.ch/multimedia/Web/PG1/06118122_000_000.png" }
-            : { artNr: "6118 149.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Homebox", menge: 1, type: "Zubehör", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06118149_000_000.png" };
+            ? { artNr: "6118 122.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Bluebox", menge: 1, type: "Zubehör", imgUrl: "img/PG1_06118122_000_000_4b6378f7.webp" }
+            : { artNr: "6118 149.000.000", label: "Montageschiene KWC, zu Einbaukörper KWC Homebox", menge: 1, type: "Zubehör", imgUrl: "img/PG1_06118149_000_000_2c2ac83a.webp" };
         } else if (mfr === "hansgrohe") {
-          bracket = { artNr: "6418 111.000.000", label: "Montageset Hansgrohe iBox Universal, 2 Montageschienen 550 mm, Befestigungsmaterial", menge: 1, type: "Zubehör", imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06418111_000_000.png" };
+          bracket = { artNr: "6418 111.000.000", label: "Montageset Hansgrohe iBox Universal, 2 Montageschienen 550 mm, Befestigungsmaterial", menge: 1, type: "Zubehör", imgUrl: "img/PG1_06418111_000_000_79a07b3f.webp" };
         }
         if (bracket) tray.mountingMaterials.splice(gkIdx + 1, 0, { name: "Montageschiene", options: [bracket] });
       }
@@ -74,14 +74,14 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
             label: "Duschengleitstange Alterna fit Gelenkhalter Arretierungshebel, 1100 mm Verchromt",
             menge: 1,
             type: "Option",
-            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06531404_501_000.png"
+            imgUrl: "img/PG1_06531404_501_000_371b9158.webp"
           },
           {
             artNr: "6531 403.501.000",
             label: "Duschengleitstange Alterna fit Gelenkhalter Arretierungshebel, 610 mm Verchromt",
             menge: 1,
             type: "Option",
-            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06531403_501_000.png"
+            imgUrl: "img/PG1_06531403_501_000_7cf400fd.webp"
           }
         ]
       });
@@ -779,7 +779,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
         }
         ((r.innerHTML += `
                 <tr class="bom-main-item">
-                    <td><div class="img-cell"><img src="${imgOf(_active) || _active.imgUrl || ""}"></div></td>
+                    <td><div class="img-cell">${imgOf(_active) ? `<img src="${imgOf(_active)}">` : '<i class="ri-image-line placeholder-icon" style="opacity:0.3;"></i>'}</div></td>
                     <td><span class="bom-code">${_active.artNr}</span></td>
                     <td>${_mainDesc}</td>
 

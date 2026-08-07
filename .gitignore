@@ -43,3 +43,8 @@ cookie.txt
 
 # Local pre-injection data backups (large; use git history instead)
 custom-data.json.bak*
+
+# Build-copied images. public/img/ is the tracked source of truth (133 MB); Vite
+# copies it verbatim into dist/img/ on every build, so tracking both would double
+# the repo for zero benefit. dist/index.html stays tracked as before.
+/dist/img/

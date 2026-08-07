@@ -30,9 +30,9 @@
 const FOAM_ART = '1441 791.000.000'; // Montageschaum Alterna, Kartusche 400 ml
 const SCHALL_ART = '1445 782.000.000'; // Schallschutzset Alterna - Stahl
 const FOAM_IMG =
-  'https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01441791_000_000.png';
+  'img/PS1_01441791_000_000_f2bb687f.webp';
 const SCHALL_IMG =
-  'https://profishop.sanitastroesch.ch/multimedia/Web/PS1/01445782_000_000.png';
+  'img/PS1_01445782_000_000_fe9bdd87.webp';
 
 // Series keywords, most-specific first (so "superplan zero" wins over "superplan").
 const SERIES_KEYS = [

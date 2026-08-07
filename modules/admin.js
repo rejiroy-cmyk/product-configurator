@@ -1287,7 +1287,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
             results = [{
                 artNr: "6541 326.501.000",
                 label: "Handbrause Alterna easyline, Ø 101 mm, 1-jet",
-                imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06541326_501_000.png"
+                imgUrl: "img/PG1_06541326_501_000_a6b9a8ef.webp"
             }];
         }
         
@@ -1307,9 +1307,9 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         // Brauseschlauch: Duschenmischer = 1600mm standard + 1800mm option only
         //                 Bademischer   = 1250mm standard + 1800mm option only
         const isBadeMixer = appId === 'bademischer';
-        const S1600 = { artNr: '6542 317.501.000', label: 'Brauseschlauch Alterna flexline, 1600 mm, ½"x½", Kunststoff mit Metalleffekt', type: 'Zubehör', imgUrl: 'https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06542317_501_000.png', menge: 1 };
-        const S1250 = { artNr: '6542 316.501.000', label: 'Brauseschlauch Alterna flexline, 1250 mm, ½"x½", Kunststoff mit Metalleffekt', type: 'Zubehör', imgUrl: 'https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06542316_501_000.png', menge: 1 };
-        const S1800 = { artNr: '6542 318.501.000', label: 'Brauseschlauch Alterna flexline, 1800 mm, ½"x½", Kunststoff mit Metalleffekt', type: 'Option', imgUrl: 'https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06542318_501_000.png', menge: 1 };
+        const S1600 = { artNr: '6542 317.501.000', label: 'Brauseschlauch Alterna flexline, 1600 mm, ½"x½", Kunststoff mit Metalleffekt', type: 'Zubehör', imgUrl: 'img/PG1_06542317_501_000_bc717193.webp', menge: 1 };
+        const S1250 = { artNr: '6542 316.501.000', label: 'Brauseschlauch Alterna flexline, 1250 mm, ½"x½", Kunststoff mit Metalleffekt', type: 'Zubehör', imgUrl: 'img/PG1_06542316_501_000_3528e29b.webp', menge: 1 };
+        const S1800 = { artNr: '6542 318.501.000', label: 'Brauseschlauch Alterna flexline, 1800 mm, ½"x½", Kunststoff mit Metalleffekt', type: 'Option', imgUrl: 'img/PG1_06542318_501_000_b9ca03b5.webp', menge: 1 };
         const OHNE  = { artNr: 'ohne_schlauch', label: 'Ohne Brauseschlauch', type: 'Option', imgUrl: '', menge: 0 };
         const schlauchOptions = isBadeMixer ? [S1250, S1800, OHNE] : [S1600, S1800, OHNE];
 
@@ -1325,7 +1325,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                             label: "Abstellverschraubung, ½\" x ½\", mit flacher Rosette, Verchromt",
                             menge: 2,
                             type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06521108_501_000.png"
+                            imgUrl: "img/PG1_06521108_501_000_a53f0369.webp"
                         }
                     ]
                 },
@@ -1348,7 +1348,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                             label: "Brausehalter Alterna eco, Verchromt",
                             menge: 1,
                             type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06543131_501_000.png"
+                            imgUrl: "img/PG1_06543131_501_000_4356f926.webp"
                         }
                     ]
                 }
@@ -1392,7 +1392,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                     artNr: "6158 110.000.000",
                     label: "Einbaukörper Laufen Simibox Light ½\", mit Vorabstellung",
                     type: "Zubehör",
-                    imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06158110_000_000.png",
+                    imgUrl: "img/PG1_06158110_000_000_0572bbd1.webp",
                     menge: 1
                 });
             }
@@ -1411,7 +1411,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                             artNr: "6158 120.000.000",
                             label: "Montageset Laufen Simibox 2 Montageschienen 560 mm Befestigungsmaterial",
                             type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06158120_000_000.png",
+                            imgUrl: "img/PG1_06158120_000_000_d66f6b1f.webp",
                             menge: 1
                         }
                     ]
@@ -1424,14 +1424,14 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                             artNr: "6544 164.501.000",
                             label: "Anschlussbogen Laufen City, mit Rückflussverhinderer, Rosette rund, für Handbrause Geräuschgruppe NT Verchromt",
                             type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06544164_501_000.png",
+                            imgUrl: "img/PG1_06544164_501_000_e0db915b.webp",
                             menge: 1
                         },
                         {
                             artNr: "6544 166.501.000",
                             label: "Anschlussbogen Laufen City ½\" mit integriertem Brausehalter Rückflussverhinderer Rosette eckig Geräuschgruppe NT Verchromt",
                             type: "Option",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06544166_501_000.png",
+                            imgUrl: "img/PG1_06544166_501_000_5b2ba784.webp",
                             menge: 1
                         }
                     ]
@@ -1454,7 +1454,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                             artNr: "6543 131.501.000",
                             label: "Brausehalter Alterna eco, Verchromt",
                             type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06543131_501_000.png",
+                            imgUrl: "img/PG1_06543131_501_000_4356f926.webp",
                             menge: 1
                         },
                         {
@@ -1481,7 +1481,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                             artNr: "6531 404.501.000",
                             label: "Duschengleitstange Alterna fit Gelenkhalter Arretierungshebel, 1100 mm",
                             type: "Option",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06531404_501_000.png",
+                            imgUrl: "img/PG1_06531404_501_000_371b9158.webp",
                             menge: 1
                         }
                     ]
@@ -1533,7 +1533,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                         artNr: art,
                         label: getPoolLabel(art, "Einbaukörper Laufen Simibox Light ½\", mit Vorabstellung"),
                         type: "Zubehör",
-                        imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06158110_000_000.png",
+                        imgUrl: "img/PG1_06158110_000_000_0572bbd1.webp",
                         menge: 1
                     });
                 } else {
@@ -1580,21 +1580,21 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                     artNr: "6544 100.501.000",
                     label: getPoolLabel("6544 100.501.000", "Anschlussbogen Alterna ½\", Rosette rund, für Handbrause Geräuschgruppe NT Verchromt"),
                     type: "Zubehör",
-                    imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06544100_501_000.png",
+                    imgUrl: "img/PG1_06544100_501_000_7791d623.webp",
                     menge: 1
                 },
                 {
                     artNr: "6544 102.501.000",
                     label: getPoolLabel("6544 102.501.000", "Anschlussbogen Alterna ½\" mit integriertem Brausehalter Rosette rund Geräuschgruppe NT Verchromt"),
                     type: "Option",
-                    imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06544102_501_000.png",
+                    imgUrl: "img/PG1_06544102_501_000_d4ab2245.webp",
                     menge: 1
                 },
                 {
                     artNr: "6252 349.501.000",
                     label: getPoolLabel("6252 349.501.000", "Anschlussbogen Alterna / Emporio ½\" mit integriertem Brausehalter Rosette eckig Geräuschgruppe NT Verchromt"),
                     type: "Option",
-                    imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06252349_501_000.png",
+                    imgUrl: "img/PG1_06252349_501_000_fcb22875.webp",
                     menge: 1
                 }
             ];
@@ -1633,14 +1633,14 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                             artNr: "6543 132.501.000",
                             label: "Brausehalter Alterna, Rosette rund, Verchromt",
                             type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06543132_501_000.png",
+                            imgUrl: "img/PG1_06543132_501_000_8287472d.webp",
                             menge: 1
                         },
                         {
                             artNr: "6543 131.501.000",
                             label: "Brausehalter Alterna eco, Verchromt",
                             type: "Option",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06543131_501_000.png",
+                            imgUrl: "img/PG1_06543131_501_000_4356f926.webp",
                             menge: 1
                         },
                         {
@@ -1667,7 +1667,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                             artNr: "6531 404.501.000",
                             label: "Duschengleitstange Alterna fit Gelenkhalter Arretierungshebel, 1100 mm",
                             type: "Option",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06531404_501_000.png",
+                            imgUrl: "img/PG1_06531404_501_000_371b9158.webp",
                             menge: 1
                         }
                     ]
@@ -1738,7 +1738,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                             artNr: "6118 122.000.000",
                             label: "Montageschiene KWC zu Einbaukörper KWC Bluebox",
                             type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06118122_000_000.png",
+                            imgUrl: "img/PG1_06118122_000_000_4b6378f7.webp",
                             menge: 1
                         }
                     ]
@@ -1756,28 +1756,28 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                             artNr: "6544 121.501.000",
                             label: "Anschlussbogen KWC, für Handbrause Geräuschgruppe NT Verchromt",
                             type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06544121_501_000.png",
+                            imgUrl: "img/PG1_06544121_501_000_9200ff75.webp",
                             menge: 1
                         },
                         {
                             artNr: "6113 825.501.000",
                             label: "Anschlussbogen KWC, Rosette rund, für Handbrause Geräuschgruppe I Verchromt",
                             type: "Option",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06113825_501_000.png",
+                            imgUrl: "img/PG1_06113825_501_000_e69f4bf7.webp",
                             menge: 1
                         },
                         {
                             artNr: "6544 126.501.000",
                             label: "Anschlussbogen KWC, mit integriertem Brausehalter, Rosette eckig Geräuschgruppe I Verchromt",
                             type: "Option",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06544126_501_000.png",
+                            imgUrl: "img/PG1_06544126_501_000_db481dff.webp",
                             menge: 1
                         },
                         {
                             artNr: "6113 413.501.000",
                             label: "Anschlussbogen KWC ½\", 90°, Rosette eckig, für Handbrause Geräuschgruppe I Verchromt",
                             type: "Option",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06113413_501_000.png",
+                            imgUrl: "img/PG1_06113413_501_000_5df1e037.webp",
                             menge: 1
                         }
                     ]
@@ -1800,7 +1800,7 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                             artNr: "6113 432.501.000",
                             label: "Steckhalter KWC Rosette eckig Verchromt",
                             type: "Zubehör",
-                            imgUrl: "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06113432_501_000.png",
+                            imgUrl: "img/PG1_06113432_501_000_c2604a3f.webp",
                             menge: 1
                         },
                         {

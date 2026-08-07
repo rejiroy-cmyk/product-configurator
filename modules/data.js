@@ -5,7 +5,7 @@ export const catalog = [
         "id": "dusche",
         "name": "Dusche",
         "icon": "ri-drop-fill",
-        "thumbnail": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01311872_100_181.png",
+        "thumbnail": "img/PG1_01311872_100_181_3ae32bdd.webp",
         "subcategories": [
             {
                 "id": "duschenwanne",
@@ -37,7 +37,7 @@ export const catalog = [
         "id": "bad",
         "name": "Bad",
         "icon": "ri-bubble-chart-fill",
-        "thumbnail": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01113324.png",
+        "thumbnail": "img/PG1_01113324_ab097814.webp",
         "subcategories": [
             {
                 "id": "badewanne",
@@ -63,7 +63,7 @@ export const catalog = [
         "id": "waschplatz",
         "name": "Waschplatz",
         "icon": "ri-hand-wash-fill",
-        "thumbnail": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/02112736_100_000.png",
+        "thumbnail": "img/PG1_02112736_100_000_f8ecd198.webp",
         "subcategories": [
             {
                 "id": "waschtisch",
@@ -95,7 +95,7 @@ export const catalog = [
         "id": "kueche",
         "name": "Küche",
         "icon": "ri-restaurant-2-fill",
-        "thumbnail": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/06511302.png",
+        "thumbnail": "img/PG1_06511302_a7d0162d.webp",
         "subcategories": [
             {
                 "id": "1-teilig",
@@ -115,7 +115,7 @@ export const catalog = [
         "id": "waschautomaten",
         "name": "Waschautomaten",
         "icon": "ri-water-flash-fill",
-        "thumbnail": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/07171136_501_000.png",
+        "thumbnail": "img/PG1_07171136_501_000_e165040b.webp",
         "subcategories": [
             {
                 "id": "einbausifon",
@@ -141,7 +141,7 @@ export const catalog = [
         "id": "klosett",
         "name": "Klosett",
         "icon": "ri-home-gear-fill",
-        "thumbnail": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/02111845_100_000.png",
+        "thumbnail": "img/PG1_02111845_100_000_a30e42df.webp",
         "subcategories": [
             {
                 "id": "wandklosett",
