@@ -63,7 +63,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    const readStoredJson = (key, fallback) => safeJsonParse(localStorage.getItem(key), fallback);
+    // iOS Safari throws SecurityError on ANY localStorage access when the page is
+    // loaded from file:// (also in Lockdown Mode / some private windows). Probe once
+    // and fall back to an in-memory store, otherwise the whole boot sequence dies
+    // here and the catalog never renders.
+    const storage = (() => {
+        try {
+            const probe = '__storage_probe__';
+            window.localStorage.setItem(probe, probe);
+            window.localStorage.removeItem(probe);
+            return window.localStorage;
+        } catch (err) {
+            console.warn('[Konfigurator] localStorage unavailable — using in-memory fallback (settings will not persist).', err);
+            const mem = new Map();
+            return {
+                getItem: (key) => (mem.has(key) ? mem.get(key) : null),
+                setItem: (key, value) => { mem.set(key, String(value)); },
+                removeItem: (key) => { mem.delete(key); },
+            };
+        }
+    })();
+
+    const readStoredJson = (key, fallback) => safeJsonParse(storage.getItem(key), fallback);
 
     const wildcardQueryToRegex = (queryPart) => {
         const wildcardToken = '\u0000WILDCARD\u0000';
@@ -114,15 +135,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (isLight) {
                 document.body.classList.add('light-theme');
                 themeIcons.forEach(icon => icon.className = 'ri-moon-fill theme-icon');
-                localStorage.setItem('theme', 'light');
+                storage.setItem('theme', 'light');
             } else {
                 document.body.classList.remove('light-theme');
                 themeIcons.forEach(icon => icon.className = 'ri-sun-fill theme-icon');
-                localStorage.setItem('theme', 'dark');
+                storage.setItem('theme', 'dark');
             }
         };
         // Default to dark mode — only apply light if explicitly saved
-        const savedTheme = localStorage.getItem('theme');
+        const savedTheme = storage.getItem('theme');
         if (savedTheme === 'light') {
             toggleTheme(true);
         } else {
@@ -159,7 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!Array.isArray(window.customWishlist)) window.customWishlist = [];
 
     function saveWishlist() {
-        localStorage.setItem('sanitas_wishlist', JSON.stringify(window.customWishlist));
+        storage.setItem('sanitas_wishlist', JSON.stringify(window.customWishlist));
         updateWishlistBadges();
         renderWishlistModal();
     }
