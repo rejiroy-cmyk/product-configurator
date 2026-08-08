@@ -84,7 +84,7 @@ const fname = (u) => String(u || '').replace(/^.*\//, '').replace(/\.(png|jpg|jp
 const artTokens = (u) => fname(u).split(/[_-]/).filter(t => /^0?\d{7}$/.test(t));
 const isGrouped = (u) => artTokens(u).length >= 2;
 const isWebPhoto = (u) => /\/multimedia\/Web\/(PG1|PS1)\//.test(u);
-const isNonPhoto = (u) => /\/multimedia\/SAP\/|\/Energieetiketten\//.test(u) || /_nV/.test(u);
+const isNonPhoto = (u) => /\/multimedia\/SAP\/|\/Energieetiketten\//.test(u);
 const digits = (a) => String(a).replace(/[^0-9]/g, '');
 
 /**
@@ -111,14 +111,25 @@ const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
 const verdicts = fs.existsSync(VERDICTS) ? JSON.parse(fs.readFileSync(VERDICTS, 'utf8')) : {};
 const localName = (u) => String(u || '').replace(/^img\//, '');
 
-const targets = new Map();   // artNr -> current img
-for (const cat of CATS) {
+// --missing targets articles with NO image at all rather than scene thumbnails.
+// Those were never queried, and since _nV turned out to be the shop's own listing
+// drawing rather than a placeholder, most of them likely have one waiting.
+const MISSING = process.argv.includes('--missing');
+const SEARCH_CATS = MISSING ? Object.keys(data) : CATS;
+
+const targets = new Map();   // artNr -> current img ('' when missing)
+for (const cat of SEARCH_CATS) {
     if (!data[cat]) continue;
     (function walk(n) {
         if (!n || typeof n !== 'object') return;
         if (Array.isArray(n)) return n.forEach(walk);
         const u = n.imgUrl;
-        if (typeof u === 'string' && u.trim() && n.artNr && verdicts[localName(u)] === 'lifestyle') {
+        const hasImg = typeof u === 'string' && u.trim();
+        if (MISSING) {
+            // real catalogue art-Nrs only — synthetic ids ("ohne_schlauch") and service
+            // lines (Montagepauschale etc.) have no product image by nature
+            if (!hasImg && n.artNr && /^\d[\d\s.]{8,}$/.test(String(n.artNr))) targets.set(n.artNr, '');
+        } else if (hasImg && n.artNr && verdicts[localName(u)] === 'lifestyle') {
             targets.set(n.artNr, u);
         }
         Object.values(n).forEach(walk);
@@ -177,15 +188,29 @@ for (const cat of CATS) {
     for (const [art, current] of targets) {
         const rec = raw[art];
         if (!rec) { noneAt++; continue; }
-        const cands = [rec.image, ...(rec.images || [])].filter(Boolean)
-            .map(u => (/^https?:/.test(u) ? u : 'https://' + HOST + u));
-        const ranked = cands.map(u => ({ u, s: score(u, art) })).filter(x => x.s > 0)
-            .sort((a, b) => b.s - a.s);
-        if (!ranked.length) { noneAt++; continue; }
-        const best = ranked[0];
-        // only propose something that actually shows this article alone
-        if (best.s >= 100 || (best.s >= 60 && !isGrouped(best.u))) { proposals[art] = best.u; better++; }
-        else same++;
+        const abs = u => (/^https?:/.test(u) ? u : 'https://' + HOST + u);
+        const cands = [rec.image, ...(rec.images || [])].filter(Boolean).map(abs);
+
+        // Reji's requirement: show what the SHOP shows — its primary listing image.
+        // That is `result.image`. One correction: the shop's own primary is often the
+        // PS1 copy, and for _nV names PS1 is an 859-byte placeholder while the PG1 twin
+        // is the real ~26 KB drawing. So take result.image, then upgrade to its PG1
+        // twin (same basename) whenever one exists.
+        let pick = null;
+        if (rec.image) {
+            const primary = abs(rec.image);
+            const twin = cands.find(u => /\/PG1\//.test(u) && fname(u) === fname(primary));
+            const chosen = twin || primary;
+            if (isWebPhoto(chosen) && !/\/multimedia\/SAP\/|\/Energieetiketten\//.test(chosen)) pick = chosen;
+        }
+        // fall back to the best per-article candidate when there is no usable primary
+        if (!pick) {
+            const ranked = cands.map(u => ({ u, s: score(u, art) })).filter(x => x.s > 0)
+                .sort((a, b) => b.s - a.s);
+            if (ranked.length && (ranked[0].s >= 100 || (ranked[0].s >= 60 && !isGrouped(ranked[0].u)))) pick = ranked[0].u;
+        }
+        if (pick) { proposals[art] = pick; better++; } else { noneAt++; continue; }
+        if (isGrouped(pick)) same++;
     }
     fs.writeFileSync(OUT_PROPOSAL, JSON.stringify(proposals, null, 1));
 
