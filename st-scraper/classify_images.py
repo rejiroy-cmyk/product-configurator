@@ -93,8 +93,12 @@ def measure(path):
 
 
 def classify(m):
-    # A photograph that reaches the edges of the frame is a scene, not a cut-out product.
-    if m['bg_border'] < 0.55:
+    # A scene photo reaches the edges of the frame AND carries the colour/tonal range of
+    # a photograph. The border test alone is not enough: a white shower tray shot
+    # edge-to-edge also has no white border, and an earlier version flagged ~130 of
+    # those as Milieubilder. Real scenes measured 98-280 quantised colours and 10-14
+    # tonal bands; the tray false-positives measured 4-14 colours and 3-4 bands.
+    if m['bg_border'] < 0.55 and m['colours'] >= 40 and m['lum_levels'] >= 6:
         return 'lifestyle'
     # Colourless AND made of thin strokes => wireframe. Both conditions are required:
     # colour alone flags every white tray, and thinness alone flags glass partitions

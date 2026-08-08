@@ -52,7 +52,12 @@ FAILURES = os.path.join(DIR, 'localize-failures.json')
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36'
 TIMEOUT = 45
 RETRIES = 3
-QUALITY = 82
+# q75/method=6, matching the 2026-08-07 recompression of the whole corpus. At the 60-200 px
+# widths these are stored at, q75 is indistinguishable from the old q82 even on polished
+# chrome and knurled metal, and method=6 buys a few percent more for encode time paid once.
+# Keep these in step with the corpus, or freshly scraped images drift heavier than the rest.
+QUALITY = 75
+METHOD = 6
 MIN_BYTES = 100
 # If the vendor starts refusing us, stop immediately rather than hammering it —
 # a long run of failures is how a rate-limit turns into a ban.
@@ -126,11 +131,13 @@ def process(job):
         # keep alpha: these are palette PNGs with transparency, and the UI renders
         # them on a dark card — flattening onto white would box every product
         im = im.convert('RGBA' if ('A' in im.getbands() or im.mode == 'P') else 'RGB')
+        if im.mode == 'RGBA' and im.getextrema()[3][0] == 255:
+            im = im.convert('RGB')               # fully opaque: the alpha channel is dead weight
         if im.width > job['width']:
             h = max(1, round(im.height * job['width'] / im.width))
             im = im.resize((job['width'], h), Image.LANCZOS)
         buf = io.BytesIO()
-        im.save(buf, 'WEBP', quality=QUALITY, method=4)
+        im.save(buf, 'WEBP', quality=QUALITY, method=METHOD)
         data = buf.getvalue()
         if len(data) < MIN_BYTES:
             raise RuntimeError('encoded too small')
@@ -156,9 +163,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--workers', type=int, default=3)
     ap.add_argument('--limit', type=int, default=0)
+    ap.add_argument('--jobs', default=JOBS, help='alternate job list (same {url,width,file} shape)')
     args = ap.parse_args()
 
-    with open(JOBS) as fh:
+    with open(args.jobs) as fh:
         jobs = json.load(fh)
     os.makedirs(OUT_DIR, exist_ok=True)
 

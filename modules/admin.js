@@ -1307,9 +1307,9 @@ export function setupAdmin(modifiedApps, renderCatalog) {
         // Brauseschlauch: Duschenmischer = 1600mm standard + 1800mm option only
         //                 Bademischer   = 1250mm standard + 1800mm option only
         const isBadeMixer = appId === 'bademischer';
-        const S1600 = { artNr: '6542 317.501.000', label: 'Brauseschlauch Alterna flexline, 1600 mm, ½"x½", Kunststoff mit Metalleffekt', type: 'Zubehör', imgUrl: 'img/PG1_06542317_501_000_bc717193.webp', menge: 1 };
+        const S1600 = { artNr: '6542 317.501.000', label: 'Brauseschlauch Alterna flexline, 1600 mm, ½"x½", Kunststoff mit Metalleffekt', type: 'Zubehör', imgUrl: 'img/PG1_06542316_501_000_3528e29b.webp', menge: 1 };
         const S1250 = { artNr: '6542 316.501.000', label: 'Brauseschlauch Alterna flexline, 1250 mm, ½"x½", Kunststoff mit Metalleffekt', type: 'Zubehör', imgUrl: 'img/PG1_06542316_501_000_3528e29b.webp', menge: 1 };
-        const S1800 = { artNr: '6542 318.501.000', label: 'Brauseschlauch Alterna flexline, 1800 mm, ½"x½", Kunststoff mit Metalleffekt', type: 'Option', imgUrl: 'img/PG1_06542318_501_000_b9ca03b5.webp', menge: 1 };
+        const S1800 = { artNr: '6542 318.501.000', label: 'Brauseschlauch Alterna flexline, 1800 mm, ½"x½", Kunststoff mit Metalleffekt', type: 'Option', imgUrl: 'img/PG1_06542316_501_000_3528e29b.webp', menge: 1 };
         const OHNE  = { artNr: 'ohne_schlauch', label: 'Ohne Brauseschlauch', type: 'Option', imgUrl: '', menge: 0 };
         const schlauchOptions = isBadeMixer ? [S1250, S1800, OHNE] : [S1600, S1800, OHNE];
 

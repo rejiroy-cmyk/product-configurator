@@ -30,7 +30,7 @@ const bomCountCounter = document.getElementById('bomCount');
                 {
                     artNr: "6511 227.508.000",
                     label: "Regulierventil Laufen ⅜\", 45 mm, ohne Klemmverschraubung, ohne Rosette, Messing",
-                    imgUrl: "img/PG1_06511227_d28357cb.webp",
+                    imgUrl: "img/PG1_06511221_911a68e8.webp",
                     type: "Kaltwasser Ventil"
                 },
                 {
@@ -114,7 +114,7 @@ const bomCountCounter = document.getElementById('bomCount');
                 {
                     artNr: "6511 227.508.000",
                     label: "Regulierventil Laufen ⅜\", 45 mm, ohne Klemmverschraubung, ohne Rosette, Messing",
-                    imgUrl: "img/PG1_06511227_d28357cb.webp",
+                    imgUrl: "img/PG1_06511221_911a68e8.webp",
                     type: "Kaltwasser Ventil"
                 },
                 {
@@ -400,7 +400,7 @@ const bomCountCounter = document.getElementById('bomCount');
         "duschenmischer": createDuschenmischerApp("Duschenmischer", "Duscharmaturen und Sets", "", { enableGalleryUX: true }),
         "bidet": createWaschtischMischerApp("Bidet", "Bidetmischer und Bidetbatterien", "img/PG1_06111143_501_000_d4bcd641.webp"),
         "duschtrennwand": createGlassApp("Duschtrennwand", "Duschwände und Kabinen", "", { cheapestWhenUnfiltered: true }),
-        "badeabtrennung": createGlassApp("Badeabtrennung", "Glastrennwand für Badewanne", "img/PG1_01311872_100_181_3ae32bdd.webp"),
+        "badeabtrennung": createGlassApp("Badeabtrennung", "Glastrennwand für Badewanne", "img/PG1_01311872_100_000_ce680c8f.webp"),
         "waschtrog": createRelationalApp("Waschtröge", "Waschtröge, Waschrinnen, Ausgussbecken & Zubehör", "img/PG1_07211801_104_000_4a2f6f4b.webp", { isMixer: false, hideMontageart: true, hideManualSizeInputs: true, hideForm: true, sizeLabel: "Breite", exactSizes: true, washStation: true }),
 
         "badewanne": Object.assign(createBadewanneApp("Badewanne", "Wannensystem mit passendem Zubehör", "img/PG1_01113324_ab097814.webp", { montageLabel1: "Mit Wannenträger", montageLabel2: "Mit Wannenfüssen", }), {
@@ -419,7 +419,7 @@ const bomCountCounter = document.getElementById('bomCount');
         // ------------------------------------------
         //  App 7: Duschenwanne (Dynamic Filter)
         // ------------------------------------------
-        "duschenwanne": Object.assign(createDuschenwanneApp("Duschenwanne", "Duschsystem mit passenden Komponenten", "img/PG1_01311872_100_181_3ae32bdd.webp", { montageLabel3: "Stelzfüsse", montageLabel4: "Nivodübel", montageLabel5: "Wannenanker" }), {
+        "duschenwanne": Object.assign(createDuschenwanneApp("Duschenwanne", "Duschsystem mit passenden Komponenten", "img/PG1_01311872_100_000_ce680c8f.webp", { montageLabel3: "Stelzfüsse", montageLabel4: "Nivodübel", montageLabel5: "Wannenanker" }), {
             trays: [
                 // === Alterna ===
                 {
@@ -437,7 +437,7 @@ const bomCountCounter = document.getElementById('bomCount');
                     ]
                 },
                 {
-                    id: "a3", manufacturer: "Alterna", form: "Quadratisch", size: "90x90", artNr: "1317 154.100.000", label: "Alterna ecoplan 90x90cm, Weiss", imgUrl: "img/PG1_01317154_100_000_622afeec.webp",
+                    id: "a3", manufacturer: "Alterna", form: "Quadratisch", size: "90x90", artNr: "1317 154.100.000", label: "Alterna ecoplan 90x90cm, Weiss", imgUrl: "img/PG1_01317153_100_000_6f5b8287.webp",
                     mountingMaterials: [
                         { artNr: "0000 001.000.000", label: "Wannenfüsse (Platzhalter)", type: "Zubehör" },
                         { artNr: "0000 002.000.000", label: "Ablauf (Platzhalter)", type: "Zubehör" }

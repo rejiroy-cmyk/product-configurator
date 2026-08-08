@@ -132,29 +132,33 @@ const getVariantColor = (label, artNr) => {
     return '#4FC3F7';
 };
 
-// Placeholder / broken CDN URL signals. A URL containing any of these is NOT a real
-// product photo: _nV serves a generic grey box (200).
-//
-// NOTE: _100_000 / _000_000 used to be listed here on the assumption they were 404s.
-// They are not — they are the colour-code half of the art-Nr (`.100.000` ->
-// `_100_000`), and 2000 of the 2004 such URLs in custom-data.json are live product
-// photos. Listing them suppressed ~7.5k real images. The four genuine 404s were
-// blanked to '' in the data instead (st-scraper/revalidate-colourcode-images.cjs).
-// A URL suffix tells you nothing about existence — only a CDN HEAD check does, so
-// validate in the scraper and keep this list to true no-image markers.
-const PLACEHOLDER_IMG = ['_nV', 'no-image', 'placeholder'];
+// Filename blocklists for REMOTE urls only. Twice now a pattern on this list turned
+// out to mean the opposite of what was assumed:
+//   _100_000 / _000_000 — believed to be 404s, actually the colour-code half of the
+//     art-Nr; 2000 of 2004 were live photos and listing them hid ~7.5k images.
+//   _nV — believed to be a generic grey box, actually the per-article technical
+//     DRAWING that profishop itself shows as the primary listing thumbnail. In PG1 it
+//     is a real ~26 KB drawing; in PS1 the same name is an 859-byte placeholder.
+// The lesson both times: a filename tells you nothing, only fetching does.
+const PLACEHOLDER_IMG = ['no-image', 'placeholder'];
 
 // Non-photo image banks: SAP/YM1 = technical drawings / Schallschutz diagrams,
 // Energieetiketten = EU energy labels. Real product photos live only in Web/PG1|PS1.
 const NON_PHOTO_IMG = ['/multimedia/SAP/', '/Energieetiketten/'];
 
-// True only for a confirmed, real product PHOTO URL. Guards every <img src> so the
-// app never requests a fabricated/placeholder URL (that traffic got the account
-// shadow-banned) and never shows a drawing/label as the product image. Confirmed
-// URLs are baked into custom-data.json via st-scraper.
-const isRealImg = (u) => !!(u && String(u).trim())
-    && !PLACEHOLDER_IMG.some(s => u.includes(s))
-    && !NON_PHOTO_IMG.some(s => u.includes(s));
+// True only for an image we can actually show.
+//
+// Local `img/…` paths are trusted unconditionally: they exist only because the
+// scraper fetched, decoded and size-checked them, so a filename heuristic can only
+// do damage here — `img/PG1_01545379_nV_….webp` IS the shop's own thumbnail, and the
+// old _nV rule would have blanked every Duschtrennwand tile.
+// Remote urls still get the blocklists, since nothing has validated those.
+const isRealImg = (u) => {
+    if (!u || !String(u).trim()) return false;
+    if (String(u).startsWith('img/')) return true;
+    return !PLACEHOLDER_IMG.some(s => u.includes(s))
+        && !NON_PHOTO_IMG.some(s => u.includes(s));
+};
 
 // Real image URL for a product object, or '' → callers fall back to the local
 // placeholder icon. Replaces the old getSanitasImgUrl guesser (which fabricated URLs).
@@ -461,13 +465,13 @@ const renderAccessoiresPanel = (app, s) => {
 // ============================================================================
 const SHOWER_STD = {
     brauseschlauch: [
-        { artNr: "6542 317.501.000", label: 'Brauseschlauch Alterna flexline, 1600 mm, ½"x½", Kunststoff mit Metalleffekt', menge: 1, type: "Zubehör", imgUrl: "img/PG1_06542317_501_000_bc717193.webp" },
-        { artNr: "6542 318.501.000", label: 'Brauseschlauch Alterna flexline, 1800 mm, ½"x½", Kunststoff mit Metalleffekt', menge: 1, type: "Option", imgUrl: "img/PG1_06542318_501_000_b9ca03b5.webp" },
+        { artNr: "6542 317.501.000", label: 'Brauseschlauch Alterna flexline, 1600 mm, ½"x½", Kunststoff mit Metalleffekt', menge: 1, type: "Zubehör", imgUrl: "img/PG1_06542316_501_000_3528e29b.webp" },
+        { artNr: "6542 318.501.000", label: 'Brauseschlauch Alterna flexline, 1800 mm, ½"x½", Kunststoff mit Metalleffekt', menge: 1, type: "Option", imgUrl: "img/PG1_06542316_501_000_3528e29b.webp" },
         { artNr: "ohne_schlauch", label: "Ohne Brauseschlauch", menge: 0, type: "Option", imgUrl: "" }
     ],
     handbrause: [
-        { artNr: "6541 336.501.000", label: "Handbrause Alterna saveline 3, Ø 120 mm, 3-jet, umstellbar, Verchromt", menge: 1, type: "Zubehör", imgUrl: "img/PG1_06541336_501_000_6c612826.webp" },
-        { artNr: "6541 333.501.000", label: "Handbrause Alterna saveline, Ø 120 mm, 1-jet, IntensiveRain, Verchromt", menge: 1, type: "Option", imgUrl: "img/PG1_06541333_501_000_ec72b6b1.webp" },
+        { artNr: "6541 336.501.000", label: "Handbrause Alterna saveline 3, Ø 120 mm, 3-jet, umstellbar, Verchromt", menge: 1, type: "Zubehör", imgUrl: "img/PG1_06541334_501_000_d3cc8a6e.webp" },
+        { artNr: "6541 333.501.000", label: "Handbrause Alterna saveline, Ø 120 mm, 1-jet, IntensiveRain, Verchromt", menge: 1, type: "Option", imgUrl: "img/PG1_06541330_501_000_1a034628.webp" },
         { artNr: "6541 326.501.000", label: "Handbrause Alterna easyline, Ø 101 mm, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "img/PG1_06541326_501_000_a6b9a8ef.webp" },
         { artNr: "6541 329.501.000", label: "Handbrause Alterna streamline, rund, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "img/PG1_06541329_501_000_c8293ee3.webp" },
         { artNr: "6541 324.501.000", label: "Handbrause Alterna smartline, Ø 93 mm, 1-jet, SoftRain, Verchromt", menge: 1, type: "Option", imgUrl: "img/PG1_06541324_501_000_c5075f1c.webp" },

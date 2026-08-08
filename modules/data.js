@@ -5,7 +5,7 @@ export const catalog = [
         "id": "dusche",
         "name": "Dusche",
         "icon": "ri-drop-fill",
-        "thumbnail": "img/PG1_01311872_100_181_3ae32bdd.webp",
+        "thumbnail": "img/PG1_01311872_100_000_ce680c8f.webp",
         "subcategories": [
             {
                 "id": "duschenwanne",
