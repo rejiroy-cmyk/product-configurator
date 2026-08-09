@@ -1,5 +1,5 @@
-import { DATA_VERSION, catalog } from './modules/data.js?v=2.5.6';
-import { productApps } from './modules/apps.js?v=2.6.52';
+import { DATA_VERSION, catalog } from './modules/data.js?v=2.6.0';
+import { productApps } from './modules/apps.js?v=2.7.1';
 import { setupAdmin } from './modules/admin.js?v=2.5.6';
 // Catalog + price table are embedded as gzip+base64 (see vite.config.js) and inflated at
 // runtime, so the shipped single-file build stays small and the catalog/prices are not
@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const copyBtnText = document.getElementById('copyBtnText');
         if (copyBtnText) {
-            if (appId === 'waschtisch' || appId === 'mixandmatch') {
+            if (appId === 'waschtisch' || appId === 'mixandmatch' || appId === 'bidet') {
                 copyBtnText.textContent = 'G1 kopieren';
             } else {
                 copyBtnText.textContent = 'Artikelnummern kopieren';
@@ -255,6 +255,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             const allFaucets = productApps.waschtischmischer?.trays || [];
             window.currentActiveApp.init(basins, allFaucets);
             // Show the Lose Artikel button only for Mix & Match
+            const looseBtn = document.getElementById('copyLooseBtn');
+            if (looseBtn) looseBtn.style.display = '';
+        } else if (appId === 'bidet') {
+            // Same two-pool shape as Mix & Match: the ceramic comes from its own data pool,
+            // the mixers are the Bidet app's own trays.
+            document.body.classList.add('mixmatch-active');
+            const ceramics = productApps.bidet_keramik?.trays || [];
+            window.currentActiveApp.init(ceramics, window.currentActiveApp.trays || []);
+            // Bidet splits its Stückliste into a G1 set + loose articles, so it needs the
+            // second copy button too.
             const looseBtn = document.getElementById('copyLooseBtn');
             if (looseBtn) looseBtn.style.display = '';
         } else {
@@ -1185,12 +1195,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnGlobalReset) {
         btnGlobalReset.addEventListener('click', () => {
             if (window.currentActiveApp && typeof window.currentActiveApp.init === 'function') {
-                if (document.body.classList.contains('mixmatch-active')) {
+                // Two-pool apps must be re-inited with their pools. Key off the app itself,
+                // not the mixmatch-active body class — Bidet sets that class too (it uses the
+                // same wide finder layout) but is fed from a different pool.
+                const app = window.currentActiveApp;
+                if (app === window.productApps?.bidet) {
+                    app.init(window.productApps?.bidet_keramik?.trays || [], app.trays || []);
+                } else if (document.body.classList.contains('mixmatch-active')) {
                     const basins = window.productApps?.waschtisch?.trays || [];
                     const allFaucets = window.productApps?.waschtischmischer?.trays || [];
-                    window.currentActiveApp.init(basins, allFaucets);
+                    app.init(basins, allFaucets);
                 } else {
-                    window.currentActiveApp.init();
+                    app.init();
                 }
             }
         });

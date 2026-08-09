@@ -180,6 +180,12 @@ export const catalog = [
                 "name": "Zubehör-Vorlagen",
                 "appId": "vorlagen",
                 "hasApp": true
+            },
+            {
+                "id": "bidet_keramik",
+                "name": "Bidet-Keramik",
+                "appId": "bidet_keramik",
+                "hasApp": true
             }
         ]
     }

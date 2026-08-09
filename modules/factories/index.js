@@ -13,3 +13,4 @@ export { createWCApp } from './createWCApp.js';
 export { createDuschenwanneApp } from './createDuschenwanneApp.js';
 export { createDuschenrinneApp } from './createDuschenrinneApp.js';
 export { createBadewanneApp } from './createBadewanneApp.js';
+export { createBidetApp } from './createBidetApp.js';

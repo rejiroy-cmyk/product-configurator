@@ -66,6 +66,10 @@ const GUARDED = {
     'modules/factories/createWashbasinApp.js': [
         'extractSerie', 'extractUeberlauf', 'extractAusfuehrung', 'extractHahnloch', 'extractAbstellflaeche',
     ],
+    'modules/factories/createBidetApp.js': [
+        'extractMontage', 'extractBefestigung', 'extractSerie', 'extractBreite',
+        'extractMixerTyp', 'extractMixerSerie', 'extractAusladung',
+    ],
     'modules/factories/createMixAndMatchApp.js': [
         'extractSerie', 'extractFaucetSerie', 'extractUeberlauf', 'extractAblauf',
         'extractAbstellflaeche', 'extractAusladung', 'extractAuslauf', 'extractBasinTyp',

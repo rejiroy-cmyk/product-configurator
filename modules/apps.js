@@ -1,4 +1,4 @@
-import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp } from './factories.js?v=2.6.66';
+import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp, createBidetApp } from './factories.js?v=2.7.1';
 
 const configSidebar = document.getElementById('configSidebar');
 const bomTableBody = document.getElementById('bomTableBody');
@@ -398,7 +398,7 @@ const bomCountCounter = document.getElementById('bomCount');
         // ==========================================
 
         "duschenmischer": createDuschenmischerApp("Duschenmischer", "Duscharmaturen und Sets", "", { enableGalleryUX: true }),
-        "bidet": createWaschtischMischerApp("Bidet", "Bidetmischer und Bidetbatterien", "img/PG1_06111143_501_000_d4bcd641.webp"),
+        "bidet": createBidetApp("Bidet", "Bidet, Bidetmischer & Zubehör", "img/PG1_06111143_501_000_d4bcd641.webp"),
         "duschtrennwand": createGlassApp("Duschtrennwand", "Duschwände und Kabinen", "", { cheapestWhenUnfiltered: true }),
         "badeabtrennung": createGlassApp("Badeabtrennung", "Glastrennwand für Badewanne", "img/PG1_01311872_100_000_ce680c8f.webp"),
         "waschtrog": createRelationalApp("Waschtröge", "Waschtröge, Waschrinnen, Ausgussbecken & Zubehör", "img/PG1_07211801_104_000_4a2f6f4b.webp", { isMixer: false, hideMontageart: true, hideManualSizeInputs: true, hideForm: true, sizeLabel: "Breite", exactSizes: true, washStation: true }),
@@ -466,5 +466,13 @@ const bomCountCounter = document.getElementById('bomCount');
         // ------------------------------------------
         //  App 9: Zubehör-Vorlagen (Admin Only)
         // ------------------------------------------
-        "vorlagen": { trays: [] }
+        "vorlagen": { trays: [] },
+
+        // ------------------------------------------
+        //  App 10: Bidet-Keramik (data only)
+        // ------------------------------------------
+        //  The ceramic column of the Bidet builder. A pure data pool like `vorlagen` —
+        //  it has no UI of its own; openConfigurator hands its trays to the Bidet app,
+        //  the same way Mix & Match is fed from waschtisch + waschtischmischer.
+        "bidet_keramik": { trays: [] }
     };
