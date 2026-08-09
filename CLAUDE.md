@@ -165,9 +165,16 @@ label+description concatenation) as the source for such checks.
   `window.customWishlist`, `window.openConfigurator`). Some `window.*` functions are
   **load-bearing for inline `onclick=` handlers in `index.html`** — don't remove a
   global without also fixing its HTML caller.
-- **Manual cache-busting:** imports/assets carry hand-bumped `?v=x.y.z` query strings
-  (`app.js?v=2.8.30`, `factories.js?v=2.6.31`, etc.). This is a deliberate workflow;
-  bump them when shipping if you rely on it.
+- **Manual cache-busting:** imports/assets carry hand-bumped `?v=x.y.z` query strings.
+  There are exactly six, in a chain — `grep -rn '?v=' index.html app.js modules/apps.js`
+  finds all of them (values as of 2026-08-09; they drift, so grep rather than trust this
+  list):
+  - `index.html` → `app.js?v=2.9.2`, `index.css?v=1.1.12`
+  - `app.js` → `modules/data.js?v=2.6.1`, `modules/apps.js?v=2.7.2`, `modules/admin.js?v=2.5.6`
+  - `modules/apps.js` → `factories.js?v=2.7.2`
+
+  This is a deliberate workflow; bump them when shipping if you rely on it. Bumping a
+  module means bumping it at its **importer**, not inside the module itself.
 - `st-scraper/` is a separate data-pipeline toolkit (scrapes vendor catalogs into
   `custom-data.json`). `_archive/` and `scratch/` are git-ignored throwaways.
 - After touching `modules/factories/`, verify with: `npm test`, then load the dev
