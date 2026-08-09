@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM , fullLabel , accessoryFacetBar } from './_shared.js';
 
 export function createWCApp(title, desc, mainImgUrl, config = {}) {
     const isMixer = config.isMixer || title.toLowerCase().includes('mischer') || title.toLowerCase().includes('armatur');
@@ -13,7 +13,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
         mainImgUrl: mainImgUrl,
         selectedTray: null,
         showAccessoires: false,
-        currentAccessoiresSerie: 'all',
+        accFacets: {},
         selectedAccessoires: [],
         extractSerie: function (t) {
             if (t.serie) return t.serie;
@@ -194,7 +194,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             this.isToiletApp = (title.toLowerCase().includes('klosett') || title.toLowerCase().includes('wc'));
             this.selectedTray = null;
             this.showAccessoires = false;
-            this.currentAccessoiresSerie = 'all';
+            this.accFacets = {};
             this.selectedAccessoires = [];
             this.currentMontageart = 'alle';
             this.currentManufacturer = 'all';
@@ -282,8 +282,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                             <button class="ios-toggle" data-target="accessoires_wc" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
                         </div>
                         <div id="addon_accessoires_wc_panel_${suffix}" class="addon-panel" style="display:none;">
-                            <div class="finder-sub-header">Kategorie</div>
-                            <div class="pill-group" id="list_addon_accessoires_serie_wc_${suffix}" style="margin-bottom: 0.75rem;"></div>
+                            <div id="acc_facets_wc_${suffix}"></div>
                             <div class="finder-sub-header">Accessoires wählen</div>
                             <div class="finder-list" id="list_addon_accessoires_wc_${suffix}"></div>
                         </div>
@@ -853,7 +852,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         this.showAccessoires = !this.showAccessoires;
                         if (!this.showAccessoires) {
                             this.selectedAccessoires = [];
-                            this.currentAccessoiresSerie = 'all';
+                            this.accFacets = {};
                         }
                         this.updateAccessoiresToggles();
                         if (this.showAccessoires) this.populateAccessoires();
@@ -888,23 +887,16 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             });
             
             
-            const serieListEl = document.getElementById(`list_addon_accessoires_serie_wc_${suffix}`);
-            if (serieListEl) {
-                const series = [...new Set(candidates.map(c => this.extractSerie(c)))].filter(Boolean).sort();
-                serieListEl.innerHTML = `<button class="pill-btn ${this.currentAccessoiresSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
-                    series.map(s => `<button class="pill-btn ${this.currentAccessoiresSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
-                
-                serieListEl.querySelectorAll('.pill-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        this.currentAccessoiresSerie = btn.dataset.val;
-                        this.populateAccessoires();
-                    });
-                });
+            // Same shared facet bar as every other configurator (Produktkategorie /
+            // Hersteller / Serie / Farbe, bidirectionally faceted).
+            let facetWrap = document.getElementById(`acc_facets_wc_${suffix}`);
+            if (!facetWrap) {
+                facetWrap = document.createElement('div');
+                facetWrap.id = `acc_facets_wc_${suffix}`;
+                listEl.parentNode.insertBefore(facetWrap, listEl.previousElementSibling || listEl);
             }
-            
-            if (this.currentAccessoiresSerie !== 'all') {
-                candidates = candidates.filter(c => this.extractSerie(c) === this.currentAccessoiresSerie);
-            }
+            if (!this.accFacets) this.accFacets = {};
+            candidates = accessoryFacetBar(candidates, this.accFacets, facetWrap, `acc_wc_${suffix}`, () => this.populateAccessoires());
             
             listEl.innerHTML = '';
             if (candidates.length === 0) {
@@ -918,7 +910,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     <div style="display:flex; align-items:center; gap:0.5rem;">
                         ${(imgOf(c)) ? `<img src="${imgOf(c)}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;" onerror="this.outerHTML='<div style=&quot;width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;&quot;><i class=&quot;ri-image-line placeholder-icon&quot;></i></div>'">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
                         <div>
-                            <div style="font-size:0.8rem; font-weight:500; line-height:1.3;">${c.label}</div>
+                            <div style="font-size:0.8rem; font-weight:500; line-height:1.3;">${fullLabel(c)}</div>
                             <div style="font-size:0.7rem; color:var(--st-gray); margin-top:0.25rem;">
                                 ${c.manufacturer || ''} ${this.extractSerie(c) !== 'Andere' ? '· ' + this.extractSerie(c) : ''}
                             </div>
@@ -1324,7 +1316,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     if (!item.artNr || item.artNr === 'none' || item.menge === 0 || (item.label && item.label.toLowerCase().startsWith('ohne'))) return;
                 }
                 
-                let descHTML = `<div class="bom-desc">${item.label}</div>`;
+                let descHTML = `<div class="bom-desc">${fullLabel(item)}</div>`;
                 if (item.isInlineDropdown && item.options) {
                     const optionsHTML = item.options.map(opt => {
                         const foundZub = zubPool.find(z => z.artNr === opt.artNr);

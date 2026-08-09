@@ -1702,8 +1702,14 @@ body.mixmatch-active {
 }
 
 .finder-preview-col {
-  flex: 1;
-  min-width: 600px;
+  flex: 1 1 auto;
+  /* The finder shelf is a horizontal scroller (width: max-content), so an
+     unbounded preview column grows to its content and pushes the Stückliste
+     off the right edge of the screen — which clipped the article descriptions.
+     Cap it at whatever the viewport has left after the three 350px filter
+     columns, but never below a readable width. */
+  min-width: 520px;
+  max-width: calc(100vw - 1060px);
   background: var(--bg-surface);
   padding: 2.5rem;
   overflow-y: auto;

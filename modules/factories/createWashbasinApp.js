@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel , fullLabel } from './_shared.js';
 
 export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
     const suffix = title.replace(/\s/g, '');
@@ -9,14 +9,12 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
         selectedTray: null,
         showAccessoires: false,
         selectedAddonAccessoires: [],
-        currentAccessoireSerie: 'Alle',
-        accSecondary: {},
+        accFacets: {},
         init: function () {
             this.selectedTray = null;
             this.showAccessoires = false;
             this.selectedAddonAccessoires = [];
-            this.currentAccessoireSerie = 'Alle';
-            this.accSecondary = {};
+            this.accFacets = {};
             this.currentBrand = 'all';
             this.currentAusfuehrung = 'all';
             this.currentSerie = 'all';
@@ -179,8 +177,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                         <button class="ios-toggle" data-target="accessoires_mischer_${suffix}" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
                     </div>
                     <div id="addon_accessoires_mischer_panel_${suffix}" class="addon-panel" style="display:none;">
-                        <div class="finder-sub-header">Kategorie</div>
-                        <div class="pill-group" id="list_addon_accessoires_serie_${suffix}" style="margin-bottom: 0.75rem;"></div>
+                        <div id="acc_facets_${suffix}"></div>
                         <div class="finder-sub-header">Accessoires wählen</div>
                         <div class="finder-list" id="list_addon_accessoires_${suffix}"></div>
                     </div>
@@ -598,7 +595,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                 <td><div class="img-cell"><img src="${this.selectedTray.imgUrl || this.mainImgUrl}"></div></td>
                 <td><span class="bom-code">${this.selectedTray.artNr}</span></td>
                 <td>
-                    <div class="bom-desc">${this.selectedTray.label}</div>
+                    <div class="bom-desc">${fullLabel(this.selectedTray)}</div>
                     <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">Waschtisch</div>
                 </td>
                 
@@ -618,7 +615,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                         </div></td>
                         <td><span class="bom-code">${selectedOption.artNr}</span></td>
                         <td>
-                            <div class="bom-desc">${selectedOption.label}</div>
+                            <div class="bom-desc">${fullLabel(selectedOption)}</div>
                         </td>
                         
                         <td><strong>${selectedOption.menge || 1}</strong></td>
@@ -636,7 +633,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                         <td><div class="img-cell">${acc.imgUrl ? `<img src="${acc.imgUrl}" onerror="this.style.display='none';">` : ''}</div></td>
                         <td><span class="bom-code">${acc.artNr}</span></td>
                         <td>
-                            <div class="bom-desc">${acc.label || acc.name}</div>
+                            <div class="bom-desc">${fullLabel(acc)}</div>
                             <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">${acc.productType || 'Accessoire'}</div>
                         </td>
                         <td><strong>${acc.menge || 1}</strong></td>

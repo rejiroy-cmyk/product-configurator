@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem , fullLabel } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
@@ -248,7 +248,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       currentFunktion: "all",
       showAccessoires: false,
       selectedAddonAccessoires: [],
-      currentAccessoireSerie: 'Alle',
+      accFacets: {},
       init: function () {
         ((this.selectedTray = null),
           (this.mischerOptionsState = {}),
@@ -258,7 +258,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           (this.currentFunktion = "all"),
           (this.showAccessoires = false),
           (this.selectedAddonAccessoires = []),
-          (this.currentAccessoireSerie = 'Alle'),
+          (this.accFacets = {}),
           this.renderSidebar(),
           this.bindFilters(), this.filterResults());
           if (!config.enableGalleryUX) { this.clearBOM(); }
@@ -483,8 +483,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                         <button class="ios-toggle" data-target="accessoires_mischer_${s}" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
                     </div>
                     <div id="addon_accessoires_mischer_panel_${s}" class="addon-panel" style="display:none;">
-                        <div class="finder-sub-header">Kategorie</div>
-                        <div class="pill-group" id="list_addon_accessoires_serie_${s}" style="margin-bottom: 0.75rem;"></div>
+                        <div id="acc_facets_${s}"></div>
                         <div class="finder-sub-header">Accessoires wählen</div>
                         <div class="finder-list" id="list_addon_accessoires_${s}"></div>
                     </div>
@@ -914,7 +913,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         // offline, and baked into custom-data.json as a local img/*.webp (961 items), so
         // imgOf() now covers them. Items with no real photo fall back to the local icon.
         // Do not reintroduce a URL guesser — bake images in the scraper instead.
-        let _mainDesc = `<div class="bom-desc">${_active.label}</div>`;
+        let _mainDesc = `<div class="bom-desc">${fullLabel(_active)}</div>`;
         if (config.enableGalleryUX && _variants.length) {
             const _opts = [this.selectedTray, ..._variants].map((sk, idx) =>
                 `<option value="${idx}" ${this.selectedVariantIdx === idx ? 'selected' : ''}>${_finishName(sk.artNr)} (${sk.artNr})</option>`).join('');
@@ -956,10 +955,10 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                 if (_cm) {
                     artNrDisplay = _cm.artNr;
                     imgSrc = imgOf(_cm);
-                    descHTML = `<div class="bom-desc">${_cm.label}</div>
+                    descHTML = `<div class="bom-desc">${fullLabel(_cm)}</div>
                         <div class="bom-desc" style="margin-top:0.2rem; font-size:0.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.03em;">${n.name || 'Zubehör'} · Farbe passend zur Armatur</div>`;
                 } else {
-                    descHTML = `<div class="bom-desc">${l ? l.label : ''}</div>`;
+                    descHTML = `<div class="bom-desc">${l ? fullLabel(l) : ''}</div>`;
                     if (isInlineDropdown) {
                         const optionsHTML = n.options.map((opt, idx) => {
                             const selected = (a === idx) ? 'selected' : '';
@@ -999,7 +998,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                         <tr>
                             <td><div class="img-cell"><img src="${acc.imgUrl || ''}"></div></td>
                             <td><span class="bom-code">${acc.artNr}</span></td>
-                            <td><div class="bom-desc">${acc.label || acc.name}</div></td>
+                            <td><div class="bom-desc">${fullLabel(acc)}</div></td>
 
                             <td><strong>1</strong></td>
                         </tr>
