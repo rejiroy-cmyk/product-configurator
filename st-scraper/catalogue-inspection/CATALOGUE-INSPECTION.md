@@ -25,8 +25,16 @@ PARTIAL — badewanne / duschenwanne / duschtrennwand / badeabtrennung / duschen
 - 3890 base art-Nrs, 2015 enriched, 988 with mounting materials. See `ch1-report.md`.
 
 ### Ch2 — Keramik – Waschtische, Klosetts, Bidets, Urinoirs, Möbel
-PARTIAL — waschtisch / wandklosett / standklosett exist; Waschtischmöbel, Bidets, Urinoirs UNINJECTED
+PARTIAL — **Waschtische DONE** (`inject-ch2-waschtisch.cjs`); wandklosett / standklosett exist;
+Waschtischmöbel, Bidets, Urinoirs UNINJECTED
 - 2187 base art-Nrs, 1462 enriched, 1330 with mounting materials. See `ch2-report.md`.
+- Washbasins: 333 injected into `waschtisch.trays` (494 → 827) with 719 colour variants, 484
+  mounting groups and 166 new prices — Duravit and Villeroy & Boch were entirely absent before,
+  as were the Auflegewaschtisch lines of Laufen Val / Lua / Kartell / Ino. 29 bases are still
+  out: no full art-Nr exists in the API, the Ch2 scrape or prices.json, and the finish triplet
+  is not guessable. Re-run the injector after an API refetch (`COOKIE_FILE=… fetch_catalogue_api.js 2`)
+  to pick them up — it is idempotent and skips what is already in. See
+  `ch2-waschtisch-injection-report.json`.
 
 ### Ch3 — Einzelsanitärapparate und Installationssysteme
 UNINJECTED (scraped only 305 of ~1046 bases)
