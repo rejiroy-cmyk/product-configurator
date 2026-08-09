@@ -1,0 +1,4629 @@
+{
+  "generated": "2026-08-09T14:37:56.537Z",
+  "source": "Sanitas Troesch 2026.6 — Chapter 2 (Keramik, PDF pages 453-695)",
+  "added": [
+    {
+      "base": "2111311",
+      "artNr": "2111 311.100.000",
+      "manufacturer": "Laufen",
+      "size": "54 x 45",
+      "label": "Waschtisch Arolla New, 54 x 45 cm, Armaturenloch, mit Überlauf, Weiss",
+      "serie": "Arolla New",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 507
+    },
+    {
+      "base": "2111315",
+      "artNr": "2111 315.100.000",
+      "manufacturer": "Laufen",
+      "size": "54 x 45",
+      "label": "Waschtisch Arolla New, 54 x 45 cm, ohne Armaturenloch, mit Überlauf, Weiss",
+      "serie": "Arolla New",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 507
+    },
+    {
+      "base": "2111312",
+      "artNr": "2111 312.100.000",
+      "manufacturer": "Laufen",
+      "size": "62 x 51",
+      "label": "Waschtisch Arolla New, 62 x 51 cm, Armaturenloch, mit Überlauf, Weiss",
+      "serie": "Arolla New",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 507
+    },
+    {
+      "base": "2111316",
+      "artNr": "2111 316.100.000",
+      "manufacturer": "Laufen",
+      "size": "62 x 51",
+      "label": "Waschtisch Arolla New, 62 x 51 cm, ohne Armaturenloch, mit Überlauf, Weiss",
+      "serie": "Arolla New",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 507
+    },
+    {
+      "base": "2111806",
+      "artNr": "2111 806.100.000",
+      "manufacturer": "Laufen",
+      "size": "48 x 36",
+      "label": "Auflegewandbecken Laufen Moderna R, Armaturenloch, 48 x 36 cm, Höhe 9 cm",
+      "serie": "Moderna R",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 535
+    },
+    {
+      "base": "2111807",
+      "artNr": "2111 807.100.000",
+      "manufacturer": "Laufen",
+      "size": "48 x 36",
+      "label": "Auflegewandbecken Laufen Moderna R, ohne Armaturenloch, 48 x 36 cm, Höhe 9",
+      "serie": "Moderna R",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 535
+    },
+    {
+      "base": "2111808",
+      "artNr": "2111 808.100.000",
+      "manufacturer": "Laufen",
+      "size": "54 x 43.5",
+      "label": "Auflegewaschtisch Laufen Moderna R, Armaturenloch, 54 x 43,5 cm, Höhe 10",
+      "serie": "Moderna R",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 535
+    },
+    {
+      "base": "2111809",
+      "artNr": "2111 809.100.000",
+      "manufacturer": "Laufen",
+      "size": "54 x 43.5",
+      "label": "Auflegewaschtisch Laufen Moderna R, ohne Armaturenloch, 54 x 43,5 cm, Höhe",
+      "serie": "Moderna R",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 535
+    },
+    {
+      "base": "2111819",
+      "artNr": "2111 819.100.000",
+      "manufacturer": "Laufen",
+      "size": "62 x 46.5",
+      "label": "Auflegewaschtisch Laufen Moderna R, Armaturenloch, 62 x 46,5 cm, Höhe 10",
+      "serie": "Moderna R",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 535
+    },
+    {
+      "base": "2111820",
+      "artNr": "2111 820.100.000",
+      "manufacturer": "Laufen",
+      "size": "62 x 46.5",
+      "label": "Auflegewaschtisch Laufen Moderna R, ohne Armaturenloch, 62 x 46,5 cm, Höhe",
+      "serie": "Moderna R",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 535
+    },
+    {
+      "base": "2112402",
+      "artNr": "2112 402.100.000",
+      "manufacturer": "Laufen",
+      "size": "48 x 28",
+      "label": "Wandbecken Pro / Pro S, Armaturenloch rechts, 48 x 28 cm, Abstellfläche",
+      "serie": "Pro / Pro S",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 543
+    },
+    {
+      "base": "2112404",
+      "artNr": "2112 404.100.000",
+      "manufacturer": "Laufen",
+      "size": "48 x 28",
+      "label": "Wandbecken Pro / Pro S, ohne Armaturenloch, 48 x 28 cm",
+      "serie": "Pro / Pro S",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 543
+    },
+    {
+      "base": "2112407",
+      "artNr": "2112 407.100.000",
+      "manufacturer": "Laufen",
+      "size": "48 x 28",
+      "label": "Wandbecken Pro / Pro S, Armaturenloch links, 48 x 28 cm, Abstellfläche links",
+      "serie": "Pro / Pro S",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 543
+    },
+    {
+      "base": "2112408",
+      "artNr": "2112 408.100.000",
+      "manufacturer": "Laufen",
+      "size": "48 x 28",
+      "label": "Wandbecken Pro / Pro S, ohne Armaturenloch, 48 x 28 cm",
+      "serie": "Pro / Pro S",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 543
+    },
+    {
+      "base": "2112409",
+      "artNr": "2112 409.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 38",
+      "label": "Waschtisch Pro Compact / Pro S, Armaturenloch, 55 x 38 cm, mit",
+      "serie": "Pro Compact / Pro S",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 543
+    },
+    {
+      "base": "2112410",
+      "artNr": "2112 410.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 38",
+      "label": "Waschtisch Pro Compact / Pro S, ohne Armaturenloch, 55 x 38 cm, mit",
+      "serie": "Pro Compact / Pro S",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 543
+    },
+    {
+      "base": "2112496",
+      "artNr": "2112 496.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 38",
+      "label": "Waschtisch Pro Compact / Pro S, Armaturenloch, 55 x 38 cm, ohne",
+      "serie": "Pro Compact / Pro S",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 543
+    },
+    {
+      "base": "2112497",
+      "artNr": "2112 497.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 38",
+      "label": "Waschtisch Pro Compact / Pro S, ohne Armaturenloch, 55 x 38 cm, ohne",
+      "serie": "Pro Compact / Pro S",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 543
+    },
+    {
+      "base": "2112414",
+      "artNr": "2112 414.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 38",
+      "label": "Waschtisch Pro Compact / Pro S, Armaturenloch, 60 x 38 cm, mit",
+      "serie": "Pro Compact / Pro S",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 543
+    },
+    {
+      "base": "2112418",
+      "artNr": "2112 418.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 38",
+      "label": "Waschtisch Pro Compact / Pro S, ohne Armaturenloch, 60 x 38 cm, mit",
+      "serie": "Pro Compact / Pro S",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 543
+    },
+    {
+      "base": "2112498",
+      "artNr": "2112 498.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 38",
+      "label": "Waschtisch Pro Compact / Pro S, Armaturenloch, 60 x 38 cm, ohne",
+      "serie": "Pro Compact / Pro S",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 544
+    },
+    {
+      "base": "2112499",
+      "artNr": "2112 499.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 38",
+      "label": "Waschtisch Pro Compact / Pro S, ohne Armaturenloch, 60 x 38 cm, ohne",
+      "serie": "Pro Compact / Pro S",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 544
+    },
+    {
+      "base": "2112433",
+      "artNr": "2112 433.100.000",
+      "manufacturer": "Laufen",
+      "size": "Ø 42",
+      "label": "Einbauwaschtisch Pro, Ø 42 cm, Einbau von unten, ohne Armaturenbank, mit",
+      "serie": "Pro",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 544
+    },
+    {
+      "base": "2112430",
+      "artNr": "2112 430.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 38",
+      "label": "Einbauwaschtisch Pro / Pro S, 55 x 38 cm, Einbau von unten, ohne",
+      "serie": "Pro / Pro S",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 544
+    },
+    {
+      "base": "2112435",
+      "artNr": "2112 435.100.000",
+      "manufacturer": "Laufen",
+      "size": "49 x 36",
+      "label": "Einbauwaschtisch Pro / Pro S, 49 x 36 cm, Einbau von unten, ohne",
+      "serie": "Pro / Pro S",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 544
+    },
+    {
+      "base": "2112442",
+      "artNr": "2112 442.100.000",
+      "manufacturer": "Laufen",
+      "size": "52 x 39",
+      "label": "Auflegewaschtisch Pro, mit Überlauf, 52 x 39 cm, Höhe 15 cm, oval",
+      "serie": "Pro",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 544
+    },
+    {
+      "base": "2112427",
+      "artNr": "2112 427.100.000",
+      "manufacturer": "Laufen",
+      "size": "52 x 39",
+      "label": "Auflegewaschtisch Pro, ohne Überlauf, 52 x 39 cm, Höhe 15 cm, oval",
+      "serie": "Pro",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 544
+    },
+    {
+      "base": "2112440",
+      "artNr": "2112 440.100.000",
+      "manufacturer": "Laufen",
+      "size": "Ø 42",
+      "label": "Auflegewaschtisch Pro, mit Überlauf, Ø 42 cm, Höhe 14 cm",
+      "serie": "Pro",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 544
+    },
+    {
+      "base": "2112456",
+      "artNr": "2112 456.100.000",
+      "manufacturer": "Laufen",
+      "size": "Ø 42",
+      "label": "Auflegewaschtisch Pro, ohne Überlauf, Ø 42 cm, Höhe 14 cm",
+      "serie": "Pro",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 544
+    },
+    {
+      "base": "2112400",
+      "artNr": "2112 400.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 38",
+      "label": "Auflegewaschtisch Laufen Pro, 55 x 38 cm, Höhe 11,5 cm, ohne Überlauf, ohne",
+      "serie": "Pro",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 544
+    },
+    {
+      "base": "2112461",
+      "artNr": "2112 461.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 55",
+      "label": "Waschtisch Laufen Pro Liberty, mit Überlauf, 60 x 55 cm, barrierefrei",
+      "serie": "Pro Liberty",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 544
+    },
+    {
+      "base": "2112463",
+      "artNr": "2112 463.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 55",
+      "label": "Waschtisch Laufen Pro Liberty, ohne Überlauf, 60 x 55 cm, barrierefrei",
+      "serie": "Pro Liberty",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 544
+    },
+    {
+      "base": "2112419",
+      "artNr": "2112 419.100.000",
+      "manufacturer": "Laufen",
+      "size": "65 x 55",
+      "label": "Waschtisch Laufen Pro Liberty, 65 x 55 cm, barrierefrei, Armaturenloch, mit",
+      "serie": "Pro Liberty",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 545
+    },
+    {
+      "base": "2112221",
+      "artNr": "2112 221.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 46.5",
+      "label": "Auflegewaschtisch Pro S, 55 x 46,5 cm, Höhe 9,5 cm, Armaturenloch, mit",
+      "serie": "Pro S",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 550
+    },
+    {
+      "base": "2112223",
+      "artNr": "2112 223.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 46.5",
+      "label": "Auflegewaschtisch Pro S, 60 x 46,5 cm, Höhe 9,5 cm, Armaturenloch, mit",
+      "serie": "Pro S",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 550
+    },
+    {
+      "base": "2112261",
+      "artNr": "2112 261.713.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 50",
+      "label": "Waschtischkombination Pro S, ohne Innenschublade, Breite 60 cm, Tiefe 50",
+      "serie": "Pro S",
+      "variants": 3,
+      "mounting": [],
+      "pdfPage": 561
+    },
+    {
+      "base": "2112262",
+      "artNr": "2112 262.713.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 50",
+      "label": "Waschtischkombination Pro S, mit Innenschublade, Breite 60 cm, Tiefe 50",
+      "serie": "Pro S",
+      "variants": 3,
+      "mounting": [],
+      "pdfPage": 561
+    },
+    {
+      "base": "2112263",
+      "artNr": "2112 263.713.000",
+      "manufacturer": "Laufen",
+      "size": "80 x 50",
+      "label": "Waschtischkombination Pro S, ohne Innenschublade, Breite 80 cm, Tiefe 50",
+      "serie": "Pro S",
+      "variants": 3,
+      "mounting": [],
+      "pdfPage": 561
+    },
+    {
+      "base": "2112264",
+      "artNr": "2112 264.713.000",
+      "manufacturer": "Laufen",
+      "size": "80 x 50",
+      "label": "Waschtischkombination Pro S, mit Innenschublade, Breite 80 cm, Tiefe 50",
+      "serie": "Pro S",
+      "variants": 3,
+      "mounting": [],
+      "pdfPage": 561
+    },
+    {
+      "base": "2112265",
+      "artNr": "2112 265.713.000",
+      "manufacturer": "Laufen",
+      "size": "100 x 50",
+      "label": "Waschtischkombination Pro S, ohne Innenschublade, Breite 100 cm, Tiefe 50",
+      "serie": "Pro S",
+      "variants": 3,
+      "mounting": [],
+      "pdfPage": 561
+    },
+    {
+      "base": "2112266",
+      "artNr": "2112 266.713.000",
+      "manufacturer": "Laufen",
+      "size": "100 x 50",
+      "label": "Waschtischkombination Pro S, mit Innenschublade, Breite 100 cm, Tiefe 50",
+      "serie": "Pro S",
+      "variants": 3,
+      "mounting": [],
+      "pdfPage": 561
+    },
+    {
+      "base": "2112770",
+      "artNr": "2112 770.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 34",
+      "label": "Auflegewaschtisch Laufen Kartell, Armaturenloch, 45 x 34 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 569
+    },
+    {
+      "base": "2112779",
+      "artNr": "2112 779.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 34",
+      "label": "Auflegewaschtisch Laufen Kartell, ohne Armaturenloch, 45 x 34 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 569
+    },
+    {
+      "base": "2112796",
+      "artNr": "2112 796.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 34",
+      "label": "Auflegewaschtisch Laufen Kartell, Armaturenloch, 45 x 34 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 570
+    },
+    {
+      "base": "2112797",
+      "artNr": "2112 797.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 34",
+      "label": "Auflegewaschtisch Laufen Kartell, ohne Armaturenloch, 45 x 34 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 570
+    },
+    {
+      "base": "2112710",
+      "artNr": "2112 710.100.000",
+      "manufacturer": "Laufen",
+      "size": "46 x 46",
+      "label": "Auflegewandbecken Laufen Kartell, Armaturenloch, 46 x 46 cm, ohne",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 570
+    },
+    {
+      "base": "2112720",
+      "artNr": "2112 720.100.000",
+      "manufacturer": "Laufen",
+      "size": "46 x 46",
+      "label": "Auflegewandbecken Laufen Kartell, ohne Armaturenloch, 46 x 46 cm, ohne",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 570
+    },
+    {
+      "base": "2112718",
+      "artNr": "2112 718.100.000",
+      "manufacturer": "Laufen",
+      "size": "50 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, Armaturenloch, 50 x 46 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 570
+    },
+    {
+      "base": "2112719",
+      "artNr": "2112 719.100.000",
+      "manufacturer": "Laufen",
+      "size": "50 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, ohne Armaturenloch, 50 x 46 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 570
+    },
+    {
+      "base": "2112728",
+      "artNr": "2112 728.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, Armaturenloch, 60 x 46 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 571
+    },
+    {
+      "base": "2112729",
+      "artNr": "2112 729.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, ohne Armaturenloch, 60 x 46 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 571
+    },
+    {
+      "base": "2112739",
+      "artNr": "2112 739.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, Armaturenloch, 60 x 46 cm, ohne",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 571
+    },
+    {
+      "base": "2112740",
+      "artNr": "2112 740.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, ohne Armaturenloch, 60 x 46 cm, ohne",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 571
+    },
+    {
+      "base": "2112764",
+      "artNr": "2112 764.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, Armaturenloch, 60 x 46 cm, ohne",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 571
+    },
+    {
+      "base": "2112765",
+      "artNr": "2112 765.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, ohne Armaturenloch, 60 x 46 cm, ohne",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 571
+    },
+    {
+      "base": "2112782",
+      "artNr": "2112 782.100.000",
+      "manufacturer": "Laufen",
+      "size": "80 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, Armaturenloch, 80 x 46 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 572
+    },
+    {
+      "base": "2112783",
+      "artNr": "2112 783.100.000",
+      "manufacturer": "Laufen",
+      "size": "80 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, ohne Armaturenloch, 80 x 46 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 572
+    },
+    {
+      "base": "2112798",
+      "artNr": "2112 798.100.000",
+      "manufacturer": "Laufen",
+      "size": "80 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, Armaturenloch, 80 x 46 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 572
+    },
+    {
+      "base": "2112799",
+      "artNr": "2112 799.100.000",
+      "manufacturer": "Laufen",
+      "size": "80 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, ohne Armaturenloch, 80 x 46 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 572
+    },
+    {
+      "base": "2112766",
+      "artNr": "2112 766.100.000",
+      "manufacturer": "Laufen",
+      "size": "90 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, Armaturenloch, 90 x 46 cm, ohne",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 572
+    },
+    {
+      "base": "2112767",
+      "artNr": "2112 767.100.000",
+      "manufacturer": "Laufen",
+      "size": "90 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, ohne Armaturenloch, 90 x 46 cm, ohne",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 572
+    },
+    {
+      "base": "2112768",
+      "artNr": "2112 768.100.000",
+      "manufacturer": "Laufen",
+      "size": "90 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, Armaturenloch, 90 x 46 cm, ohne",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 573
+    },
+    {
+      "base": "2112769",
+      "artNr": "2112 769.100.000",
+      "manufacturer": "Laufen",
+      "size": "90 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, ohne Armaturenloch, 90 x 46 cm, ohne",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 573
+    },
+    {
+      "base": "2112786",
+      "artNr": "2112 786.100.000",
+      "manufacturer": "Laufen",
+      "size": "100 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, Armaturenloch, 100 x 46 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 573
+    },
+    {
+      "base": "2112787",
+      "artNr": "2112 787.100.000",
+      "manufacturer": "Laufen",
+      "size": "100 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, ohne Armaturenloch, 100 x 46 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 573
+    },
+    {
+      "base": "2112700",
+      "artNr": "2112 700.100.000",
+      "manufacturer": "Laufen",
+      "size": "100 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, Armaturenloch, 100 x 46 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 573
+    },
+    {
+      "base": "2112800",
+      "artNr": "2112 800.100.000",
+      "manufacturer": "Laufen",
+      "size": "100 x 46",
+      "label": "Auflegewaschtisch Laufen Kartell, ohne Armaturenloch, 100 x 46 cm, Höhe 12 cm",
+      "serie": "Kartell",
+      "variants": 6,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 573
+    },
+    {
+      "base": "2112741",
+      "artNr": "2112 741.100.000",
+      "manufacturer": "Laufen",
+      "size": "Ø 42",
+      "label": "Auflegewaschtisch Laufen Kartell, Ø 42 cm, Höhe 12 cm, ohne Überlauf",
+      "serie": "Kartell",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 574
+    },
+    {
+      "base": "2112947",
+      "artNr": "2112 947.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 38",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 45 x 38 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 582
+    },
+    {
+      "base": "2112991",
+      "artNr": "2112 991.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 38",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 45 x 38 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 582
+    },
+    {
+      "base": "2112948",
+      "artNr": "2112 948.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 38",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 45 x 38 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 582
+    },
+    {
+      "base": "2112949",
+      "artNr": "2112 949.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 38",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 45 x 38 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 583
+    },
+    {
+      "base": "2112992",
+      "artNr": "2112 992.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 38",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 45 x 38 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 583
+    },
+    {
+      "base": "2112950",
+      "artNr": "2112 950.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 38",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 45 x 38 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 583
+    },
+    {
+      "base": "2112831",
+      "artNr": "2112 831.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 42",
+      "label": "Auflegewaschtisch Val, Armaturenloch, 45 x 42 cm, Höhe 11,5 cm, mit Überlauf",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 583
+    },
+    {
+      "base": "2112832",
+      "artNr": "2112 832.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 42",
+      "label": "Auflegewaschtisch Val, ohne Armaturenloch, 45 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 583
+    },
+    {
+      "base": "2112833",
+      "artNr": "2112 833.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 42",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 45 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 583
+    },
+    {
+      "base": "2112834",
+      "artNr": "2112 834.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 42",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 45 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 583
+    },
+    {
+      "base": "2112951",
+      "artNr": "2112 951.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 40",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 55 x 40 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 584
+    },
+    {
+      "base": "2112995",
+      "artNr": "2112 995.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 40",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 55 x 40 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 584
+    },
+    {
+      "base": "2112952",
+      "artNr": "2112 952.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 40",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 55 x 40 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 584
+    },
+    {
+      "base": "2112953",
+      "artNr": "2112 953.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 40",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 55 x 40 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 584
+    },
+    {
+      "base": "2112996",
+      "artNr": "2112 996.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 40",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 55 x 40 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 584
+    },
+    {
+      "base": "2112954",
+      "artNr": "2112 954.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 40",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 55 x 40 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 584
+    },
+    {
+      "base": "2112835",
+      "artNr": "2112 835.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 42",
+      "label": "Auflegewaschtisch Val, Armaturenloch, 55 x 42 cm, Höhe 11,5 cm, mit Überlauf",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 584
+    },
+    {
+      "base": "2112965",
+      "artNr": "2112 965.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 42",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 55 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 584
+    },
+    {
+      "base": "2112836",
+      "artNr": "2112 836.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 42",
+      "label": "Auflegewaschtisch Val, ohne Armaturenloch, 55 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 584
+    },
+    {
+      "base": "2112837",
+      "artNr": "2112 837.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 42",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 55 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 585
+    },
+    {
+      "base": "2112966",
+      "artNr": "2112 966.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 42",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 55 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 585
+    },
+    {
+      "base": "2112838",
+      "artNr": "2112 838.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 42",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 55 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 585
+    },
+    {
+      "base": "2112955",
+      "artNr": "2112 955.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 40",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 60 x 40 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 585
+    },
+    {
+      "base": "2112909",
+      "artNr": "2112 909.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 40",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 60 x 40 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 585
+    },
+    {
+      "base": "2112956",
+      "artNr": "2112 956.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 40",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 60 x 40 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 585
+    },
+    {
+      "base": "2112957",
+      "artNr": "2112 957.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 40",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 60 x 40 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 585
+    },
+    {
+      "base": "2112910",
+      "artNr": "2112 910.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 40",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 60 x 40 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 585
+    },
+    {
+      "base": "2112958",
+      "artNr": "2112 958.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 40",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 60 x 40 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 585
+    },
+    {
+      "base": "2112839",
+      "artNr": "2112 839.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 42",
+      "label": "Auflegewaschtisch Val, Armaturenloch, 60 x 42 cm, Höhe 11,5 cm, mit Überlauf",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 586
+    },
+    {
+      "base": "2112971",
+      "artNr": "2112 971.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 42",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 60 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 586
+    },
+    {
+      "base": "2112840",
+      "artNr": "2112 840.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 42",
+      "label": "Auflegewaschtisch Val, ohne Armaturenloch, 60 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 586
+    },
+    {
+      "base": "2112841",
+      "artNr": "2112 841.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 42",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 60 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 586
+    },
+    {
+      "base": "2112972",
+      "artNr": "2112 972.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 42",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 60 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 586
+    },
+    {
+      "base": "2112842",
+      "artNr": "2112 842.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 42",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 60 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 586
+    },
+    {
+      "base": "2112843",
+      "artNr": "2112 843.100.000",
+      "manufacturer": "Laufen",
+      "size": "65 x 42",
+      "label": "Auflegewaschtisch Val, Armaturenloch, 65 x 42 cm, Höhe 11,5 cm, mit Überlauf",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 586
+    },
+    {
+      "base": "2112973",
+      "artNr": "2112 973.100.000",
+      "manufacturer": "Laufen",
+      "size": "65 x 42",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 65 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 586
+    },
+    {
+      "base": "2112844",
+      "artNr": "2112 844.100.000",
+      "manufacturer": "Laufen",
+      "size": "65 x 42",
+      "label": "Auflegewaschtisch Val, ohne Armaturenloch, 65 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 586
+    },
+    {
+      "base": "2112845",
+      "artNr": "2112 845.100.000",
+      "manufacturer": "Laufen",
+      "size": "65 x 42",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 65 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 587
+    },
+    {
+      "base": "2112974",
+      "artNr": "2112 974.100.000",
+      "manufacturer": "Laufen",
+      "size": "65 x 42",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 65 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 587
+    },
+    {
+      "base": "2112846",
+      "artNr": "2112 846.100.000",
+      "manufacturer": "Laufen",
+      "size": "65 x 42",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 65 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 587
+    },
+    {
+      "base": "2112847",
+      "artNr": "2112 847.100.000",
+      "manufacturer": "Laufen",
+      "size": "75 x 42",
+      "label": "Auflegewaschtisch Val, Armaturenloch, 75 x 42 cm, Höhe 11,5 cm, mit Überlauf",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 587
+    },
+    {
+      "base": "2112977",
+      "artNr": "2112 977.100.000",
+      "manufacturer": "Laufen",
+      "size": "75 x 42",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 75 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 587
+    },
+    {
+      "base": "2112848",
+      "artNr": "2112 848.100.000",
+      "manufacturer": "Laufen",
+      "size": "75 x 42",
+      "label": "Auflegewaschtisch Val, ohne Armaturenloch, 75 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 587
+    },
+    {
+      "base": "2112849",
+      "artNr": "2112 849.100.000",
+      "manufacturer": "Laufen",
+      "size": "75 x 42",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 75 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 587
+    },
+    {
+      "base": "2112978",
+      "artNr": "2112 978.100.000",
+      "manufacturer": "Laufen",
+      "size": "75 x 42",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 75 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 587
+    },
+    {
+      "base": "2112850",
+      "artNr": "2112 850.100.000",
+      "manufacturer": "Laufen",
+      "size": "75 x 42",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 75 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 587
+    },
+    {
+      "base": "2112851",
+      "artNr": "2112 851.100.000",
+      "manufacturer": "Laufen",
+      "size": "95 x 42",
+      "label": "Auflegewaschtisch Val, Armaturenloch, 95 x 42 cm, Höhe 11,5 cm, mit Überlauf",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 588
+    },
+    {
+      "base": "2112983",
+      "artNr": "2112 983.100.000",
+      "manufacturer": "Laufen",
+      "size": "95 x 42",
+      "label": "Auflegewaschtisch Laufen Val, mit 2 Armaturenlöcher, 95 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 588
+    },
+    {
+      "base": "2112984",
+      "artNr": "2112 984.100.000",
+      "manufacturer": "Laufen",
+      "size": "95 x 42",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 95 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 588
+    },
+    {
+      "base": "2112852",
+      "artNr": "2112 852.100.000",
+      "manufacturer": "Laufen",
+      "size": "95 x 42",
+      "label": "Auflegewaschtisch Val, ohne Armaturenloch, 95 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 588
+    },
+    {
+      "base": "2112853",
+      "artNr": "2112 853.100.000",
+      "manufacturer": "Laufen",
+      "size": "95 x 42",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 95 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 588
+    },
+    {
+      "base": "2112985",
+      "artNr": "2112 985.100.000",
+      "manufacturer": "Laufen",
+      "size": "95 x 42",
+      "label": "Auflegewaschtisch Laufen Val, mit 2 Armaturenlöcher, 95 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 588
+    },
+    {
+      "base": "2112986",
+      "artNr": "2112 986.100.000",
+      "manufacturer": "Laufen",
+      "size": "95 x 42",
+      "label": "Auflegewaschtisch Laufen Val, mit 3 Armaturenlöcher, 95 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 588
+    },
+    {
+      "base": "2112854",
+      "artNr": "2112 854.100.000",
+      "manufacturer": "Laufen",
+      "size": "95 x 42",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 95 x 42 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 588
+    },
+    {
+      "base": "2112855",
+      "artNr": "2112 855.100.000",
+      "manufacturer": "Laufen",
+      "size": "41 x 42.5",
+      "label": "Auflegewandbecken Laufen Val, Armaturenloch, mit Überlauf, 41 x 42,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 589
+    },
+    {
+      "base": "2112856",
+      "artNr": "2112 856.100.000",
+      "manufacturer": "Laufen",
+      "size": "41 x 42.5",
+      "label": "Auflegewandbecken Laufen Val, ohne Armaturenloch, mit Überlauf, 41 x 42,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 589
+    },
+    {
+      "base": "2112895",
+      "artNr": "2112 895.100.000",
+      "manufacturer": "Laufen",
+      "size": "53 x 40",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 53 x 40 cm, mit",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 591
+    },
+    {
+      "base": "2112896",
+      "artNr": "2112 896.100.000",
+      "manufacturer": "Laufen",
+      "size": "53 x 40",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 53 x 40 cm, mit",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 591
+    },
+    {
+      "base": "2112943",
+      "artNr": "2112 943.100.000",
+      "manufacturer": "Laufen",
+      "size": "53 x 40",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 53 x 40 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 591
+    },
+    {
+      "base": "2112944",
+      "artNr": "2112 944.100.000",
+      "manufacturer": "Laufen",
+      "size": "53 x 40",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 53 x 40 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 591
+    },
+    {
+      "base": "2112939",
+      "artNr": "2112 939.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 31",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 60 x 31 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 592
+    },
+    {
+      "base": "2112940",
+      "artNr": "2112 940.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 31",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 60 x 31 cm, Höhe 11,5",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 592
+    },
+    {
+      "base": "2112878",
+      "artNr": "2112 878.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 31.5",
+      "label": "Auflegewaschtisch Laufen Val, Armaturenloch, 60 x 31,5 cm, mit",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 592
+    },
+    {
+      "base": "2112879",
+      "artNr": "2112 879.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 31.5",
+      "label": "Auflegewaschtisch Laufen Val, ohne Armaturenloch, 60 x 31,5 cm, mit",
+      "serie": "Val",
+      "variants": 4,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 592
+    },
+    {
+      "base": "2117661",
+      "artNr": "2117 661.100.000",
+      "manufacturer": "Laufen",
+      "size": "36 x 36",
+      "label": "Auflegewaschtisch Living, 36 x 36 cm, Höhe 13 cm, ohne Überlauf, Weiss",
+      "serie": "Living",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 599
+    },
+    {
+      "base": "2117662",
+      "artNr": "2117 662.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 34",
+      "label": "Auflegewaschtisch Living, 60 x 34 cm, Höhe 11 cm, ohne Überlauf, Weiss",
+      "serie": "Living",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 599
+    },
+    {
+      "base": "2118601",
+      "artNr": "2118 601.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 41",
+      "label": "Handwaschbecken Ino, Armaturenloch, 45 x 41 cm, mit Überlauf, Weiss",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 603
+    },
+    {
+      "base": "2118602",
+      "artNr": "2118 602.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 41",
+      "label": "Handwaschbecken Ino, ohne Armaturenloch, 45 x 41 cm, mit",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 603
+    },
+    {
+      "base": "2118603",
+      "artNr": "2118 603.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 41",
+      "label": "Handwaschbecken Laufen Ino, Armaturenloch, 45 x 41 cm, ohne",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 603
+    },
+    {
+      "base": "2118604",
+      "artNr": "2118 604.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 41",
+      "label": "Handwaschbecken Laufen Ino, ohne Armaturenloch, 45 x 41 cm, ohne",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 603
+    },
+    {
+      "base": "2118605",
+      "artNr": "2118 605.100.000",
+      "manufacturer": "Laufen",
+      "size": "56 x 45",
+      "label": "Waschtisch Ino, Armaturenloch, 56 x 45 cm, mit Überlauf, Weiss",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 603
+    },
+    {
+      "base": "2118606",
+      "artNr": "2118 606.100.000",
+      "manufacturer": "Laufen",
+      "size": "56 x 45",
+      "label": "Waschtisch Ino, ohne Armaturenloch, 56 x 45 cm, mit Überlauf, Weiss",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 603
+    },
+    {
+      "base": "2118607",
+      "artNr": "2118 607.100.000",
+      "manufacturer": "Laufen",
+      "size": "56 x 45",
+      "label": "Waschtisch Laufen Ino, Armaturenloch, 56 x 45 cm, ohne Überlauf, Weiss",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 603
+    },
+    {
+      "base": "2118608",
+      "artNr": "2118 608.100.000",
+      "manufacturer": "Laufen",
+      "size": "56 x 45",
+      "label": "Waschtisch Laufen Ino, ohne Armaturenloch, 56 x 45 cm, ohne",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 603
+    },
+    {
+      "base": "2118609",
+      "artNr": "2118 609.100.000",
+      "manufacturer": "Laufen",
+      "size": "90 x 45",
+      "label": "Waschtisch Ino, Armaturenloch, 90 x 45 / 36 cm, mit Überlauf, Abstellfläche",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 603
+    },
+    {
+      "base": "2118610",
+      "artNr": "2118 610.100.000",
+      "manufacturer": "Laufen",
+      "size": "90 x 45",
+      "label": "Waschtisch Ino, ohne Armaturenloch, 90 x 45 / 36 cm, mit Überlauf",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 603
+    },
+    {
+      "base": "2118611",
+      "artNr": "2118 611.100.000",
+      "manufacturer": "Laufen",
+      "size": "90 x 45",
+      "label": "Waschtisch Laufen Ino, Armaturenloch, 90 x 45 / 36 cm, ohne Überlauf",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 604
+    },
+    {
+      "base": "2118612",
+      "artNr": "2118 612.100.000",
+      "manufacturer": "Laufen",
+      "size": "90 x 45",
+      "label": "Waschtisch Laufen Ino, ohne Armaturenloch, 90 x 45 / 36 cm, ohne",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 604
+    },
+    {
+      "base": "2118613",
+      "artNr": "2118 613.100.000",
+      "manufacturer": "Laufen",
+      "size": "90 x 45",
+      "label": "Waschtisch Ino, Armaturenloch, 90 x 45 / 36 cm, mit Überlauf, Abstellfläche",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 604
+    },
+    {
+      "base": "2118614",
+      "artNr": "2118 614.100.000",
+      "manufacturer": "Laufen",
+      "size": "90 x 45",
+      "label": "Waschtisch Ino, ohne Armaturenloch, 90 x 45 / 36 cm, mit Überlauf",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 604
+    },
+    {
+      "base": "2118615",
+      "artNr": "2118 615.100.000",
+      "manufacturer": "Laufen",
+      "size": "90 x 45",
+      "label": "Waschtisch Laufen Ino, Armaturenloch, 90 x 45 / 36 cm, ohne Überlauf",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 604
+    },
+    {
+      "base": "2118616",
+      "artNr": "2118 616.100.000",
+      "manufacturer": "Laufen",
+      "size": "90 x 45",
+      "label": "Waschtisch Laufen Ino, ohne Armaturenloch, 90 x 45 / 36 cm, ohne",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 604
+    },
+    {
+      "base": "2118617",
+      "artNr": "2118 617.100.000",
+      "manufacturer": "Laufen",
+      "size": "142 x 45",
+      "label": "Doppelwaschtisch Laufen Ino, Armaturenloch, 142 x 45 / 36 cm, mit",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 604
+    },
+    {
+      "base": "2118618",
+      "artNr": "2118 618.100.000",
+      "manufacturer": "Laufen",
+      "size": "142 x 45",
+      "label": "Doppelwaschtisch Laufen Ino, ohne Armaturenloch, 142 x 45 / 36 cm, mit",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 604
+    },
+    {
+      "base": "2118619",
+      "artNr": "2118 619.100.000",
+      "manufacturer": "Laufen",
+      "size": "142 x 45",
+      "label": "Doppelwaschtisch Laufen Ino, Armaturenloch, 142 x 45 / 36 cm, ohne",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 604
+    },
+    {
+      "base": "2118620",
+      "artNr": "2118 620.100.000",
+      "manufacturer": "Laufen",
+      "size": "142 x 45",
+      "label": "Doppelwaschtisch Laufen Ino, ohne Armaturenloch, 142 x 45 / 36 cm, ohne",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 604
+    },
+    {
+      "base": "2118621",
+      "artNr": "2118 621.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 41",
+      "label": "Auflegewaschtisch Ino, Armaturenloch, 45 x 41 cm, Höhe 12 cm, mit Überlauf",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 605
+    },
+    {
+      "base": "2118622",
+      "artNr": "2118 622.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 41",
+      "label": "Auflegewaschtisch Ino, ohne Armaturenloch, 45 x 41 cm, Höhe 12 cm",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 605
+    },
+    {
+      "base": "2118623",
+      "artNr": "2118 623.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 41",
+      "label": "Auflegewaschtisch Laufen Ino, Armaturenloch, 45 x 41 cm, Höhe 12 cm",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 605
+    },
+    {
+      "base": "2118624",
+      "artNr": "2118 624.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 41",
+      "label": "Auflegewaschtisch Laufen Ino, ohne Armaturenloch, 45 x 41 cm, Höhe 12 cm",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 605
+    },
+    {
+      "base": "2118625",
+      "artNr": "2118 625.100.000",
+      "manufacturer": "Laufen",
+      "size": "56 x 45",
+      "label": "Auflegewaschtisch Ino, Armaturenloch, 56 x 45 cm, Höhe 12 cm, mit Überlauf",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 605
+    },
+    {
+      "base": "2118626",
+      "artNr": "2118 626.100.000",
+      "manufacturer": "Laufen",
+      "size": "56 x 45",
+      "label": "Auflegewaschtisch Ino, ohne Armaturenloch, 56 x 45 cm, Höhe 12 cm",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 605
+    },
+    {
+      "base": "2118627",
+      "artNr": "2118 627.100.000",
+      "manufacturer": "Laufen",
+      "size": "56 x 45",
+      "label": "Auflegewaschtisch Laufen Ino, Armaturenloch, 56 x 45 cm, Höhe 12 cm",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 605
+    },
+    {
+      "base": "2118628",
+      "artNr": "2118 628.100.000",
+      "manufacturer": "Laufen",
+      "size": "56 x 45",
+      "label": "Auflegewaschtisch Laufen Ino, ohne Armaturenloch, 56 x 45 cm, Höhe 12 cm",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 605
+    },
+    {
+      "base": "2118631",
+      "artNr": "2118 631.100.000",
+      "manufacturer": "Laufen",
+      "size": "50 x 36",
+      "label": "Auflegewaschtisch Ino, mit Überlauf, 50 x 36 cm, Höhe 13 cm, ohne",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 605
+    },
+    {
+      "base": "2118632",
+      "artNr": "2118 632.100.000",
+      "manufacturer": "Laufen",
+      "size": "50 x 36",
+      "label": "Auflegewaschtisch Laufen Ino, ohne Überlauf, 50 x 36 cm, Höhe 13 cm, ohne",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 605
+    },
+    {
+      "base": "2118635",
+      "artNr": "2118 635.100.000",
+      "manufacturer": "Laufen",
+      "size": "50 x 36.5",
+      "label": "Auflegewaschtisch Ino, mit Überlauf, 50 x 36,5 cm, Höhe 4 cm, ohne",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 605
+    },
+    {
+      "base": "2118636",
+      "artNr": "2118 636.100.000",
+      "manufacturer": "Laufen",
+      "size": "50 x 36.5",
+      "label": "Auflegewaschtisch Laufen Ino, ohne Überlauf, 50 x 36,5 cm, Höhe 4 cm, ohne",
+      "serie": "Ino",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 605
+    },
+    {
+      "base": "2111164",
+      "artNr": "2111 164.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 35",
+      "label": "Auflegewandbecken Laufen Lua, Armaturenloch, 45 x 35 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 610
+    },
+    {
+      "base": "2111165",
+      "artNr": "2111 165.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 35",
+      "label": "Auflegewandbecken Laufen Lua, ohne Armaturenloch, 45 x 35 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 610
+    },
+    {
+      "base": "2111166",
+      "artNr": "2111 166.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 35",
+      "label": "Auflegewandbecken Laufen Lua, Armaturenloch, 45 x 35 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 610
+    },
+    {
+      "base": "2111167",
+      "artNr": "2111 167.100.000",
+      "manufacturer": "Laufen",
+      "size": "45 x 35",
+      "label": "Auflegewandbecken Laufen Lua, ohne Armaturenloch, 45 x 35 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 610
+    },
+    {
+      "base": "2111168",
+      "artNr": "2111 168.100.000",
+      "manufacturer": "Laufen",
+      "size": "50 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, Armaturenloch, 50 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 611
+    },
+    {
+      "base": "2111169",
+      "artNr": "2111 169.100.000",
+      "manufacturer": "Laufen",
+      "size": "50 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, ohne Armaturenloch, 50 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 611
+    },
+    {
+      "base": "2111170",
+      "artNr": "2111 170.100.000",
+      "manufacturer": "Laufen",
+      "size": "50 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, Armaturenloch, 50 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 611
+    },
+    {
+      "base": "2111171",
+      "artNr": "2111 171.100.000",
+      "manufacturer": "Laufen",
+      "size": "50 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, ohne Armaturenloch, 50 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 611
+    },
+    {
+      "base": "2111172",
+      "artNr": "2111 172.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, Armaturenloch, 55 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 611
+    },
+    {
+      "base": "2111173",
+      "artNr": "2111 173.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, ohne Armaturenloch, 55 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 611
+    },
+    {
+      "base": "2111174",
+      "artNr": "2111 174.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, Armaturenloch, 55 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 611
+    },
+    {
+      "base": "2111175",
+      "artNr": "2111 175.100.000",
+      "manufacturer": "Laufen",
+      "size": "55 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, ohne Armaturenloch, 55 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 611
+    },
+    {
+      "base": "2111176",
+      "artNr": "2111 176.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, Armaturenloch, 60 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 612
+    },
+    {
+      "base": "2111177",
+      "artNr": "2111 177.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, ohne Armaturenloch, 60 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 612
+    },
+    {
+      "base": "2111178",
+      "artNr": "2111 178.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, Armaturenloch, 60 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 612
+    },
+    {
+      "base": "2111179",
+      "artNr": "2111 179.100.000",
+      "manufacturer": "Laufen",
+      "size": "60 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, ohne Armaturenloch, 60 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 612
+    },
+    {
+      "base": "2111180",
+      "artNr": "2111 180.100.000",
+      "manufacturer": "Laufen",
+      "size": "65 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, Armaturenloch, 65 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 612
+    },
+    {
+      "base": "2111182",
+      "artNr": "2111 182.100.000",
+      "manufacturer": "Laufen",
+      "size": "65 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, ohne Armaturenloch, 65 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 612
+    },
+    {
+      "base": "2111183",
+      "artNr": "2111 183.100.000",
+      "manufacturer": "Laufen",
+      "size": "65 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, Armaturenloch, 65 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 612
+    },
+    {
+      "base": "2111185",
+      "artNr": "2111 185.100.000",
+      "manufacturer": "Laufen",
+      "size": "65 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, ohne Armaturenloch, 65 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 612
+    },
+    {
+      "base": "2111186",
+      "artNr": "2111 186.100.000",
+      "manufacturer": "Laufen",
+      "size": "80 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, Armaturenloch, 80 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 613
+    },
+    {
+      "base": "2111187",
+      "artNr": "2111 187.100.000",
+      "manufacturer": "Laufen",
+      "size": "80 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, ohne Armaturenloch, 80 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 613
+    },
+    {
+      "base": "2111188",
+      "artNr": "2111 188.100.000",
+      "manufacturer": "Laufen",
+      "size": "80 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, Armaturenloch, 80 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 613
+    },
+    {
+      "base": "2111189",
+      "artNr": "2111 189.100.000",
+      "manufacturer": "Laufen",
+      "size": "80 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, ohne Armaturenloch, 80 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 613
+    },
+    {
+      "base": "2111190",
+      "artNr": "2111 190.100.000",
+      "manufacturer": "Laufen",
+      "size": "100 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, Armaturenloch, 100 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 613
+    },
+    {
+      "base": "2111191",
+      "artNr": "2111 191.100.000",
+      "manufacturer": "Laufen",
+      "size": "100 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, mit 2 Armaturenlöcher, 100 x 46 cm, Höhe 5",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 613
+    },
+    {
+      "base": "2111192",
+      "artNr": "2111 192.100.000",
+      "manufacturer": "Laufen",
+      "size": "100 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, ohne Armaturenloch, 100 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 613
+    },
+    {
+      "base": "2111193",
+      "artNr": "2111 193.100.000",
+      "manufacturer": "Laufen",
+      "size": "100 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, Armaturenloch, 100 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 613
+    },
+    {
+      "base": "2111194",
+      "artNr": "2111 194.100.000",
+      "manufacturer": "Laufen",
+      "size": "100 x 46",
+      "label": "Auflegewaschtisch Laufen Lua, ohne Armaturenloch, 100 x 46 cm, Höhe 5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 613
+    },
+    {
+      "base": "2111195",
+      "artNr": "2111 195.100.000",
+      "manufacturer": "Laufen",
+      "size": "50 x 35",
+      "label": "Auflegewaschtisch Laufen Lua, mit Überlauf, 50 x 35 cm, Höhe 13,5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 614
+    },
+    {
+      "base": "2111196",
+      "artNr": "2111 196.100.000",
+      "manufacturer": "Laufen",
+      "size": "50 x 35",
+      "label": "Auflegewaschtisch Laufen Lua, ohne Überlauf, 50 x 35 cm, Höhe 13,5 cm",
+      "serie": "Lua",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 614
+    },
+    {
+      "base": "2143231",
+      "artNr": "2143 231.100.000",
+      "manufacturer": "Duravit",
+      "size": "45 x 35",
+      "label": "Handwaschbecken Duravit DuraSquare, Armaturenloch, 45 x 35 cm, ohne",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 616
+    },
+    {
+      "base": "2143232",
+      "artNr": "2143 232.100.000",
+      "manufacturer": "Duravit",
+      "size": "45 x 35",
+      "label": "Handwaschbecken Duravit DuraSquare, ohne Armaturenloch, 45 x 35 cm, ohne",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 616
+    },
+    {
+      "base": "2143233",
+      "artNr": "2143 233.100.000",
+      "manufacturer": "Duravit",
+      "size": "50 x 47",
+      "label": "Waschtisch Duravit DuraSquare, Armaturenloch, 50 x 47 cm, ohne",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 617
+    },
+    {
+      "base": "2143234",
+      "artNr": "2143 234.100.000",
+      "manufacturer": "Duravit",
+      "size": "50 x 47",
+      "label": "Waschtisch Duravit DuraSquare, ohne Armaturenloch, 50 x 47 cm, ohne",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 617
+    },
+    {
+      "base": "2143237",
+      "artNr": "2143 237.100.000",
+      "manufacturer": "Duravit",
+      "size": "60 x 40",
+      "label": "Waschtisch Duravit DuraSquare Compact, Armaturenloch, 60 x 40 cm, ohne",
+      "serie": "DuraSquare Compact",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 617
+    },
+    {
+      "base": "2143238",
+      "artNr": "2143 238.100.000",
+      "manufacturer": "Duravit",
+      "size": "60 x 40",
+      "label": "Waschtisch Duravit DuraSquare Compact, ohne Armaturenloch, 60 x 40 cm, ohne",
+      "serie": "DuraSquare Compact",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 617
+    },
+    {
+      "base": "2143235",
+      "artNr": "2143 235.100.000",
+      "manufacturer": "Duravit",
+      "size": "60 x 47",
+      "label": "Waschtisch Duravit DuraSquare, Armaturenloch, 60 x 47 cm, ohne",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 617
+    },
+    {
+      "base": "2143236",
+      "artNr": "2143 236.100.000",
+      "manufacturer": "Duravit",
+      "size": "60 x 47",
+      "label": "Waschtisch Duravit DuraSquare, ohne Armaturenloch, 60 x 47 cm, ohne",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 617
+    },
+    {
+      "base": "2143239",
+      "artNr": "2143 239.100.000",
+      "manufacturer": "Duravit",
+      "size": "80 x 47",
+      "label": "Waschtisch Duravit DuraSquare, Armaturenloch, 80 x 47 cm, ohne",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 617
+    },
+    {
+      "base": "2143240",
+      "artNr": "2143 240.100.000",
+      "manufacturer": "Duravit",
+      "size": "80 x 47",
+      "label": "Waschtisch Duravit DuraSquare, ohne Armaturenloch, 80 x 47 cm, ohne",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 617
+    },
+    {
+      "base": "2143241",
+      "artNr": "2143 241.100.000",
+      "manufacturer": "Duravit",
+      "size": "80 x 47",
+      "label": "Waschtisch Duravit DuraSquare, Armaturenloch, 80 x 47 cm",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 617
+    },
+    {
+      "base": "2143242",
+      "artNr": "2143 242.100.000",
+      "manufacturer": "Duravit",
+      "size": "80 x 47",
+      "label": "Waschtisch Duravit DuraSquare, ohne Armaturenloch, 80 x 47 cm",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 617
+    },
+    {
+      "base": "2143243",
+      "artNr": "2143 243.100.000",
+      "manufacturer": "Duravit",
+      "size": "80 x 47",
+      "label": "Waschtisch Duravit DuraSquare, Armaturenloch, 80 x 47 cm",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 618
+    },
+    {
+      "base": "2143244",
+      "artNr": "2143 244.100.000",
+      "manufacturer": "Duravit",
+      "size": "80 x 47",
+      "label": "Waschtisch Duravit DuraSquare, ohne Armaturenloch, 80 x 47 cm",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 618
+    },
+    {
+      "base": "2143245",
+      "artNr": "2143 245.100.000",
+      "manufacturer": "Duravit",
+      "size": "100 x 47",
+      "label": "Waschtisch Duravit DuraSquare, Armaturenloch, 100 x 47 cm, ohne",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 618
+    },
+    {
+      "base": "2143246",
+      "artNr": "2143 246.100.000",
+      "manufacturer": "Duravit",
+      "size": "100 x 47",
+      "label": "Waschtisch Duravit DuraSquare, ohne Armaturenloch, 100 x 47 cm, ohne",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 618
+    },
+    {
+      "base": "2143247",
+      "artNr": "2143 247.100.000",
+      "manufacturer": "Duravit",
+      "size": "100 x 47",
+      "label": "Waschtisch Duravit DuraSquare, mit 2 Armaturenlöcher, 100 x 47 cm, ohne",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 618
+    },
+    {
+      "base": "2143248",
+      "artNr": "2143 248.100.000",
+      "manufacturer": "Duravit",
+      "size": "120 x 47",
+      "label": "Doppelwaschtisch Duravit DuraSquare, mit 2 Armaturenlöcher, 120 x 47 cm",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 618
+    },
+    {
+      "base": "2143249",
+      "artNr": "2143 249.100.000",
+      "manufacturer": "Duravit",
+      "size": "120 x 47",
+      "label": "Doppelwaschtisch Duravit DuraSquare, ohne Armaturenlöcher, 120 x 47 cm, ohne",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 618
+    },
+    {
+      "base": "2143201",
+      "artNr": "2143 201.100.000",
+      "manufacturer": "Duravit",
+      "size": "45 x 35",
+      "label": "Auflegewaschtisch Duravit DuraSquare, Armaturenloch, 45 x 35 cm, Höhe 10,5",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 618
+    },
+    {
+      "base": "2143202",
+      "artNr": "2143 202.100.000",
+      "manufacturer": "Duravit",
+      "size": "45 x 35",
+      "label": "Auflegewaschtisch Duravit DuraSquare, ohne Armaturenloch, 45 x 35 cm, Höhe",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 618
+    },
+    {
+      "base": "2143208",
+      "artNr": "2143 208.100.000",
+      "manufacturer": "Duravit",
+      "size": "50 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, Armaturenloch, 50 x 47 cm, Höhe 10,5",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 618
+    },
+    {
+      "base": "2143209",
+      "artNr": "2143 209.100.000",
+      "manufacturer": "Duravit",
+      "size": "50 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, ohne Armaturenloch, 50 x 47 cm, Höhe",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 618
+    },
+    {
+      "base": "2143214",
+      "artNr": "2143 214.100.000",
+      "manufacturer": "Duravit",
+      "size": "60 x 40",
+      "label": "Auflegewaschtisch Duravit DuraSquare Compact, Armaturenloch, 60 x 40 cm",
+      "serie": "DuraSquare Compact",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 619
+    },
+    {
+      "base": "2143215",
+      "artNr": "2143 215.100.000",
+      "manufacturer": "Duravit",
+      "size": "60 x 40",
+      "label": "Auflegewaschtisch Duravit DuraSquare Compact, ohne Armaturenloch, 60 x 40",
+      "serie": "DuraSquare Compact",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 619
+    },
+    {
+      "base": "2143203",
+      "artNr": "2143 203.100.000",
+      "manufacturer": "Duravit",
+      "size": "60 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, Armaturenloch, 60 x 47 cm, Höhe 10,5",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 619
+    },
+    {
+      "base": "2143204",
+      "artNr": "2143 204.100.000",
+      "manufacturer": "Duravit",
+      "size": "60 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, ohne Armaturenloch, 60 x 47 cm, Höhe",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 619
+    },
+    {
+      "base": "2143216",
+      "artNr": "2143 216.100.000",
+      "manufacturer": "Duravit",
+      "size": "80 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, Armaturenloch, 80 x 47 cm, Höhe 10,5",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 619
+    },
+    {
+      "base": "2143217",
+      "artNr": "2143 217.100.000",
+      "manufacturer": "Duravit",
+      "size": "80 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, ohne Armaturenloch, 80 x 47 cm, Höhe",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 619
+    },
+    {
+      "base": "2143218",
+      "artNr": "2143 218.100.000",
+      "manufacturer": "Duravit",
+      "size": "80 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, Armaturenloch, 80 x 47 cm, Höhe 10,5",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 619
+    },
+    {
+      "base": "2143219",
+      "artNr": "2143 219.100.000",
+      "manufacturer": "Duravit",
+      "size": "80 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, ohne Armaturenloch, 80 x 47 cm, Höhe",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 619
+    },
+    {
+      "base": "2143220",
+      "artNr": "2143 220.100.000",
+      "manufacturer": "Duravit",
+      "size": "80 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, Armaturenloch, 80 x 47 cm, Höhe 10,5",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 619
+    },
+    {
+      "base": "2143221",
+      "artNr": "2143 221.100.000",
+      "manufacturer": "Duravit",
+      "size": "80 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, ohne Armaturenloch, 80 x 47 cm, Höhe",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 619
+    },
+    {
+      "base": "2143205",
+      "artNr": "2143 205.100.000",
+      "manufacturer": "Duravit",
+      "size": "100 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, Armaturenloch, 100 x 47 cm, Höhe 10,5",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 620
+    },
+    {
+      "base": "2143206",
+      "artNr": "2143 206.100.000",
+      "manufacturer": "Duravit",
+      "size": "100 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, ohne Armaturenloch, 100 x 47 cm, Höhe",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 620
+    },
+    {
+      "base": "2143207",
+      "artNr": "2143 207.100.000",
+      "manufacturer": "Duravit",
+      "size": "100 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, mit 2 Armaturenlöcher, 100 x 47 cm",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 620
+    },
+    {
+      "base": "2143222",
+      "artNr": "2143 222.100.000",
+      "manufacturer": "Duravit",
+      "size": "120 x 47",
+      "label": "Doppelauflegewaschtisch Duravit DuraSquare, mit 2 Armaturenlöcher, 120",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 620
+    },
+    {
+      "base": "2143223",
+      "artNr": "2143 223.100.000",
+      "manufacturer": "Duravit",
+      "size": "120 x 47",
+      "label": "Doppelauflegewaschtisch Duravit DuraSquare, ohne Armaturenlöcher, 120 x",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 620
+    },
+    {
+      "base": "2143211",
+      "artNr": "2143 211.100.000",
+      "manufacturer": "Duravit",
+      "size": "60 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, Armaturenloch, 60 x 47 cm, Höhe 8 cm",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 620
+    },
+    {
+      "base": "2143212",
+      "artNr": "2143 212.100.000",
+      "manufacturer": "Duravit",
+      "size": "60 x 47",
+      "label": "Auflegewaschtisch Duravit DuraSquare, ohne Armaturenloch, 60 x 47 cm, Höhe 8",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 620
+    },
+    {
+      "base": "2143213",
+      "artNr": "2143 213.100.000",
+      "manufacturer": "Duravit",
+      "size": "60 x 34.5",
+      "label": "Auflegewaschtisch Duravit DuraSquare, 60 x 34,5 cm, Höhe 8 cm, ohne",
+      "serie": "DuraSquare",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 620
+    },
+    {
+      "base": "2142602",
+      "artNr": "2142 602.100.000",
+      "manufacturer": "Duravit",
+      "size": "50 x 36",
+      "label": "Handwaschbecken Happy D.2, 50 x 36 cm, mit Überlauf, Armaturenloch, Weiss",
+      "serie": "Happy D.2",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 628
+    },
+    {
+      "base": "2142615",
+      "artNr": "2142 615.100.000",
+      "manufacturer": "Duravit",
+      "size": "65 x 50.5",
+      "label": "Waschtisch Happy D.2, 65 x 50,5 cm, mit Überlauf, Armaturenloch, Weiss",
+      "serie": "Happy D.2",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 628
+    },
+    {
+      "base": "2142616",
+      "artNr": "2142 616.100.000",
+      "manufacturer": "Duravit",
+      "size": "80 x 50.5",
+      "label": "Waschtisch Happy D.2, 80 x 50,5 cm, mit Überlauf, Armaturenloch, Weiss",
+      "serie": "Happy D.2",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 628
+    },
+    {
+      "base": "2142617",
+      "artNr": "2142 617.100.000",
+      "manufacturer": "Duravit",
+      "size": "100 x 50.5",
+      "label": "Waschtisch Happy D.2, 100 x 50,5 cm, mit Überlauf, Armaturenloch, Weiss",
+      "serie": "Happy D.2",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 628
+    },
+    {
+      "base": "2142603",
+      "artNr": "2142 603.100.000",
+      "manufacturer": "Duravit",
+      "size": "40 x 40",
+      "label": "Auflegewaschbecken Duravit Happy D.2 Plus, 40 x 40 cm, Höhe 7 cm, ohne",
+      "serie": "Happy D.2 Plus",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 629
+    },
+    {
+      "base": "2142605",
+      "artNr": "2142 605.100.000",
+      "manufacturer": "Duravit",
+      "size": "60 x 40",
+      "label": "Auflegewaschtisch Duravit Happy D.2 Plus, 60 x 40 cm, Höhe 7 cm, ohne",
+      "serie": "Happy D.2 Plus",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 629
+    },
+    {
+      "base": "2142606",
+      "artNr": "2142 606.100.000",
+      "manufacturer": "Duravit",
+      "size": "50 x 40",
+      "label": "Auflegewaschtisch Duravit Happy D.2 Plus, Armaturenloch, 50 x 40 cm, Höhe 7",
+      "serie": "Happy D.2 Plus",
+      "variants": 5,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 629
+    },
+    {
+      "base": "2142607",
+      "artNr": "2142 607.100.000",
+      "manufacturer": "Duravit",
+      "size": "50 x 40",
+      "label": "Auflegewaschtisch Duravit Happy D.2 Plus, ohne Armaturenloch, 50 x 40 cm",
+      "serie": "Happy D.2 Plus",
+      "variants": 5,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 629
+    },
+    {
+      "base": "2142608",
+      "artNr": "2142 608.100.000",
+      "manufacturer": "Duravit",
+      "size": "60 x 46",
+      "label": "Auflegewaschtisch Duravit Happy D.2 Plus, Armaturenloch, 60 x 46 cm, Höhe 7",
+      "serie": "Happy D.2 Plus",
+      "variants": 5,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 629
+    },
+    {
+      "base": "2142609",
+      "artNr": "2142 609.100.000",
+      "manufacturer": "Duravit",
+      "size": "60 x 46",
+      "label": "Auflegewaschtisch Duravit Happy D.2 Plus, ohne Armaturenloch, 60 x 46 cm",
+      "serie": "Happy D.2 Plus",
+      "variants": 5,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 629
+    },
+    {
+      "base": "2142801",
+      "artNr": "2142 801.713.000",
+      "manufacturer": "Duravit",
+      "size": "57.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Kunstharz, Breite 57,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 2,
+      "mounting": [],
+      "pdfPage": 631
+    },
+    {
+      "base": "2142802",
+      "artNr": "2142 802.612.000",
+      "manufacturer": "Duravit",
+      "size": "57.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Echtholz furniert, Breite 57,5",
+      "serie": "Happy D.2 Plus",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 631
+    },
+    {
+      "base": "2142803",
+      "artNr": "2142 803.805.000",
+      "manufacturer": "Duravit",
+      "size": "57.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Lackiert, Breite 57,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 631
+    },
+    {
+      "base": "2142804",
+      "artNr": "2142 804.713.000",
+      "manufacturer": "Duravit",
+      "size": "57.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Kunstharz, Breite 57,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 2,
+      "mounting": [],
+      "pdfPage": 631
+    },
+    {
+      "base": "2142805",
+      "artNr": "2142 805.612.000",
+      "manufacturer": "Duravit",
+      "size": "57.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Echtholz furniert, Breite 57,5",
+      "serie": "Happy D.2 Plus",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 631
+    },
+    {
+      "base": "2142806",
+      "artNr": "2142 806.805.000",
+      "manufacturer": "Duravit",
+      "size": "57.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Lackiert, Breite 57,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 631
+    },
+    {
+      "base": "2142807",
+      "artNr": "2142 807.713.000",
+      "manufacturer": "Duravit",
+      "size": "77.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Kunstharz, Breite 77,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 2,
+      "mounting": [],
+      "pdfPage": 631
+    },
+    {
+      "base": "2142808",
+      "artNr": "2142 808.612.000",
+      "manufacturer": "Duravit",
+      "size": "77.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Echtholz furniert, Breite 77,5",
+      "serie": "Happy D.2 Plus",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 631
+    },
+    {
+      "base": "2142809",
+      "artNr": "2142 809.805.000",
+      "manufacturer": "Duravit",
+      "size": "77.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Lackiert, Breite 77,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 631
+    },
+    {
+      "base": "2142810",
+      "artNr": "2142 810.713.000",
+      "manufacturer": "Duravit",
+      "size": "77.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Kunstharz, Breite 77,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 2,
+      "mounting": [],
+      "pdfPage": 632
+    },
+    {
+      "base": "2142811",
+      "artNr": "2142 811.612.000",
+      "manufacturer": "Duravit",
+      "size": "77.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Echtholz furniert, Breite 77,5",
+      "serie": "Happy D.2 Plus",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 632
+    },
+    {
+      "base": "2142812",
+      "artNr": "2142 812.805.000",
+      "manufacturer": "Duravit",
+      "size": "77.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Lackiert, Breite 77,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 632
+    },
+    {
+      "base": "2142813",
+      "artNr": "2142 813.713.000",
+      "manufacturer": "Duravit",
+      "size": "97.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Kunstharz, Breite 97,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 2,
+      "mounting": [],
+      "pdfPage": 632
+    },
+    {
+      "base": "2142814",
+      "artNr": "2142 814.612.000",
+      "manufacturer": "Duravit",
+      "size": "97.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Echtholz furniert, Breite 97,5",
+      "serie": "Happy D.2 Plus",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 632
+    },
+    {
+      "base": "2142815",
+      "artNr": "2142 815.805.000",
+      "manufacturer": "Duravit",
+      "size": "97.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Lackiert, Breite 97,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 632
+    },
+    {
+      "base": "2142816",
+      "artNr": "2142 816.713.000",
+      "manufacturer": "Duravit",
+      "size": "97.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Kunstharz, Breite 97,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 2,
+      "mounting": [],
+      "pdfPage": 632
+    },
+    {
+      "base": "2142817",
+      "artNr": "2142 817.612.000",
+      "manufacturer": "Duravit",
+      "size": "97.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Echtholz furniert, Breite 97,5",
+      "serie": "Happy D.2 Plus",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 632
+    },
+    {
+      "base": "2142818",
+      "artNr": "2142 818.805.000",
+      "manufacturer": "Duravit",
+      "size": "97.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Lackiert, Breite 97,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 632
+    },
+    {
+      "base": "2142821",
+      "artNr": "2142 821.713.000",
+      "manufacturer": "Duravit",
+      "size": "57.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Kunstharz, Breite 57,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 2,
+      "mounting": [],
+      "pdfPage": 633
+    },
+    {
+      "base": "2142822",
+      "artNr": "2142 822.612.000",
+      "manufacturer": "Duravit",
+      "size": "57.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Echtholz furniert, Breite 57,5",
+      "serie": "Happy D.2 Plus",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 633
+    },
+    {
+      "base": "2142823",
+      "artNr": "2142 823.805.000",
+      "manufacturer": "Duravit",
+      "size": "57.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Lackiert, Breite 57,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 633
+    },
+    {
+      "base": "2142824",
+      "artNr": "2142 824.713.000",
+      "manufacturer": "Duravit",
+      "size": "57.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Kunstharz, Breite 57,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 2,
+      "mounting": [],
+      "pdfPage": 633
+    },
+    {
+      "base": "2142825",
+      "artNr": "2142 825.612.000",
+      "manufacturer": "Duravit",
+      "size": "57.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Echtholz furniert, Breite 57,5",
+      "serie": "Happy D.2 Plus",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 633
+    },
+    {
+      "base": "2142826",
+      "artNr": "2142 826.805.000",
+      "manufacturer": "Duravit",
+      "size": "57.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Lackiert, Breite 57,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 633
+    },
+    {
+      "base": "2142827",
+      "artNr": "2142 827.713.000",
+      "manufacturer": "Duravit",
+      "size": "77.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Kunstharz, Breite 77,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 2,
+      "mounting": [],
+      "pdfPage": 633
+    },
+    {
+      "base": "2142828",
+      "artNr": "2142 828.612.000",
+      "manufacturer": "Duravit",
+      "size": "77.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Echtholz furniert, Breite 77,5",
+      "serie": "Happy D.2 Plus",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 633
+    },
+    {
+      "base": "2142829",
+      "artNr": "2142 829.805.000",
+      "manufacturer": "Duravit",
+      "size": "77.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Lackiert, Breite 77,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 633
+    },
+    {
+      "base": "2142830",
+      "artNr": "2142 830.713.000",
+      "manufacturer": "Duravit",
+      "size": "77.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Kunstharz, Breite 77,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 2,
+      "mounting": [],
+      "pdfPage": 634
+    },
+    {
+      "base": "2142831",
+      "artNr": "2142 831.612.000",
+      "manufacturer": "Duravit",
+      "size": "77.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Echtholz furniert, Breite 77,5",
+      "serie": "Happy D.2 Plus",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 634
+    },
+    {
+      "base": "2142832",
+      "artNr": "2142 832.805.000",
+      "manufacturer": "Duravit",
+      "size": "77.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Lackiert, Breite 77,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 634
+    },
+    {
+      "base": "2142833",
+      "artNr": "2142 833.713.000",
+      "manufacturer": "Duravit",
+      "size": "97.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Kunstharz, Breite 97,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 2,
+      "mounting": [],
+      "pdfPage": 634
+    },
+    {
+      "base": "2142834",
+      "artNr": "2142 834.612.000",
+      "manufacturer": "Duravit",
+      "size": "97.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Echtholz furniert, Breite 97,5",
+      "serie": "Happy D.2 Plus",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 634
+    },
+    {
+      "base": "2142835",
+      "artNr": "2142 835.805.000",
+      "manufacturer": "Duravit",
+      "size": "97.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Lackiert, Breite 97,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 634
+    },
+    {
+      "base": "2142836",
+      "artNr": "2142 836.713.000",
+      "manufacturer": "Duravit",
+      "size": "97.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Kunstharz, Breite 97,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 2,
+      "mounting": [],
+      "pdfPage": 634
+    },
+    {
+      "base": "2142837",
+      "artNr": "2142 837.612.000",
+      "manufacturer": "Duravit",
+      "size": "97.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Echtholz furniert, Breite 97,5",
+      "serie": "Happy D.2 Plus",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 634
+    },
+    {
+      "base": "2142838",
+      "artNr": "2142 838.805.000",
+      "manufacturer": "Duravit",
+      "size": "97.5 x 49",
+      "label": "Waschtischkombination Duravit Happy D.2 Plus, Lackiert, Breite 97,5 cm, Höhe",
+      "serie": "Happy D.2 Plus",
+      "variants": 4,
+      "mounting": [],
+      "pdfPage": 634
+    },
+    {
+      "base": "2231666",
+      "artNr": "2231 666.535.000",
+      "manufacturer": "Catalano",
+      "size": "Ø 45",
+      "label": "Auflegewaschtisch Catalano Sfera, Ø 45 cm, Höhe 7,5 cm",
+      "serie": "Sfera",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 655
+    },
+    {
+      "base": "2231665",
+      "artNr": "2231 665.535.000",
+      "manufacturer": "Catalano",
+      "size": "55 x 35",
+      "label": "Auflegewaschtisch Catalano Sfera, 55 x 35 cm, Höhe 7,5 cm",
+      "serie": "Sfera",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 655
+    },
+    {
+      "base": "2311601",
+      "artNr": "2311 601.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "45 x 40",
+      "label": "Eckwandbecken Villeroy & Boch Subway 3.0, Schenkellänge 32 cm",
+      "serie": "Subway 3.0",
+      "variants": 0,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 663
+    },
+    {
+      "base": "2311603",
+      "artNr": "2311 603.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "37 x 30.5",
+      "label": "Wandbecken Villeroy & Boch Subway 3.0, Armaturenloch, mit Überlauf, 37 x 30,5",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 663
+    },
+    {
+      "base": "2311605",
+      "artNr": "2311 605.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "37 x 30.5",
+      "label": "Wandbecken Villeroy & Boch Subway 3.0, Armaturenloch, ohne Überlauf, 37 x 30,5",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 663
+    },
+    {
+      "base": "2311611",
+      "artNr": "2311 611.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "45 x 37",
+      "label": "Wandbecken Villeroy & Boch Subway 3.0, Armaturenloch, mit Überlauf, 45 x 37",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 663
+    },
+    {
+      "base": "2311613",
+      "artNr": "2311 613.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "45 x 37",
+      "label": "Wandbecken Villeroy & Boch Subway 3.0, Armaturenloch, ohne Überlauf, 45 x 37",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 663
+    },
+    {
+      "base": "2311619",
+      "artNr": "2311 619.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "50 x 40",
+      "label": "Wandbecken Villeroy & Boch Subway 3.0, Armaturenloch, mit Überlauf, 50 x 40",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 664
+    },
+    {
+      "base": "2311621",
+      "artNr": "2311 621.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "50 x 40",
+      "label": "Wandbecken Villeroy & Boch Subway 3.0, Armaturenloch, ohne Überlauf, 50 x 40",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 664
+    },
+    {
+      "base": "2311629",
+      "artNr": "2311 629.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "55 x 44",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, Armaturenloch, mit Überlauf, 55 x 44",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 664
+    },
+    {
+      "base": "2311631",
+      "artNr": "2311 631.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "55 x 44",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, Armaturenloch, ohne Überlauf, 55 x 44",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 664
+    },
+    {
+      "base": "2311633",
+      "artNr": "2311 633.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "55 x 44",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, ohne Armaturenloch, ohne Überlauf, 55 x",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 664
+    },
+    {
+      "base": "2311641",
+      "artNr": "2311 641.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "60 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, Armaturenloch, mit Überlauf, 60 x 47",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 664
+    },
+    {
+      "base": "2311643",
+      "artNr": "2311 643.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "60 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, Armaturenloch, ohne Überlauf, 60 x 47",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 664
+    },
+    {
+      "base": "2311645",
+      "artNr": "2311 645.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "60 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, ohne Armaturenloch, ohne Überlauf, 60 x",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 664
+    },
+    {
+      "base": "2311647",
+      "artNr": "2311 647.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "65 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, Armaturenloch, mit Überlauf, 65 x 47",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 665
+    },
+    {
+      "base": "2311649",
+      "artNr": "2311 649.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "65 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, Armaturenloch, ohne Überlauf, 65 x 47",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 665
+    },
+    {
+      "base": "2311651",
+      "artNr": "2311 651.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "65 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, ohne Armaturenloch, ohne Überlauf, 65 x",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 665
+    },
+    {
+      "base": "2311653",
+      "artNr": "2311 653.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "80 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, Armaturenloch, mit Überlauf, 80 x 47",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 665
+    },
+    {
+      "base": "2311655",
+      "artNr": "2311 655.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "80 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, Armaturenloch, ohne Überlauf, 80 x 47",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 665
+    },
+    {
+      "base": "2311657",
+      "artNr": "2311 657.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "80 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, ohne Armaturenloch, ohne Überlauf, 80 x",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 665
+    },
+    {
+      "base": "2311659",
+      "artNr": "2311 659.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "100 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, Armaturenloch, mit Überlauf, 100 x 47",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 665
+    },
+    {
+      "base": "2311661",
+      "artNr": "2311 661.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "100 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, Armaturenloch, ohne Überlauf, 100 x 47",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 665
+    },
+    {
+      "base": "2311663",
+      "artNr": "2311 663.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "100 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, ohne Armaturenloch, ohne Überlauf, 100",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 665
+    },
+    {
+      "base": "2311665",
+      "artNr": "2311 665.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "130 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, Armaturenloch, mit Überlauf, 130 x 47",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 666
+    },
+    {
+      "base": "2311667",
+      "artNr": "2311 667.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "130 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, Armaturenloch, ohne Überlauf, 130 x 47",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 666
+    },
+    {
+      "base": "2311669",
+      "artNr": "2311 669.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "130 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, ohne Armaturenloch, ohne Überlauf, 130",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 666
+    },
+    {
+      "base": "2311671",
+      "artNr": "2311 671.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "130 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, mit 2 Armaturenlöcher, mit Überlauf",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 666
+    },
+    {
+      "base": "2311673",
+      "artNr": "2311 673.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "130 x 47",
+      "label": "Waschtisch Villeroy & Boch Subway 3.0, mit 2 Armaturenlöcher, ohne Überlauf",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 666
+    },
+    {
+      "base": "2311675",
+      "artNr": "2311 675.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "130 x 47",
+      "label": "Doppelwaschtisch Villeroy & Boch Subway 3.0, mit 2 Armaturenlöcher, mit",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 666
+    },
+    {
+      "base": "2311677",
+      "artNr": "2311 677.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "130 x 47",
+      "label": "Doppelwaschtisch Villeroy & Boch Subway 3.0, mit 2 Armaturenlöcher, ohne",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 666
+    },
+    {
+      "base": "2311679",
+      "artNr": "2311 679.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "130 x 47",
+      "label": "Doppelwaschtisch Villeroy & Boch Subway 3.0, ohne Armaturenloch, ohne Überlauf",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 666
+    },
+    {
+      "base": "2311607",
+      "artNr": "2311 607.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "45 x 37",
+      "label": "Möbelwaschbecken Villeroy & Boch Subway 3.0, Armaturenloch, mit Überlauf, 45 x",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 667
+    },
+    {
+      "base": "2311609",
+      "artNr": "2311 609.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "45 x 37",
+      "label": "Möbelwaschbecken Villeroy & Boch Subway 3.0, Armaturenloch, ohne Überlauf, 45 x",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 667
+    },
+    {
+      "base": "2311615",
+      "artNr": "2311 615.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "50 x 40",
+      "label": "Möbelwaschbecken Villeroy & Boch Subway 3.0, Armaturenloch, mit Überlauf, 50 x",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 667
+    },
+    {
+      "base": "2311617",
+      "artNr": "2311 617.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "50 x 40",
+      "label": "Möbelwaschbecken Villeroy & Boch Subway 3.0, Armaturenloch, ohne Überlauf, 50 x",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 667
+    },
+    {
+      "base": "2311623",
+      "artNr": "2311 623.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "55 x 44",
+      "label": "Möbelwaschtisch Villeroy & Boch Subway 3.0, Armaturenloch, mit Überlauf, 55 x",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 667
+    },
+    {
+      "base": "2311625",
+      "artNr": "2311 625.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "55 x 44",
+      "label": "Möbelwaschtisch Villeroy & Boch Subway 3.0, Armaturenloch, ohne Überlauf, 55 x",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 667
+    },
+    {
+      "base": "2311627",
+      "artNr": "2311 627.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "55 x 44",
+      "label": "Möbelwaschtisch Villeroy & Boch Subway 3.0, ohne Armaturenloch, ohne Überlauf",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 667
+    },
+    {
+      "base": "2311635",
+      "artNr": "2311 635.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "60 x 47",
+      "label": "Möbelwaschtisch Villeroy & Boch Subway 3.0, Armaturenloch, mit Überlauf, 60 x",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 668
+    },
+    {
+      "base": "2311637",
+      "artNr": "2311 637.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "60 x 47",
+      "label": "Möbelwaschtisch Villeroy & Boch Subway 3.0, Armaturenloch, ohne Überlauf, 60 x",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 668
+    },
+    {
+      "base": "2311639",
+      "artNr": "2311 639.100.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "60 x 47",
+      "label": "Möbelwaschtisch Villeroy & Boch Subway 3.0, ohne Armaturenloch, ohne Überlauf",
+      "serie": "Subway 3.0",
+      "variants": 2,
+      "mounting": [
+        "mat_schallschutz",
+        "mat_duebelschraube"
+      ],
+      "pdfPage": 668
+    },
+    {
+      "base": "2311100",
+      "artNr": "2311 100.105.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "80 x 50",
+      "label": "Waschtisch Villeroy & Boch Antao, Armaturenloch, 80 x 50 cm, ohne",
+      "serie": "Antao",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 685
+    },
+    {
+      "base": "2311101",
+      "artNr": "2311 101.105.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "80 x 50",
+      "label": "Waschtisch Villeroy & Boch Antao, ohne Armaturenloch, 80 x 50 cm, ohne",
+      "serie": "Antao",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 685
+    },
+    {
+      "base": "2311102",
+      "artNr": "2311 102.105.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "100 x 50",
+      "label": "Waschtisch Villeroy & Boch Antao, Armaturenloch, 100 x 50 cm, ohne",
+      "serie": "Antao",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 685
+    },
+    {
+      "base": "2311103",
+      "artNr": "2311 103.105.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "100 x 50",
+      "label": "Waschtisch Villeroy & Boch Antao, ohne Armaturenloch, 100 x 50 cm, ohne",
+      "serie": "Antao",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 685
+    },
+    {
+      "base": "2311104",
+      "artNr": "2311 104.105.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "120 x 50",
+      "label": "Waschtisch Villeroy & Boch Antao, Armaturenloch, 120 x 50 cm, ohne",
+      "serie": "Antao",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 685
+    },
+    {
+      "base": "2311105",
+      "artNr": "2311 105.105.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "120 x 50",
+      "label": "Waschtisch Villeroy & Boch Antao, ohne Armaturenloch, 120 x 50 cm, ohne",
+      "serie": "Antao",
+      "variants": 1,
+      "mounting": [],
+      "pdfPage": 685
+    },
+    {
+      "base": "2311106",
+      "artNr": "2311 106.105.000",
+      "manufacturer": "Villeroy & Boch",
+      "size": "40 x 39.5",
+      "label": "Auflegewaschtisch Villeroy & Boch Antao, 40 x 39,5 cm, Höhe 14,5 cm, ohne Überlauf, Ablaufventil mit Keramikabdeckung, Befestigungsmaterial, Weiss Cleaneffekt",
+      "serie": "Antao",
+      "variants": 0,
+      "mounting": [],
+      "pdfPage": 685
+    }
+  ],
+  "skippedNotBasin": [
+    {
+      "base": "8211112",
+      "series": "Wandbecken Alterna cubito",
+      "ownLabel": "Dübelschraube 120 mm, Länge 120 mm, Kunststoffdübel, M 12"
+    },
+    {
+      "base": "8211113",
+      "series": "Waschtisch Alterna cubito",
+      "ownLabel": "Dübelschraube 145 mm, Länge 145 mm, Kunststoffdübel, M 12"
+    },
+    {
+      "base": "3163172",
+      "series": "Waschtischkombination Alterna progetto 46",
+      "ownLabel": "Möbelsiphon Viega, Raumsparmodell 1¼\" x 32 mm, inkl. Steckdichtung, Weiss"
+    },
+    {
+      "base": "6511222",
+      "series": "Waschtischkombination Laufen Pro S",
+      "ownLabel": "Regulierventil Laufen ½\", 45 mm, ohne Klemmverschraubung, Absperrung"
+    },
+    {
+      "base": "6511131",
+      "series": "Waschtischkombination Laufen Pro S",
+      "ownLabel": "Doppel-Regulierventil Laufen ½\", Verchromt"
+    },
+    {
+      "base": "3171166",
+      "series": "Waschtischkombination Laufen Pro S",
+      "ownLabel": "Schallschutz Iso-Set Möbel 120, 3,4 m Gummiband selbstklebend, 2 Gummihülsen"
+    },
+    {
+      "base": "3161151",
+      "series": "Auflegewaschtisch Laufen Living",
+      "ownLabel": "Schaftventil 1¼\", für Waschtische Keramik Laufen, kompatible Produkte"
+    },
+    {
+      "base": "8111411",
+      "series": "Waschtischkombination Duravit Happy D.2 Plus",
+      "ownLabel": "Steckdichtung Geberit, Ø 32 mm (152.495.00.1), für Sifonanschluss"
+    },
+    {
+      "base": "3163163",
+      "series": "Waschtisch Catalano Comfort",
+      "ownLabel": "Rohbau-Set Geberit EinbauSiphon, UP-Gehäuse, Abgang Ø 50 / 56 mm"
+    },
+    {
+      "base": "3163165",
+      "series": "Waschtisch Catalano Comfort",
+      "ownLabel": "Einbausiphon Geberit Waschtisch, Anschlussbogen 1¼\" x 32 mm"
+    },
+    {
+      "base": "2231838",
+      "series": "Auflegewaschtisch Catalano Zero",
+      "ownLabel": "Handtuchreling Catalano zu Waschtisch 80 cm"
+    }
+  ],
+  "skippedUnresolved": [
+    {
+      "base": "2116121",
+      "series": "Waschtischkombination Alterna progetto 46",
+      "description": "Breite 62 cm, Tiefe 46 cm, Höhe 57 cm, Armaturenloch, mit Überlauf, Waschtisch aus Keramik, 2 Schubladen, Griffleisten, für Möbelsifon, Kunstharz, Befestigungsmaterial für Möbel",
+      "pdfPage": 459
+    },
+    {
+      "base": "2116122",
+      "series": "Waschtischkombination Alterna progetto 46",
+      "description": "Breite 82 cm, Tiefe 46 cm, Höhe 57 cm, Armaturenloch, mit Überlauf, Waschtisch aus Keramik, 2 Schubladen, Griffleisten, für Möbelsifon, Kunstharz, Befestigungsmaterial für Möbel",
+      "pdfPage": 460
+    },
+    {
+      "base": "2116123",
+      "series": "Waschtischkombination Alterna progetto 46",
+      "description": "Breite 102 cm, Tiefe 46 cm, Höhe 57 cm, Armaturenloch, mit Überlauf, Waschtisch aus Keramik, 2 Schubladen, Griffleisten, für Möbelsifon, Kunstharz, Befestigungsmaterial für Möbel",
+      "pdfPage": 460
+    },
+    {
+      "base": "2116124",
+      "series": "Waschtischkombination Alterna progetto 46",
+      "description": "Breite 122 cm, Tiefe 46 cm, Höhe 57 cm, Armaturenloch, mit Überlauf, Waschtisch aus Keramik, 2 Schubladen, Griffleisten, für Möbelsifon, Kunstharz, Befestigungsmaterial für Möbel .—",
+      "pdfPage": 460
+    },
+    {
+      "base": "2116125",
+      "series": "Waschtischkombination Alterna progetto 46",
+      "description": "Breite 122 cm, Tiefe 46 cm, Höhe 57 cm, mit 2 Armaturenlöcher, mit Überlauf, Doppelwaschtisch aus Keramik, 2 Schubladen, Griffleisten, für Möbelsifon, Kunstharz, Befestigungsmaterial für Möbel .—",
+      "pdfPage": 460
+    },
+    {
+      "base": "2116126",
+      "series": "Waschtischkombination Alterna progetto 46",
+      "description": "Breite 122 cm, Tiefe 46 cm, Höhe 57 cm, mit 2 Armaturenlöcher, mit Überlauf, Doppelwaschtisch aus Keramik, 4 Schubladen, Griffleisten, für Möbelsifon, Kunstharz, Befestigungsmaterial für Möbel",
+      "pdfPage": 460
+    },
+    {
+      "base": "2112267",
+      "series": "Waschtischkombination Laufen Pro S",
+      "description": "Breite 60 cm, Tiefe 50 cm, Höhe 54,5 cm, Armaturenloch, mit Überlauf, Waschtisch aus Keramik, 2 Schubladen, Griffleisten, für Möbelsifon, Folie beschichtet, Befestigungsmaterial für Möbel",
+      "pdfPage": 562
+    },
+    {
+      "base": "2112268",
+      "series": "Waschtischkombination Laufen Pro S",
+      "description": "Breite 80 cm, Tiefe 50 cm, Höhe 54,5 cm, Armaturenloch, mit Überlauf, Waschtisch aus Keramik, 2 Schubladen, Griffleisten, für Möbelsifon, Folie beschichtet, Befestigungsmaterial für Möbel",
+      "pdfPage": 562
+    },
+    {
+      "base": "2112269",
+      "series": "Waschtischkombination Laufen Pro S",
+      "description": "Breite 100 cm, Tiefe 50 cm, Höhe 54,5 cm, Armaturenloch, mit Überlauf, Waschtisch aus Keramik, 2 Schubladen, Griffleisten, für Möbelsifon, Folie beschichtet, Befestigungsmaterial für Möbel",
+      "pdfPage": 562
+    },
+    {
+      "base": "2112273",
+      "series": "Waschtischkombination Laufen Pro S",
+      "description": "Breite 120 cm, Tiefe 50 cm, Höhe 54,5 cm, Armaturenloch, mit Überlauf, Waschtisch aus Keramik, 2 Schubladen, Griffleisten, für Möbelsifon, Folie beschichtet, Befestigungsmaterial für Möbel",
+      "pdfPage": 562
+    },
+    {
+      "base": "2112274",
+      "series": "Waschtischkombination Laufen Pro S",
+      "description": "Breite 120 cm, Tiefe 50 cm, Höhe 54,5 cm, mit 2 Armaturenlöcher, mit Überlauf, Waschtisch aus Keramik, 2 Schubladen, Griffleisten, für Möbelsifon, Folie beschichtet, Befestigungsmaterial für Möbel",
+      "pdfPage": 563
+    },
+    {
+      "base": "2231800",
+      "series": "Auflegewaschtisch Catalano Zero",
+      "description": "Ø 32 cm, Höhe 12 cm, ohne Überlauf, ohne Armaturenbank 202: Cleaneffekt",
+      "pdfPage": 637
+    },
+    {
+      "base": "2231830",
+      "series": "Auflegewaschtisch Catalano Zero",
+      "description": "Ø 40 cm, Höhe 13 cm, ohne Überlauf, ohne Armaturenbank 202: Cleaneffekt",
+      "pdfPage": 637
+    },
+    {
+      "base": "2231810",
+      "series": "Auflegewaschtisch Catalano Zero",
+      "description": "Ø 45 cm, Höhe 13 cm, ohne Überlauf, ohne Armaturenbank 202: Cleaneffekt",
+      "pdfPage": 637
+    },
+    {
+      "base": "2231839",
+      "series": "Auflegewaschtisch Catalano Zero",
+      "description": "60 x 35 cm, Höhe 12 cm, ohne Überlauf, ohne Armaturenbank 202: Cleaneffekt",
+      "pdfPage": 637
+    },
+    {
+      "base": "2231840",
+      "series": "Auflegewaschtisch Catalano Zero",
+      "description": "70 x 35 cm, Höhe 12 cm, ohne Überlauf, ohne Armaturenbank 202: Cleaneffekt",
+      "pdfPage": 638
+    },
+    {
+      "base": "2231638",
+      "series": "Auflegewaschtisch Catalano Sfera",
+      "description": "Ø 40 cm, Höhe 7,5 cm, ohne Überlauf, ohne Armaturenbank 202: Cleaneffekt",
+      "pdfPage": 654
+    },
+    {
+      "base": "2231639",
+      "series": "Auflegewaschtisch Catalano Sfera",
+      "description": "58 x 40 cm, Höhe 7,5 cm, ohne Überlauf, ohne Armaturenbank",
+      "pdfPage": 655
+    },
+    {
+      "base": "2231640",
+      "series": "Auflegewaschtisch Catalano Sfera",
+      "description": "Ø 32 cm, Höhe 14 cm, ohne Überlauf, ohne Armaturenbank : Cleaneffekt 423, 535, 536",
+      "pdfPage": 655
+    },
+    {
+      "base": "2231641",
+      "series": "Auflegewaschtisch Catalano Sfera",
+      "description": "Ø 42 cm, Höhe 16 cm, ohne Überlauf, ohne Armaturenbank : Cleaneffekt 423, 535, 536",
+      "pdfPage": 655
+    },
+    {
+      "base": "2231642",
+      "series": "Auflegewaschtisch Catalano Sfera",
+      "description": "Ø 42 cm, Höhe 22 cm, ohne Überlauf, ohne Armaturenbank 202: Cleaneffekt",
+      "pdfPage": 655
+    },
+    {
+      "base": "2231643",
+      "series": "Auflegewaschtisch Catalano Sfera",
+      "description": "50 x 35 cm, Höhe 16 cm, ohne Überlauf, ohne Armaturenbank : Cleaneffekt 423, 535, 536",
+      "pdfPage": 655
+    },
+    {
+      "base": "2231644",
+      "series": "Auflegewaschtisch Catalano Sfera",
+      "description": "60 x 37 cm, Höhe 16 cm, ohne Überlauf, ohne Armaturenbank : Cleaneffekt 423, 535, 536",
+      "pdfPage": 655
+    },
+    {
+      "base": "2231650",
+      "series": "Auflegewaschtisch Catalano Sfera",
+      "description": "60 x 42 cm, Höhe 16 cm, ohne Überlauf, ohne Armaturenbank : Cleaneffekt 423, 535, 536",
+      "pdfPage": 656
+    },
+    {
+      "base": "2231707",
+      "series": "Auflegewaschtisch Catalano Green",
+      "description": "Ø 40 cm, Höhe 15 cm, ohne Überlauf, ohne Armaturenbank : Cleaneffekt 423, 535, 536",
+      "pdfPage": 661
+    },
+    {
+      "base": "2231708",
+      "series": "Auflegewaschtisch Catalano Green",
+      "description": "60 x 38 cm, Höhe 15 cm, ohne Überlauf, ohne Armaturenbank : Cleaneffekt 423, 535, 536",
+      "pdfPage": 661
+    },
+    {
+      "base": "2231709",
+      "series": "Auflegewaschtisch Catalano Green",
+      "description": "60 x 38 cm, Höhe 14 cm, ohne Überlauf, ohne Armaturenbank 202: Cleaneffekt",
+      "pdfPage": 661
+    },
+    {
+      "base": "2311107",
+      "series": "Auflegewaschtisch Villeroy & Boch Antao",
+      "description": "51 x 40 cm, Höhe 14,5 cm, ohne Überlauf, Ablaufventil mit Keramikabdeckung, Befestigungsmaterial",
+      "pdfPage": 685
+    },
+    {
+      "base": "2311108",
+      "series": "Auflegewaschtisch Villeroy & Boch Antao",
+      "description": "65 x 40 cm, Höhe 14,5 cm, ohne Überlauf, Ablaufventil mit Keramikabdeckung, Befestigungsmaterial",
+      "pdfPage": 686
+    }
+  ],
+  "pricesAdded": 166
+}
