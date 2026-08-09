@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, accessoryHersteller, accessorySerie } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, accessoryHersteller, accessorySerie, accessoryFacetBar, fullLabel, differentiatingChips } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createMixAndMatchApp(title, desc, mainImgUrl) {
@@ -18,8 +18,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         showLichtspiegel: false,
         showSchraenke: false,
         showAccessoires: false,
-        currentAccessoiresHersteller: 'all',
-        currentAccessoiresSerie: 'all',
+        accFacets: {},                   // shared accessory facet state (Produktkategorie/Hersteller/Serie/Farbe)
         currentSchraenkeFilter: 'all',   // 'all' | 'Hochschrank' | 'Seitenschrank'
         currentSchraenkeFarbe: 'all',    // colour name from the art-Nr finish code (COLOR_NAMES)
         currentSchraenkeBreite: 'all',   // width in cm (extractBreite)
@@ -545,10 +544,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             <div class="finder-list" id="list_addon_spiegel"></div>
                         </div>
                         <div id="addon_accessoires_panel" class="addon-panel" style="display:none;">
-                            <div class="finder-sub-header" id="addon_accessoires_hersteller_header" style="display:none;">Hersteller</div>
-                            <div class="pill-group" id="list_addon_accessoires_hersteller" style="margin-bottom: 0.75rem; display:none;"></div>
-                            <div class="finder-sub-header" id="addon_accessoires_serie_header">Kategorie</div>
-                            <div class="pill-group" id="list_addon_accessoires_serie" style="margin-bottom: 0.75rem;"></div>
+                            <div id="acc_facets_mm"></div>
                             <div class="finder-sub-header">Accessoires wählen</div>
                             <div class="finder-list" id="list_addon_accessoires"></div>
                         </div>
@@ -701,7 +697,17 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 f8 = f8.filter(t => matchesSearchQuery(t, this.basinSearchQuery));
             }
 
-            // 8. Items list
+            // 8. Items list — same de-ambiguation as the faucet column: a Waschtisch series
+            //    ships 18+ near-identical models whose only difference (Armaturenlöcher,
+            //    Überlauf, Abstellfläche links/rechts) sits in the full text. 'Masse' is
+            //    excluded because the size already has its own line on the tile.
+            const basinGroups = new Map();
+            f8.forEach(t => {
+                const k = this.extractSerie(t);
+                if (!basinGroups.has(k)) basinGroups.set(k, []);
+                basinGroups.get(k).push(t);
+            });
+
             serieList.innerHTML = f8.length === 0 ? '<div class="no-results">Keine Waschtische gefunden.</div>' : f8.sort((a, b) => {
                 const sA = this.extractSerie(a).toLowerCase();
                 const sB = this.extractSerie(b).toLowerCase();
@@ -709,13 +715,18 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 return (a.size || '').localeCompare(b.size || '');
             }).map(t => {
                 const imgHTML = t.imgUrl ? `<img loading="lazy" decoding="async" src="${t.imgUrl}" style="width:36px; height:36px; object-fit:contain; background:white; border-radius:4px; border:1px solid rgba(0,0,0,0.1);" onerror="this.style.display='none'">` : '';
+                const chips = differentiatingChips(t, basinGroups.get(this.extractSerie(t)) || [t], {
+                    exclude: ['Masse'], max: 4
+                });
+                const tagsHTML = chips.length === 0 ? '' : `<div style="display:flex; flex-wrap:wrap; gap:0.3rem; font-size:0.65rem; color:var(--text-secondary); margin-top:0.3rem;">${chips.map(c => `<span style="background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">${c}</span>`).join('')}</div>`;
                 return `
                 <div class="finder-item ${this.selectedBasin && this.selectedBasin.id === t.id ? 'active' : ''}" data-id="${t.id}">
-                    <div style="display:flex; align-items:center; gap: 0.75rem;">
+                    <div style="display:flex; align-items:flex-start; gap: 0.75rem;">
                         ${imgHTML}
-                        <div style="display:flex; flex-direction:column;">
+                        <div style="display:flex; flex-direction:column; min-width:0;">
                             <span style="font-weight:500;">${this.extractSerie(t)}</span>
                             <span class="result-meta">${t.size} | ${t.artNr}</span>
+                            ${tagsHTML}
                         </div>
                     </div>
                     <i class="ri-check-line finder-item-arrow" style="${this.selectedBasin && this.selectedBasin.id === t.id ? '' : 'display:none;'}"></i>
@@ -1006,15 +1017,23 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 f7 = f7.filter(t => matchesSearchQuery(t, this.faucetSearchQuery));
             }
 
+            // Tiles that share a title must be told apart: group the visible faucets by the
+            // name the tile shows, so differentiatingChips() can chip exactly the attributes
+            // that differ INSIDE that group (Energieeffizienz, Mischdüsenhöhe, Kaltwasser-
+            // Mittelstellung …) — those live in the description, never in the truncated label.
+            const serieGroups = new Map();
+            f7.forEach(t => {
+                const k = this.extractFaucetSerie(t);
+                if (!serieGroups.has(k)) serieGroups.set(k, []);
+                serieGroups.get(k).push(t);
+            });
+
             const itemsHTML = f7.length === 0 ? '<div class="no-results">Keine Armaturen gefunden.</div>' : f7.sort((a, b) => {
                 const sA = this.extractFaucetSerie(a).toLowerCase();
                 const sB = this.extractFaucetSerie(b).toLowerCase();
                 if (sA !== sB) return sA.localeCompare(sB);
                 return (a.artNr || '').localeCompare(b.artNr || '');
             }).map(t => {
-                const ausladung = this.extractAusladung(t);
-                const ablauf = this.extractAblauf(t);
-
                 // Show the art-Nr (+ image) for the colour picked in the Farbe filter, so the
                 // tile matches what the BOM will emit. Falls back to the base when Farbe='Alle'
                 // or the tile has no variant in that colour. (Serie/tags are colour-invariant.)
@@ -1024,10 +1043,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     if (dv) { dispArt = dv.artNr; if (dv.imgUrl) dispImg = dv.imgUrl; }
                 }
 
-                const tags = [];
-                if (ausladung !== 'unknown') tags.push(`<span style="background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">${ausladung} mm</span>`);
-                if (ablauf === 'mit') tags.push(`<span style="background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">mit Ablaufventil</span>`);
-                if (ablauf === 'ohne') tags.push(`<span style="background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">ohne Ablaufventil</span>`);
+                const chips = differentiatingChips(t, serieGroups.get(this.extractFaucetSerie(t)) || [t], {
+                    always: ['Ausladung', 'Ablaufventil'], max: 4
+                });
+                const tags = chips.map(c => `<span style="background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">${c}</span>`);
                 const tagsHTML = tags.length > 0 ? `<div style="display:flex; flex-wrap:wrap; gap: 0.3rem; font-size: 0.65rem; color: var(--text-secondary); margin-top: 0.3rem;">${tags.join('')}</div>` : '';
 
                 const imgHTML = dispImg ? `<img loading="lazy" decoding="async" src="${dispImg}" style="width:54px; height:54px; object-fit:contain; background:white; border-radius:6px; border:1px solid rgba(0,0,0,0.1); padding: 2px; flex-shrink: 0;" onerror="this.style.display='none'">` : '';
@@ -1159,8 +1178,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             if (t === 'schraenke') { this.selectedSchraenke = null; this.currentSchraenkeFilter = 'all'; this.currentSchraenkeFarbe = 'all'; this.currentSchraenkeBreite = 'all'; this.currentSchraenkeHoehe = 'all'; }
                             if (t === 'accessoires') {
                                 this.selectedAccessoires = [];
-                                this.currentAccessoiresHersteller = 'all';
-                                this.currentAccessoiresSerie = 'all';
+                                this.accFacets = {};
                             }
                         }
                         this.updateAddonToggles();
@@ -1603,34 +1621,17 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             const isMulti = target === 'accessoires';
             if (target === 'accessoires') {
-                // Hersteller (brand) — from the clean manufacturer field. Cascades into Serie.
-                const herEl = document.getElementById('list_addon_accessoires_hersteller');
-                const herHdr = document.getElementById('addon_accessoires_hersteller_header');
-                const brands = [...new Set(displayCandidates.map(accessoryHersteller))].filter(Boolean).sort();
-                if (this.currentAccessoiresHersteller !== 'all' && !brands.includes(this.currentAccessoiresHersteller)) this.currentAccessoiresHersteller = 'all';
-                const showHer = brands.length > 1;
-                if (herEl) {
-                    herEl.innerHTML = `<button class="pill-btn ${this.currentAccessoiresHersteller === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
-                        brands.map(b => `<button class="pill-btn ${this.currentAccessoiresHersteller === b ? 'active' : ''}" data-val="${b}">${b}</button>`).join('');
-                    herEl.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => { this.currentAccessoiresHersteller = btn.dataset.val; this.currentAccessoiresSerie = 'all'; this.populateAddonPanel(target); }));
-                    herEl.style.display = showHer ? '' : 'none';
-                }
-                if (herHdr) herHdr.style.display = showHer ? '' : 'none';
-                if (this.currentAccessoiresHersteller !== 'all') displayCandidates = displayCandidates.filter(c => accessoryHersteller(c) === this.currentAccessoiresHersteller);
-
-                // Serie (model line) — brand-anchored, noise-guarded (accessorySerie in _shared.js).
-                const serieListEl = document.getElementById('list_addon_accessoires_serie');
-                if (serieListEl) {
-                    const series = [...new Set(displayCandidates.map(c => accessorySerie(c)))].filter(Boolean).sort();
-                    serieListEl.innerHTML = `<button class="pill-btn ${this.currentAccessoiresSerie === 'all' ? 'active' : ''}" data-val="all">Alle</button>` +
-                        series.map(s => `<button class="pill-btn ${this.currentAccessoiresSerie === s ? 'active' : ''}" data-val="${s}">${s}</button>`).join('');
-                    serieListEl.querySelectorAll('.pill-btn').forEach(btn => btn.addEventListener('click', () => {
-                        this.currentAccessoiresSerie = btn.dataset.val;
-                        this.populateAddonPanel(target);
-                    }));
-                }
-                if (this.currentAccessoiresSerie !== 'all') {
-                    displayCandidates = displayCandidates.filter(c => accessorySerie(c) === this.currentAccessoiresSerie);
+                // The SAME shared facet bar every other configurator uses:
+                // Produktkategorie / Hersteller / Serie / Farbe, bidirectionally faceted.
+                if (!this.accFacets) this.accFacets = {};
+                displayCandidates = accessoryFacetBar(
+                    displayCandidates, this.accFacets,
+                    document.getElementById('acc_facets_mm'), 'acc_mm',
+                    () => this.populateAddonPanel('accessoires')
+                );
+                if (displayCandidates.length === 0) {
+                    listEl.innerHTML = '<div class="finder-empty-state" style="font-size:0.8rem;">Keine Accessoires gefunden.</div>';
+                    return;
                 }
             }
             
@@ -1703,13 +1704,13 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         <div class="preview-details">
                         <div class="preview-bom-list" style="border-top: 1px solid var(--border); padding-top: 1.25rem;">
                             <h3 style="font-size: 0.75rem; margin-bottom: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Zusammenfassung</h3>
-                            <div style="background: rgba(255,255,255,0.02); border-radius: 12px; padding: 0.75rem 1rem; border: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: 24px max-content 1fr; gap: 0.4rem 0.75rem; align-items: start; max-width: 900px;">
+                            <div style="background: rgba(255,255,255,0.02); border-radius: 12px; padding: 0.75rem 1rem; border: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: 24px max-content minmax(0, 1fr); gap: 0.4rem 0.75rem; align-items: start;">
                                 ${this.getBOMPreviewItems().map(item => {
                 if (item.isSpacer) return '<div style="grid-column: 1 / -1; margin: 0.3rem 0; border-top: 1px dashed rgba(255,255,255,0.1);"></div>';
                 return `
                                         <div style="color: var(--text-secondary); font-size: 0.7rem; padding-top: 2px;">${item.qty}x</div>
                                         <div style="font-family: monospace; color: var(--accent); font-weight: 700; font-size: 0.76rem; white-space: nowrap; text-align: left;">${item.artNr}</div>
-                                        <div style="font-weight: 500; color: var(--text-primary); line-height: 1.35; font-size: 0.76rem;">${item.label}</div>
+                                        <div style="font-weight: 500; color: var(--text-primary); line-height: 1.35; font-size: 0.76rem; overflow-wrap: anywhere;">${item.label}</div>
                                     `;
             }).join('')}
                             </div>
@@ -1748,9 +1749,9 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             }
             for (const c of this._accPool[productType]) {
                 if ((c.manufacturer || '').toLowerCase() !== brand) continue;   // same brand as the faucet
-                if (colourOf(c.artNr) === colour) return { artNr: c.artNr, label: c.label };
+                if (colourOf(c.artNr) === colour) return { artNr: c.artNr, label: fullLabel(c) };
                 const v = (c.variants || []).find(x => colourOf(x.artNr) === colour);
-                if (v) return { artNr: v.artNr, label: v.label || c.label };
+                if (v) return { artNr: v.artNr, label: fullLabel(v) || fullLabel(c) };
             }
             return null;   // no same-brand colour match -> caller uses the default
         },
@@ -1794,10 +1795,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 // the base art-Nr — colour never changes type/accessories.)
                 const _colourOf = (art) => { const m = String(art || '').match(/\.(\d{3})(?:\.|$)/); return m ? (COLOR_NAMES[m[1]] || null) : null; };
                 let _faucetArt = this.selectedFaucet.artNr;
-                let _faucetLabel = this.selectedFaucet.label;
+                let _faucetLabel = fullLabel(this.selectedFaucet);
                 if (this.currentFaucetFarbe && this.currentFaucetFarbe !== 'all' && _colourOf(_faucetArt) !== this.currentFaucetFarbe) {
                     const _v = (this.selectedFaucet.variants || []).find(v => _colourOf(v.artNr) === this.currentFaucetFarbe);
-                    if (_v) { _faucetArt = _v.artNr; _faucetLabel = _v.label || _faucetLabel; }
+                    if (_v) { _faucetArt = _v.artNr; _faucetLabel = fullLabel(_v) || _faucetLabel; }
                 }
 
                 // Add main faucet
@@ -1832,7 +1833,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         kwcMapping[currentArtNr].forEach(accArtNr => {
                             const acc = this.faucetTrays.find(t => t.artNr === accArtNr);
                             if (acc) {
-                                faucetItems.push({ qty: faucetQty, label: acc.label, artNr: acc.artNr });
+                                faucetItems.push({ qty: faucetQty, label: fullLabel(acc), artNr: acc.artNr });
                             } else {
                                 // Fallback labels if not found in trays
                                 if (accArtNr.includes('137')) faucetItems.push({ qty: faucetQty, label: 'KWC Befestigungsset zu KWC BLUEBOX', artNr: accArtNr });
@@ -1853,7 +1854,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         const acc = this.faucetTrays.find(t => t.artNr === accArtNr);
                         faucetItems.push({
                             qty: faucetQty,
-                            label: acc ? acc.label : 'Einbaukörper Hansgrohe ½"',
+                            label: acc ? fullLabel(acc) : 'Einbaukörper Hansgrohe ½"',
                             artNr: accArtNr
                         });
                     }
@@ -1866,7 +1867,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         if (this.selectedFaucet.mountingMaterials) {
                             this.selectedFaucet.mountingMaterials.forEach(mat => {
                                 if (mat.options && mat.options.length > 0) {
-                                    faucetItems.push({ qty: faucetQty, label: mat.options[0].label, artNr: mat.options[0].artNr });
+                                    faucetItems.push({ qty: faucetQty, label: fullLabel(mat.options[0]), artNr: mat.options[0].artNr });
                                 }
                             });
                         }
@@ -1877,7 +1878,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     if (this.selectedFaucet.mountingMaterials) {
                         this.selectedFaucet.mountingMaterials.forEach(mat => {
                             if (mat.name && mat.name.toLowerCase().includes('einbaukosten') && mat.options && mat.options.length > 0) {
-                                faucetItems.push({ qty: faucetQty, label: mat.options[0].label, artNr: mat.options[0].artNr });
+                                faucetItems.push({ qty: faucetQty, label: fullLabel(mat.options[0]), artNr: mat.options[0].artNr });
                                 hasEinbau = true;
                             }
                         });
@@ -1922,12 +1923,12 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
                     items.push(...cleanFaucetItems);
                     items.push({ qty: 1, label: 'Gürtelset', artNr: 'G1' });
-                    items.push({ qty: 1, label: this.selectedBasin.label, artNr: this.selectedBasin.artNr });
+                    items.push({ qty: 1, label: fullLabel(this.selectedBasin), artNr: this.selectedBasin.artNr });
 
                     // Standalone valve article if selected
                     if (this.selectedAblauf) {
                         const valve = this.faucetTrays.find(t => t.artNr === this.selectedAblauf);
-                        if (valve) items.push({ qty: valveQty, label: valve.label, artNr: valve.artNr });
+                        if (valve) items.push({ qty: valveQty, label: fullLabel(valve), artNr: valve.artNr });
                     }
 
                     // Einbaukosten always at the bottom of the core set
@@ -1939,12 +1940,12 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 } else {
                     items.push(...faucetItems);
                     items.push({ qty: 1, label: 'Gürtelset', artNr: 'G1' });
-                    items.push({ qty: 1, label: this.selectedBasin.label, artNr: this.selectedBasin.artNr });
+                    items.push({ qty: 1, label: fullLabel(this.selectedBasin), artNr: this.selectedBasin.artNr });
                 }
             } else {
                 // Standard case: G1 -> Basin -> Faucet items
                 items.push({ qty: 1, label: 'Gürtelset', artNr: 'G1' });
-                items.push({ qty: 1, label: this.selectedBasin.label, artNr: this.selectedBasin.artNr });
+                items.push({ qty: 1, label: fullLabel(this.selectedBasin), artNr: this.selectedBasin.artNr });
                 items.push(...faucetItems);
             }
 
@@ -1952,13 +1953,13 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             if (!isSelectedWandModel && this.selectedAblauf) {
                 const valve = this.faucetTrays.find(t => t.artNr === this.selectedAblauf);
                 if (valve) {
-                    items.push({ qty: valveQty, label: valve.label, artNr: valve.artNr });
+                    items.push({ qty: valveQty, label: fullLabel(valve), artNr: valve.artNr });
 
                     let hasEinbau = false;
                     if (valve.mountingMaterials) {
                         valve.mountingMaterials.forEach(mat => {
                             if (mat.name && mat.name.toLowerCase().includes('einbaukosten') && mat.options && mat.options.length > 0) {
-                                items.push({ qty: valveQty, label: mat.options[0].label, artNr: mat.options[0].artNr });
+                                items.push({ qty: valveQty, label: fullLabel(mat.options[0]), artNr: mat.options[0].artNr });
                                 hasEinbau = true;
                             }
                         });
@@ -1979,7 +1980,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 this.selectedBasin.mountingMaterials.forEach(mat => {
                     if (mat.options && mat.options.length > 0) {
                         const opt = mat.options[0];
-                        items.push({ qty: opt.menge || 1, label: opt.label, artNr: opt.artNr });
+                        items.push({ qty: opt.menge || 1, label: fullLabel(opt), artNr: opt.artNr });
                     }
                 });
             }
@@ -2002,7 +2003,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 });
 
                 if (cabinetObj) {
-                    items.push({ qty: 1, label: cabinetObj.label, artNr: cabinetObj.artNr });
+                    items.push({ qty: 1, label: fullLabel(cabinetObj), artNr: cabinetObj.artNr });
                 }
 
                 // Cabinet Isolation Tape (Automatically based on width)
@@ -2026,7 +2027,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 // Weiss/Chrom pick (or the Chrom default).
                 const sifMatch = this.matchColouredAccessory('Siphon');
                 if (sifMatch) {
-                    items.push({ qty: siphonQty, label: sifMatch.label, artNr: sifMatch.artNr });
+                    items.push({ qty: siphonQty, label: fullLabel(sifMatch), artNr: sifMatch.artNr });
                 } else if (this.selectedSiphon) {
                     const sLabelMap = {
                         "3163 105.100.000": "Sifon Geberit 40mm Weiss",
@@ -2050,7 +2051,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         // Other brands: colour-match the Regulierventil itself (same brand + finish)
                         // when the faucet is coloured and a match exists; else the Laufen chrome default.
                         const reg = this.matchColouredAccessory('Regulierventil') || { artNr: '6511 201.501.000', label: 'Regulierventil Laufen ½" Verchromt' };
-                        items.push({ qty: regQty, label: reg.label, artNr: reg.artNr });
+                        items.push({ qty: regQty, label: fullLabel(reg), artNr: reg.artNr });
                     }
                 }
             }
@@ -2066,7 +2067,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 });
 
                 if (mirrorObj) {
-                    items.push({ qty: 1, label: mirrorObj.label || mirrorObj.name, artNr: mirrorObj.artNr });
+                    items.push({ qty: 1, label: fullLabel(mirrorObj), artNr: mirrorObj.artNr });
                 } else {
                     items.push({ qty: 1, label: 'Spiegelschrank', artNr: this.selectedSpiegelschrank });
                 }
@@ -2085,7 +2086,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     const its = app.trays || app.basinTrays || app.faucets || [];
                     obj = its.find(t => t.artNr === this[selKey]);
                 });
-                items.push({ qty: 1, label: obj ? (obj.label || obj.name) : this[selKey], artNr: this[selKey] });
+                items.push({ qty: 1, label: obj ? fullLabel(obj) : this[selKey], artNr: this[selKey] });
                 // Büchlerglas mirrors need the concealed mounting kit (1× each) — right after the mirror.
                 if (obj && /büchlerglas/i.test((obj.manufacturer || '') + ' ' + (obj.label || ''))) {
                     items.push({ qty: 1, label: 'Spiegelbefestigung Büchlerglas verdeckt', artNr: '5111 514.000.000' });
@@ -2101,7 +2102,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     const its = app.trays || app.basinTrays || app.faucets || [];
                     obj = its.find(t => t.artNr === this.selectedSchraenke);
                 });
-                items.push({ qty: 1, label: obj ? (obj.label || obj.name) : this.selectedSchraenke, artNr: this.selectedSchraenke });
+                items.push({ qty: 1, label: obj ? fullLabel(obj) : this.selectedSchraenke, artNr: this.selectedSchraenke });
             }
 
             // 7. Add Accessories
@@ -2115,7 +2116,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         accObj = itemsToSearch.find(t => t.artNr === artNr);
                     });
                     if (accObj) {
-                        items.push({ qty: 1, label: accObj.label, artNr: accObj.artNr });
+                        items.push({ qty: 1, label: fullLabel(accObj), artNr: accObj.artNr });
                     }
                 });
             }

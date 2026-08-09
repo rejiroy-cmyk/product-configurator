@@ -54,6 +54,14 @@ function walk(node, fn) {
     Object.values(node).forEach(v => walk(v, fn));
 }
 
+// Re-runs: after the first pass most imgUrls are ALREADY the local 'img/…webp' path
+// this script wrote. Those are not fetchable sources — treated as one, `localName()`
+// happily hashes them into 'X_img_PG1_…webp_1ef40063.webp' and the fetcher spends the
+// run resolving the host "img". A later injection only ever adds a few thousand vendor
+// URLs to an otherwise localised file, so skipping settled entries is what keeps this
+// script re-runnable.
+const isLocalised = (u) => /^\/?img\//.test(u);
+
 const want = new Map();   // sourceUrl -> width
 for (const [category, val] of Object.entries(data)) {
     const width = BIG_TIER.has(category) ? WIDTH_BIG : WIDTH_DEFAULT;
@@ -61,6 +69,7 @@ for (const [category, val] of Object.entries(data)) {
         for (const k of IMG_KEYS) {
             const u = n[k];
             if (typeof u !== 'string' || !u.trim()) continue;
+            if (isLocalised(u)) continue;
             want.set(u, Math.max(want.get(u) || 0, width));   // widest wins if shared
         }
     });
@@ -299,13 +308,30 @@ function fetchOne(job) {
     }
 
     // ── --rewrite: repoint the data AND the source at the local copies ────────
-    let repointed = 0, left = 0, filled = 0, stillBlank = 0;
+    // A vendor URL the fetcher proved DEAD (404) must not survive in the data: leaving it
+    // means every render of that tile fires a request that 404s at the vendor — the exact
+    // traffic pattern the localisation exists to stop. Blank it and the tile falls back to
+    // the local icon. Only confirmed 404s are dropped; a URL that failed for any other
+    // reason (timeout, connection reset) is left alone and reported, because re-running the
+    // fetcher can still recover it and silently discarding it would lose a real image.
+    const dead = new Set();
+    const failPath = path.join(DIR, 'localize-failures.json');
+    if (fs.existsSync(failPath)) {
+        for (const f of JSON.parse(fs.readFileSync(failPath, 'utf8'))) {
+            if (String(f.why) === '404' && f.url) dead.add(f.url);
+        }
+    }
+
+    let repointed = 0, left = 0, filled = 0, stillBlank = 0, blanked = 0;
     walk(data, n => {
         for (const k of IMG_KEYS) {
             const u = n[k];
             if (typeof u !== 'string' || !u.trim()) continue;
             if (manifest[u]) { n[k] = manifest[u]; repointed++; }
-            else if (/^https?:/.test(u)) left++;
+            else if (/^https?:/.test(u)) {
+                if (dead.has('https://' + unwrap(u))) { n[k] = ''; blanked++; }
+                else left++;
+            }
         }
         // bake the resolved guesses in, so the runtime guesser can be deleted
         if (n.artNr && !(n.imgUrl && String(n.imgUrl).trim())) {
@@ -315,7 +341,8 @@ function fetchOne(job) {
         }
     });
     fs.writeFileSync(DATA, JSON.stringify(data, null, 2));
-    console.log(`custom-data.json  : ${repointed} repointed, ${left} still remote`);
+    console.log(`custom-data.json  : ${repointed} repointed, ${blanked} blanked (confirmed 404), ${left} still remote`);
+    if (left) console.log(`  WARNING: ${left} vendor URLs survive — re-run the fetcher, they failed for a recoverable reason`);
     console.log(`guesser replaced  : ${filled} items gained a real local image, ${stillBlank} keep the local icon`);
 
     let srcRepointed = 0, srcLeft = 0;

@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups , fullLabel } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
@@ -104,7 +104,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
       currentSerie: "all",
       showAccessoires: false,
       selectedAddonAccessoires: [],
-      currentAccessoireSerie: 'Alle',
+      accFacets: {},
       init: function () {
         ((this.selectedTray = null),
           (this.mischerOptionsState = {}),
@@ -113,7 +113,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
           (this.currentSerie = "all"),
           (this.showAccessoires = false),
           (this.selectedAddonAccessoires = []),
-          (this.currentAccessoireSerie = 'Alle'),
+          (this.accFacets = {}),
           this.renderSidebar(),
           this.bindFilters(), this.filterResults());
           if (!config.enableGalleryUX) { this.clearBOM(); }
@@ -371,8 +371,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
                         <button class="ios-toggle" data-target="accessoires_mischer_${s}" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
                     </div>
                     <div id="addon_accessoires_mischer_panel_${s}" class="addon-panel" style="display:none;">
-                        <div class="finder-sub-header">Kategorie</div>
-                        <div class="pill-group" id="list_addon_accessoires_serie_${s}" style="margin-bottom: 0.75rem;"></div>
+                        <div id="acc_facets_${s}"></div>
                         <div class="finder-sub-header">Accessoires wählen</div>
                         <div class="finder-list" id="list_addon_accessoires_${s}"></div>
                     </div>
@@ -769,7 +768,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
         const _variants = this.selectedTray.variants || [];
         const _active = (this.selectedVariantIdx > 0 && _variants[this.selectedVariantIdx - 1]) ? _variants[this.selectedVariantIdx - 1] : this.selectedTray;
         const _finishName = (art) => { const m = String(art || '').match(/\.(\d{3})(?:\.|$)/); return (m && COLOR_NAMES[m[1]]) || (art || ''); };
-        let _mainDesc = `<div class="bom-desc">${_active.label}</div>`;
+        let _mainDesc = `<div class="bom-desc">${fullLabel(_active)}</div>`;
         if (config.enableGalleryUX && _variants.length) {
             const _opts = [this.selectedTray, ..._variants].map((sk, idx) =>
                 `<option value="${idx}" ${this.selectedVariantIdx === idx ? 'selected' : ''}>${_finishName(sk.artNr)} (${sk.artNr})</option>`).join('');
@@ -798,7 +797,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
                 
                 if (!isInlineDropdown && isOhne) return;
 
-                let descHTML = `<div class="bom-desc">${l ? l.label : ''}</div>`;
+                let descHTML = `<div class="bom-desc">${l ? fullLabel(l) : ''}</div>`;
                 if (isInlineDropdown) {
                     const optionsHTML = n.options.map((opt, idx) => {
                         const selected = (a === idx) ? 'selected' : '';
@@ -838,7 +837,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
                         <tr>
                             <td><div class="img-cell"><img src="${acc.imgUrl || ''}"></div></td>
                             <td><span class="bom-code">${acc.artNr}</span></td>
-                            <td><div class="bom-desc">${acc.label || acc.name}</div></td>
+                            <td><div class="bom-desc">${fullLabel(acc)}</div></td>
                             
                             <td><strong>1</strong></td>
                         </tr>

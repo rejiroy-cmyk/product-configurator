@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel , fullLabel } from './_shared.js';
 
 export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {}) {
     const suffix = title.replace(/\s/g, '');
@@ -9,14 +9,12 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
         selectedTray: null,
         showAccessoires: false,
         selectedAddonAccessoires: [],
-        currentAccessoireSerie: 'Alle',
-        accSecondary: {},
+        accFacets: {},
         init: function () {
             this.selectedTray = null;
             this.showAccessoires = false;
             this.selectedAddonAccessoires = [];
-            this.currentAccessoireSerie = 'Alle';
-            this.accSecondary = {};
+            this.accFacets = {};
 
             // Auto-fix brands if they are "Andere" or missing
             if (this.trays) {
@@ -76,19 +74,26 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
         extractSerie: function (t) {
             if (t.serie) return t.serie;
             const brand = (t.manufacturer || '').toLowerCase();
+            // Words are compared in a stripped form (a-z0-9- only), so the skip list has to be
+            // normalised the same way or an umlaut entry could never match: "Spültischmischer"
+            // reduces to "spltischmischer", which no literal in this list would have equalled.
+            const norm = (w) => String(w || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
             const skipWords = [
                 'einlochmischer', 'waschtischmischer', 'waschtischbatterie', 'batterie',
                 'mischer', 'armatur', 'wandmischer', 'standmischer', 'm.', 'm', 'waschtisch-',
                 'u-mischer', 'aufbau', brand, 'hansgrohe', 'axor', 'laufen', 'alterna', 'gessi', 'kwc',
-                'auslauf', 'fest', 'schwenkbar', 'mit', 'ohne', 'ablaufventil'
-            ];
+                'auslauf', 'fest', 'schwenkbar', 'mit', 'ohne', 'ablaufventil',
+                // This instance's own product word — every label in the pool starts with it, so it
+                // is never what tells two series apart (Spültischmischer, Bidet, …).
+                title
+            ].map(norm);
             // FULL-TEXT RULE: parse the label's leading segment for the series; fall back to the
             // description when the label is truncated to nothing usable.
             const parse = (raw) => {
                 let lbl = (raw || '').split(',')[0].trim();
                 lbl = lbl.replace(/\bA\s*\d+/i, '').trim();
                 let remainingWords = lbl.split(/\s+/).filter(w => {
-                    let clean = w.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                    let clean = norm(w);
                     if (!clean) return false;
                     if (skipWords.includes(clean)) return false;
                     return true;
@@ -151,7 +156,10 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             if (text.includes('wand')) return 'Wandmischer'; // e.g. Wand-Waschtischmischer
             if (text.includes('stand')) return 'Standmischer';
             if (text.includes('3-loch') || text.includes('drei-loch') || text.includes('dreiloch')) return '3-Loch';
-            return 'Waschtischmischer';
+            // Catch-all = "a mixer of this app's kind that names no mounting type". Follows the
+            // instance, so the Spültischmischer pool can't offer a "Waschtischmischer" Typ pill
+            // (nor the Bidet pool, which used to inherit the same wrong fallback).
+            return title;
         },
         getUniqueValues: function (key) {
             const nonAblaufTrays = this.trays.filter(t => !this.isAblaufItem(t));
@@ -224,8 +232,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                         <button class="ios-toggle" data-target="accessoires_mischer_${suffix}" aria-label="Accessoires ein/aus"><span class="ios-toggle-knob"></span></button>
                     </div>
                     <div id="addon_accessoires_mischer_panel_${suffix}" class="addon-panel" style="display:none;">
-                        <div class="finder-sub-header">Kategorie</div>
-                        <div class="pill-group" id="list_addon_accessoires_serie_${suffix}" style="margin-bottom: 0.75rem;"></div>
+                        <div id="acc_facets_${suffix}"></div>
                         <div class="finder-sub-header">Accessoires wählen</div>
                         <div class="finder-list" id="list_addon_accessoires_${suffix}"></div>
                     </div>
@@ -471,9 +478,14 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                 }
 
                 card.addEventListener('click', () => {
-                    this.selectedTray = t;
+                    // Must go through selectTray(): it clones the tray and initialises
+                    // `selections` (+ the virtual Ablaufventil options). Assigning the raw
+                    // tray here left `selections` undefined, so updateBOM() threw on
+                    // `selections.variant` and the BOM never rendered. filterResults()
+                    // re-draws the cards (selection highlight, inline Ablauf select) and
+                    // calls renderConfigurator()/updateBOM() itself.
+                    this.selectTray(t);
                     this.filterResults();
-                    this.updateBOM();
                 });
                 container.appendChild(card);
             });
@@ -691,7 +703,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             let count = 0;
 
             const activeTrayArtNr = this.selectedTray.selections.variant || this.selectedTray.artNr;
-            const activeTrayLabel = this.selectedTray.mainLabel || this.selectedTray.label;
+            const activeTrayLabel = this.selectedTray.mainLabel || fullLabel(this.selectedTray);
             const activeImg = this.selectedTray.mainImg || this.selectedTray.imgUrl;
 
             // Faucet
@@ -727,7 +739,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                         <tr>
                             <td><div class="img-cell"><img src="${selectedOption.imgUrl}" onerror="this.src='https://placehold.co/40x40?text=Pnl'"></div></td>
                             <td><span class="bom-code">${selectedOption.artNr}</span></td>
-                            <td><div class="bom-desc">${selectedOption.label}</div><div style="font-size:0.8rem;color:#9e9e9e;margin-top:0.25rem;">${mat.name || 'Zubehör'}</div></td>
+                            <td><div class="bom-desc">${fullLabel(selectedOption)}</div><div style="font-size:0.8rem;color:#9e9e9e;margin-top:0.25rem;">${mat.name || 'Zubehör'}</div></td>
                             
                             <td><strong>${optionMenge}</strong></td>
                         </tr>
@@ -743,7 +755,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                                     <tr style="background-color: rgba(59, 130, 246, 0.03);">
                                         <td><div class="img-cell">${(subOpt.imgUrl && !subOpt.label.toLowerCase().includes('einbaukosten') && !subOpt.label.toLowerCase().includes('montage')) ? `<img src="${subOpt.imgUrl}" onerror="this.parentNode.innerHTML='<div style=\\'width:40px;height:40px;background:#e0e7ff;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#4f46e5;\\'>&#9874;</div>'" style="width:40px;height:40px;object-fit:contain;">` : `<div style="width:40px;height:40px;background:#e0e7ff;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#4f46e5;"><i class="ri-tools-fill"></i></div>`}</div></td>
                                         <td><span class="bom-code">${subOpt.artNr}</span></td>
-                                        <td><div class="bom-desc">${subOpt.label}</div><div style="font-size:0.8rem;color:#3b82f6;margin-top:0.2rem;">Serviceleistung (für ${mat.name})</div></td>
+                                        <td><div class="bom-desc">${fullLabel(subOpt)}</div><div style="font-size:0.8rem;color:#3b82f6;margin-top:0.2rem;">Serviceleistung (für ${mat.name})</div></td>
                                         
                                         <td><strong>${subOpt.menge || 1}</strong></td>
                                     </tr>
@@ -763,7 +775,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                         <tr>
                             <td><div class="img-cell"><img src="${acc.imgUrl || ''}" onerror="this.src='https://placehold.co/40x40?text=N/A'"></div></td>
                             <td><span class="bom-code">${acc.artNr}</span></td>
-                            <td><div class="bom-desc">${acc.label || acc.name}</div><div style="font-size:0.8rem;color:#9e9e9e;margin-top:0.25rem;">${acc.productType || 'Accessoire'}</div></td>
+                            <td><div class="bom-desc">${fullLabel(acc)}</div><div style="font-size:0.8rem;color:#9e9e9e;margin-top:0.25rem;">${acc.productType || 'Accessoire'}</div></td>
                             <td><strong>${accMenge}</strong></td>
                         </tr>
                     `;

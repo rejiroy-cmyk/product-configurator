@@ -1,4 +1,5 @@
-import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp, createBidetApp } from './factories.js?v=2.7.1';
+import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp, createBidetApp } from './factories.js?v=2.7.2';
+import { fullLabel } from './factories/_shared.js';
 
 const configSidebar = document.getElementById('configSidebar');
 const bomTableBody = document.getElementById('bomTableBody');
@@ -15,6 +16,15 @@ const bomCountCounter = document.getElementById('bomCount');
         //  Einlochmischer App -> Waschtischmischer
         // ------------------------------------------
         "waschtischmischer": createWaschtischMischerApp("Waschtischmischer", "Mischer und Armaturen für den Waschtisch", "img/PG1_06410221_463_000_84c94d73.webp"),
+
+        // ------------------------------------------
+        //  Spültischmischer — the kitchen/utility faucets that used to sit in
+        //  `waschtischmischer` and leaked into Mix & Match. Own pool
+        //  (`spueltischmischer` in custom-data.json), own subcategory, so they
+        //  stay reachable without polluting the washbasin lists. Same factory:
+        //  identical product shape (variants + Montagematerial).
+        // ------------------------------------------
+        "spueltischmischer": createWaschtischMischerApp("Spültischmischer", "Armaturen für Spültisch und Waschtrog", "img/PG1_06111894_523_000_68ca2e3a.webp"),
 
         // ------------------------------------------
         //  Integriertes Mix & Match (Becken + Mischer)
@@ -92,7 +102,7 @@ const bomCountCounter = document.getElementById('bomCount');
                         <td><div class="img-cell"><img src="${part.imgUrl}"></div></td>
                         <td><span class="bom-code">${part.artNr}</span></td>
                         <td>
-                            <div class="bom-desc">${part.label}</div>
+                            <div class="bom-desc">${fullLabel(part)}</div>
                             <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">Zwingendes Zubehör (Basic)</div>
                         </td>
                         <td><span class="bom-type">${part.type}</span></td>
@@ -176,7 +186,7 @@ const bomCountCounter = document.getElementById('bomCount');
                         <td><div class="img-cell"><img src="${part.imgUrl}"></div></td>
                         <td><span class="bom-code">${part.artNr}</span></td>
                         <td>
-                            <div class="bom-desc">${part.label}</div>
+                            <div class="bom-desc">${fullLabel(part)}</div>
                             <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">Zwingendes Zubehör (Basic)</div>
                         </td>
                         <td><span class="bom-type">${part.type}</span></td>
@@ -255,7 +265,7 @@ const bomCountCounter = document.getElementById('bomCount');
                         <td><div class="img-cell"><img src="${part.imgUrl}"></div></td>
                         <td><span class="bom-code">${part.artNr}</span></td>
                         <td>
-                            <div class="bom-desc">${part.label}</div>
+                            <div class="bom-desc">${fullLabel(part)}</div>
                             <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">Zwingendes Zubehör (Basic)</div>
                         </td>
                         <td><span class="bom-type">${part.type}</span></td>
@@ -317,7 +327,7 @@ const bomCountCounter = document.getElementById('bomCount');
                         <td><div class="img-cell"><img src="${part.imgUrl}"></div></td>
                         <td><span class="bom-code">${part.artNr}</span></td>
                         <td>
-                            <div class="bom-desc">${part.label}</div>
+                            <div class="bom-desc">${fullLabel(part)}</div>
                             <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">Zwingendes Zubehör (Basic)</div>
                         </td>
                         <td><span class="bom-type">${part.type}</span></td>
@@ -379,7 +389,7 @@ const bomCountCounter = document.getElementById('bomCount');
                         <td><div class="img-cell"><img src="${part.imgUrl}"></div></td>
                         <td><span class="bom-code">${part.artNr}</span></td>
                         <td>
-                            <div class="bom-desc">${part.label}</div>
+                            <div class="bom-desc">${fullLabel(part)}</div>
                             <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">Zwingendes Zubehör (Basic)</div>
                         </td>
                         <td><span class="bom-type">${part.type}</span></td>

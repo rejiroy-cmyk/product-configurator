@@ -48,3 +48,8 @@ custom-data.json.bak*
 # copies it verbatim into dist/img/ on every build, so tracking both would double
 # the repo for zero benefit. dist/index.html stays tracked as before.
 /dist/img/
+
+# Label re-scrape working files (regenerate with audit-truncated-labels.cjs)
+/st-scraper/truncated-shard-*.json
+/st-scraper/truncated-worklist.json
+/st-scraper/text-refetch-shard-*.json

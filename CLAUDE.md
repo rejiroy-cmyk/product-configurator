@@ -45,6 +45,31 @@ code lives in `modules/factories/`, **one file per `create*App` factory**:
   (`configSidebar`, `bomTableBody`, `bomCountCounter`), their short aliases
   (`Ae`, `re`, `me`, `ke`, `Be`, `X`), and the `window.copyTextToClipboard` /
   `window.copyBOMToClipboard` side-effects. **Add new cross-factory helpers here.**
+- `_productDisplay.js` — side-effect-free display helpers, re-exported through
+  `_shared.js` (import them from there, like `COLOR_NAMES`):
+  - `fullLabel(product)` — **the text every BOM row and product tile must show.**
+    ERP labels are hard-truncated (often mid-word) and the rest of the sentence
+    lives in `description`, usually repeating the label's tail. This stitches the
+    two back together, de-duplicating the overlap and healing the cut-off word.
+    ~10.7k of the 93k catalogue records gain text; none ever lose any. Emits
+    plain text only — the SAP clipboard export scrapes the first `<strong>` in a
+    BOM row for the quantity, so display text must never carry markup.
+  - `differentiatingChips(product, group, opts)` — the attribute chips that tell
+    a product apart from the ones listed beside it. `group` = every product shown
+    under the same tile title. Curated German extractors first (Höhe Mischdüse,
+    Batterie vs Netzgerät, Kaltwasser-Mitte, Armaturenlöcher, Überlauf …), then a
+    generic auto-diff backstop for families no rule covers, so two tiles can never
+    read alike. `opts.always` pins families that should show regardless;
+    `opts.exclude` drops ones the tile already displays.
+    A chip slot goes to a family that CONTRASTS with a neighbour (a neighbour
+    states a *different* value), never to one that merely fills a gap in a
+    neighbour's data — otherwise low-value families crowd out real ones.
+    **Deliberately NOT chipped:** Energieeffizienzklasse, Geräuschgruppe,
+    Umweltdeklaration EPD (none are buying criteria here). Suppressing such an
+    attribute takes TWO edits — drop the curated rule *and* add it to
+    `AUTO_SUPPRESS` — otherwise the auto-diff backstop reintroduces it as raw
+    ERP text.
+  - Covered by `tests/verify-product-display.js` (part of `npm test`).
 - `index.js` — barrel that re-exports all 13 factories.
 - `createRelationalApp.js` — the engine (~2.6k lines); most configurators are
   built on it. `createDuschenwanneApp`, `createDuschenrinneApp`, `createBadewanneApp`
@@ -61,6 +86,22 @@ the BOM table.
 When editing a factory, each file imports the **full** shared set from `./_shared.js`
 — keep that import line intact when adding code that uses a shared helper.
 
+### Accessoires panel — one implementation, all apps
+
+Every configurator's Accessoires toggle renders the **same** filter bar via
+`accessoryFacetBar(candidates, state, wrapEl, idPrefix, onChange)` in `_shared.js`:
+**Produktkategorie · Hersteller · Serie · Farbe**, always visible (a facet hides
+only when it has fewer than two values to offer) and *bidirectionally faceted* —
+each facet's options are what survives every OTHER facet's current selection, so
+no combination can produce an empty list. Farbe derives from the art-Nr finish
+code (COLOR_NAMES), never from label text. State lives on `app.accFacets`; the
+panel markup only needs an `<div id="acc_facets_<suffix>"></div>` container.
+
+Do **not** hand-roll another accessory filter. The three that existed before
+(`renderAccessoiresPanel`, Mix & Match's own, and the Serie-only ones in
+`createRelationalApp` / `createWCApp`) all drifted apart — that drift is exactly
+what this helper exists to prevent.
+
 ## Data layer
 
 - The product database is **`custom-data.json`** (tracked, ~12 MB). It is the source
@@ -70,6 +111,20 @@ When editing a factory, each file imports the **full** shared set from `./_share
   (`GET /api/data`, `POST /api/save`).
 - **Prod (single-file):** there is no server; state persists in `localStorage`
   (e.g. `sanitas_wishlist`).
+- **`spueltischmischer` is its own pool + subcategory.** 120 kitchen mixers
+  (118 `Spültischmischer …`, 2 `Standventil … für Spültisch`) had been scraped into
+  `waschtischmischer.trays`, where they polluted both the Waschtischmischer
+  configurator and Mix & Match (MM's Armatur column is fed from
+  `productApps.waschtischmischer.trays`, `app.js#openConfigurator`). They now live
+  under their own top-level key, surfaced by the **Spültischmischer** subcategory
+  under Waschplatz (`modules/data.js`) via its own `createWaschtischMischerApp`
+  instance. `applyDataToApps` matches data key → `productApps` key, so registering
+  the app is all that is needed to feed it. Don't let a re-scrape/inject drop kitchen
+  mixers back into `waschtischmischer` — `tests/verify-no-kitchen-in-waschtischmischer.js`
+  fails `npm test` (and `npm run build`) if one reappears.
+  Its Accessoires panel is empty **by design for now**: `renderAccessoiresPanel`
+  selects from `zubehoer_pool` by `targetSubcats.includes(subcatKey)` and nothing is
+  tagged `spueltischmischer` yet.
 
 ## GLOBAL RULE — full-text classification (no exceptions without a comment)
 

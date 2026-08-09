@@ -1,4 +1,5 @@
 import { COLOR_NAMES } from './_colorCodes.js';
+import { fullLabel, differentiatingChips, productAttrs } from './_productDisplay.js';
 
 window.copyTextToClipboard = function(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -292,10 +293,9 @@ const priceBOM = (tbody, cols = 5) => {
 // zubehoer_pool, filtering products whose `targetSubcats` include THIS app's
 // registry key, with productType primary pills + adaptive Serie/Breite/Farbe
 // secondary pills. `app` is the configurator instance, `s` its element-id slug.
-// Expects on `app`: currentAccessoireSerie, accSecondary, selectedAddonAccessoires,
+// Expects on `app`: accFacets, selectedAddonAccessoires,
 // populateAccessoires(), updateBOM(). Panel DOM ids follow `*_${s}`.
 const DROPDOWN_TYPES = ['Duschgleitstange'];   // handled by the mischer's own dropdown groups, not here
-const SIZE_TYPES = ['Badetuchstange'];         // only these expose the Breite secondary filter
 
 // ── Accessory Hersteller / Serie ───────────────────────────────────────────────
 // Accessory labels read "<type words…> <Brand> <Line>, <attributes>". Deriving the
@@ -334,10 +334,90 @@ const accessorySerie = (t) => {
     }
     return 'Andere';
 };
+// ── Shared accessory facet bar ────────────────────────────────────────────────
+// ONE filter UI for every configurator's Accessoires panel: Produktkategorie,
+// Hersteller, Serie and Farbe, always visible (a facet hides only when it has a
+// single value to offer). Bidirectional/faceted: each facet's options are the
+// values that survive every OTHER facet's current selection, so no combination
+// can ever yield an empty list. Returns the filtered candidates.
+//
+// `state` is the caller's persistent object (e.g. app.accFacets), `wrapEl` the
+// container to render into, `idPrefix` a unique DOM-id stem.
+const ACC_SIZE_TYPES = ['Badetuchstange'];   // only these expose the Breite facet
+
+const accessoryFacetBar = (candidates, state, wrapEl, idPrefix, onChange) => {
+    if (!wrapEl) return candidates;
+
+    // COLOUR RULE: the finish comes ONLY from the art-Nr finish-code triplet,
+    // mapped via COLOR_NAMES — never from label text. See INSTRUCTIONS.md.
+    const farbeOf = (c) => {
+        const m = String(c.artNr || '').match(/\.(\d{3})(?:\.|$)/);
+        return m ? (COLOR_NAMES[m[1]] || null) : null;
+    };
+    const dims = [
+        ['Produktkategorie', (c) => c.productType || null],
+        ['Hersteller', (c) => { const h = accessoryHersteller(c); return h === 'Andere' ? null : h; }],
+        ['Serie', (c) => { const sr = accessorySerie(c); return sr === 'Andere' ? null : sr; }],
+        ['Farbe', farbeOf],
+    ];
+    const cat = state['Produktkategorie'];
+    if (cat && cat !== 'all' && ACC_SIZE_TYPES.includes(cat)) {
+        dims.push(['Breite', (c) => (c.size && c.size !== 'Standard' && /\d/.test(c.size)) ? c.size : null]);
+    }
+    // a facet that no longer applies must not keep filtering invisibly
+    Object.keys(state).forEach(k => { if (!dims.some(([n]) => n === k)) delete state[k]; });
+
+    // FACETED: a dimension offers the values left after every OTHER dimension's pick.
+    const availFor = (name) => {
+        let subset = candidates;
+        dims.forEach(([nm, fn]) => {
+            const sel = state[nm];
+            if (nm !== name && sel && sel !== 'all') subset = subset.filter(c => fn(c) === sel);
+        });
+        const self = dims.find(([n]) => n === name)[1];
+        return [...new Set(subset.map(self).filter(Boolean))]
+            .sort((a, b) => String(a).localeCompare(String(b), 'de', { numeric: true }));
+    };
+
+    let html = '';
+    const groups = [];
+    dims.forEach(([name], i) => {
+        const vals = availFor(name);
+        // a pick the other facets just made impossible → drop it, never show empty
+        if (state[name] && state[name] !== 'all' && !vals.includes(state[name])) state[name] = 'all';
+        if (vals.length < 2) return;
+        const cur = state[name] || 'all';
+        const hId = `${idPrefix}_h${i}`, lId = `${idPrefix}_l${i}`;
+        html += `<div class="finder-sub-header" id="${hId}">${name}</div>`
+            + `<div class="pill-group" id="${lId}" style="margin-bottom:0.75rem;">`
+            + `<button class="pill-btn ${cur === 'all' ? 'active' : ''}" data-dim="${name}" data-val="all">Alle</button>`
+            + vals.map(v => `<button class="pill-btn ${cur === v ? 'active' : ''}" data-dim="${name}" data-val="${v}">${v}</button>`).join('')
+            + `</div>`;
+        groups.push([name, hId, lId]);
+    });
+    wrapEl.innerHTML = html;
+    wrapEl.querySelectorAll('.pill-btn').forEach(b => b.addEventListener('click', () => {
+        state[b.dataset.dim] = b.dataset.val;
+        onChange();
+    }));
+    // same "FACET: value  [Reset]" chrome as every other filter in the app
+    groups.forEach(([name, hId, lId]) => applyPillUI(hId, lId, state[name] || 'all', name, () => {
+        state[name] = 'all';
+        onChange();
+    }));
+
+    let out = candidates;
+    dims.forEach(([name, fn]) => {
+        const sel = state[name];
+        if (sel && sel !== 'all') out = out.filter(c => fn(c) === sel);
+    });
+    return out;
+};
+
 const renderAccessoiresPanel = (app, s) => {
     const listEl = document.getElementById(`list_addon_accessoires_${s}`);
     const serieListEl = document.getElementById(`list_addon_accessoires_serie_${s}`);
-    if (!listEl || !serieListEl) return;
+    if (!listEl) return;
 
     const subcatKey = Object.keys(window.productApps || {}).find(k => window.productApps[k] === app);
     const pool = (window.productApps && window.productApps.zubehoer_pool && window.productApps.zubehoer_pool.trays) || [];
@@ -346,83 +426,23 @@ const renderAccessoiresPanel = (app, s) => {
     const seen = new Set();
     candidates = candidates.filter(c => { if (seen.has(c.artNr)) return false; seen.add(c.artNr); return true; });
 
-    // Primary pills by productType
-    const typeList = ['Alle'];
-    candidates.forEach(c => { if (c.productType && !typeList.includes(c.productType)) typeList.push(c.productType); });
-    serieListEl.innerHTML = typeList.map(tx =>
-        `<button class="pill-btn ${app.currentAccessoireSerie === tx ? 'active' : ''}" data-val="${tx}">${tx}</button>`).join('');
-    serieListEl.querySelectorAll('.pill-btn').forEach(b => b.addEventListener('click', () => {
-        app.currentAccessoireSerie = b.dataset.val;
-        app.accSecondary = {};
-        app.populateAccessoires();
-    }));
-
-    let filtered = candidates;
-    if (app.currentAccessoireSerie !== 'Alle') filtered = filtered.filter(c => c.productType === app.currentAccessoireSerie);
-
-    // Secondary adaptive filters (Serie / Breite / Farbe)
-    if (!app.accSecondary) app.accSecondary = {};
-    // COLOUR RULE: colour derives ONLY from the art-Nr finish code (the 3-digit triplet in
-    // BASE.«COLOUR».VARIANT), mapped via COLOR_NAMES. Never parse the label text.
-    // See INSTRUCTIONS.md § Colour codes.
-    const farbeOf = (c) => {
-        const m = String(c.artNr || '').match(/\.(\d{3})(?:\.|$)/);
-        return m ? (COLOR_NAMES[m[1]] || null) : null;
-    };
-    const breiteOf = (c) => (c.size && c.size !== 'Standard' && /\d/.test(c.size)) ? c.size : null;
-    // Brand-anchored (shared with Mix&Match). 'Andere' -> null so it isn't offered as a facet value.
-    const herstellerOf = (c) => { const h = accessoryHersteller(c); return h === 'Andere' ? null : h; };
-    const serieOf = (c) => { const sr = accessorySerie(c); return sr === 'Andere' ? null : sr; };
-    let secWrap = document.getElementById(`list_addon_accessoires_secondary_${s}`);
-    if (!secWrap) {
-        secWrap = document.createElement('div');
-        secWrap.id = `list_addon_accessoires_secondary_${s}`;
-        secWrap.style.marginBottom = '0.75rem';
-        serieListEl.parentNode.insertBefore(secWrap, listEl);
+    // One shared facet bar (Produktkategorie / Hersteller / Serie / Farbe) — identical
+    // in every configurator. Older markup carried a hand-rolled "Kategorie" pill row;
+    // if it is still in the DOM, retire it so the two can never both filter.
+    if (serieListEl) {
+        serieListEl.innerHTML = '';
+        serieListEl.style.display = 'none';
+        const prev = serieListEl.previousElementSibling;
+        if (prev && prev.classList.contains('finder-sub-header')) prev.style.display = 'none';
     }
-    if (app.currentAccessoireSerie === 'Alle') {
-        secWrap.innerHTML = ''; app.accSecondary = {};
-    } else {
-        const base = filtered;   // primary (productType) filtered set
-        const dims = [['Hersteller', herstellerOf], ['Serie', serieOf], ['Breite', breiteOf], ['Farbe', farbeOf]]
-            .filter(([name]) => name !== 'Breite' || SIZE_TYPES.includes(app.currentAccessoireSerie));
-        // ADAPTIVE (faceted): a dimension's available values are those left after applying every
-        // OTHER dimension's current selection — so Serie=piana narrows Breite/Farbe to piana's only.
-        const availFor = (name) => {
-            let subset = base;
-            dims.forEach(([nm, f]) => {
-                const sel = app.accSecondary[nm];
-                if (nm !== name && sel && sel !== 'Alle') subset = subset.filter(c => f(c) === sel);
-            });
-            const fn = dims.find(([n]) => n === name)[1];
-            return [...new Set(subset.map(fn).filter(Boolean))];
-        };
-        let html = '';
-        dims.forEach(([name]) => {
-            const vals = availFor(name);
-            // a selection the other filters just made impossible → reset it so we never show empty
-            if (app.accSecondary[name] && app.accSecondary[name] !== 'Alle' && !vals.includes(app.accSecondary[name]))
-                app.accSecondary[name] = 'Alle';
-            if (vals.length > 1) {
-                const cur = app.accSecondary[name] || 'Alle';
-                html += `<div class="pill-group" style="margin-bottom:0.4rem;">`
-                    + `<button class="pill-btn ${cur === 'Alle' ? 'active' : ''}" data-dim="${name}" data-val="Alle">${name}: Alle</button>`
-                    + vals.sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })).map(v =>
-                        `<button class="pill-btn ${cur === v ? 'active' : ''}" data-dim="${name}" data-val="${v}">${v}</button>`).join('')
-                    + `</div>`;
-            }
-        });
-        Object.keys(app.accSecondary).forEach(k => { if (!dims.some(([n]) => n === k)) delete app.accSecondary[k]; });
-        secWrap.innerHTML = html;
-        secWrap.querySelectorAll('.pill-btn').forEach(b => b.addEventListener('click', () => {
-            app.accSecondary[b.dataset.dim] = b.dataset.val;
-            app.populateAccessoires();
-        }));
-        dims.forEach(([name, fn]) => {
-            const sel = app.accSecondary[name];
-            if (sel && sel !== 'Alle') filtered = filtered.filter(c => fn(c) === sel);
-        });
+    let facetWrap = document.getElementById(`acc_facets_${s}`);
+    if (!facetWrap) {
+        facetWrap = document.createElement('div');
+        facetWrap.id = `acc_facets_${s}`;
+        listEl.parentNode.insertBefore(facetWrap, listEl.previousElementSibling || listEl);
     }
+    if (!app.accFacets) app.accFacets = {};
+    const filtered = accessoryFacetBar(candidates, app.accFacets, facetWrap, `acc_${s}`, () => app.populateAccessoires());
 
     listEl.innerHTML = '';
     if (filtered.length === 0) {
@@ -437,7 +457,7 @@ const renderAccessoiresPanel = (app, s) => {
             <div style="display:flex; align-items:center; gap:0.5rem;">
                 ${c.imgUrl ? `<img src="${c.imgUrl}" style="width:32px; height:32px; object-fit:contain; background:#fff; border-radius:4px; padding:2px; flex-shrink:0;">` : `<div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border-radius:4px; flex-shrink:0;"><i class="ri-image-line placeholder-icon"></i></div>`}
                 <div>
-                    <div style="font-size:0.8rem; font-weight:500; line-height:1.3;">${c.label || c.name}</div>
+                    <div style="font-size:0.8rem; font-weight:500; line-height:1.3;">${fullLabel(c)}</div>
                     <div style="font-size:0.7rem; color:var(--st-gray); margin-top:0.25rem;">
                         ${c.manufacturer || ''} ${c.productType ? '· ' + c.productType : ''}
                     </div>
@@ -560,4 +580,4 @@ function ensureShowerGroups(materials, tray, opts = {}) {
     return materials;
 }
 
-export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryHersteller, accessorySerie, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem };
+export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs };

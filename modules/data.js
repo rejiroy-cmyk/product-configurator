@@ -88,6 +88,12 @@ export const catalog = [
                 "name": "Waschtröge",
                 "appId": "waschtrog",
                 "hasApp": true
+            },
+            {
+                "id": "spueltischmischer",
+                "name": "Spültischmischer",
+                "appId": "spueltischmischer",
+                "hasApp": true
             }
         ]
     },
