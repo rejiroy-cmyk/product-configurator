@@ -17,8 +17,13 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
 - **Vanilla JS SPA**, no framework. ES modules, bundled by **Vite** into a single
   `dist/index.html` via `vite-plugin-singlefile` (everything inlined).
 - `npm run dev` — Vite dev server on **port 5175** (see `.claude/launch.json`).
-- `npm test` — runs `tests/verify-duschtrennwand.js` (jsdom-based; ~37 assertions
-  over the relational BOM rules). **Run this after any change to `modules/factories/`.**
+- `npm test` — runs **7 suites, 175 assertions**: `verify-duschtrennwand` (38),
+  `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
+  `verify-fulltext-rule` (70), `verify-product-display` (30),
+  `verify-no-kitchen-in-waschtischmischer` (4). Plain Node with hand-rolled DOM
+  mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the one jsdom
+  test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
+  **Run this after any change to `modules/factories/`.**
 - `npm run build` — `test` → `backup` → `vite build` → copies `dist` to `backups/`.
 - `npm run backup` — snapshots `modules/`, `index.html`, `index.css` into `backups/`
   (now git-ignored; prefer git history).
@@ -45,8 +50,11 @@ code lives in `modules/factories/`, **one file per `create*App` factory**:
   (`configSidebar`, `bomTableBody`, `bomCountCounter`), their short aliases
   (`Ae`, `re`, `me`, `ke`, `Be`, `X`), and the `window.copyTextToClipboard` /
   `window.copyBOMToClipboard` side-effects. **Add new cross-factory helpers here.**
+- `_colorCodes.js` — the `COLOR_NAMES` finish-code table (art-Nr triplet → colour
+  name). Imported **directly** (`from './_colorCodes.js'`), not through `_shared.js`.
 - `_productDisplay.js` — side-effect-free display helpers, re-exported through
-  `_shared.js` (import them from there, like `COLOR_NAMES`):
+  `_shared.js` (`fullLabel`, `differentiatingChips`, `productAttrs` — import them
+  from `_shared.js`, not from here):
   - `fullLabel(product)` — **the text every BOM row and product tile must show.**
     ERP labels are hard-truncated (often mid-word) and the rest of the sentence
     lives in `description`, usually repeating the label's tail. This stitches the
@@ -70,13 +78,14 @@ code lives in `modules/factories/`, **one file per `create*App` factory**:
     `AUTO_SUPPRESS` — otherwise the auto-diff backstop reintroduces it as raw
     ERP text.
   - Covered by `tests/verify-product-display.js` (part of `npm test`).
-- `index.js` — barrel that re-exports all 13 factories.
-- `createRelationalApp.js` — the engine (~2.6k lines); most configurators are
+- `index.js` — barrel that re-exports all 14 factories.
+- `createRelationalApp.js` — the engine (~2.9k lines); most configurators are
   built on it. `createDuschenwanneApp`, `createDuschenrinneApp`, `createBadewanneApp`
   are thin wrappers that call it.
 - Other factories: `createFinishesApp`, `createWashbasinApp`,
   `createWaschtischMischerApp`, `createMixAndMatchApp`, `createDuschenmischerApp`,
-  `createBademischerApp`, `createStandardApp`, `createGlassApp`, `createWCApp`.
+  `createBademischerApp`, `createStandardApp`, `createGlassApp`, `createWCApp`,
+  `createBidetApp`.
 
 **Factory contract:** `create*App(title, desc, mainImgUrl, config = {})` returns an
 app object exposing at least `init(...)`. `app.js#openConfigurator` sets
@@ -104,9 +113,13 @@ what this helper exists to prevent.
 
 ## Data layer
 
-- The product database is **`custom-data.json`** (tracked, ~12 MB). It is the source
-  of truth for article numbers, labels, prices, services, and rules. "Healing" labels
-  in this file is a routine maintenance task.
+- The product database is **`custom-data.json`** (tracked, **~45 MB / ~1.05 M lines**
+  after the Ch2/Ch4/Ch5/Ch6 injections). It is the source of truth for article
+  numbers, labels, prices, services, and rules. "Healing" labels in this file is a
+  routine maintenance task. It is too big to read or grep whole — go through
+  `node -e` and address it by top-level pool. Merge conflicts in it are best
+  resolved **per pool** (separate workstreams inject into separate pools, so the
+  edits are usually disjoint), never textually.
 - **Dev:** read/written via a Vite middleware in `vite.config.js`
   (`GET /api/data`, `POST /api/save`).
 - **Prod (single-file):** there is no server; state persists in `localStorage`
