@@ -53,3 +53,4 @@ custom-data.json.bak*
 /st-scraper/truncated-shard-*.json
 /st-scraper/truncated-worklist.json
 /st-scraper/text-refetch-shard-*.json
+/st-scraper/label-divergent-review.json

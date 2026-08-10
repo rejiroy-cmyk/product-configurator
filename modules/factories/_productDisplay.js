@@ -140,6 +140,7 @@ export const fullLabel = (p) => {
 // chips that actually set it apart from the products listed next to it.
 
 const cap = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+const compactStr = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9äöüàéèçñ]/g, '');
 
 // [family, regex, value builder]. Order = display priority.
 const ATTR_RULES = [
@@ -181,6 +182,32 @@ const ATTR_RULES = [
     ['Masse', /\b(\d{2,3})\s*x\s*(\d{2,3}(?:[.,]\d)?)\s*cm\b/i, m => `${m[1]} x ${m[2]} cm`],
 ];
 
+// ── structured attributes (`tech`) ───────────────────────────────────────────
+// `product.tech` is a flat map of SAP's own attributes, written by
+// st-scraper/apply-refetched-text.cjs. These beat the regex rules above wherever
+// both apply: they are typed catalogue fields, not prose we parsed.
+//
+// `Ausprägung` is the prize — SAP's purpose-built VARIANT discriminator, present
+// on 12,470 records. It is what separates "Festelement links" from "Festelement
+// rechts" when both articles carry byte-identical label text.
+//
+// Deliberately NOT chipped from tech:
+//   Farbe  — COLOUR RULE: the finish comes ONLY from the art-Nr triplet. SAP's
+//            Farbe field disagrees with it often enough (it names the ceramic
+//            colour where the triplet names the fitting's finish) that trusting
+//            it here would quietly break the rule the whole app relies on.
+//   Marke / Serie — already carried by the tile title and the Hersteller facet.
+const TECH_CHIP_KEYS = ['Ausprägung', 'Modell', 'Montage', 'Breite', 'Höhe', 'Tiefe', 'Länge'];
+const TECH_DIMENSION = new Set(['Breite', 'Höhe', 'Tiefe', 'Länge']);
+const techChip = (key, raw) => {
+    const v = String(raw).trim();
+    if (!v) return null;
+    // The older cached dumps flattened away the unit ("Breite: 450"); SAP dimensions
+    // are millimetres, so a bare number gets its unit back.
+    if (TECH_DIMENSION.has(key)) return /^\d+([.,]\d+)?$/.test(v) ? `${key} ${v} mm` : `${key} ${v}`;
+    return v;
+};
+
 const _attrCache = typeof WeakMap === 'function' ? new WeakMap() : null;
 
 // Every curated attribute this product carries, as family → chip text.
@@ -195,8 +222,72 @@ export const productAttrs = (p) => {
         if (m) map.set(family, build(m));
     });
 
+    // Structured attributes win over the prose-parsed ones for the same family.
+    if (p.tech && typeof p.tech === 'object' && !Array.isArray(p.tech)) {
+        for (const key of TECH_CHIP_KEYS) {
+            const chip = Object.prototype.hasOwnProperty.call(p.tech, key) ? techChip(key, p.tech[key]) : null;
+            if (chip) map.set(key, chip);
+        }
+
+        // SAP states the same measurement several ways. Left alone this yields
+        // ["55 x 42", "Breite 550 mm", "Tiefe 420 mm"] — one fact, three chips, on a
+        // tile that already prints the size on its own line. Keep the compact form
+        // and drop the dimensions it already implies.
+        const modell = map.get('Modell');
+        if (modell && /^\d+([.,]\d+)?\s*x\s*\d+/.test(modell)) {
+            // a bare "55 x 42" is the Masse restated — the size line covers it
+            map.delete('Modell');
+        }
+        const spans = [map.get('Masse'), modell].filter(Boolean).join(' ');
+        if (spans) {
+            const mm = new Set((spans.match(/\d+(?:[.,]\d+)?/g) || [])
+                .map(n => Math.round(parseFloat(n.replace(',', '.')) * 10)));   // cm -> mm
+            for (const key of TECH_DIMENSION) {
+                const v = map.get(key);
+                const num = v && (v.match(/(\d+(?:[.,]\d+)?)\s*mm/) || [])[1];
+                if (num && mm.has(Math.round(parseFloat(num.replace(',', '.'))))) map.delete(key);
+            }
+        }
+    }
+
+    // Ausprägung is a whole phrase ("ohne Armaturenloch, Abstellfläche rechts") and
+    // often restates a family we also derived on its own. Drop the echo so the tile
+    // does not say the same thing twice.
+    const ausp = map.get('Ausprägung');
+    if (ausp) {
+        // Matched SEGMENT-EXACT, not by substring. Substring matching both misses
+        // "Ausprägung: …, Ablaufventil" vs the chip "mit Ablaufventil" (the leading
+        // "mit" blocks it) and, if you strip the leading word to compensate, starts
+        // deleting chips that CONTRADICT the phrase — "mit Überlauf" would vanish
+        // against an Ausprägung reading "ohne Überlauf". Comparing whole segments
+        // keeps "mit X" ≡ "X" while "ohne X" stays distinct.
+        //
+        // "Hahnloch" (ours) and "Armaturenloch" (SAP's) are the same thing.
+        const fold = (s) => compactStr(s).replace(/hahnloch/g, 'armaturenloch');
+        const auspC = fold(ausp);
+        for (const [family, chip] of [...map]) {
+            if (family === 'Ausprägung') continue;
+            const core = fold(chip);
+            if (core.length < 5) continue;
+
+            if (core.startsWith('ohne')) {
+                // a negative chip only matches a negative statement
+                if (auspC.includes(core)) map.delete(family);
+                continue;
+            }
+            // Affirmative chip ("mit Ablaufventil", "A 110 mm"): the bare term may sit
+            // anywhere inside a segment, but a hit that is NEGATED in the phrase is
+            // the opposite claim — "mit Überlauf" must survive "ohne Überlauf".
+            const bare = core.replace(/^mit/, '');
+            if (bare.length < 5) continue;
+            for (let i = auspC.indexOf(bare); i >= 0; i = auspC.indexOf(bare, i + 1)) {
+                if (auspC.slice(Math.max(0, i - 4), i) !== 'ohne') { map.delete(family); break; }
+            }
+        }
+    }
+
     // COLOUR RULE: the finish comes ONLY from the art-Nr finish-code triplet,
-    // never from label text. See INSTRUCTIONS.md § Colour codes.
+    // never from label text — and never from tech.Farbe either. See INSTRUCTIONS.md.
     const cm = String(p.artNr || '').match(/\.(\d{3})(?:\.|$)/);
     if (cm && COLOR_NAMES[cm[1]]) map.set('Farbe', COLOR_NAMES[cm[1]]);
 
@@ -204,7 +295,12 @@ export const productAttrs = (p) => {
     return map;
 };
 
-const ORDER = ATTR_RULES.map(r => r[0]).concat(['Farbe']);
+// Display priority. Ausprägung sits near the front: when SAP says two articles are
+// different variants, that is the single most useful thing a tile can say.
+const ORDER = ['Ausprägung']
+    .concat(ATTR_RULES.map(r => r[0]))
+    .concat(TECH_CHIP_KEYS.filter(k => k !== 'Ausprägung'))
+    .concat(['Farbe']);
 
 // tokens of the full text, for the auto-diff fallback
 const AUTO_STOP = new Set(['und', 'mit', 'ohne', 'für', 'zur', 'zum', 'der', 'die', 'das', 'des',

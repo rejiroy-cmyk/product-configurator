@@ -216,6 +216,67 @@ check('chips: a bare number never becomes a chip',
     !differentiatingChips(numeric[0], numeric).some(c => /^[\d\s.,]+$/.test(c)),
     differentiatingChips(numeric[0], numeric));
 
+// ── structured `tech` attributes ─────────────────────────────────────────────
+// SAP's own attribute map, written by st-scraper/apply-refetched-text.cjs.
+// Ausprägung is the variant discriminator that separates byte-identical labels.
+const techPair = [
+    { artNr: '1111 656.599.130', label: 'Gleittüre freistehend Koralle S505 Plus, Breite 1000 - 1200 mm,', tech: { Marke: 'Koralle', 'Ausprägung': 'Festelement links', Breite: '1200', 'Höhe': '1600' } },
+    { artNr: '1111 657.599.130', label: 'Gleittüre freistehend Koralle S505 Plus, Breite 1000 - 1200 mm,', tech: { Marke: 'Koralle', 'Ausprägung': 'Festelement rechts', Breite: '1200', 'Höhe': '1600' } },
+];
+const techSets = techPair.map(p => differentiatingChips(p, techPair));
+check('tech: Ausprägung separates two byte-identical labels',
+    techSets[0].join('|') !== techSets[1].join('|')
+    && techSets[0].includes('Festelement links') && techSets[1].includes('Festelement rechts'),
+    techSets);
+check('tech: a shared attribute (Marke/Breite) takes no slot',
+    !techSets[0].some(c => /Koralle|1200/.test(c)), techSets[0]);
+
+// COLOUR RULE: the finish comes from the art-Nr triplet, never from tech.Farbe.
+check('tech: tech.Farbe never overrides the art-Nr finish code',
+    differentiatingChips(
+        { artNr: '6152 845.501.000', label: 'Mischer Foo', tech: { Farbe: 'Pergamon' } },
+        [{ artNr: '6152 845.501.000', label: 'Mischer Foo', tech: { Farbe: 'Pergamon' } },
+         { artNr: '6152 845.020.000', label: 'Mischer Foo', tech: { Farbe: 'Pergamon' } }]
+    ).every(c => !/Pergamon/.test(c)));
+
+// SAP states one measurement several ways; the tile must not repeat it.
+check('tech: dimensions implied by Masse/Modell are dropped',
+    !differentiatingChips(
+        { artNr: '1', label: 'Waschtisch Foo, 55 x 42 cm', tech: { Modell: '55 x 42', Breite: '550', Tiefe: '420' } },
+        [{ artNr: '1', label: 'Waschtisch Foo, 55 x 42 cm', tech: { Modell: '55 x 42', Breite: '550', Tiefe: '420' } },
+         { artNr: '2', label: 'Waschtisch Foo, 60 x 45 cm', tech: { Modell: '60 x 45', Breite: '600', Tiefe: '450' } }]
+    ).some(c => /Breite|Tiefe/.test(c)));
+
+// Ausprägung is a phrase; a family term may sit anywhere INSIDE it, not only as a
+// whole comma-segment. "A 110 mm" hides inside "Auslauf fest A 110 mm, Ablaufventil".
+check('tech: Ausprägung absorbs a family term found mid-segment',
+    (() => {
+        const g = [
+            { artNr: '1', label: 'Einlochmischer Citypro, Auslauf fest, A 110 mm, Ablaufventil', tech: { 'Ausprägung': 'Auslauf fest A 110 mm, Ablaufventil' } },
+            { artNr: '2', label: 'Einlochmischer Citypro, Auslauf fest, A 140 mm, Ablaufventil', tech: { 'Ausprägung': 'Auslauf fest A 140 mm, Ablaufventil' } },
+        ];
+        const c = differentiatingChips(g[0], g, { always: ['Ausladung', 'Ablaufventil'] });
+        return c.length === 1 && /A 110 mm/.test(c[0]);
+    })(),
+    differentiatingChips(
+        { artNr: '1', label: 'Einlochmischer Citypro, Auslauf fest, A 110 mm, Ablaufventil', tech: { 'Ausprägung': 'Auslauf fest A 110 mm, Ablaufventil' } },
+        [{ artNr: '1', label: 'x', tech: { 'Ausprägung': 'Auslauf fest A 110 mm, Ablaufventil' } }], { always: ['Ausladung'] }));
+
+// …but absorbing must never swallow the OPPOSITE claim: an affirmative chip has to
+// survive a phrase that negates it, or the tile would state the reverse of the truth.
+check('tech: "mit Überlauf" survives an Ausprägung reading "ohne Überlauf"',
+    productAttrs({ artNr: '1', label: 'Waschtisch Foo, mit Überlauf', tech: { 'Ausprägung': 'ohne Überlauf, Abstellfläche rechts' } }).get('Überlauf') === 'mit Überlauf');
+
+// "Hahnloch" (ours) and "Armaturenloch" (SAP's) are the same thing.
+check('tech: Ausprägung absorbs the family it restates, across the synonym',
+    (() => {
+        const g = [
+            { artNr: '1', label: 'Waschtisch Bar, ohne Armaturenloch, mit Überlauf', tech: { 'Ausprägung': 'ohne Armaturenloch, Abstellfläche rechts' } },
+            { artNr: '2', label: 'Waschtisch Bar, 1 Armaturenloch, mit Überlauf', tech: { 'Ausprägung': '1 Armaturenloch, Abstellfläche rechts' } },
+        ];
+        return !differentiatingChips(g[0], g).some(c => /Hahnloch/.test(c));
+    })());
+
 check('chips: a lone product still reports its "always" families',
     differentiatingChips(citypro[0], [citypro[0]], { always: ['Ausladung'] }).includes('A 140 mm'));
 check('chips: excluded families are never emitted',

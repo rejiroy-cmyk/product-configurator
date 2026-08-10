@@ -38,7 +38,7 @@ function get(mat) {
             if (hit) {
                 ok++;
                 const am = (hit.additionalMaterials || []).map(g => ({ type: g.type, label: g.label,
-                    articles: (g.articles || []).map(a => ({ artNr: a.matnrDisplay || a.matnr, label: (a.maktx || '').trim() })) }))
+                    articles: (g.articles || []).map(a => ({ artNr: a.matnrDisplay || a.matnr, label: [a.maktx, a.maktx2].filter(Boolean).join(" ").trim() })) }))
                     .filter(g => g.articles.length);
                 mats += am.reduce((s, g) => s + g.articles.length, 0);
                 results[b] = {

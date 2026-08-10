@@ -60,7 +60,7 @@ function primeCookie() {
             const image = r && r.image ? (ORIGIN + r.image) : null;
             const additionalMaterials = (r && r.additionalMaterials || []).map(g => ({
                 type: g.type, label: g.label,
-                articles: (g.articles || []).map(a => ({ artNr: a.matnrDisplay || a.matnr, label: (a.maktx || a.label || '').trim() }))
+                articles: (g.articles || []).map(a => ({ artNr: a.matnrDisplay || a.matnr, label: ([a.maktx, a.maktx2].filter(Boolean).join(" ").trim() || a.label || '').trim() }))
             })).filter(g => g.articles.length);
             results[artNr] = { image, additionalMaterials };
             done++; if (image) imgOk++; matLinks += additionalMaterials.reduce((s, g) => s + g.articles.length, 0);

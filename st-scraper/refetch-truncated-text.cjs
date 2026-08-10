@@ -68,6 +68,22 @@ if (/[^\x20-\x7E]/.test(cookie)) {
     process.exit(1);
 }
 
+// The SAP session token is HttpOnly, so `document.cookie` in the DevTools console
+// silently omits it. You then get a file full of _ga/Optanon/incap analytics that
+// looks complete, and every request comes back NOSESSION. Catch that here rather
+// than after a round-trip to the server.
+const cookieNames = cookie.split(';').map(s => s.trim().split('=')[0]).filter(Boolean);
+// WARNING, not a hard stop: the live request is the only real authority on whether
+// a session is valid, and refusing to send one would hard-block a cookie whose auth
+// works differently than assumed.
+if (!cookieNames.some(n => /^(SAP_SESSIONID|MYSAPSSO2|JSESSIONID|sap-contextid)/i.test(n))) {
+    console.warn('⚠ cookie.txt has no SAP session token (SAP_SESSIONID_* / MYSAPSSO2 / JSESSIONID).');
+    console.warn(`  It holds: ${cookieNames.join(', ').slice(0, 200)}`);
+    console.warn('  Those tokens are HttpOnly — `document.cookie` cannot see them. Copy the FULL');
+    console.warn('  `Cookie:` value from DevTools → Network → any profishop request → Request Headers.');
+    console.warn('  Trying the request anyway…\n');
+}
+
 const digits = (a) => String(a).replace(/[^0-9]/g, '');
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 

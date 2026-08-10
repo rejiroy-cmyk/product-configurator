@@ -47,23 +47,84 @@ const clean = (s) => String(s == null ? '' : s)
 const compact = (s) => clean(s).toLowerCase().replace(/[^a-z0-9äöüàéèçñ]/g, '');
 const key = (a) => String(a).replace(/[^0-9]/g, '');
 
-// ── load every shard result ──────────────────────────────────────────────────
+// ── attribute normalisation ──────────────────────────────────────────────────
+// The two sources disagree on shape. The live API returns objects
+// {label, value, unit}; the older cached dumps flattened them to "Marke: Alterna"
+// strings, losing the unit. Normalise everything to the richer object form.
+//
+// Stored as a FLAT MAP, not an array of objects. custom-data.json is 44 MB and gets
+// inlined into the single-file build, so shape is a real cost: array-of-objects
+// costs +16.3 MB (+37%), the flat map +5.1 MB (+12%) for the same information —
+// and `tech.Ausprägung` beats scanning an array anyway.
+//
+// Four labels are dropped on the way in: Volumen and Gewicht are logistics data,
+// and Geräuschgruppe / Energieeffizienzklasse are the two attributes already ruled
+// out as non-criteria (see AUTO_SUPPRESS in _productDisplay.js). No point storing
+// 12k values we have committed to never showing.
+const TECH_NOISE = new Set(['Volumen', 'Gewicht', 'Geräuschgruppe', 'Energieeffizienzklasse']);
+const normTech = (arr) => {
+    const out = {};
+    for (const t of Array.isArray(arr) ? arr : []) {
+        let label, value;
+        if (t && typeof t === 'object') {
+            label = String(t.label || '').trim();
+            value = [t.value, t.unit].filter(Boolean).join(' ').trim();
+        } else {
+            const s = String(t);
+            const i = s.indexOf(':');
+            if (i < 0) continue;
+            label = s.slice(0, i).trim();
+            value = s.slice(i + 1).trim();
+        }
+        if (!label || !value || TECH_NOISE.has(label)) continue;
+        out[label] = value;
+    }
+    return Object.keys(out).length ? out : null;
+};
+
+// ── load both sources ────────────────────────────────────────────────────────
+// Priority: a fresh shard result always beats a cached dump, because only the
+// fresh fetch carries maktx2 (and therefore the untruncated label).
+const SOURCE = (process.argv.includes('--source') && process.argv[process.argv.indexOf('--source') + 1]) || 'both';
 const fetched = new Map();
-let shardFiles = 0;
-for (const f of fs.readdirSync(SCRIPT_DIR)) {
-    if (!/^text-refetch-shard-\d+\.json$/.test(f)) continue;
-    shardFiles++;
-    const j = JSON.parse(fs.readFileSync(path.join(SCRIPT_DIR, f), 'utf8'));
-    for (const [art, v] of Object.entries(j)) if (v) fetched.set(key(art), v);
+let shardFiles = 0, cacheFiles = 0;
+
+if (SOURCE !== 'fetch') {
+    const CACHE_DIR = path.join(SCRIPT_DIR, 'catalogue-inspection');
+    for (const f of fs.existsSync(CACHE_DIR) ? fs.readdirSync(CACHE_DIR) : []) {
+        if (!/-api(-refetch)?\.json$/.test(f)) continue;
+        cacheFiles++;
+        let j; try { j = JSON.parse(fs.readFileSync(path.join(CACHE_DIR, f), 'utf8')); } catch (_) { continue; }
+        for (const v of Object.values(j)) {
+            if (!v || !v.matnr) continue;
+            // These dumps have no maktx2 KEY because fetch_catalogue_api.js already
+            // merged it into `maktx` — so this text is usually complete. Measured
+            // against custom-data: 350 labels are a clean extension of ours, 2,776
+            // identical, 1,822 SHORTER than ours. The prefix+longer guard below is
+            // what makes using it safe; it rejects all 1,822.
+            fetched.set(key(v.matnr), { src: 'cache', maktx: v.maktx || null, description: v.description || null, tech: normTech(v.tech) });
+        }
+    }
+}
+if (SOURCE !== 'cache') {
+    for (const f of fs.readdirSync(SCRIPT_DIR)) {
+        if (!/^text-refetch-shard-\d+\.json$/.test(f)) continue;
+        shardFiles++;
+        const j = JSON.parse(fs.readFileSync(path.join(SCRIPT_DIR, f), 'utf8'));
+        for (const [art, v] of Object.entries(j)) {
+            if (!v) continue;
+            fetched.set(key(art), { src: 'fetch', maktx: v.maktx, maktx2: v.maktx2, description: v.description || null, tech: normTech(v.tech) });
+        }
+    }
 }
 if (!fetched.size) {
-    console.error(`no fetched text found (${shardFiles} shard files). Run refetch-truncated-text.cjs first.`);
+    console.error(`no source data found (${shardFiles} shard files, ${cacheFiles} cached dumps).`);
     process.exit(1);
 }
 
 const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
 
-const stats = { records: 0, matched: 0, labelHealed: 0, descImproved: 0, descKept: 0, techAdded: 0, charsGained: 0 };
+const stats = { records: 0, matched: 0, fromFetch: 0, fromCache: 0, labelHealed: 0, descImproved: 0, descKept: 0, techAdded: 0, charsGained: 0 };
 const samples = [];
 
 (function walk(o) {
@@ -75,6 +136,7 @@ const samples = [];
         const api = fetched.get(key(o.artNr));
         if (api) {
             stats.matched++;
+            if (api.src === 'fetch') stats.fromFetch++; else stats.fromCache++;
 
             // THE ACTUAL FIX. SAP stores the short text in two ~40-char fields and
             // the original scrape kept only the first — that is where every truncated
@@ -82,6 +144,9 @@ const samples = [];
             // prefix check so we only ever EXTEND our own label, never replace it
             // with a different article's text.
             const ourLabel = clean(o.label || o.name || '');
+            // Fresh fetches carry the two fields separately; the cached dumps already
+            // merged them. Either way the guard below is the safety net: a label is
+            // only ever replaced by something LONGER that starts with what we have.
             const rebuilt = clean([api.maktx, api.maktx2].filter(Boolean).join(' '));
             if (rebuilt && compact(rebuilt).length > compact(ourLabel).length
                 && compact(rebuilt).startsWith(compact(ourLabel).slice(0, 20))) {
@@ -107,7 +172,7 @@ const samples = [];
                 stats.descKept++;
             }
 
-            if (Array.isArray(api.tech) && api.tech.length) {
+            if (api.tech && Object.keys(api.tech).length) {
                 stats.techAdded++;
                 if (WRITE) o.tech = api.tech;
             }
@@ -116,7 +181,7 @@ const samples = [];
     for (const k of Object.keys(o)) walk(o[k]);
 })(data);
 
-console.log(`shard files read        : ${shardFiles}`);
+console.log(`sources: ${shardFiles} shard file(s) + ${cacheFiles} cached dump(s)  [--source ${SOURCE}]`);
 console.log(`art-Nrs with fetched text: ${fetched.size}`);
 console.log(`records scanned         : ${stats.records}`);
 console.log(`records matched         : ${stats.matched}`);
@@ -124,6 +189,7 @@ console.log(`  labels healed (maktx2): ${stats.labelHealed}  (+${stats.charsGain
 console.log(`  description improved  : ${stats.descImproved}`);
 console.log(`  description unchanged : ${stats.descKept}  (API text added nothing)`);
 console.log(`  tech[] attached       : ${stats.techAdded}`);
+console.log(`  from fresh fetch      : ${stats.fromFetch}   from cached dumps: ${stats.fromCache}`);
 
 console.log('\n-- sample improvements --');
 samples.forEach(s => {
@@ -140,7 +206,7 @@ if (!WRITE) {
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 const backup = `${DATA}.bak-${stamp}`;
 fs.copyFileSync(DATA, backup);
-fs.writeFileSync(DATA, JSON.stringify(data, null, 1));
+fs.writeFileSync(DATA, JSON.stringify(data, null, 2));   // MUST match the file's existing indent-2, or the diff is all 94k records
 console.log(`\nbackup : ${path.basename(backup)}`);
 console.log(`written: custom-data.json`);
 console.log('NOW RUN `npm test` — description feeds the full-text classification rules.');

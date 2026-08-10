@@ -72,6 +72,12 @@ code lives in `modules/factories/`, **one file per `create*App` factory**:
     A chip slot goes to a family that CONTRASTS with a neighbour (a neighbour
     states a *different* value), never to one that merely fills a gap in a
     neighbour's data — otherwise low-value families crowd out real ones.
+    Structured attributes from `product.tech` (see Data layer) beat the regex
+    rules for the same family. **`Ausprägung` is SAP's own variant discriminator**
+    and is ranked first: it is what separates "Festelement links" from
+    "Festelement rechts" when two articles carry byte-identical label text.
+    `tech.Farbe` is deliberately ignored — the COLOUR RULE gives the finish to the
+    art-Nr triplet alone, and SAP's Farbe often names the ceramic instead.
     **Deliberately NOT chipped:** Energieeffizienzklasse, Geräuschgruppe,
     Umweltdeklaration EPD (none are buying criteria here). Suppressing such an
     attribute takes TWO edits — drop the curated rule *and* add it to
@@ -120,6 +126,39 @@ what this helper exists to prevent.
   `node -e` and address it by top-level pool. Merge conflicts in it are best
   resolved **per pool** (separate workstreams inject into separate pools, so the
   edits are usually disjoint), never textually.
+  **Write it with `JSON.stringify(data, null, 2)`** — anything else reformats all
+  94k records and buries the real change in a whole-file diff.
+- **`tech` — SAP's structured attributes.** A flat map on ~32k records
+  (`{Marke, Serie, Ausprägung, Breite, Höhe, Modell, Montage, …}`) written by
+  `st-scraper/apply-refetched-text.cjs`. Stored flat, not as an array of objects:
+  the array form costs +16.3 MB against this file, the flat map +5.1 MB. Kept OUT
+  of `specs` on purpose — `productText()` feeds classification from
+  label+description+specs, so putting them there would silently move every
+  series/type decision. Four labels are dropped at ingest (`Volumen`, `Gewicht`,
+  `Geräuschgruppe`, `Energieeffizienzklasse`) as non-criteria.
+
+### SAP short text is TWO fields — the label-truncation root cause
+
+`article.ws` splits the short text across `maktx` **and `maktx2`**, ~40 chars each:
+
+    maktx : "Wandbecken Alterna calea, 45 x 36 cm,"
+    maktx2: "Armaturenloch, mit Überlauf, Weiss"
+
+Reading only `maktx` yields a label cut off mid-sentence — that is where the
+truncated labels came from, not from any gap at the vendor. The structured
+attributes live under **`technicalInformations`**; `tech` is merely the name used
+in the post-processed `catalogue-inspection/*-api.json` dumps, so looking for
+`tech` on a live response silently yields nothing.
+`tests/verify-scraper-maktx2.js` guards every script that reads the API directly
+and fails `npm test` if a `maktx`-only read reappears.
+
+**Label re-scrape pipeline** (`st-scraper/`), in order:
+`audit-truncated-labels.cjs` → work-list + shards ·
+`run-refetch-all.sh` → session pre-flight + parallel fetch ·
+`apply-refetched-text.cjs` → dry-run by default, `--write` backs up first.
+The SAP session behind `cookie.txt` lives ~20-30 min; refresh it immediately
+before starting, and note `cookie.txt` has a `#` comment header that must be
+stripped before use (an em-dash in it throws `ERR_INVALID_CHAR`).
 - **Dev:** read/written via a Vite middleware in `vite.config.js`
   (`GET /api/data`, `POST /api/save`).
 - **Prod (single-file):** there is no server; state persists in `localStorage`

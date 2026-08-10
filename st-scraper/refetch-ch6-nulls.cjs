@@ -72,7 +72,7 @@ async function worker(queue) {
       if (j && j.status === 'NOSESSION') { aborted = true; console.error('\n🚨 NOSESSION — refresh cookie.txt'); break; }
       if (j && j.status === 'OK' && j.result) {
         const r = j.result;
-        hit = { matnr: r.matnr, maktx: r.maktx, description: r.description, image: r.image, net: r.retailPrice, tech: r.technicalInformations || [], additionalMaterials: r.additionalMaterials || [] };
+        hit = { matnr: r.matnr, maktx: [r.maktx, r.maktx2].filter(Boolean).join(" ").trim(), description: r.description, image: r.image, net: r.retailPrice, tech: r.technicalInformations || [], additionalMaterials: r.additionalMaterials || [] };
         break;
       }
     }
