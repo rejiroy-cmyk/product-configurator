@@ -276,9 +276,9 @@ label+description concatenation) as the source for such checks.
   There are exactly six, in a chain — `grep -rn '?v=' index.html app.js modules/apps.js`
   finds all of them (values as of 2026-08-11; they drift, so grep rather than trust this
   list):
-  - `index.html` → `app.js?v=2.9.8`, `index.css?v=1.1.12`
-  - `app.js` → `modules/data.js?v=2.6.2`, `modules/apps.js?v=2.7.8`, `modules/admin.js?v=2.5.7`
-  - `modules/apps.js` → `factories.js?v=2.7.8`
+  - `index.html` → `app.js?v=2.9.9`, `index.css?v=1.1.12`
+  - `app.js` → `modules/data.js?v=2.6.2`, `modules/apps.js?v=2.7.9`, `modules/admin.js?v=2.5.7`
+  - `modules/apps.js` → `factories.js?v=2.7.9`
 
   This is a deliberate workflow; bump them when shipping if you rely on it. Bumping a
   module means bumping it at its **importer**, not inside the module itself.

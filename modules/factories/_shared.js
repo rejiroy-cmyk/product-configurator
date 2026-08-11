@@ -497,7 +497,10 @@ const SERIE_TYPE_PREFIXES = [
     'aufputz-duschenmischer', 'unterputz-duschenmischer', 'aufputz-bademischer', 'unterputz-bademischer',
     'duschsystem', 'duschpaneel', 'duschsäule', 'duschsteuerung', 'duschbatterie',
     'duschenbatterie', 'duschenmischer', 'duschmischer', 'duschthermostat', 'brausethermostat',
-    'shower tablet select', 'showerpipe', 'shower pipe', 'showerstation',
+    // NOT "shower tablet select" — that IS Hansgrohe's line name, and peeling it left
+    // the bare size "300" as the pill. The trailing-number rule trims the size instead.
+    'showerpipe', 'shower pipe', 'showerstation',
+    'für wandeinbaumontage', 'wandeinbaumontage',
     // Montage-Sets
     'thermostat-endmontageset', 'wandmischer-endmontageset', 'wandmischer- endmontageset',
     'wandbatterie-endmontageset', 'einhandbatterie-endmontageset', 'endmontageset',
@@ -531,9 +534,10 @@ const SERIE_TYPE_ONLY = ['einbaukosten', 'einbaukörper', 'einbausockel', 'monta
 const SERIE_VARIANT_RE = [
     /[\s-]+(?:rimless|spülrandlos|randlos)$/i,
     /[\s-]+(?:compact|comfort|liberty|silent|vital)$/i,
-    // "Classic" is a variant on "Moderna S Classic" but the name itself on Catalano
-    // "New Classic" — only drop it when a two-word series survives underneath.
-    /(?<=\S+\s+\S+)[\s-]+classic$/i,
+    // "Classic" is a variant on "Moderna S Classic" but part of the name itself on
+    // Catalano "New Classic" and Laufen "The New Classic". Drop it only when a
+    // two-word series survives AND that series does not end in "New".
+    /(?<=\S+\s+\S+)(?<!\bnew)[\s-]+classic$/i,
     /[\s-]+(?:standmodell|standmontage|stand)$/i,
     /[\s-]+(?:ecosmart\+|ecosmart|eco\+|eco)$/i,
     /[\s-]+(?:reno|grande)$/i,
@@ -541,12 +545,21 @@ const SERIE_VARIANT_RE = [
     /\s*\d+\s*-?\s*loch$/i,
     /\s+\d+([.,]\d+)?\s*(?:mm|cm)$/i,
     /\s+\d{2,3}$/,                 // Metris 110, Talis E 240 — but not "Starck 3" / "Domo 6.0"
+    /[\s-]+h[öo]he$/i,             // "Axor Front Höhe 91" → Front (the number goes first)
     /\s*["”½¾¼]+$/,
     /[\s,\-/]+$/,
 ];
 
+// Components, not series. When one of these is all that survives the type peel, the
+// peeled type is the better pill: "Duschsystem Schulterbrause Axor" belongs with the
+// other Duschsysteme, exactly where "Duschsystem mit Schulterbrause Axor" already lands.
+const SERIE_NON_SERIES = new Set([
+    'schulterbrause', 'kopfbrause', 'handbrause', 'brausethermostat',
+    'duschenbatterie', 'thermostatmodul', 'brausenmodul',
+]);
+
 // Genuine spelling splits of one and the same line.
-const SERIE_ALIASES = { 'subway 2': 'Subway 2.0' };
+const SERIE_ALIASES = { 'subway 2': 'Subway 2.0', 'design style': 'Design / Style' };
 
 const _stripSerieVariants = (s) => {
     let out = s.trim();
@@ -564,6 +577,18 @@ const _stripSerieVariants = (s) => {
 // that already carries capitals ("iCon", "F5LT1001", "S- Tec" stay as they are).
 const _capSerie = (s) => (/^[a-zà-ÿ]+(\s|$)/.test(s) ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
+// Last step for every path out of cleanSerie. The hyphen split runs HERE, not on the
+// way in: "Domo.5-Duplex" and "Domo.5 Duplex" are one line and must share a pill, but
+// splitting earlier would break the "Bade-Und Duschmischer" prefix match. The left side
+// must carry a digit or a dot — a model token like "Domo.5" — and the right side must be
+// capitalised. That keeps "D-Code", "Water-fall", "Modena S-Tec" and, importantly,
+// "Wandmischer-Endmontageset" intact; splitting the last one would re-peel to a
+// different pill on a second pass and break idempotency.
+const _finishSerie = (s) => {
+    const out = _capSerie(String(s).replace(/([A-Za-zÀ-ÿ]*[0-9.][A-Za-zÀ-ÿ0-9.]*)-([A-ZÀ-Þ])/g, '$1 $2').trim());
+    return SERIE_ALIASES[out.toLowerCase()] || out;
+};
+
 const cleanSerie = (raw) => {
     // "D- Code" / "modena S- Tec" — the ERP splits hyphenated names with a space.
     const base = String(raw || '').replace(/\s+/g, ' ').replace(/(\w)-\s+(\w)/g, '$1-$2').trim();
@@ -571,7 +596,7 @@ const cleanSerie = (raw) => {
 
     const lower = base.toLowerCase();
     for (const t of SERIE_TYPE_ONLY) {
-        if (lower === t || lower.startsWith(t + ' ')) return _capSerie(base.slice(0, t.length));
+        if (lower === t || lower.startsWith(t + ' ')) return _finishSerie(base.slice(0, t.length));
     }
 
     // Peel product-type prefixes FIRST — a series can be a bare number ("Gessi 316"),
@@ -594,11 +619,13 @@ const cleanSerie = (raw) => {
     core = _stripSerieVariants(core);
 
     // "Duschsystem Mit Brausethermostat" / "Wandbatterie Set 125 mm" describe a
-    // product, not a line — fall back to the type so they share one pill.
-    if (!core || /^(mit|für|ohne|inkl|zu)\b/i.test(core)) return _capSerie(peeled || _stripSerieVariants(base));
+    // product, not a line — fall back to the type so they share one pill. Same for a
+    // remainder that is only a component ("Duschsystem Schulterbrause").
+    if (!core || /^(mit|für|ohne|inkl|zu)\b/i.test(core) || SERIE_NON_SERIES.has(core.toLowerCase())) {
+        return _finishSerie(peeled || _stripSerieVariants(base));
+    }
 
-    const cleaned = _capSerie(core);
-    return SERIE_ALIASES[cleaned.toLowerCase()] || cleaned;
+    return _finishSerie(core);
 };
 
 // ============================================================================
