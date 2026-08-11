@@ -32,6 +32,7 @@ const check = (name, cond, detail) => {
 const API_READERS = [
     'st-scraper/refetch-truncated-text.cjs',
     'st-scraper/refetch-ch6-nulls.cjs',
+    'st-scraper/refetch-ch7-missing.cjs',
     'st-scraper/catalogue-inspection/fetch_catalogue_api.js',
     'st-scraper/heal-pool-images.js',
 ];

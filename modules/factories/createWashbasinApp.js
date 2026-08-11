@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel , fullLabel } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel , fullLabel, renderGalleryGrid, galleryBackButton } from './_shared.js';
 
 export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
     const suffix = title.replace(/\s/g, '');
@@ -24,8 +24,8 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             this.currentAbstell = 'all';
             this.renderSidebar();
             this.updatePillFilters();
-            this.filterResults(); // initial run
-            this.clearBOM();
+            this.filterResults(); // initial run — paints the gallery grid when enabled
+            if (!config.enableGalleryUX) { this.clearBOM(); }
         },
         extractHahnloch: function (obj) {
             const label = ((obj.label || '') + ' ' + (obj.description || '')).toLowerCase();
@@ -163,7 +163,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                     </div>
                 </div>
                 
-                <div class="sidebar-section">
+                <div class="sidebar-section" ${config.enableGalleryUX ? 'style="display:none;"' : ''}>
                     <h2>Suchergebnisse <span id="resultCount_${suffix}" class="badge">0</span></h2>
                     <div class="search-results-container" id="searchResults_${suffix}">
                         <!-- Populated by JS -->
@@ -374,6 +374,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
 
             if (filtered.length === 0) {
                 resultsContainer.innerHTML = '<div class="no-results">Keine Waschtische gefunden. Bitte Filter anpassen.</div>';
+                if (config.enableGalleryUX && !this.selectedTray) this.renderGridInMainPanel(filtered);
                 return;
             }
 
@@ -417,10 +418,26 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             if (this.selectedTray) {
                 this.renderConfigurator();
                 this.updateBOM();
+            } else if (config.enableGalleryUX) {
+                this.renderGridInMainPanel(filtered);
             }
         },
+        // Same tiles as Duschenwanne/Badewanne — see renderGalleryGrid in _shared.js.
+        renderGridInMainPanel: function (filtered) {
+            renderGalleryGrid(filtered, { lines: t => [t.size, this.extractAusfuehrung(t)] });
+        },
         selectTray: function (id) {
+            if (!id) {
+                this.selectedTray = null;
+                galleryBackButton(false);
+                this.renderConfigurator();
+                this.updateAccessoiresToggles();
+                if (config.enableGalleryUX) this.filterResults();
+                else this.clearBOM();
+                return;
+            }
             this.selectedTray = this.trays.find(t => t.id === id);
+            if (!this.selectedTray) return;
             this.selectedTray.selections = {};
 
             if (this.selectedTray.mountingMaterials) {
@@ -506,6 +523,13 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             const inner = document.getElementById(`trayConfiguratorInner_${suffix}`);
             inner.innerHTML = '';
 
+            // Gallery UX: the sidebar configurator gives way to inline dropdowns in the
+            // BOM rows (updateBOM), and the Überlauf warning is rendered there too.
+            if (config.enableGalleryUX) {
+                if (configBlock) configBlock.style.display = 'none';
+                return;
+            }
+
             let hasConfig = false;
 
             if (this.selectedTray && this.selectedTray.mountingMaterials && this.selectedTray.mountingMaterials.length > 0) {
@@ -570,11 +594,22 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9da3ad; padding: 2rem;">Bitte wählen Sie ein Waschtisch aus.</td></tr>';
         },
         updateBOM: function () {
+            if (config.enableGalleryUX) galleryBackButton(!!this.selectedTray);
             if (!this.selectedTray) return;
 
             const materials = this.selectedTray.mountingMaterials || [];
             let visibleCount = 1;
             bomTableBody.innerHTML = '';
+
+            // Gallery UX has no sidebar configurator, so the "Becken ohne Überlauf"
+            // safety notice rides along at the top of the BOM instead.
+            if (config.enableGalleryUX && this.extractUeberlauf(this.selectedTray) === 'ohne') {
+                const warnRow = document.createElement('tr');
+                warnRow.innerHTML = `<td colspan="5" style="padding:0.75rem 1rem;">
+                    <div class="alert-box" style="margin:0;"><i class="ri-alert-line"></i><div><strong>Sicherheitshinweis</strong><p>Becken ohne Überlauf: Ablaufventile sind automatisch auf "Starr / Immer offen" eingeschränkt (Schutz vor Überflutung).</p></div></div>
+                </td>`;
+                bomTableBody.appendChild(warnRow);
+            }
 
             const startRow = document.createElement('tr');
             startRow.innerHTML = `
@@ -604,24 +639,40 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
             bomTableBody.appendChild(trayRow);
 
             materials.forEach(mat => {
+                const opts = this.getCompatibleOptions(mat);
                 const selectedArtNr = this.selectedTray.selections[mat.id];
-                const selectedOption = this.getCompatibleOptions(mat).find(o => o.artNr === selectedArtNr);
+                const selectedOption = opts.find(o => o.artNr === selectedArtNr);
+                if (!selectedOption) return;
 
-                if (selectedOption) {
-                    const matRow = document.createElement('tr');
-                    matRow.innerHTML = `
+                // Gallery UX: a group with a real choice becomes a dropdown in its own row.
+                const inline = config.enableGalleryUX && opts.length > 1;
+                const descHTML = inline
+                    ? `<select class="inline-bom-select" data-matid="${mat.id}" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid var(--border); background:var(--bg-surface); color:var(--text-primary); font-size:0.9rem; margin-bottom:0.25rem; font-family:inherit; font-weight:500; cursor:pointer; outline:none; transition:border-color 0.2s ease;">${
+                        opts.map(o => `<option value="${o.artNr}" ${o.artNr === selectedArtNr ? 'selected' : ''}>${o.label} (${o.artNr})</option>`).join('')
+                      }</select>`
+                    : `<div class="bom-desc">${fullLabel(selectedOption)}</div>`;
+
+                const matRow = document.createElement('tr');
+                matRow.innerHTML = `
                         <td><div class="img-cell" ${!selectedOption.imgUrl ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>
                             ${selectedOption.imgUrl ? `<img src="${selectedOption.imgUrl}" alt="${selectedOption.label}" onerror="this.style.display='none';">` : ''}
                         </div></td>
                         <td><span class="bom-code">${selectedOption.artNr}</span></td>
                         <td>
-                            <div class="bom-desc">${fullLabel(selectedOption)}</div>
+                            ${descHTML}
+                            ${inline ? `<div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">${mat.name || 'Zubehör'}</div>` : ''}
                         </td>
-                        
+
                         <td><strong>${selectedOption.menge || 1}</strong></td>
                     `;
-                    bomTableBody.appendChild(matRow);
-                    visibleCount += (selectedOption.menge || 1);
+                bomTableBody.appendChild(matRow);
+                visibleCount += (selectedOption.menge || 1);
+
+                if (inline) {
+                    matRow.querySelector('.inline-bom-select').addEventListener('change', (e) => {
+                        this.selectedTray.selections[mat.id] = e.target.value;
+                        this.updateBOM();
+                    });
                 }
             });
 

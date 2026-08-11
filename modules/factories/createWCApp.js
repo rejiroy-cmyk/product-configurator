@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM , fullLabel , accessoryFacetBar } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM , fullLabel , accessoryFacetBar, renderGalleryGrid, cleanSerie } from './_shared.js';
 
 export function createWCApp(title, desc, mainImgUrl, config = {}) {
     const isMixer = config.isMixer || title.toLowerCase().includes('mischer') || title.toLowerCase().includes('armatur');
@@ -16,7 +16,9 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
         accFacets: {},
         selectedAccessoires: [],
         extractSerie: function (t) {
-            if (t.serie) return t.serie;
+            // cleanSerie strips the product type in front and the variant behind, so
+            // "Moderna R Compact rimless" and "Moderna R - UP" land on one pill.
+            if (t.serie) return cleanSerie(t.serie) || 'Andere';
             const manufacturer = (t.manufacturer || '').toLowerCase();
 
             // 1. Strip product-type prefixes
@@ -63,7 +65,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             // 4. Capitalize each word
             serie = serie.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
-            return serie || 'Andere';
+            return cleanSerie(serie) || 'Andere';
         },
         getUniqueValues: function (key) {
             if (key === 'serie') {
@@ -627,27 +629,9 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 this.renderGridInMainPanel(filtered);
             }
         },
+        // Same tiles as Duschenwanne/Badewanne — see renderGalleryGrid in _shared.js.
         renderGridInMainPanel: function (filtered) {
-            bomCountCounter.textContent = filtered.length + ' Produkte gefunden';
-            if (filtered.length === 0) {
-                bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#9da3ad; padding:2rem;">Keine Produkte gefunden. Bitte passen Sie die Filter an.</td></tr>';
-                return;
-            }
-            let cards = '';
-            filtered.forEach(function (t) {
-                const imgHTML = t.imgUrl
-                    ? '<img src="' + t.imgUrl + '" style="width:100%; height:160px; object-fit:contain; background:white; border-radius:6px; margin-bottom:1rem;" onerror="this.style.display=\'none\'">'
-                    : '<div style="height:160px; background:var(--bg-surface); display:flex; align-items:center; justify-content:center; margin-bottom:1rem; border-radius:6px;"><i class="ri-image-line" style="font-size:2.5rem; opacity:0.2;"></i></div>';
-                const mfr = t.manufacturer ? '<div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.25rem;">' + t.manufacturer + '</div>' : '';
-                const sz = t.size ? '<div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.25rem;">' + t.size + '</div>' : '';
-                cards += '<div onclick="window.currentActiveApp.selectTray(\'' + t.id + '\')" style="display:flex; flex-direction:column; cursor:pointer; padding:1rem; border:1px solid var(--border); border-radius:8px; background:var(--bg-surface); transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform=\'translateY(-2px)\'; this.style.boxShadow=\'0 6px 20px rgba(0,0,0,0.2)\'" onmouseout="this.style.transform=\'\'; this.style.boxShadow=\'\'">'
-                    + imgHTML
-                    + '<strong style="margin-bottom:0.4rem; font-size:0.9rem; color:var(--text-primary); line-height:1.3;">' + t.label + '</strong>'
-                    + mfr + sz
-                    + '<div style="margin-top:auto; padding-top:0.6rem; border-top:1px solid var(--border); font-size:0.8rem; color:var(--text-secondary);">Art-Nr: <strong style="font-family:monospace;">' + t.artNr + '</strong></div>'
-                    + '</div>';
-            });
-            bomTableBody.innerHTML = '<tr><td colspan="5" style="padding:0; border:none;"><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:1.25rem; padding:1.25rem;">' + cards + '</div></td></tr>';
+            renderGalleryGrid(filtered, { lines: t => [t.size, t.form] });
         },
         selectTray: function (id) {
             if (!id) {

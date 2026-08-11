@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM , fullLabel , accessoryFacetBar } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM , fullLabel , accessoryFacetBar, renderGalleryGrid } from './_shared.js';
 
 export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
     const w = title;
@@ -953,9 +953,8 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             }
         },
         renderGridInMainPanel: function (filtered) {
-            bomCountCounter.textContent = filtered.length + ' Produkte gefunden';
             if (filtered.length === 0) {
-                bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#9da3ad; padding:2rem;">Keine Produkte gefunden. Bitte passen Sie die Filter an.</td></tr>';
+                renderGalleryGrid(filtered);
                 return;
             }
 
@@ -974,31 +973,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 return String(a.size || '').localeCompare(String(b.size || ''));
             });
 
-            // If there's an overwhelming number, cap it like GlassApp
-            const cappedFiltered = sortedFiltered.slice(0, 150);
-
-            let cards = cappedFiltered.map(t => {
-                return `
-                    <div class="result-item-card catalog-preview-card" onclick="window.currentActiveApp.selectTray('${t.id}')" style="display:flex; flex-direction:row; align-items:center; gap:1rem; border:1px solid var(--border); border-radius:8px; padding:1rem; background:var(--bg-surface); cursor:pointer; transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
-                        <div class="card-img-wrapper" style="width:70px; height:90px; display:flex; align-items:center; justify-content:center; border-radius:6px; overflow:hidden; background:var(--bg-subtle); flex-shrink:0;">
-                            ${(imgOf(t)) ? `<img src="${imgOf(t)}" loading="lazy" style="max-height:100%; max-width:100%; object-fit:contain;">` : '<i class="ri-image-line placeholder-icon" style="font-size:2rem; color:var(--text-secondary);"></i>'}
-                        </div>
-                        <div class="result-info" style="display:flex; flex-direction:column; flex:1; min-width:0;">
-                            <span style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">${t.manufacturer || "Marke unbekannt"}</span>
-                            <strong style="font-size:0.85rem; line-height:1.3; margin-bottom:4px; color:var(--text-primary); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${t.label}</strong>
-                            <div style="font-size:0.75rem; color:var(--text-secondary);">${t.size || ""}</div>
-                            ${t.form ? `<div style="font-size:0.7rem; color:var(--text-secondary); margin-top:2px;">${t.form}</div>` : ''}
-                            <span class="finish-artnr" style="margin-top:6px; font-size:0.8rem;">${t.artNr}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            if (sortedFiltered.length > 150) {
-                cards += `<div style="grid-column:1/-1; padding:2rem; text-align:center; color:var(--text-secondary); font-size:0.95rem;">Es gibt ${sortedFiltered.length - 150} weitere Ergebnisse. Bitte passen Sie Ihre Filter an, um diese zu sehen.</div>`;
-            }
-
-            bomTableBody.innerHTML = '<tr><td colspan="5" style="padding:0; border:none; background:transparent;"><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px; padding:12px; background:var(--bg-body); border-radius:8px;">' + cards + '</div></td></tr>';
+            renderGalleryGrid(sortedFiltered);
         },
         // "Waschrinne Romay … für N Wandmischer" → N wall mixers (each with its own 2× Verschraubung).
         // FULL-TEXT RULE: read label AND description. Default 1 for every other trough.
@@ -1012,7 +987,8 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
         buildWashStationSlots: function (basin) {
             const parts = this.parts || [];
             const toOpt = (p, menge) => ({ artNr: p.artNr, label: p.label, type: p.faucetType || p.accType || 'Zubehör', imgUrl: p.imgUrl, menge: menge || p.menge || 1 });
-            const NONE = { artNr: 'none', label: '— keine —', type: '', imgUrl: '', menge: 0 };
+            // dropdownLabel keeps the inline BOM select from rendering "— keine — (none)".
+            const NONE = { artNr: 'none', label: '— keine —', dropdownLabel: '— keine —', type: '', imgUrl: '', menge: 0 };
             const brand = (basin.manufacturer || '').toLowerCase();
             const basinBase = (basin.artNr || '').replace(/[^0-9]/g, '').slice(0, 7);
             const slots = [];
@@ -1069,8 +1045,12 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             if (basin.drainStyle !== 'washbasin') {
                 const thr = (basin.drainThread || '1½"').replace(/[^0-9¼½]/g, '');
                 const stutzen = parts.filter(p => p.accType === 'Anschlussstutzen');
-                const pick = stutzen.find(p => ((p.connThread || p.label) || '').replace(/[^0-9¼½]/g, '').startsWith(thr)) || stutzen.find(p => /1½/.test(p.label));
-                if (pick) slots.push({ id: 'ws_anschluss', name: '4 · Anschlussstutzen ' + (basin.drainThread || ''), options: [toOpt(pick)] });
+                // Several stutzen share a thread but differ in pipe Ø (50 vs 48 mm) and sealing
+                // face, so offer the whole thread-matching set. The first stays the default —
+                // same article the single-pick version chose.
+                const matching = stutzen.filter(p => ((p.connThread || p.label) || '').replace(/[^0-9¼½]/g, '').startsWith(thr));
+                const rest = matching.length ? matching : stutzen.filter(p => /1½/.test(p.label)).slice(0, 1);
+                if (rest.length) slots.push({ id: 'ws_anschluss', name: '4 · Anschlussstutzen ' + (basin.drainThread || ''), options: rest.map(p => toOpt(p)) });
             }
 
             // 5. Siphon — utility troughs: fixed Ø50/56 (waagrecht/senkrecht).
@@ -1084,9 +1064,22 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 if (siphons.length) slots.push({ id: 'ws_siphon', name: '5 · Siphon (waagrecht / senkrecht)', options: siphons.map(s => toOpt(s)) });
             }
 
-            // 6. Add-ons — brand match (+ explicit "zu artNr" override), all optional
-            const linked = (p) => (p.parentBases && p.parentBases.includes(basinBase)) || (brand && (p.manufacturer || '').toLowerCase() === brand);
-            for (const [at, nm] of [['Waschtrogunterbau', 'Unterbau'], ['Rückwand', 'Rückwand'], ['Tablar', 'Tablar'], ['Auflagerost', 'Auflagerost'], ['Handtuchstange', 'Handtuchstange']]) {
+            // 6. Add-ons — all optional.
+            //    `universal` wins (a Kleinboiler fits any trough, whoever made it).
+            //    Then the catalogue's own "zu <artNr>" list: when an accessory names the basins
+            //    it fits, that list is exhaustive — falling back to a brand match after it would
+            //    offer a Sirius BS354 Strebenkonsole under every KWC basin in the pool.
+            //    Brand match stays the rule only for accessories with no explicit list.
+            const linked = (p) => p.universal === true
+                || (p.parentBases && p.parentBases.length
+                    ? p.parentBases.includes(basinBase)
+                    : (brand && (p.manufacturer || '').toLowerCase() === brand));
+            for (const [at, nm] of [['Waschtrogunterbau', 'Unterbau'], ['Rückwand', 'Rückwand'], ['Tablar', 'Tablar'],
+                                    ['Auflagerost', 'Auflagerost'], ['Rosthalter', 'Rosthalter'],
+                                    ['Handtuchstange', 'Handtuchstange'], ['Handtuchhalter', 'Handtuchhalter'],
+                                    ['Konsole', 'Konsole'], ['Kleinboiler', 'Kleinboiler'],
+                                    ['WandbatterieDrucklos', 'Wandbatterie drucklos (zu Kleinboiler)'],
+                                    ['Anlageteile', 'Geräteanschluss (Wasch-/Geschirrspüler)']]) {
                 const opts = parts.filter(p => p.accType === at && linked(p));
                 if (opts.length) slots.push({ id: 'ws_addon_' + at, name: '6 · ' + nm, options: [NONE, ...opts.map(p => toOpt(p))] });
             }
@@ -2230,7 +2223,12 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     const selectedArtNr = this.selectedTray.selections[mat.id];
                     const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
                     if (!selectedOption) return;
-                    if (!selectedOption.artNr || selectedOption.artNr === 'none') return; // "— keine —" -> no BOM line
+
+                    // Gallery UX (Waschtröge): the sidebar configurator is hidden, so the
+                    // dropdown IS the row. A slot parked on "— keine —" must still render
+                    // or its choice becomes unreachable.
+                    const isInlineDropdown = !!(config.enableGalleryUX && mat.options && mat.options.length > 1);
+                    if ((!selectedOption.artNr || selectedOption.artNr === 'none') && !isInlineDropdown) return;
 
                     // Check against active Montageart filter
                     const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
@@ -2267,10 +2265,13 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         artNr: selectedOption.artNr,
                         label: enrichedLabel,
                         typ: selectedOption.type || mat.name || 'Zubehör',
-                        menge: selectedOption.menge || 1,
+                        menge: selectedOption.artNr === 'none' ? 0 : (selectedOption.menge || 1),
                         img: enrichedImg,
                         note: note,
-                        priority: priority
+                        priority: priority,
+                        isInlineDropdown: isInlineDropdown,
+                        matId: mat.id,
+                        options: isInlineDropdown ? mat.options : null
                     });
                 });
             }

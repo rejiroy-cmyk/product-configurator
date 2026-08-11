@@ -81,6 +81,10 @@ const GUARDED = {
     // Abgang budget + system detection: the outlet count is stated in the description
     // ("1 Abgang", "2 Abgänge") and is regularly truncated out of the label.
     'modules/factories/_shared.js': ['outletCount', 'isShowerSystem', 'needsShowerAccessories'],
+    // Injection-time routing counts too: classify-ch3 decides which pool a catalogue
+    // article lands in, and Ch3's distinguishing words ("Standklosett Keramik", "für
+    // Urinoir") live in the description far more often than in the truncated ERP label.
+    'st-scraper/classify-ch3.cjs': ['classify'],
 };
 
 // Strip line and block comments so a comment mentioning "description" can't satisfy the

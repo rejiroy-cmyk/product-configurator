@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem , fullLabel } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem , fullLabel, cleanSerie } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
@@ -307,21 +307,34 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
             .replace(/\s*,\s*$/g, "")
             .replace(/\s+/g, " ")
             .trim()),
+          // cleanSerie has the last word: it drops the product type in front
+          // ("Duschsystem Ecostat Comfort E") and the variant behind ("Croma 220 Reno").
           t
-            ? t
-                .split(" ")
-                .map((i) =>
-                  /^kwc$/i.test(i)
-                    ? "KWC"
-                    : /^\d/.test(i)
-                      ? i
-                      : i.charAt(0).toUpperCase() + i.slice(1),
-                )
-                .join(" ")
+            ? cleanSerie(
+                t
+                  .split(" ")
+                  .map((i) =>
+                    /^kwc$/i.test(i)
+                      ? "KWC"
+                      : /^\d/.test(i)
+                        ? i
+                        : i.charAt(0).toUpperCase() + i.slice(1),
+                  )
+                  .join(" ")
+              ) || "Andere"
             : "Andere"
         );
       },
       extractSerie: function (r) {
+        // Laufen's Duschsteuerung carries no series — AP vs UP is the whole
+        // distinction, so the pill keeps the full product name instead of being
+        // reduced to a bare "Ap" / "Up".
+        // FULL-TEXT RULE: read label AND description.
+        const _ds = ((r.label || "") + " " + (r.description || ""))
+          .match(/duschsteuerung\s+([A-Za-zÀ-ÿ]+)\s+(ap|up)\b/i);
+        if (_ds)
+          return `Duschsteuerung ${_ds[1].charAt(0).toUpperCase() + _ds[1].slice(1).toLowerCase()} ${_ds[2].toUpperCase()}`;
+
         if (r.serie)
           return this.normalizeDuschenmischerSerie(r.serie, r.manufacturer);
         const e = [
@@ -353,6 +366,10 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
               break;
             }
           t = t.replace(/-?endmontageset/g, "").trim().replace(/-?fertigmontageset/g, "").trim();
+          // "Duschmischer-Set KWC Thermostat Fit" — the leading "-Set" has to go here,
+          // or the "…Thermostat …" rule below truncates the series away and every
+          // KWC set lands on one "Set" pill.
+          t = t.replace(/^-?\s*set\b/, "").trim();
           if (r.manufacturer) {
             const a = r.manufacturer.toLowerCase();
             t.startsWith(a) && (t = t.slice(a.length).trim());

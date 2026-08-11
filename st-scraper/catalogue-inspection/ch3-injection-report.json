@@ -1,0 +1,657 @@
+{
+  "generated": "2026-08-11T17:53:31.417Z",
+  "source": "Sanitas Troesch 2026.6 — Chapter 3 (Einzelsanitärapparate und Installationssysteme, PDF pages 699-828)",
+  "added": {
+    "zubehoer_pool": [
+      {
+        "base": "3100131",
+        "artNr": "3100 131.617.000",
+        "label": "Betätigungsplatte Laufen Ineo AU103, zu Urinoirelement für Urinale ohne",
+        "manufacturer": "Laufen",
+        "productType": "Betätigungsplatte",
+        "targetSubcats": [
+          "urinoir",
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.102"
+      },
+      {
+        "base": "3100134",
+        "artNr": "3100 134.617.000",
+        "label": "Betätigungsplatte Laufen Ineo E-AU105, zu Urinoirelement für Urinale ohne",
+        "manufacturer": "Laufen",
+        "productType": "Betätigungsplatte",
+        "targetSubcats": [
+          "urinoir",
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.103"
+      },
+      {
+        "base": "3161143",
+        "artNr": "3161 143.523.000",
+        "label": "Siebventil Neoperl 1¼\", für Waschtische ohne Überlauf, Edelstahl matt",
+        "manufacturer": "Neoperl",
+        "productType": "Ablaufventil",
+        "targetSubcats": [
+          "waschtisch",
+          "mixandmatch",
+          "waschtischmischer"
+        ],
+        "variants": 1,
+        "mounting": 0,
+        "page": "3.15"
+      },
+      {
+        "base": "3161144",
+        "artNr": "3161 144.523.000",
+        "label": "Siebventil Neoperl 1¼\", für Waschtische mit Überlauf, Edelstahl matt",
+        "manufacturer": "Neoperl",
+        "productType": "Ablaufventil",
+        "targetSubcats": [
+          "waschtisch",
+          "mixandmatch",
+          "waschtischmischer"
+        ],
+        "variants": 1,
+        "mounting": 0,
+        "page": "3.15"
+      },
+      {
+        "base": "3342200",
+        "artNr": "3342 200.100.122",
+        "label": "Betätigungsplatte Geberit Sigma40 round, Zweimengenbetätigung von vorne",
+        "manufacturer": "Geberit",
+        "productType": "Betätigungsplatte",
+        "targetSubcats": [
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 10,
+        "mounting": 0,
+        "page": "3.65"
+      },
+      {
+        "base": "3342217",
+        "artNr": "3342 217.555.000",
+        "label": "Betätigungsplatte Geberit Kappa21, Zweimengenbetätigung von oben oder",
+        "manufacturer": "Geberit",
+        "productType": "Betätigungsplatte",
+        "targetSubcats": [
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 2,
+        "mounting": 0,
+        "page": "3.68"
+      },
+      {
+        "base": "3342267",
+        "artNr": "3342 267.130.000",
+        "label": "Betätigungsplatte Geberit Sigma50 round, Zweimengenbetätigung von vorne",
+        "manufacturer": "Geberit",
+        "productType": "Betätigungsplatte",
+        "targetSubcats": [
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 1,
+        "mounting": 0,
+        "page": "3.66"
+      },
+      {
+        "base": "3342298",
+        "artNr": "3342 298.100.122",
+        "label": "Betätigungsplatte Geberit Sigma40 square, Zweimengenbetätigung von vorne",
+        "manufacturer": "Geberit",
+        "productType": "Betätigungsplatte",
+        "targetSubcats": [
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 10,
+        "mounting": 0,
+        "page": "3.65"
+      },
+      {
+        "base": "3347116",
+        "artNr": "3347 116.125.000",
+        "label": "Betätigungsplatte Tece Loop, Zweimengenbetätigung von oben oder",
+        "manufacturer": "Tece",
+        "productType": "Betätigungsplatte",
+        "targetSubcats": [
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.74"
+      },
+      {
+        "base": "3347119",
+        "artNr": "3347 119.617.000",
+        "label": "Betätigungsplatte Tece Solid, Edelstahl, Anti-Fingerprint",
+        "manufacturer": "Tece",
+        "productType": "Betätigungsplatte",
+        "targetSubcats": [
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.74"
+      },
+      {
+        "base": "3347124",
+        "artNr": "3347 124.617.000",
+        "label": "Betätigungsplatte Tece Filo, zu Urinoirelement 3622 103",
+        "manufacturer": "Tece",
+        "productType": "Betätigungsplatte",
+        "targetSubcats": [
+          "urinoir",
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.101"
+      },
+      {
+        "base": "3347128",
+        "artNr": "3347 128.420.000",
+        "label": "Betätigungsplatte Tece Square II, Zweimengenbetätigung von oben oder",
+        "manufacturer": "Tece",
+        "productType": "Betätigungsplatte",
+        "targetSubcats": [
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 9,
+        "mounting": 0,
+        "page": "3.73"
+      },
+      {
+        "base": "3348116",
+        "artNr": "3348 116.503.000",
+        "label": "Betätigungsplatte Missel Design, Betätigung von oben, Mattverchromt",
+        "manufacturer": "Andere",
+        "productType": "Betätigungsplatte",
+        "targetSubcats": [
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.71"
+      },
+      {
+        "base": "3361416",
+        "artNr": "3361 416.350.000",
+        "label": "Spülrohrverbinder Mület, Ø innen 27 mm, Schwarz",
+        "manufacturer": "Andere",
+        "productType": "WC-Zubehör",
+        "targetSubcats": [
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.86"
+      },
+      {
+        "base": "3451107",
+        "artNr": "3451 107.100.122",
+        "label": "Urinoirsteuerung Geberit HyTronic IR Typ40 round, Abdeckplatte",
+        "manufacturer": "Geberit",
+        "productType": "Urinoirsteuerung",
+        "targetSubcats": [
+          "urinoir"
+        ],
+        "variants": 9,
+        "mounting": 0,
+        "page": "3.97"
+      },
+      {
+        "base": "3451108",
+        "artNr": "3451 108.100.122",
+        "label": "Urinoirsteuerung Geberit HyTronic IR Typ40 square, Abdeckplatte",
+        "manufacturer": "Geberit",
+        "productType": "Urinoirsteuerung",
+        "targetSubcats": [
+          "urinoir"
+        ],
+        "variants": 9,
+        "mounting": 0,
+        "page": "3.97"
+      },
+      {
+        "base": "3451111",
+        "artNr": "3451 111.100.122",
+        "label": "Urinoirsteuerung Geberit HyTronic IR Typ40 square, Batterie 1,5 V Lithium",
+        "manufacturer": "Geberit",
+        "productType": "Urinoirsteuerung",
+        "targetSubcats": [
+          "urinoir"
+        ],
+        "variants": 9,
+        "mounting": 0,
+        "page": "3.98"
+      },
+      {
+        "base": "3451117",
+        "artNr": "3451 117.100.122",
+        "label": "Urinoirsteuerung Geberit HyTouch Typ40 round, Betätigungsplatte",
+        "manufacturer": "Geberit",
+        "productType": "Urinoirsteuerung",
+        "targetSubcats": [
+          "urinoir",
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 9,
+        "mounting": 0,
+        "page": "3.99"
+      },
+      {
+        "base": "3451118",
+        "artNr": "3451 118.100.122",
+        "label": "Urinoirsteuerung Geberit HyTronic IR Typ40 round, Batterie 1,5 V Lithium",
+        "manufacturer": "Geberit",
+        "productType": "Urinoirsteuerung",
+        "targetSubcats": [
+          "urinoir"
+        ],
+        "variants": 9,
+        "mounting": 0,
+        "page": "3.98"
+      },
+      {
+        "base": "3451119",
+        "artNr": "3451 119.100.122",
+        "label": "Urinoirsteuerung Geberit HyTouch Typ40 square, Betätigungsplatte",
+        "manufacturer": "Geberit",
+        "productType": "Urinoirsteuerung",
+        "targetSubcats": [
+          "urinoir",
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 9,
+        "mounting": 0,
+        "page": "3.99"
+      },
+      {
+        "base": "3451144",
+        "artNr": "3451 144.555.000",
+        "label": "Urinoirsteuerung Geberit HyTronic IR Typ10 round, Abdeckplatte",
+        "manufacturer": "Geberit",
+        "productType": "Urinoirsteuerung",
+        "targetSubcats": [
+          "urinoir"
+        ],
+        "variants": 3,
+        "mounting": 0,
+        "page": "3.97"
+      },
+      {
+        "base": "3451154",
+        "artNr": "3451 154.555.000",
+        "label": "Urinoirsteuerung Geberit HyTronic IR Typ10 round, Batterie 1,5 V Lithium",
+        "manufacturer": "Geberit",
+        "productType": "Urinoirsteuerung",
+        "targetSubcats": [
+          "urinoir"
+        ],
+        "variants": 3,
+        "mounting": 0,
+        "page": "3.98"
+      },
+      {
+        "base": "3451164",
+        "artNr": "3451 164.555.000",
+        "label": "Urinoirsteuerung Geberit HyTouch Typ10 round, Betätigungsplatte",
+        "manufacturer": "Geberit",
+        "productType": "Urinoirsteuerung",
+        "targetSubcats": [
+          "urinoir",
+          "wandklosett",
+          "standklosett"
+        ],
+        "variants": 3,
+        "mounting": 0,
+        "page": "3.99"
+      }
+    ],
+    "waschtisch": [
+      {
+        "base": "3154107",
+        "artNr": "3154 107.756.000",
+        "label": "Auflegewaschtisch Alterna Amide, Ø 38,5 cm, Höhe 10,4 cm, Corian, ohne",
+        "manufacturer": "Alterna",
+        "productType": null,
+        "targetSubcats": [],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.10"
+      },
+      {
+        "base": "3154108",
+        "artNr": "3154 108.756.000",
+        "label": "Auflegewaschtisch Alterna Amide, 60 x 38,5 cm, Höhe 10,4 cm, Corian, ohne",
+        "manufacturer": "Alterna",
+        "productType": null,
+        "targetSubcats": [],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.10"
+      },
+      {
+        "base": "3154231",
+        "artNr": "3154 231.536.000",
+        "label": "Auflegewaschtisch Alterna cosmo, 48 x 32 cm, Höhe 12,5 cm, ohne Überlauf",
+        "manufacturer": "Alterna",
+        "productType": null,
+        "targetSubcats": [],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.9"
+      },
+      {
+        "base": "3154232",
+        "artNr": "3154 232.536.000",
+        "label": "Auflegewaschtisch Alterna cosmo, 58 x 38 cm, Höhe 12,5 cm, ohne Überlauf",
+        "manufacturer": "Alterna",
+        "productType": null,
+        "targetSubcats": [],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.9"
+      }
+    ],
+    "wandklosett": [
+      {
+        "base": "3211605",
+        "artNr": "3211 605.105.000",
+        "label": "Dusch-WC Laufen Cleanet Riva Hotel Version, Wandklosett rimless, für",
+        "manufacturer": "Laufen",
+        "productType": null,
+        "targetSubcats": [],
+        "variants": 18,
+        "mounting": 0,
+        "page": "3.40"
+      },
+      {
+        "base": "3211614",
+        "artNr": "3211 614.105.149",
+        "label": "Dusch-WC Laufen Cleanet Auria plus, Wandklosett rimless, silent flush, für",
+        "manufacturer": "Laufen",
+        "productType": null,
+        "targetSubcats": [],
+        "variants": 5,
+        "mounting": 0,
+        "page": "3.37"
+      },
+      {
+        "base": "3211621",
+        "artNr": "3211 621.105.000",
+        "label": "Dusch-WC Laufen Cleanet Navia, Wandklosett rimless, für",
+        "manufacturer": "Laufen",
+        "productType": null,
+        "targetSubcats": [],
+        "variants": 1,
+        "mounting": 0,
+        "page": "3.41"
+      },
+      {
+        "base": "3211623",
+        "artNr": "3211 623.105.000",
+        "label": "Dusch-WC Laufen Cleanet Navia, Wandklosett rimless, für",
+        "manufacturer": "Laufen",
+        "productType": null,
+        "targetSubcats": [],
+        "variants": 1,
+        "mounting": 0,
+        "page": "3.41"
+      },
+      {
+        "base": "3212106",
+        "artNr": "3212 106.105.000",
+        "label": "Dusch-WC Set Tece Neo, 54, Wandklosett Keramik rimless, cyclon flush",
+        "manufacturer": "Tece",
+        "productType": null,
+        "targetSubcats": [],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.42"
+      },
+      {
+        "base": "3212107",
+        "artNr": "3212 107.105.000",
+        "label": "Dusch-WC Set Tece Neo Kaltwasser, 54, Wandklosett Keramik rimless, cyclon",
+        "manufacturer": "Tece",
+        "productType": null,
+        "targetSubcats": [],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.42"
+      },
+      {
+        "base": "3231181",
+        "artNr": "3231 181.105.000",
+        "label": "Wand-Klosett Toto UP rimless, 53, mit Tornadoflush, sichtbare Befestigung",
+        "manufacturer": "Toto",
+        "productType": null,
+        "targetSubcats": [],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.44"
+      },
+      {
+        "base": "3231182",
+        "artNr": "3231 182.105.000",
+        "label": "Wand-Klosett Toto MH-Series rimless, 53, mit Tornadoflush, verdeckete",
+        "manufacturer": "Toto",
+        "productType": null,
+        "targetSubcats": [],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.44"
+      },
+      {
+        "base": "3231193",
+        "artNr": "3231 193.105.000",
+        "label": "Wand-Klosett Toto RP rimless, 58, für Washlet RW, mit Tornadoflush",
+        "manufacturer": "Toto",
+        "productType": null,
+        "targetSubcats": [],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.45"
+      },
+      {
+        "base": "3231194",
+        "artNr": "3231 194.105.000",
+        "label": "Wand-Klosett Toto SP rimless, 58, für Washlet SW, mit Tornadoflush",
+        "manufacturer": "Toto",
+        "productType": null,
+        "targetSubcats": [],
+        "variants": 0,
+        "mounting": 0,
+        "page": "3.45"
+      }
+    ]
+  },
+  "skippedHebeanlage": [
+    {
+      "base": "3247100",
+      "label": "Hebeanlage Sanispeed+, zum Einbau in Waschküche und Küche, integrierte"
+    },
+    {
+      "base": "3247101",
+      "label": "Hebeanlage Sanidouche+, für klassische Duschtasse, Aufbauhöhe min.12 cm"
+    },
+    {
+      "base": "3247102",
+      "label": "Hebeanlage Saniaccess 1, Anschluss für Stand-WC AP, integrierte"
+    },
+    {
+      "base": "3247103",
+      "label": "Hebeanlage Sanibest Pro, Anschluss für Stand-WC AP, integrierte"
+    },
+    {
+      "base": "3247104",
+      "label": "Hebeanlage Saniaccess, Haushaltspumpe zur Ableitung von Grauwasser"
+    },
+    {
+      "base": "3247105",
+      "label": "Hebeanlage Sanibroy Pro UP, Anschluss für Stand-WC AP und Waschtisch"
+    },
+    {
+      "base": "3247106",
+      "label": "Hebeanlage Sanipack Pro UP, Anschluss für Wand-Klosett, integrierte"
+    },
+    {
+      "base": "3247108",
+      "label": "Hebeanlage Sanipro XR UP, Anschluss für Stand-WC AP, Waschtisch, Dusche"
+    },
+    {
+      "base": "3247109",
+      "label": "Hebeanlage Sanivite+, zum Einbau in Waschküche und Küche, integrierte"
+    },
+    {
+      "base": "3247110",
+      "label": "Hebeanlage Saniwall Pro UP, Komplettlösung: Hebeanlage +"
+    },
+    {
+      "base": "3247111",
+      "label": "Hebeanlage Saniwall Pro UP, Komplettlösung: Hebeanlage +"
+    },
+    {
+      "base": "3247112",
+      "label": "Hebeanlage Saniwall Pro UP, Komplettlösung: Hebeanlage +"
+    },
+    {
+      "base": "3247113",
+      "label": "Hebeanlage Saniwall Pro UP, Komplettlösung: Hebeanlage +"
+    },
+    {
+      "base": "3247114",
+      "label": "Hebeanlage Sanicom 1, zum Einbau in Bad, Waschküche und Küche, für den"
+    },
+    {
+      "base": "3247115",
+      "label": "Hebeanlage Sanicubic 1, zum Einbau in Bad, Waschküche und Küche, Schwarz- und"
+    },
+    {
+      "base": "3247116",
+      "label": "Hebeanlage Sanicubic 1 WP, zum Einbau in Bad, Waschküche und Küche, Schwarz-"
+    },
+    {
+      "base": "3247117",
+      "label": "Hebeanlage Sanifast S190, zum Einbau in Waschküche und Küche, integrierte"
+    },
+    {
+      "base": "3247118",
+      "label": "Hebeanlage Sanicompact Comfort, Wand-Klosett mit integrierter"
+    },
+    {
+      "base": "3247119",
+      "label": "Hebeanlage Sanicompact Comfort+, Wand-Klosett mit integrierter"
+    },
+    {
+      "base": "3247120",
+      "label": "Hebeanlage Sanicompact Comfort Box, Kompaktes Wand-Klosett mit integrierter"
+    },
+    {
+      "base": "3247121",
+      "label": "Hebeanlage Sanicompact 43, Stand-Klosett mit integrierter"
+    },
+    {
+      "base": "3247122",
+      "label": "Hebeanlage Sanicompact Pro, Stand-Klosett mit integrierter"
+    },
+    {
+      "base": "3247123",
+      "label": "Hebeanlage Sanicompact Luxe, Stand-Klosett mit integrierter"
+    },
+    {
+      "base": "3247124",
+      "label": "Hebeanlage Saniflush, Stand-Klosett rimless, mit Schneidwerk-Hebeanlage und"
+    },
+    {
+      "base": "3247125",
+      "label": "Hebeanlage Sanicom 2, zum Einbau in Restaurantküchen, Wäschereien"
+    },
+    {
+      "base": "3247126",
+      "label": "Hebeanlage Sanicubic 2 GR S Classic, zum Einbau in Ein- und"
+    },
+    {
+      "base": "3247127",
+      "label": "Hebeanlage Sanicubic 2 GR S Pro Smart, zum Einbau in Ein- und"
+    },
+    {
+      "base": "3247128",
+      "label": "Hebeanlage Sanicubic 2 GR S Pro Smart BL, zum Einbau in Ein- und"
+    },
+    {
+      "base": "3247129",
+      "label": "Hebeanlage Sanifos 110 GR, zum Einbau bei Einfamilienhaus, Pumpstation zur"
+    },
+    {
+      "base": "3247130",
+      "label": "Tauchpumpe Sanipump GR S, für private Haushalte, Industrie und"
+    },
+    {
+      "base": "3247131",
+      "label": "Tauchpumpe Sanipump VX S, für private Haushalte, Industrie und"
+    },
+    {
+      "base": "3247132",
+      "label": "Fettabscheider Sanigrease T 24, mobiler Fettabscheider mit Fettsammelbehälter"
+    },
+    {
+      "base": "3247133",
+      "label": "Alarmsystem Sanicom 2, für Hebeanlage Sanicom 2, kabelgebunden"
+    },
+    {
+      "base": "3247134",
+      "label": "Alarmsystem Sanicom 1, für Hebeanlage Sanicom 1, kabelgebunden"
+    },
+    {
+      "base": "3247135",
+      "label": "Warnmelder Sanialarm, für Kleinhebeanlage, Gehäuse mit"
+    },
+    {
+      "base": "3247136",
+      "label": "Absperrschieber Sanibroy, DN 50"
+    },
+    {
+      "base": "3247137",
+      "label": "Absperrschieber Sanibroy, DN 100"
+    },
+    {
+      "base": "3247138",
+      "label": "Druckleitungsset Sanibroy, für Sanifos 110"
+    },
+    {
+      "base": "3247139",
+      "label": "Ablasshahn Sanibroy, für Sanigrease T24"
+    },
+    {
+      "base": "3247140",
+      "label": "Spezialreiniger Sanibroy, Entkalker/Spezialreiniger für alle"
+    }
+  ],
+  "skippedUnresolved": [],
+  "skippedPresent": 82,
+  "pricesAdded": 749,
+  "refreshed": 887,
+  "refreshedVariants": 599
+}

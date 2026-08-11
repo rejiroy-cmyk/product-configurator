@@ -1,4 +1,4 @@
-import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp, createBidetApp } from './factories.js?v=2.7.2';
+import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp, createBidetApp } from './factories.js?v=2.7.8';
 import { fullLabel } from './factories/_shared.js';
 
 const configSidebar = document.getElementById('configSidebar');
@@ -15,7 +15,7 @@ const bomCountCounter = document.getElementById('bomCount');
         // ------------------------------------------
         //  Einlochmischer App -> Waschtischmischer
         // ------------------------------------------
-        "waschtischmischer": createWaschtischMischerApp("Waschtischmischer", "Mischer und Armaturen für den Waschtisch", "img/PG1_06410221_463_000_84c94d73.webp"),
+        "waschtischmischer": createWaschtischMischerApp("Waschtischmischer", "Mischer und Armaturen für den Waschtisch", "img/PG1_06410221_463_000_84c94d73.webp", { enableGalleryUX: true }),
 
         // ------------------------------------------
         //  Spültischmischer — the kitchen/utility faucets that used to sit in
@@ -24,7 +24,7 @@ const bomCountCounter = document.getElementById('bomCount');
         //  stay reachable without polluting the washbasin lists. Same factory:
         //  identical product shape (variants + Montagematerial).
         // ------------------------------------------
-        "spueltischmischer": createWaschtischMischerApp("Spültischmischer", "Armaturen für Spültisch und Waschtrog", "img/PG1_06111894_523_000_68ca2e3a.webp"),
+        "spueltischmischer": createWaschtischMischerApp("Spültischmischer", "Armaturen für Spültisch und Waschtrog", "img/PG1_06111894_523_000_68ca2e3a.webp", { enableGalleryUX: true }),
 
         // ------------------------------------------
         //  Integriertes Mix & Match (Becken + Mischer)
@@ -357,11 +357,20 @@ const bomCountCounter = document.getElementById('bomCount');
                     label: "Siphon waagrecht, Ø 50 / 56 mm (Schwarz)",
                     imgUrl: "img/PG1_08111112_000_000_60a2efb3.webp",
                     type: "Aufputz Siphon"
+                },
+                {
+                    artNr: "8111 111.000.000",
+                    label: "Siphon senkrecht, Ø 50 / 56 mm (Schwarz)",
+                    imgUrl: "img/PG1_08111111_000_000_3e24f83d.webp",
+                    type: "Aufputz Siphon"
                 }
             ],
             mainImgUrl: "img/PG1_08111112_000_000_60a2efb3.webp",
 
-            init: function () { this.renderSidebar(); this.updateBOM(); },
+            // artNr of the chosen option per `type`; empty = take the first (waagrecht).
+            selectedByType: {},
+
+            init: function () { this.selectedByType = {}; this.renderSidebar(); this.updateBOM(); },
 
             renderSidebar: function () {
                 configSidebar.innerHTML = `
@@ -379,23 +388,50 @@ const bomCountCounter = document.getElementById('bomCount');
             },
 
             updateBOM: function () {
+                // Parts sharing a `type` are ALTERNATIVES, not separate positions — the set takes
+                // exactly one siphon. Such a group renders as ONE row with a dropdown; every other
+                // type keeps its plain static row. Order is preserved, so the first option stays
+                // the default (waagrecht) and the untouched BOM is unchanged.
+                const groups = [];
+                (this.parts || []).forEach(part => {
+                    const g = groups.find(g => g.type === part.type);
+                    if (g) g.options.push(part); else groups.push({ type: part.type, options: [part] });
+                });
+
                 let totalMenge = 0;
                 bomTableBody.innerHTML = '';
-                this.parts.forEach(part => {
-                    const menge = part.menge || 1;
+                groups.forEach(group => {
+                    const chosen = group.options.find(o => o.artNr === this.selectedByType[group.type]) || group.options[0];
+                    const menge = chosen.menge || 1;
                     totalMenge += menge;
+                    // The SAP export scrapes .bom-code for the art-Nr and the row's FIRST <strong>
+                    // for the quantity, so the code cell must follow the selection and the picker
+                    // must not introduce a <strong> of its own.
+                    const picker = group.options.length > 1
+                        ? `<select class="filter-select" data-siphon-group="${group.type}" style="margin-top:0.4rem; max-width:100%;">
+                               ${group.options.map(o => `<option value="${o.artNr}"${o.artNr === chosen.artNr ? ' selected' : ''}>${fullLabel(o)}</option>`).join('')}
+                           </select>`
+                        : '';
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td><div class="img-cell"><img src="${part.imgUrl}"></div></td>
-                        <td><span class="bom-code">${part.artNr}</span></td>
+                        <td><div class="img-cell"><img src="${chosen.imgUrl}"></div></td>
+                        <td><span class="bom-code">${chosen.artNr}</span></td>
                         <td>
-                            <div class="bom-desc">${fullLabel(part)}</div>
+                            <div class="bom-desc">${fullLabel(chosen)}</div>
                             <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">Zwingendes Zubehör (Basic)</div>
+                            ${picker}
                         </td>
-                        <td><span class="bom-type">${part.type}</span></td>
+                        <td><span class="bom-type">${chosen.type}</span></td>
                         <td><strong>${menge}</strong></td>
                     `;
                     bomTableBody.appendChild(row);
+                });
+
+                bomTableBody.querySelectorAll('[data-siphon-group]').forEach(sel => {
+                    sel.addEventListener('change', (e) => {
+                        this.selectedByType[e.target.dataset.siphonGroup] = e.target.value;
+                        this.updateBOM();
+                    });
                 });
                 bomCountCounter.textContent = `${totalMenge} Artikel benötigt`;
             },
@@ -411,7 +447,7 @@ const bomCountCounter = document.getElementById('bomCount');
         "bidet": createBidetApp("Bidet", "Bidet, Bidetmischer & Zubehör", "img/PG1_06111143_501_000_d4bcd641.webp"),
         "duschtrennwand": createGlassApp("Duschtrennwand", "Duschwände und Kabinen", "", { cheapestWhenUnfiltered: true }),
         "badeabtrennung": createGlassApp("Badeabtrennung", "Glastrennwand für Badewanne", "img/PG1_01311872_100_000_ce680c8f.webp"),
-        "waschtrog": createRelationalApp("Waschtröge", "Waschtröge, Waschrinnen, Ausgussbecken & Zubehör", "img/PG1_07211801_104_000_4a2f6f4b.webp", { isMixer: false, hideMontageart: true, hideManualSizeInputs: true, hideForm: true, sizeLabel: "Breite", exactSizes: true, washStation: true }),
+        "waschtrog": createRelationalApp("Waschtröge", "Waschtröge, Waschrinnen, Ausgussbecken & Zubehör", "img/PG1_07211801_104_000_4a2f6f4b.webp", { isMixer: false, hideMontageart: true, hideManualSizeInputs: true, hideForm: true, sizeLabel: "Breite", exactSizes: true, washStation: true, enableGalleryUX: true }),
 
         "badewanne": Object.assign(createBadewanneApp("Badewanne", "Wannensystem mit passendem Zubehör", "img/PG1_01113324_ab097814.webp", { montageLabel1: "Mit Wannenträger", montageLabel2: "Mit Wannenfüssen", }), {
             trays: [
@@ -420,11 +456,15 @@ const bomCountCounter = document.getElementById('bomCount');
             ]
         }),
         // Duplicate Bademischer entry removed to prevent overwriting the correct one above
-        "waschtisch": Object.assign(createWashbasinApp("Waschtisch", "Waschtisch mit Siphon und Montagezubehör", "img/PG1_02112736_100_000_f8ecd198.webp"), {
+        "waschtisch": Object.assign(createWashbasinApp("Waschtisch", "Waschtisch mit Siphon und Montagezubehör", "img/PG1_02112736_100_000_f8ecd198.webp", { enableGalleryUX: true }), {
             trays: [] // Data loaded dynamically via custom-data.json
         }),
         "wandklosett": createWCApp("Wandklosett System", "Wand-WC inkl. passendem WC-Sitz", "img/PG1_02111845_100_000_a30e42df.webp", { sizeLabel: 'Ausladung', enableGalleryUX: true }),
         "standklosett": createWCApp("Standklosett System", "Bodenstehendes WC System", "img/PG1_02111845_100_000_a30e42df.webp", { sizeLabel: 'Ausladung', enableGalleryUX: true }),
+        // Ch3 urinals. createWCApp is the right engine: a ceramic plus the accessories the
+        // catalogue pairs with it (Steuerung, Siphon, Trennwand, Befestigung), which arrive
+        // as mountingMaterials on the tray exactly like a WC's seat and Betätigungsplatte.
+        "urinoir": createWCApp("Urinoir System", "Urinoir inkl. Steuerung, Sifon & Zubehör", "img/PG1_02111845_100_000_a30e42df.webp", { sizeLabel: 'Ausladung', enableGalleryUX: true }),
 
         // ------------------------------------------
         //  App 7: Duschenwanne (Dynamic Filter)

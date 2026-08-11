@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel , fullLabel } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel , fullLabel, renderGalleryGrid, galleryBackButton, cleanSerie } from './_shared.js';
 
 export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {}) {
     const suffix = title.replace(/\s/g, '');
@@ -41,8 +41,8 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             this.inklusiveMontage = true; // Toggle for Service Cost (default true)
             this.renderSidebar();
             this.updatePillFilters();
-            this.filterResults(); // initial run
-            this.clearBOM();
+            this.filterResults(); // initial run — paints the gallery grid when enabled
+            if (!config.enableGalleryUX) { this.clearBOM(); }
         },
         normalizeDuschenmischerSerie: function (value) {
             let label = String(value || '').trim();
@@ -72,7 +72,9 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             return label || 'Andere';
         },
         extractSerie: function (t) {
-            if (t.serie) return t.serie;
+            // cleanSerie drops the product type in front ("Wandmischer-Endmontageset
+            // Torino") and the variant behind ("Metris 110") — see _shared.js.
+            if (t.serie) return cleanSerie(t.serie) || 'Andere';
             const brand = (t.manufacturer || '').toLowerCase();
             // Words are compared in a stripped form (a-z0-9- only), so the skip list has to be
             // normalised the same way or an umlaut entry could never match: "Spültischmischer"
@@ -104,10 +106,10 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             let serie = parse(t.label) || parse(t.description);
 
             if (title === 'Duschenmischer') {
-                return this.normalizeDuschenmischerSerie(serie);
+                return cleanSerie(this.normalizeDuschenmischerSerie(serie)) || 'Andere';
             }
 
-            return serie || 'Andere';
+            return cleanSerie(serie) || 'Andere';
         },
         isAblaufItem: function (t) {
             const tl = ((t.label || '') + ' ' + (t.description || '')).toLowerCase();
@@ -176,8 +178,8 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             if (kind !== 'serie') return value;
 
             const label = title === 'Duschenmischer'
-                ? this.normalizeDuschenmischerSerie(value)
-                : String(value || '').trim();
+                ? cleanSerie(this.normalizeDuschenmischerSerie(value))
+                : cleanSerie(value);
 
             return label || value;
         },
@@ -220,7 +222,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                     </div>
                 </div>
                 
-                <div class="sidebar-section results-section">
+                <div class="sidebar-section results-section" ${config.enableGalleryUX ? 'style="display:none;"' : ''}>
                     <h2>Suchergebnisse <span id="resultCount_${suffix}" class="badge">0</span></h2>
                     <div id="searchResults_${suffix}" class="finder-list" style="max-height: 400px; overflow-y: auto;"></div>
                 </div>
@@ -402,6 +404,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
 
             if (filtered.length === 0) {
                 container.innerHTML = '<div class="finder-empty-state">Keine Produkte gefunden</div>';
+                if (config.enableGalleryUX && !this.selectedTray) this.renderGridInMainPanel(filtered);
                 return;
             }
 
@@ -494,9 +497,35 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             if (this.selectedTray) {
                 this.renderConfigurator();
                 this.updateBOM();
+            } else if (config.enableGalleryUX) {
+                this.renderGridInMainPanel(filtered);
             }
         },
+        // Same tiles as Duschenwanne/Badewanne — see renderGalleryGrid in _shared.js.
+        renderGridInMainPanel: function (filtered) {
+            renderGalleryGrid(filtered, {
+                lines: t => {
+                    const a = this.extractAusladung(t);
+                    return [this.extractAusfuehrung(t), a !== 'unknown' ? `Ausladung ${a} mm` : ''];
+                }
+            });
+        },
+        // Accepts a tray object (sidebar list) or a tray id (gallery tile); null goes back
+        // to the grid.
         selectTray: function (tray) {
+            if (!tray) {
+                this.selectedTray = null;
+                galleryBackButton(false);
+                this.renderConfigurator();
+                this.updateAccessoiresToggles();
+                if (config.enableGalleryUX) this.filterResults();
+                else this.clearBOM();
+                return;
+            }
+            if (typeof tray === 'string') {
+                tray = this.trays.find(t => t.id === tray || t.artNr === tray);
+                if (!tray) return;
+            }
             this.selectedTray = JSON.parse(JSON.stringify(tray));
             if (!this.selectedTray.selections) this.selectedTray.selections = {};
             this.selectedTray.selections.variant = this.selectedTray.artNr;
@@ -587,8 +616,20 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             const confContainer = document.getElementById(`trayConfigurator_${suffix}`);
             const inner = document.getElementById(`trayConfiguratorInner_${suffix}`);
 
-            if (!this.selectedTray) {
+            // Gallery UX: Oberfläche and every Zubehör group become inline dropdowns in
+            // the BOM rows (updateBOM), so the sidebar configurator stays closed.
+            if (!this.selectedTray || config.enableGalleryUX) {
                 confContainer.style.display = 'none';
+                inner.innerHTML = '';
+                if (config.enableGalleryUX && this.selectedTray) {
+                    // Keep the default-selection contract the sidebar loop below provides.
+                    (this.selectedTray.mountingMaterials || []).forEach(mat => {
+                        if (!this.selectedTray.selections[mat.id] && mat.options && mat.options.length) {
+                            this.selectedTray.selections[mat.id] = mat.options[0].artNr;
+                        }
+                    });
+                    this.updateBOM();
+                }
                 return;
             }
 
@@ -697,7 +738,16 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             bomCountCounter.textContent = '0 Artikel';
         },
         updateBOM: function () {
+            if (config.enableGalleryUX) galleryBackButton(!!this.selectedTray);
             if (!this.selectedTray) return;
+
+            // Gallery UX has no sidebar configurator, so every choice is a dropdown
+            // inside its own BOM row.
+            const gallery = !!config.enableGalleryUX;
+            const inlineSelect = (attr, opts, selArtNr) => `
+                <select class="inline-bom-select" ${attr} style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid var(--border); background:var(--bg-surface); color:var(--text-primary); font-size:0.9rem; margin-bottom:0.25rem; font-family:inherit; font-weight:500; cursor:pointer; outline:none; transition:border-color 0.2s ease;">${
+                    opts.map(o => `<option value="${o.artNr}" ${o.artNr === selArtNr ? 'selected' : ''}>${o.text}</option>`).join('')
+                }</select>`;
 
             let bomHtml = '';
             let count = 0;
@@ -715,12 +765,20 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                 activeTrayMenge = this.selectedTray.menge || 1;
             }
 
+            const variantList = this.selectedTray.variants || [];
+            const mainDesc = (gallery && variantList.length)
+                ? inlineSelect('data-variant="1"',
+                    [{ artNr: this.selectedTray.artNr, text: fullLabel(this.selectedTray) }]
+                        .concat(variantList.map(v => ({ artNr: v.artNr, text: fullLabel(v) }))),
+                    activeTrayArtNr)
+                : `<div class="bom-desc">${activeTrayLabel}</div>`;
+
             bomHtml += `
                 <tr>
                     <td><div class="img-cell"><img src="${activeImg}" onerror="this.src='https://placehold.co/40x40?text=N/A'"></div></td>
                     <td><span class="bom-code">${activeTrayArtNr}</span></td>
-                    <td><div class="bom-desc">${activeTrayLabel}</div><div style="font-size:0.8rem;color:#2e7d32;margin-top:0.2rem;">Armatur (Hauptartikel)</div></td>
-                    
+                    <td>${mainDesc}<div style="font-size:0.8rem;color:#2e7d32;margin-top:0.2rem;">Armatur (Hauptartikel)</div></td>
+
                     <td><strong>${activeTrayMenge}</strong></td>
                 </tr>
             `;
@@ -729,22 +787,33 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             // Accessories
             (this.selectedTray.mountingMaterials || []).forEach(mat => {
                 const selectedArtNr = this.selectedTray.selections[mat.id];
-                if (selectedArtNr === 'none') return;
+                const matOpts = mat.options || [];
+                // In gallery UX the dropdown IS the row, so a group parked on "none"
+                // must still be rendered — otherwise the choice disappears for good.
+                const matInline = gallery && matOpts.length > 1;
+                if (selectedArtNr === 'none' && !matInline) return;
 
-                const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
+                const selectedOption = matOpts.find(o => o.artNr === selectedArtNr) || matOpts[0];
 
-                if (selectedOption && selectedOption.artNr !== 'none') {
-                    const optionMenge = selectedOption.menge || 1;
+                if (selectedOption && (selectedOption.artNr !== 'none' || matInline)) {
+                    const isNone = selectedOption.artNr === 'none';
+                    const optionMenge = isNone ? 0 : (selectedOption.menge || 1);
+                    const desc = matInline
+                        ? inlineSelect(`data-matid="${mat.id}"`,
+                            matOpts.map(o => ({ artNr: o.artNr, text: o.artNr === 'none' ? o.label : `${fullLabel(o)} (${o.artNr})` })),
+                            selectedOption.artNr)
+                        : `<div class="bom-desc">${fullLabel(selectedOption)}</div>`;
                     bomHtml += `
                         <tr>
-                            <td><div class="img-cell"><img src="${selectedOption.imgUrl}" onerror="this.src='https://placehold.co/40x40?text=Pnl'"></div></td>
-                            <td><span class="bom-code">${selectedOption.artNr}</span></td>
-                            <td><div class="bom-desc">${fullLabel(selectedOption)}</div><div style="font-size:0.8rem;color:#9e9e9e;margin-top:0.25rem;">${mat.name || 'Zubehör'}</div></td>
-                            
-                            <td><strong>${optionMenge}</strong></td>
+                            <td><div class="img-cell">${isNone ? '' : `<img src="${selectedOption.imgUrl}" onerror="this.src='https://placehold.co/40x40?text=Pnl'">`}</div></td>
+                            <td><span class="bom-code">${isNone ? '—' : selectedOption.artNr}</span></td>
+                            <td>${desc}<div style="font-size:0.8rem;color:#9e9e9e;margin-top:0.25rem;">${mat.name || 'Zubehör'}</div></td>
+
+                            <td><strong>${isNone ? '-' : optionMenge}</strong></td>
                         </tr>
                     `;
                     count += optionMenge;
+                    if (isNone) return;
 
                     const nativeTray = this.trays.find(t => t.artNr === selectedOption.artNr);
                     if (nativeTray && nativeTray.mountingMaterials) {
@@ -784,6 +853,24 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             }
 
             bomTableBody.innerHTML = bomHtml;
+
+            if (gallery) {
+                bomTableBody.querySelectorAll('.inline-bom-select').forEach(sel => {
+                    sel.addEventListener('change', (e) => {
+                        const val = e.target.value;
+                        if (sel.dataset.variant) {
+                            this.selectedTray.selections.variant = val;
+                            const v = (this.selectedTray.variants || []).find(x => x.artNr === val);
+                            this.selectedTray.mainLabel = v ? fullLabel(v) : fullLabel(this.selectedTray);
+                            this.selectedTray.mainImg = v ? v.imgUrl : this.selectedTray.imgUrl;
+                        } else {
+                            this.selectedTray.selections[sel.dataset.matid] = val;
+                        }
+                        this.updateBOM();
+                    });
+                });
+            }
+
             bomCountCounter.textContent = `${count} Artikel`;
             priceBOM(document.getElementById('bomTableBody'));
         },

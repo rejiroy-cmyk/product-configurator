@@ -391,8 +391,11 @@ export function setupAdmin(modifiedApps, renderCatalog) {
                                             parsedSeries = seriesLabel;
 
                                             // 2. Size Extraction (Compact < 53, Standard >= 53, SIA 500 = 70)
-                                            // Match depth like ", 53," or " 53 cm"
-                                            const depthMatch = lblLower.match(/,?\s*(\d{2,3})\s*(?:cm|,)/);
+                                            // Match depth like ", 53," or ", 53 cm" — the leading
+                                            // comma is REQUIRED. Without it "Wand-Klosett 1930, 58"
+                                            // matched "930" out of the series name and the WC landed
+                                            // under SIA 500.
+                                            const depthMatch = lblLower.match(/,\s*(\d{2,3})\s*(?:cm|,)/);
                                             if (depthMatch) {
                                                 const depth = parseInt(depthMatch[1], 10);
                                                 if (depth >= 70) parsedSize = "SIA 500";

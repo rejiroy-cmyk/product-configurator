@@ -166,6 +166,12 @@ export const catalog = [
                 "name": "Bidet",
                 "appId": "bidet",
                 "hasApp": true
+            },
+            {
+                "id": "urinoir",
+                "name": "Urinoir",
+                "appId": "urinoir",
+                "hasApp": true
             }
         ]
     },

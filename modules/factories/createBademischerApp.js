@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups , fullLabel } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups , fullLabel, cleanSerie } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
@@ -203,17 +203,21 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
             .replace(/\s*,\s*$/g, "")
             .replace(/\s+/g, " ")
             .trim()),
+          // cleanSerie has the last word: it drops the product type in front
+          // ("Wanneneinlauf Vaia") and the variant behind ("Habito-Standmodell").
           t
-            ? t
-                .split(" ")
-                .map((i) =>
-                  /^kwc$/i.test(i)
-                    ? "KWC"
-                    : /^\d/.test(i)
-                      ? i
-                      : i.charAt(0).toUpperCase() + i.slice(1),
-                )
-                .join(" ")
+            ? cleanSerie(
+                t
+                  .split(" ")
+                  .map((i) =>
+                    /^kwc$/i.test(i)
+                      ? "KWC"
+                      : /^\d/.test(i)
+                        ? i
+                        : i.charAt(0).toUpperCase() + i.slice(1),
+                  )
+                  .join(" ")
+              ) || "Andere"
             : "Andere"
         );
       },
@@ -250,6 +254,10 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
               break;
             }
           t = t.replace(/-?endmontageset/g, "").trim().replace(/-?fertigmontageset/g, "").trim();
+          // "Bademischer-Set KWC Thermostat Fit" — the leading "-Set" has to go here,
+          // or the "…Thermostat …" rule below truncates the series away and every
+          // KWC set lands on one "Set" pill.
+          t = t.replace(/^-?\s*set\b/, "").trim();
           if (r.manufacturer) {
             const a = r.manufacturer.toLowerCase();
             t.startsWith(a) && (t = t.slice(a.length).trim());

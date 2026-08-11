@@ -476,6 +476,214 @@ const renderAccessoiresPanel = (app, s) => {
 };
 
 // ============================================================================
+//  Serie pill normalisation — ONE cleaner for every app with a Serie filter
+//  ERP `serie` strings carry the product type in FRONT ("Wanneneinlauf Vaia",
+//  "Wandmischer-Endmontageset Torino", "Duschsystem Mit Brausethermostat") and
+//  the variant BEHIND ("Moderna R Compact rimless", "Metris 110",
+//  "Habito-Standmodell", "Subway 2"). A filter pill wants neither — just the
+//  series — or the same product line ends up spread over a dozen pills.
+//  Wandklosett alone had 52 pills for 78 products before this.
+// ============================================================================
+
+// Leading product-type phrases. Scanned repeatedly, longest match first, so
+// "Set Wandmischer-Endmontageset Torino" folds all the way down to "Torino".
+const SERIE_TYPE_PREFIXES = [
+    // Wanne
+    'wannenfüllkombination', 'wannenfüllbatterie', 'wannen-schwalleinlauf', 'wannen-standeinlauf',
+    'wannenrandarmatur', 'wannenthermostat', 'wanneneinlauf', 'wannenzulauf',
+    // Bad / Dusche
+    'bade- und duschmischer', 'bade-und duschmischer', 'bade- und duschenmischer',
+    'bade-einbaumischer', 'bade-und', 'badebatterie', 'bademischer', 'badethermostat',
+    'aufputz-duschenmischer', 'unterputz-duschenmischer', 'aufputz-bademischer', 'unterputz-bademischer',
+    'duschsystem', 'duschpaneel', 'duschsäule', 'duschsteuerung', 'duschbatterie',
+    'duschenbatterie', 'duschenmischer', 'duschmischer', 'duschthermostat', 'brausethermostat',
+    'shower tablet select', 'showerpipe', 'shower pipe', 'showerstation',
+    // Montage-Sets
+    'thermostat-endmontageset', 'wandmischer-endmontageset', 'wandmischer- endmontageset',
+    'wandbatterie-endmontageset', 'einhandbatterie-endmontageset', 'endmontageset',
+    'fertigmontageset', 'umbauset zu up bademischer', 'umbauset', 'homebox', 'set',
+    // Wand
+    'wandmischer-set', 'wandbatterie set', 'wandmischer', 'wandbatterie', 'wandarmatur',
+    'wandsteuerung', 'wandventil', 'wandthermostat',
+    // Loch-Batterien / Ventile
+    'dreilochbatterie', 'zweilochbatterie', 'einlochbatterie', 'vierlochbatterie',
+    'zweigriff-brückenarmatur', 'zweigriffmischer', 'einhandbatterie',
+    'einloch- standventil', 'einloch-standventil', 'selbstschluss-standventil',
+    'standventil', 'schaftventil', 'siebventil',
+    // Waschtisch / Küche
+    'waschtischauslauf stand', 'waschtischauslauf wand', 'waschtischauslauf',
+    'waschtischsteuerung', 'waschtischmischer', 'spültischmischer', 'einlochmischer',
+    // WC
+    'wand- klosett', 'wand-klosett', 'stand- klosett', 'stand-klosett', 'wand- wc', 'stand- wc',
+    'dusch- wc', 'dusch-wc', 'dusch- klosett', 'dusch-klosett',
+    // Urinoir (Ch3). "Urinoiranlage" is the complete unit and "Urinoir" the bare ceramic,
+    // but both print the same line name behind them — Laufen Lema, Geberit Tamina — so
+    // peeling the type is what puts the two on one pill.
+    'urinoiranlage', 'urinoirelement', 'urinoirsteuerung', 'urinoir', 'urinal',
+];
+
+// Prefixes that ARE the answer: service and carcass positions carry no series,
+// so every one of them collapses onto a single pill.
+const SERIE_TYPE_ONLY = ['einbaukosten', 'einbaukörper', 'einbausockel', 'montagepauschale', 'sockel'];
+
+// Trailing variant qualifiers. Stripping never empties the string — a series
+// that IS a qualifier ("Comfort", "Zero", "Set") keeps its own name.
+const SERIE_VARIANT_RE = [
+    /[\s-]+(?:rimless|spülrandlos|randlos)$/i,
+    /[\s-]+(?:compact|comfort|liberty|silent|vital)$/i,
+    // "Classic" is a variant on "Moderna S Classic" but the name itself on Catalano
+    // "New Classic" — only drop it when a two-word series survives underneath.
+    /(?<=\S+\s+\S+)[\s-]+classic$/i,
+    /[\s-]+(?:standmodell|standmontage|stand)$/i,
+    /[\s-]+(?:ecosmart\+|ecosmart|eco\+|eco)$/i,
+    /[\s-]+(?:reno|grande)$/i,
+    /[\s-]+(?:up|ap)$/i,
+    /\s*\d+\s*-?\s*loch$/i,
+    /\s+\d+([.,]\d+)?\s*(?:mm|cm)$/i,
+    /\s+\d{2,3}$/,                 // Metris 110, Talis E 240 — but not "Starck 3" / "Domo 6.0"
+    /\s*["”½¾¼]+$/,
+    /[\s,\-/]+$/,
+];
+
+// Genuine spelling splits of one and the same line.
+const SERIE_ALIASES = { 'subway 2': 'Subway 2.0' };
+
+const _stripSerieVariants = (s) => {
+    let out = s.trim();
+    for (let changed = true; changed;) {
+        changed = false;
+        for (const re of SERIE_VARIANT_RE) {
+            const next = out.replace(re, '').trim();
+            if (next && next !== out) { out = next; changed = true; }
+        }
+    }
+    return out || s.trim();
+};
+
+// Uppercase a leading lowercase word ("niù" → "Niù") but never touch a token
+// that already carries capitals ("iCon", "F5LT1001", "S- Tec" stay as they are).
+const _capSerie = (s) => (/^[a-zà-ÿ]+(\s|$)/.test(s) ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
+const cleanSerie = (raw) => {
+    // "D- Code" / "modena S- Tec" — the ERP splits hyphenated names with a space.
+    const base = String(raw || '').replace(/\s+/g, ' ').replace(/(\w)-\s+(\w)/g, '$1-$2').trim();
+    if (!base) return '';
+
+    const lower = base.toLowerCase();
+    for (const t of SERIE_TYPE_ONLY) {
+        if (lower === t || lower.startsWith(t + ' ')) return _capSerie(base.slice(0, t.length));
+    }
+
+    // Peel product-type prefixes FIRST — a series can be a bare number ("Gessi 316"),
+    // and stripping variants first would eat it as a trailing dimension. Remember the
+    // last prefix peeled: it becomes the pill when no series survives underneath.
+    let core = base, peeled = '';
+    for (let changed = true; changed;) {
+        changed = false;
+        const l = core.toLowerCase();
+        let hit = '';
+        for (const p of SERIE_TYPE_PREFIXES) {
+            if ((l === p || l.startsWith(p + ' ') || l.startsWith(p + '-')) && p.length > hit.length) hit = p;
+        }
+        if (hit) {
+            peeled = core.slice(0, hit.length);
+            core = core.slice(hit.length).replace(/^[\s,\-/]+/, '').trim();
+            changed = true;
+        }
+    }
+    core = _stripSerieVariants(core);
+
+    // "Duschsystem Mit Brausethermostat" / "Wandbatterie Set 125 mm" describe a
+    // product, not a line — fall back to the type so they share one pill.
+    if (!core || /^(mit|für|ohne|inkl|zu)\b/i.test(core)) return _capSerie(peeled || _stripSerieVariants(base));
+
+    const cleaned = _capSerie(core);
+    return SERIE_ALIASES[cleaned.toLowerCase()] || cleaned;
+};
+
+// ============================================================================
+//  Gallery view — ONE product grid for every gallery-UX configurator
+//  The tile geometry (70x90 thumbnail beside the text, 320px minimum column)
+//  is defined here and nowhere else. Hand-rolled copies drift: createWCApp had
+//  already grown its own stacked card with a full-width 160px-tall image, so
+//  Wandklosett/Standklosett looked nothing like Duschenwanne/Badewanne.
+//  Add a gallery to a new app by calling renderGalleryGrid, never by writing
+//  another grid.
+// ============================================================================
+const GALLERY_CAP = 150;   // tiles rendered before we ask the user to filter
+
+// opts.idOf(t)   → the value handed to app.selectTray() on click (default t.id)
+// opts.lines(t)  → extra small text lines under the label (default size + form)
+// opts.cap       → override the tile cap
+const galleryGridHTML = (items, opts = {}) => {
+    const idOf = opts.idOf || (t => t.id);
+    const lines = opts.lines || (t => [t.size, t.form]);
+    const cap = opts.cap || GALLERY_CAP;
+
+    let cards = items.slice(0, cap).map(t => {
+        const extra = (lines(t) || []).filter(Boolean).map((txt, i) =>
+            `<div style="font-size:${i ? '0.7rem' : '0.75rem'}; color:var(--text-secondary);${i ? ' margin-top:2px;' : ''}">${txt}</div>`
+        ).join('');
+        return `
+            <div class="result-item-card catalog-preview-card" onclick="window.currentActiveApp.selectTray('${idOf(t)}')" style="display:flex; flex-direction:row; align-items:center; gap:1rem; border:1px solid var(--border); border-radius:8px; padding:1rem; background:var(--bg-surface); cursor:pointer; transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                <div class="card-img-wrapper" style="width:70px; height:90px; display:flex; align-items:center; justify-content:center; border-radius:6px; overflow:hidden; background:var(--bg-subtle); flex-shrink:0;">
+                    ${imgOf(t) ? `<img src="${imgOf(t)}" loading="lazy" style="max-height:100%; max-width:100%; object-fit:contain;">` : '<i class="ri-image-line placeholder-icon" style="font-size:2rem; color:var(--text-secondary);"></i>'}
+                </div>
+                <div class="result-info" style="display:flex; flex-direction:column; flex:1; min-width:0;">
+                    <span style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">${t.manufacturer || "Marke unbekannt"}</span>
+                    <strong style="font-size:0.85rem; line-height:1.3; margin-bottom:4px; color:var(--text-primary); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${fullLabel(t)}</strong>
+                    ${extra}
+                    <span class="finish-artnr" style="margin-top:6px; font-size:0.8rem;">${t.artNr}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    if (items.length > cap) {
+        cards += `<div style="grid-column:1/-1; padding:2rem; text-align:center; color:var(--text-secondary); font-size:0.95rem;">Es gibt ${items.length - cap} weitere Ergebnisse. Bitte passen Sie Ihre Filter an, um diese zu sehen.</div>`;
+    }
+    return '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px; padding:12px; background:var(--bg-body); border-radius:8px;">' + cards + '</div>';
+};
+
+// "Zurück zur Übersicht" in the BOM header: visible while a product is being
+// configured, hidden while the grid is up.
+const galleryBackButton = (show) => {
+    let btn = document.getElementById('backToCatalogBtn');
+    if (!show) { if (btn) btn.style.display = 'none'; return; }
+    if (!btn) {
+        const h = document.querySelector('.bom-header');
+        if (!h) return;
+        btn = document.createElement('button');
+        btn.id = 'backToCatalogBtn';
+        btn.className = 'icon-btn highlight-btn';
+        btn.style.marginRight = 'auto';
+        btn.innerHTML = '<i class="ri-arrow-left-s-line" aria-hidden="true"></i> Zurück zur Übersicht';
+        h.insertBefore(btn, h.firstChild);
+    }
+    btn.onclick = () => {
+        const a = window.currentActiveApp;
+        if (!a) return;
+        if (typeof a.selectTray === 'function') a.selectTray(null);
+        else if (typeof a.selectItem === 'function') a.selectItem(null);
+    };
+    btn.style.display = 'inline-flex';
+};
+
+// Draws the grid into the main panel (the BOM table area) and updates the counter.
+// The grid being up means no product is being configured, so the back button goes
+// away here — the per-app updateBOM() never runs on this path to hide it itself.
+const renderGalleryGrid = (items, opts = {}) => {
+    galleryBackButton(false);
+    bomCountCounter.textContent = items.length + ' Produkte gefunden';
+    if (!items.length) {
+        bomTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#9da3ad; padding:2rem;">Keine Produkte gefunden. Bitte passen Sie die Filter an.</td></tr>';
+        return;
+    }
+    bomTableBody.innerHTML = '<tr><td colspan="5" style="padding:0; border:none; background:transparent;">'
+        + galleryGridHTML(items, opts) + '</td></tr>';
+};
+
+// ============================================================================
 //  Standard shower accessories (INSTRUCTIONS.md §2)
 //  Many ERP-injected Bade-/Duschmischer ship WITHOUT their Brauseschlauch /
 //  Handbrause / Brausehalter in the API data. These house-standard Alterna parts
@@ -580,4 +788,4 @@ function ensureShowerGroups(materials, tray, opts = {}) {
     return materials;
 }
 
-export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs };
+export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, cleanSerie, galleryGridHTML, renderGalleryGrid, galleryBackButton, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs };
