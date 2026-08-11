@@ -806,7 +806,9 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                     bomHtml += `
                         <tr>
                             <td><div class="img-cell">${isNone ? '' : `<img src="${selectedOption.imgUrl}" onerror="this.src='https://placehold.co/40x40?text=Pnl'">`}</div></td>
-                            <td><span class="bom-code">${isNone ? '—' : selectedOption.artNr}</span></td>
+                            <!-- "-" and not an em-dash: copyBOMToClipboard drops "-" but would
+                                 happily export "—" as if it were an art-Nr. -->
+                            <td><span class="bom-code">${isNone ? '-' : selectedOption.artNr}</span></td>
                             <td>${desc}<div style="font-size:0.8rem;color:#9e9e9e;margin-top:0.25rem;">${mat.name || 'Zubehör'}</div></td>
 
                             <td><strong>${isNone ? '-' : optionMenge}</strong></td>

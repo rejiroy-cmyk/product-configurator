@@ -1,4 +1,4 @@
-import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp, createBidetApp } from './factories.js?v=2.7.9';
+import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp, createBidetApp } from './factories.js?v=2.8.0';
 import { fullLabel } from './factories/_shared.js';
 
 const configSidebar = document.getElementById('configSidebar');

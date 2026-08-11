@@ -1,5 +1,10 @@
 import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM , fullLabel , accessoryFacetBar, renderGalleryGrid, cleanSerie } from './_shared.js';
 
+// An opt-out sentinel ("ohne_wandbedienpanel", "none") rather than a real art-Nr.
+// Such a row is shown so the dropdown stays reachable, but it must not display a
+// code or a quantity — and "-" specifically, because copyBOMToClipboard drops "-".
+const isNoneArtNr = (a) => !a || a === 'none' || /^ohne/i.test(String(a));
+
 export function createWCApp(title, desc, mainImgUrl, config = {}) {
     const isMixer = config.isMixer || title.toLowerCase().includes('mischer') || title.toLowerCase().includes('armatur');
     const montageLabel1 = config.montageLabel1 || (isMixer ? "Aufputz" : "Wannenträger");
@@ -1219,9 +1224,22 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     finalBOM.push({ ...screws, typ: 'Technik', menge: 2, priority: 4, note: 'Aufputz-Technik' });
                 } else {
                     const hasManschette = mainLbl.includes('manschette') || mainLbl.includes('garnitur');
-                    const hasScrapedSleeve = finalBOM.some(item => item.priority === 5);
+                    // A Manschette that came from the tray's own groups sits at priority 6,
+                    // not 5, so the priority test alone missed it and Alba/Sela ended up with
+                    // BOTH their own 3241 116 and this injected 3241 101.
+                    const MANSCHETTE_ART = ['3241 116.000.000', '3241 101.000.000', '3241 102.000.000'];
+                    const hasScrapedSleeve = finalBOM.some(item => item.priority === 5
+                        || MANSCHETTE_ART.includes(item.artNr)
+                        || /manschette/i.test(item.label || ''));
+                    // AquaClean Alba/Sela carry their own Manschettengarnitur as a selectable
+                    // group and AquaClean Mera takes none at all, so none of the three may get
+                    // the generic one injected on top.
+                    // FULL-TEXT RULE: read label AND description — the model name is regularly
+                    // truncated off the label.
+                    const trayFull = ((this.selectedTray.label || '') + ' ' + (this.selectedTray.description || ''));
+                    const skipAutoManschette = /aquaclean\s+(alba|sela|mera)/i.test(trayFull);
 
-                    if (!hasManschette && !hasScrapedSleeve) {
+                    if (!hasManschette && !hasScrapedSleeve && !skipAutoManschette) {
                         const item = getZub('3241 101.000.000') || { artNr: '3241 101.000.000', label: 'Manschettengarnitur' };
                         finalBOM.push({ ...item, typ: 'Technik', menge: 1, priority: 5, note: 'Standard-Technik' });
                     }
@@ -1306,7 +1324,10 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         const foundZub = zubPool.find(z => z.artNr === opt.artNr);
                         const finalLabel = foundZub ? foundZub.label : opt.label;
                         const selected = (this.selectedTray.selections[item.matId] === opt.artNr) ? 'selected' : '';
-                        const dropdownLbl = opt.dropdownLabel ? opt.dropdownLabel : `${finalLabel} (${opt.artNr})`;
+                        // "ohne_wandbedienpanel" is an opt-out sentinel, not an art-Nr — don't
+                        // print it after the label.
+                        const dropdownLbl = opt.dropdownLabel ? opt.dropdownLabel
+                            : (isNoneArtNr(opt.artNr) ? finalLabel : `${finalLabel} (${opt.artNr})`);
                         return `<option value="${opt.artNr}" ${selected}>${dropdownLbl}</option>`;
                     }).join('');
 
@@ -1338,13 +1359,13 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         <td><div class="img-cell" ${!item.img ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>
                             ${item.img ? `<img src="${item.img}" alt="${item.label}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>'}
                         </div></td>
-                        <td><span class="bom-code">${item.artNr}</span></td>
+                        <td><span class="bom-code">${isNoneArtNr(item.artNr) ? '-' : item.artNr}</span></td>
                         <td>
                             ${descHTML}
                             <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">${item.note}</div>
                         </td>
-                        
-                        <td><strong>${item.menge}</strong></td>
+
+                        <td><strong>${isNoneArtNr(item.artNr) ? '-' : item.menge}</strong></td>
                     `;
                 bomTableBody.appendChild(row);
 
