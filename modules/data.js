@@ -30,6 +30,12 @@ export const catalog = [
                 "name": "Duschtrennwand",
                 "appId": "duschtrennwand",
                 "hasApp": true
+            },
+            {
+                "id": "dampfdusche",
+                "name": "Dampfdusche",
+                "appId": "dampfdusche",
+                "hasApp": true
             }
         ]
     },

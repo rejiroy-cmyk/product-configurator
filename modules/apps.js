@@ -1,4 +1,4 @@
-import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp, createBidetApp } from './factories.js?v=2.8.0';
+import { createFinishesApp, createRelationalApp, createDuschenwanneApp, createDuschenrinneApp, createBadewanneApp, createWCApp, createWashbasinApp, createWaschtischMischerApp, createDuschenmischerApp, createBademischerApp, createMixAndMatchApp, createStandardApp, createGlassApp, createBidetApp } from './factories.js?v=2.8.1';
 import { fullLabel } from './factories/_shared.js';
 
 const configSidebar = document.getElementById('configSidebar');
@@ -507,6 +507,15 @@ const bomCountCounter = document.getElementById('bomCount');
         //  App 7.5: Duschenrinne
         // ------------------------------------------
         "duschenrinne": createDuschenrinneApp("Duschenrinne", "Rinnen für bodenebene Duschen", "img/PG1_01424287_617_000_63ce5256.webp"),
+
+        // ------------------------------------------
+        //  Dampfdusche (Ch1) — complete steam-shower cabins. Own subcategory rather
+        //  than a corner of Duschtrennwand: they are a whole enclosure with a steam
+        //  generator, not a glass panel. Relational engine because the tray shape is
+        //  the standard one (Hersteller / Serie / Grösse) and `form` carries the
+        //  handing (Ecke links / rechts) the catalogue distinguishes them by.
+        // ------------------------------------------
+        "dampfdusche": createRelationalApp("Dampfdusche", "Dampfduschen und Dampfbäder", "", { isMixer: false, hideMontageart: true, sizeLabel: "Grösse", exactSizes: true, enableGalleryUX: true }),
         
         // ------------------------------------------
         //  App 8: Zubehör Pool (Admin Only)
