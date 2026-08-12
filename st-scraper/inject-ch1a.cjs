@@ -55,6 +55,37 @@ const apiRaw = readJSON(API);
 const api = (Array.isArray(apiRaw) ? apiRaw : Object.values(apiRaw)).filter(Boolean);
 const scrape = fs.existsSync(SCRAPE) ? readJSON(SCRAPE) : {};
 
+// ---------------------------------------------------------------------------
+// SCRAPE FALLBACK. The API dump covers only 2015 of Ch1's 3890 catalogue bases,
+// and iterating it alone silently skipped everything it does not hold — the two
+// Ronal Mimesi Dampfdusche lines (24 bases) among them, even though the overnight
+// scrape had all of them with full art-Nrs. A base the API never mentions is not
+// absent from the catalogue; it is absent from ONE source.
+//
+// So: for every scraped base with no API entry, synthesise an entry from the scrape
+// record. Same downstream pipeline, same classifier, same "never fabricate an
+// art-Nr" guarantee — mainArt comes from the shop's own product page.
+// ---------------------------------------------------------------------------
+const apiBases = new Set(api.map(e => b7(e.matnr)));
+const fromScrape = [];
+for (const [base, rec] of Object.entries(scrape)) {
+    if (!rec || rec.status !== 'done' || apiBases.has(base)) continue;
+    const vs = rec.variants || {};
+    const mainArt = clean(rec.mainArt) || clean(Object.keys(vs)[0]);
+    if (!mainArt) continue;
+    const main = vs[mainArt] || {};
+    fromScrape.push({
+        matnr: mainArt,
+        maktx: clean(rec.mainDesc || main.desc),
+        description: clean(main.desc || rec.mainDesc),
+        image: '',                                   // scrape carries no image URL
+        net: main.price != null ? { price: main.price } : null,
+        tech: [],
+        _fromScrape: true,
+    });
+}
+const entries = api.concat(fromScrape);
+
 // Known-set over trays AND parts AND variants AND mountingMaterials options. Walking
 // only `trays` is what made Ch7 look like 64 items of work when it was zero.
 const known = new Set();
@@ -71,7 +102,7 @@ known.delete('');
 const report = {
     generatedFor: 'Chapter 1 PASS A — standalone products (Baden, Duschen, Wellness)',
     mode: APPLY ? 'APPLY' : 'DRY RUN',
-    apiEntries: api.length,
+    apiEntries: api.length, scrapeOnlyEntries: fromScrape.length,
     alreadyKnown: 0, deferredToPassB: 0,
     byPool: {}, newPrices: 0, variantsAttached: 0,
     missingSize: [], missingPrice: [], missingImage: [],
@@ -79,7 +110,7 @@ const report = {
 };
 const add = {}, priceAdds = {};
 
-for (const e of api) {
+for (const e of entries) {
     const artNr = clean(e.matnr), b = b7(artNr);
     if (!b) continue;
     if (known.has(b)) { report.alreadyKnown++; continue; }
@@ -127,13 +158,13 @@ for (const e of api) {
     if (!size && dest !== 'zubehoer_pool') report.missingSize.push({ artNr, label: tray.label.slice(0, 70) });
     if (price == null) report.missingPrice.push(artNr);
     if (!e.image) report.missingImage.push(artNr);
-    report.items.push({ artNr, dest, size, form: tray.form, price, variants: variants.length,
+    report.items.push({ artNr, dest, size, form: tray.form, price, variants: variants.length, src: e._fromScrape ? 'scrape' : 'api',
         hasImage: !!e.image, label: tray.label.slice(0, 74) });
 }
 
 report.newPrices = Object.keys(priceAdds).length;
 report.summary = {
-    apiEntries: api.length,
+    apiEntries: api.length, scrapeOnlyEntries: fromScrape.length,
     alreadyKnown: report.alreadyKnown,
     deferredToPassB: report.deferredToPassB,
     injected: Object.values(report.byPool).reduce((a, b) => a + b, 0),

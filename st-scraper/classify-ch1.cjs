@@ -82,6 +82,18 @@ function sizeOf(entry, dest) {
         return b ? String(b > 300 ? Math.round(b / 10) : b) : '';
     }
 
+    // Made-to-measure cabins state a RANGE per axis: "1000 - 1200 x 700 - 1000 mm".
+    // createRelationalApp already recognises that shape for auf-Mass products, so the
+    // pill keeps the range rather than inventing a single number the article cannot
+    // be ordered at.
+    const rng = t.match(/(\d{3,4})\s*[-–]\s*(\d{3,4})\s*x\s*(\d{3,4})\s*[-–]\s*(\d{3,4})\s*mm/i);
+    if (rng) {
+        const c = (v) => Math.round(+v / 10);
+        return `${c(rng[1])}-${c(rng[2])} x ${c(rng[3])}-${c(rng[4])}`;
+    }
+    const rngCm = t.match(/(\d{2,3})\s*[-–]\s*(\d{2,3})\s*x\s*(\d{2,3})\s*[-–]\s*(\d{2,3})\s*cm/i);
+    if (rngCm) return `${rngCm[1]}-${rngCm[2]} x ${rngCm[3]}-${rngCm[4]}`;
+
     // A square corner tray states one side: "Schenkellänge 80 cm" is 80 x 80.
     const sch = t.match(/schenkell[äa]nge\s*(\d{2,3}(?:[.,]\d)?)\s*cm/i);
     if (sch) { const n = num(sch[1]); return `${n} x ${n}`; }
