@@ -1,0 +1,33 @@
+{
+  "generatedFor": "Chapter 7 — Waschen, Trocknen (Waschtröge, Ausgussbecken, Wassererwärmer)",
+  "mode": "DRY RUN",
+  "apiEntries": 394,
+  "skippedWhiteGoods": 251,
+  "skippedAlreadyPresent": 143,
+  "skippedNoArtNr": 0,
+  "byAccType": {},
+  "toPool": 0,
+  "deadSlots": [],
+  "parentBaseHits": 0,
+  "orphanParentRefs": [],
+  "newPrices": 0,
+  "variantsAttached": 0,
+  "parts": [],
+  "poolItems": [],
+  "summary": {
+    "apiEntries": 394,
+    "intoWaschtrogParts": 0,
+    "intoZubehoerPool": 0,
+    "skippedWhiteGoods": 251,
+    "skippedAlreadyPresent": 143,
+    "withPrice": 0,
+    "withImage": 0,
+    "linkedToSpecificBasins": 0,
+    "deadSlots": 0,
+    "orphanParentRefs": 0,
+    "newPriceRows": 0,
+    "variantsAttached": 0,
+    "partsBefore": 109,
+    "partsAfter": 109
+  }
+}
