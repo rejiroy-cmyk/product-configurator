@@ -39,7 +39,9 @@ const OUT_PATH   = path.resolve(SCRIPT_DIR, 'image-urls-scraped.json');
 
 const ORIGIN  = 'https://profishop.sanitastroesch.ch';
 const HOME    = `${ORIGIN}/business/`;
-const WORKERS = 5;
+// 5 by default; override with WORKERS=n. Each worker is a visible Chrome window, so
+// the ceiling is the machine and the vendor's tolerance, not the script.
+const WORKERS = parseInt(process.env.WORKERS || '5', 10);
 const MAX     = parseInt(process.argv[2] || '999999', 10);
 
 // Placeholder signals — a URL containing any of these is NOT distinctive
@@ -52,8 +54,18 @@ const CDN = ['/multimedia/Web/PG', '/multimedia/Web/PS', '/multimedia/Web/'];
 const rnd   = (a, b) => a + Math.random() * (b - a);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// ONLY_EMPTY=1 targets ONLY slots with no image at all.
+//
+// Without it, `_nV` counts as a placeholder and ~5.2k records that already carry a
+// working local drawing are re-targeted. That blocklist predates the finding recorded
+// in CLAUDE.md: _nV is the per-article technical drawing profishop itself lists as the
+// primary thumbnail — real in PG1, an 859-byte placeholder only in PS1. Re-scraping
+// those is a legitimate UPGRADE (drawing -> photo) but it overwrites working images,
+// so it is opt-out rather than the default.
+const ONLY_EMPTY = process.env.ONLY_EMPTY === '1';
 function isDistinctive(url) {
     if (!url || !url.trim()) return false;
+    if (ONLY_EMPTY) return true;
     return !PLACEHOLDER.some(s => url.includes(s));
 }
 
@@ -179,7 +191,12 @@ function collect(node, category) {
     if (!node || typeof node !== 'object') return;
     if (node.artNr && 'imgUrl' in node) {
         const art = node.artNr;
-        if (!isDistinctive(node.imgUrl) && !(art in existing) && !seenArt.has(art)) {
+        // "ohne_wannentraeger" / "none" are opt-out sentinels, not articles. Searching
+        // the shop for them returns nothing and burns a full search+PDP cycle — junk
+        // traffic is exactly what tripped the shadow-ban before. A real art-Nr has
+        // 10+ digits.
+        const isSentinel = String(art).replace(/\D/g, '').length < 10;
+        if (!isSentinel && !isDistinctive(node.imgUrl) && !(art in existing) && !seenArt.has(art)) {
             seenArt.add(art);
             todo.push({ artNr: art, category });
         }

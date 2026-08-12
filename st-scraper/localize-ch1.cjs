@@ -49,16 +49,52 @@ function localName(srcUrl) {
 }
 
 const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const HOSTS = ['https://profishop.sanitastroesch.ch/multimedia/Web/PS1/', 'https://profishop.sanitastroesch.ch/multimedia/Web/PG1/'];
+const ORIGIN = 'https://profishop.sanitastroesch.ch';
+
+// A URL READ OFF THE PRODUCT PAGE beats any filename we can construct. scrape-image-urls.js
+// resolved 82% of these art-Nrs by opening the PDP; the guess below manages 40%. Prefer the
+// scraped answer and let the probe cover only what the scrape could not reach — otherwise
+// this pass silently discards 34 minutes of scraping.
+const SCRAPED = path.join(DIR, 'image-urls-scraped.json');
+const scraped = fs.existsSync(SCRAPED) ? JSON.parse(fs.readFileSync(SCRAPED, 'utf8')) : {};
+// "ohne_schlauch" / "Standard" / "OHNE" are opt-out sentinels, not articles. The shop's
+// search returns SOMETHING for any string, so scraping one yields a real but WRONG image
+// — and because a sentinel repeats across many trays, 36 poisoned entries reached 4606
+// slots before this guard existed. A real art-Nr has 10+ digits.
+const isSentinelArt = (a) => String(a || '').replace(/\D/g, '').length < 10;
+
+const scrapedUrl = (artNr) => {
+    if (isSentinelArt(artNr)) return '';
+    const u = scraped[artNr];
+    if (!u || typeof u !== 'string') return '';
+    return /^https?:/i.test(u) ? u : ORIGIN + (u.startsWith('/') ? '' : '/') + u;
+};
+
 const isRemote = (u) => /^https?:/i.test(String(u || ''));
 const NEW_ID = /^(ch1_|ch1b_|ch8_|ch7_)/;
 
-// One slot per image position. Two reasons a slot qualifies:
-//   remote  — an injected vendor URL that must come local
-//   blank   — a record from one of the new injections with no image at all
+// One slot per image position. Three reasons a slot qualifies:
+//   remote        — an injected vendor URL that must come local
+//   blank + new   — a record from one of the new injections with no image at all
+//   blank + known — ANY blank slot whose art-Nr the page-scrape resolved. Scoping this
+//                   by id prefix was wrong: scrape-image-urls.js worked across every
+//                   pool, so ~600 of its 657 hits sit on duschtrennwand / bademischer /
+//                   duschenmischer records whose ids match no prefix. Driving off "we
+//                   have a URL for this" is what actually matches the work done.
 const slots = [];
 const consider = (obj, owner) => {
     if (!obj) return;
-    if (isRemote(obj.imgUrl) || (!obj.imgUrl && NEW_ID.test(String(owner || '')))) {
+    // A sentinel must never carry an image, whatever any source says.
+    if (isSentinelArt(obj.artNr)) {
+        if (obj.imgUrl) slots.push({ artNr: obj.artNr, url: '', force: '', set: (v) => { obj.imgUrl = v; } });
+        return;
+    }
+    const blank = !obj.imgUrl;
+    const qualifies = isRemote(obj.imgUrl)
+        || (blank && NEW_ID.test(String(owner || '')))
+        || (blank && !!scrapedUrl(obj.artNr));
+    if (qualifies) {
         slots.push({ artNr: obj.artNr, url: isRemote(obj.imgUrl) ? obj.imgUrl : '', set: (v) => { obj.imgUrl = v; } });
     }
 };
@@ -73,16 +109,17 @@ for (const key of Object.keys(data)) {
 }
 if (!slots.length) { console.error('Nothing to localize — no remote or blank new-injection slots.'); process.exit(1); }
 
-const HOSTS = ['https://profishop.sanitastroesch.ch/multimedia/Web/PS1/', 'https://profishop.sanitastroesch.ch/multimedia/Web/PG1/'];
-
 /**
  * The shop does not use one filename shape: most SKUs are <art8>_<finish>_<suffix>.png,
  * some <art8>_<finish>.png and a few <art8>.png, in either bank. Probe in descending
- * specificity, starting with the URL the API itself returned for this article.
+ * specificity — scraped URL first, then the API's own, then the guesses.
  */
 function candidates(artNr, apiUrl) {
     const d = String(artNr || '').replace(/\D/g, '');
-    const list = apiUrl ? [apiUrl] : [];
+    const list = [];
+    const sc = scrapedUrl(artNr);
+    if (sc) list.push(sc);
+    if (apiUrl && !list.includes(apiUrl)) list.push(apiUrl);
     if (d.length < 10) return list;
     const a8 = d.slice(0, -6).padStart(8, '0');
     const names = [`${a8}_${d.slice(-6, -3)}_${d.slice(-3)}.png`, `${a8}_${d.slice(-6, -3)}.png`, `${a8}.png`];
