@@ -1,0 +1,269 @@
+{
+  "generatedFor": "Chapter 1 PASS B — mounting materials onto existing trays",
+  "mode": "APPLY",
+  "excludedErsatzteile": 275,
+  "excludedDocs": 2,
+  "pairsDeclared": 4393,
+  "alreadyPresent": 2588,
+  "added": 1663,
+  "unplaceable": 140,
+  "defaultsChanged": 0,
+  "traysAffected": 535,
+  "optionsIntoExistingGroups": 914,
+  "newGroupsCreated": 749,
+  "byPool": {
+    "badewanne": 225,
+    "duschenrinne": 46,
+    "duschenwanne": 246,
+    "dampfdusche": 18
+  },
+  "byFamily": {
+    "Dichtband": 521,
+    "Montageschaum": 262,
+    "Ablaufgarnitur": 139,
+    "Montageset": 38,
+    "Ablaufdeckel": 140,
+    "Wannenträger": 40,
+    "Ablauf": 45,
+    "Füsse / Anker": 35,
+    "Schallschutz": 164,
+    "Haltegriff": 10,
+    "Montagerahmen": 144,
+    "Mitten-Abstütz-System": 63,
+    "Rost": 8,
+    "Abdeckung": 18,
+    "Duschsitz": 36
+  },
+  "newGroupNames": {
+    "Dichtband": 63,
+    "Montageset": 38,
+    "Ablaufdeckel": 36,
+    "Ablaufgarnitur": 42,
+    "Wannenträger": 32,
+    "Füsse / Anker": 32,
+    "Montageschaum": 156,
+    "Schallschutz": 144,
+    "Haltegriff": 10,
+    "Ablauf": 43,
+    "Mitten-Abstütz-System": 63,
+    "Montagerahmen": 28,
+    "Rost": 8,
+    "Abdeckung": 18,
+    "Duschsitz": 36
+  },
+  "unplaceableSamples": [
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    },
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    },
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    },
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    },
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    },
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    },
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    },
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    },
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    },
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    },
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    },
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    },
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    },
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    },
+    {
+      "artNr": "4333 126.501.000",
+      "label": "Handtuchhalter Schmidlin Element, Arm fest, Ausladung 360 mm, Höhe 40 "
+    }
+  ],
+  "perTraySample": [
+    {
+      "pool": "badewanne",
+      "tray": "1111 101.100.000",
+      "label": "Badewanne Schmidlin Norm Classic, 140 x 70 cm, Tiefe 44 cm",
+      "groupsBefore": [
+        "Ab- und Überlaufset (Deckel / Griff)",
+        "Ablaufgarnitur (Rohbauset / Siphon)",
+        "Wannenzargenband",
+        "Wannenträger",
+        "Montageschaum",
+        "Schallschutz",
+        "Füsse / Anker",
+        "Schmidlin Infinity Board (Add-on)",
+        "Zargen-Wannendichtband"
+      ],
+      "adds": [
+        "Zargen-Wannendichtband += 1461 015.000.000",
+        "Montageschaum += 1441 792.000.000",
+        "Zargen-Wannendichtband += 1461 008.000.000",
+        "Zargen-Wannendichtband += 1111 296.000.000"
+      ]
+    },
+    {
+      "pool": "badewanne",
+      "tray": "1111 102.100.000",
+      "label": "Badewanne Schmidlin Norm Classic, 150 x 70 cm, Tiefe 44 cm",
+      "groupsBefore": [
+        "Ab- und Überlaufset (Deckel / Griff)",
+        "Ablaufgarnitur (Rohbauset / Siphon)",
+        "Wannenzargenband",
+        "Wannenträger",
+        "Montageschaum",
+        "Schallschutz",
+        "Füsse / Anker",
+        "Schmidlin Infinity Board (Add-on)",
+        "Zargen-Wannendichtband"
+      ],
+      "adds": [
+        "Zargen-Wannendichtband += 1461 015.000.000",
+        "Montageschaum += 1441 792.000.000",
+        "Zargen-Wannendichtband += 1461 008.000.000",
+        "Zargen-Wannendichtband += 1111 296.000.000"
+      ]
+    },
+    {
+      "pool": "badewanne",
+      "tray": "1111 103.100.000",
+      "label": "Badewanne Schmidlin Norm Classic, 155 x 70 cm, Tiefe 44 cm",
+      "groupsBefore": [
+        "Ab- und Überlaufset (Deckel / Griff)",
+        "Ablaufgarnitur (Rohbauset / Siphon)",
+        "Wannenzargenband",
+        "Wannenträger",
+        "Montageschaum",
+        "Schallschutz",
+        "Füsse / Anker",
+        "Schmidlin Infinity Board (Add-on)",
+        "Zargen-Wannendichtband"
+      ],
+      "adds": [
+        "Zargen-Wannendichtband += 1461 015.000.000",
+        "Montageschaum += 1441 792.000.000",
+        "Zargen-Wannendichtband += 1461 008.000.000",
+        "Zargen-Wannendichtband += 1111 296.000.000"
+      ]
+    },
+    {
+      "pool": "badewanne",
+      "tray": "1111 104.100.000",
+      "label": "Badewanne Schmidlin Norm Classic, 160 x 70 cm, Tiefe 45 cm",
+      "groupsBefore": [
+        "Ab- und Überlaufset (Deckel / Griff)",
+        "Ablaufgarnitur (Rohbauset / Siphon)",
+        "Wannenzargenband",
+        "Wannenträger",
+        "Montageschaum",
+        "Schallschutz",
+        "Füsse / Anker",
+        "Schmidlin Infinity Board (Add-on)",
+        "Zargen-Wannendichtband"
+      ],
+      "adds": [
+        "Zargen-Wannendichtband += 1461 015.000.000",
+        "Montageschaum += 1441 792.000.000",
+        "Zargen-Wannendichtband += 1461 008.000.000",
+        "Zargen-Wannendichtband += 1111 296.000.000"
+      ]
+    },
+    {
+      "pool": "badewanne",
+      "tray": "1111 105.100.000",
+      "label": "Badewanne Schmidlin Norm Classic, 165 x 70 cm, Tiefe 45 cm",
+      "groupsBefore": [
+        "Ab- und Überlaufset (Deckel / Griff)",
+        "Ablaufgarnitur (Rohbauset / Siphon)",
+        "Wannenzargenband",
+        "Wannenträger",
+        "Montageschaum",
+        "Schallschutz",
+        "Füsse / Anker",
+        "Schmidlin Infinity Board (Add-on)",
+        "Zargen-Wannendichtband"
+      ],
+      "adds": [
+        "Zargen-Wannendichtband += 1461 015.000.000",
+        "Montageschaum += 1441 792.000.000",
+        "Zargen-Wannendichtband += 1461 008.000.000",
+        "Zargen-Wannendichtband += 1111 296.000.000"
+      ]
+    },
+    {
+      "pool": "badewanne",
+      "tray": "1111 106.100.000",
+      "label": "Badewanne Schmidlin Norm Classic, 168 x 70 cm, Tiefe 45 cm",
+      "groupsBefore": [
+        "Ab- und Überlaufset (Deckel / Griff)",
+        "Ablaufgarnitur (Rohbauset / Siphon)",
+        "Wannenzargenband",
+        "Wannenträger",
+        "Montageschaum",
+        "Schallschutz",
+        "Füsse / Anker",
+        "Schmidlin Infinity Board (Add-on)",
+        "Zargen-Wannendichtband"
+      ],
+      "adds": [
+        "Zargen-Wannendichtband += 1461 015.000.000",
+        "Montageschaum += 1441 792.000.000",
+        "Zargen-Wannendichtband += 1461 008.000.000",
+        "Zargen-Wannendichtband += 1111 296.000.000"
+      ]
+    }
+  ],
+  "summary": {
+    "pairsDeclared": 4393,
+    "alreadyPresent": 2588,
+    "optionsAdded": 1663,
+    "unplaceable": 140,
+    "excludedErsatzteile": 275,
+    "excludedDocs": 2,
+    "traysAffected": 535,
+    "byPool": {
+      "badewanne": 225,
+      "duschenrinne": 46,
+      "duschenwanne": 246,
+      "dampfdusche": 18
+    },
+    "intoExistingGroups": 914,
+    "newGroupsCreated": 749,
+    "defaultsChanged": 0,
+    "pricedOptions": 0
+  }
+}
