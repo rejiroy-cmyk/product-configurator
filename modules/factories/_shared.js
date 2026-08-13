@@ -580,4 +580,117 @@ function ensureShowerGroups(materials, tray, opts = {}) {
     return materials;
 }
 
-export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs };
+// ============================================================================
+//  UP (Unterputz) wall mixers — the Grundkörper / Einbaukörper pairing
+// ----------------------------------------------------------------------------
+//  A concealed wall mixer is sold as the VISIBLE half only (the Endmontageset).
+//  The Grundkörper — the body that gets walled in, also called Einbaukörper — is
+//  a separate article that must land on the same Stückliste, or the order is
+//  unbuildable. Three helpers, so every configurator pairs them the same way:
+//
+//    isUnterputzMischer(p)   UP vs AP, structurally
+//    einbaukoerperRef(p)     the partner art-Nr the ERP text names
+//    findCatalogueArticle(a) resolve an art-Nr to a record, across ALL pools
+//
+//  Do NOT gate this on the word "Endmontageset". That is one brand family's
+//  naming convention, not a product property: Axor ships "Wandmischer Axor
+//  Starck UP" and Hansgrohe "Wandmischer Metris", both concealed, neither
+//  carrying the word. Gating on it silently dropped their bodies from the BOM.
+// ============================================================================
+
+// AP mixers state their Anschlussdistanz ("AD 153 mm", "AD 120 mm") — the
+// wall-spacing of the two exposed inlets. A concealed body has no such distance
+// to state, so an AD reading is the reliable AP tell and is checked first.
+const _AD_STATED = /\bad\s*\d{2,3}\s*mm\b/;
+const _UP_WORDS = /endmontageset|fertigmontageset|unterputz|\bup\b/;
+const _BODY_GROUP = /einbauk[öo]rper|grundk[öo]rper/i;
+
+// FULL-TEXT RULE: every signal here (the AD value, "Unterputz", "ohne
+// Einbaukörper") is regularly truncated off the label and survives only in the
+// description — read productText().
+function isUnterputzMischer(product) {
+    const t = productText(product);
+    if (_AD_STATED.test(t)) return false;
+    if (_UP_WORDS.test(t)) return true;
+    // "ohne Einbaukörper …" = shipped without a body, i.e. one has to be ordered.
+    if (/ohne\s+einbauk[öo]rper/.test(t)) return true;
+    return (product && product.mountingMaterials || []).some(
+        g => _BODY_GROUP.test(g.name || '') && (g.options || []).length > 0
+    );
+}
+
+// Pull the partner art-Nr out of "… ohne Einbaukörper 6418 132 …".
+// This is a deliberate partner-reference READ, not a classification: the number
+// names the article to ADD, so the usual partner-reference trap (letting a
+// neighbour's name decide what THIS product is) does not apply.
+// The `(?!\d)` guard rejects malformed runs such as "6438.9975369", which would
+// otherwise yield a bogus 7-digit stem and a BOM row nobody can order.
+// FULL-TEXT RULE: the reference lives in the description — read productText().
+function einbaukoerperRef(product) {
+    const m = productText(product).match(/ohne\s+einbauk[öo]rper\s+(\d{4}[\s.]?\d{3})(?!\d)/);
+    if (!m) return null;
+    const digits = m[1].replace(/[\s.]/g, '');
+    return digits.slice(0, 4) + ' ' + digits.slice(4);
+}
+
+// Cross-pool art-Nr lookup. A configurator only holds its own pool's trays, but a
+// partner body routinely lives elsewhere — 6412 963 sits in `bademischer`,
+// 6118 140 in `zubehoer_pool`, 6252 801 in `duschenmischer`. Matching is on the
+// 7-digit stem because ERP text cites articles without the finish triplet.
+// The same body can sit in two pools under two triplets — 6118 132 exists as
+// `.501.000` in `waschtischmischer` and `.000.000` in `zubehoer_pool`. So an
+// exact art-Nr always wins over a stem match; a caller that states a full SKU
+// gets that SKU's record, never a sibling finish.
+let _artExact = null;
+let _artStemIdx = null;
+let _artIndexSig = '';
+const _artStem = (a) => String(a || '').replace(/\D/g, '').slice(0, 7);
+
+function findCatalogueArticle(artNr) {
+    const key = String(artNr || '').trim();
+    const stem = _artStem(key);
+    if (stem.length < 7) return null;
+    const apps = (typeof window !== 'undefined' && window.productApps) || null;
+    if (!apps) return null;
+    // Rebuild when the catalogue changes shape (admin save, late data load).
+    const keys = Object.keys(apps).sort();
+    const sig = keys.map(k => k + ':' + (((apps[k] || {}).trays || []).length)).join('|');
+    if (!_artExact || _artIndexSig !== sig) {
+        _artExact = new Map();
+        _artStemIdx = new Map();
+        _artIndexSig = sig;
+        const add = (r) => {
+            const a = r && String(r.artNr || '').trim();
+            if (!a) return;
+            const s = _artStem(a);
+            if (s.length !== 7) return;
+            if (!_artExact.has(a)) _artExact.set(a, r);
+            if (!_artStemIdx.has(s)) _artStemIdx.set(s, r);
+        };
+        for (const k of keys) {
+            for (const tray of ((apps[k] || {}).trays || [])) {
+                add(tray);
+                for (const v of (tray.variants || [])) add(v);
+                for (const g of (tray.mountingMaterials || [])) for (const o of (g.options || [])) add(o);
+            }
+        }
+    }
+    return _artExact.get(key) || _artStemIdx.get(stem) || null;
+}
+
+// The Grundkörper row for a UP mixer, or null when the catalogue cannot name one.
+// Prefers a curated mountingMaterials group, falls back to the art-Nr in the text.
+function einbaukoerperFor(product) {
+    const group = (product && product.mountingMaterials || [])
+        .find(g => _BODY_GROUP.test(g.name || '') && (g.options || []).length > 0);
+    if (group) return { artNr: group.options[0].artNr, label: fullLabel(group.options[0]) };
+    const ref = einbaukoerperRef(product);
+    if (!ref) return null;
+    const art = findCatalogueArticle(ref);
+    // No record for the stem: still emit the number — the SAP export orders by
+    // art-Nr, so a plain row beats a missing body.
+    return art ? { artNr: art.artNr, label: fullLabel(art) }
+               : { artNr: ref + '.000.000', label: 'Einbaukörper ' + ref };
+}
+
+export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs, isUnterputzMischer, einbaukoerperRef, findCatalogueArticle, einbaukoerperFor };

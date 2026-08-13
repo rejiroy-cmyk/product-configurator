@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, accessoryHersteller, accessorySerie, accessoryFacetBar, fullLabel, differentiatingChips } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, accessoryHersteller, accessorySerie, accessoryFacetBar, fullLabel, differentiatingChips, isUnterputzMischer, einbaukoerperFor, findCatalogueArticle } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createMixAndMatchApp(title, desc, mainImgUrl) {
@@ -1806,6 +1806,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
                 if (isWandModel) {
                     // Wandmischer Logic: No Einbaukosten
+                    let emittedBody = false;   // did a Grundkörper/Einbaukörper reach the BOM?
 
                     // KWC Specific Logic
                     const kwcMapping = {
@@ -1828,17 +1829,27 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         '6114 671.502.000': ['6118 135.000.000', '6118 137.000.000']
                     };
 
+                    // KWC's Befestigungsset (…137) is not derivable from any product text,
+                    // so this curated map stays. Labels resolve across the whole catalogue —
+                    // the 6118 xxx bodies live in `zubehoer_pool`, not in faucetTrays, which
+                    // is why this used to fall back to hand-written placeholder labels.
                     const currentArtNr = this.selectedFaucet.artNr;
                     if (kwcMapping[currentArtNr]) {
                         kwcMapping[currentArtNr].forEach(accArtNr => {
-                            const acc = this.faucetTrays.find(t => t.artNr === accArtNr);
+                            // The map STATES the SKU to order — the lookup only supplies a
+                            // label. Never emit the found record's own art-Nr: the same body
+                            // exists under two triplets (6118 132 as .501.000 in
+                            // waschtischmischer, .000.000 in zubehoer_pool) and swapping them
+                            // would quietly change what gets ordered.
+                            const acc = this.faucetTrays.find(t => t.artNr === accArtNr) || findCatalogueArticle(accArtNr);
                             if (acc) {
-                                faucetItems.push({ qty: faucetQty, label: fullLabel(acc), artNr: acc.artNr });
+                                faucetItems.push({ qty: faucetQty, label: fullLabel(acc), artNr: accArtNr });
                             } else {
                                 // Fallback labels if not found in trays
                                 if (accArtNr.includes('137')) faucetItems.push({ qty: faucetQty, label: 'KWC Befestigungsset zu KWC BLUEBOX', artNr: accArtNr });
                                 else faucetItems.push({ qty: faucetQty, label: 'KWC Grundkörper zu KWC BLUEBOX', artNr: accArtNr });
                             }
+                            if (!accArtNr.includes('137')) emittedBody = true;
                         });
                     }
 
@@ -1857,19 +1868,39 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             label: acc ? fullLabel(acc) : 'Einbaukörper Hansgrohe ½"',
                             artNr: accArtNr
                         });
+                        emittedBody = true;
                     }
 
-                    if (fullText.includes('ad 153 mm')) {
+                    // AP vs UP is decided structurally (see isUnterputzMischer in _shared.js),
+                    // never by the word "Endmontageset" — that gate dropped the Einbaukörper
+                    // for every brand that names its concealed mixers differently.
+                    if (!isUnterputzMischer(this.selectedFaucet)) {
                         // AP: Add 2x Abstellverschraubung per faucet
                         faucetItems.push({ qty: 2 * faucetQty, label: 'Abstellverschraubung Laufen Verchromt ½" x ½"', artNr: '6521 103.501.000' });
-                    } else if (fullText.includes('endmontageset')) {
+                    } else {
                         // UP: Add its existing mounting materials (Grundkörper etc.)
                         if (this.selectedFaucet.mountingMaterials) {
                             this.selectedFaucet.mountingMaterials.forEach(mat => {
-                                if (mat.options && mat.options.length > 0) {
-                                    faucetItems.push({ qty: faucetQty, label: fullLabel(mat.options[0]), artNr: mat.options[0].artNr });
-                                }
+                                if (!mat.options || mat.options.length === 0) return;
+                                const isBody = /einbauk[öo]rper|grundk[öo]rper/i.test(mat.name || '');
+                                // One wall takes ONE body. The curated brand map and the
+                                // record's own group name the same part under different
+                                // triplets (6118 132 as .000.000 vs .501.000), so the art-Nr
+                                // de-dupe below cannot catch it — skip the second one here.
+                                if (isBody && emittedBody) return;
+                                faucetItems.push({ qty: faucetQty, label: fullLabel(mat.options[0]), artNr: mat.options[0].artNr });
+                                if (isBody) emittedBody = true;
                             });
+                        }
+                        // Still no body? The ERP text names it ("ohne Einbaukörper 6418 132").
+                        // Without this, a UP mixer whose record carries no curated mounting
+                        // group reaches the fitter with nothing to wall in.
+                        if (!emittedBody) {
+                            const body = einbaukoerperFor(this.selectedFaucet);
+                            if (body) {
+                                faucetItems.push({ qty: faucetQty, label: body.label, artNr: body.artNr });
+                                emittedBody = true;
+                            }
                         }
                     }
                 } else {

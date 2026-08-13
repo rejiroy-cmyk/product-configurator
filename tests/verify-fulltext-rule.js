@@ -80,7 +80,13 @@ const GUARDED = {
     ],
     // Abgang budget + system detection: the outlet count is stated in the description
     // ("1 Abgang", "2 Abgänge") and is regularly truncated out of the label.
-    'modules/factories/_shared.js': ['outletCount', 'isShowerSystem', 'needsShowerAccessories'],
+    // UP/AP classification + the Einbaukörper reference: the AD value, "Unterputz"
+    // and "ohne Einbaukörper 6418 132" all live in the description far more often
+    // than in the truncated label.
+    'modules/factories/_shared.js': [
+        'outletCount', 'isShowerSystem', 'needsShowerAccessories',
+        'isUnterputzMischer', 'einbaukoerperRef',
+    ],
 };
 
 // Strip line and block comments so a comment mentioning "description" can't satisfy the
