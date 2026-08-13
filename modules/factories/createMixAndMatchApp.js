@@ -209,10 +209,18 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             const label = (obj.label || '').toLowerCase();
             const desc = (obj.description || '').toLowerCase();
             const text = label + ' ' + desc;
-            if (text.includes('ohne armaturenloch') || text.includes('ohne armaturenlöcher') || text.includes('ohne hahnloch')) return 'ohne';
+            // "Armaturenbank" = the raised tap ledge. A basin "ohne Armaturenbank" has nowhere
+            // to deck-mount a tap, i.e. the same situation as "ohne Armaturenloch" — 39 Alterna
+            // Auflege-becken say it this way and used to fall through to 'unknown', which made
+            // Rule 3/4 below hide EVERY Wandmischer from them.
+            if (text.includes('ohne armaturenloch') || text.includes('ohne armaturenlöcher') || text.includes('ohne hahnloch') ||
+                text.includes('ohne armaturenbank')) return 'ohne';
             if (text.includes('3 armaturen') || text.includes('3 hahnlöcher') || text.includes('3-loch') || text.includes('dreiloch')) return '3';
             if (text.includes('2 armaturen') || text.includes('2 hahnlöcher') || text.includes('2-loch')) return '2';
-            if (text.includes('1 hahnloch') || text.includes('1-loch') || text.includes('einloch') || text.includes('armaturenloch') || text.includes('hahnloch')) return '1';
+            // "Armaturenbank mit Loch" is a drilled ledge → one tap position. (The "ohne" form
+            // already returned above, so a bare mention here always means the ledge is present.)
+            if (text.includes('1 hahnloch') || text.includes('1-loch') || text.includes('einloch') || text.includes('armaturenloch') || text.includes('hahnloch') ||
+                text.includes('armaturenbank')) return '1';
             return 'unknown';
         },
 
@@ -865,10 +873,13 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 if (hLoch === 'ohne') {
                     // Rule 3: Only Wandmischer/Wandbatterie
                     if (ausf !== 'Wandmischer') return false;
-                } else {
+                } else if (hLoch !== 'unknown') {
                     // Rule 4: Only Einlochmischer or Waschtischmischer
                     if (ausf !== 'Einlochmischer' && ausf !== 'Waschtischmischer' && ausf !== 'Standmischer' && ausf !== '3-Loch') return false;
                 }
+                // hLoch === 'unknown' → the basin's text never states its tap holes (Schulwand-
+                // brunnen, Ausgussbecken …). Unknown is not evidence of a drilled deck, so it
+                // must not silently hide every wall mixer — offer both and let the user decide.
 
                 // Rules 1 & 2: Overflow Compatibility
                 if (basinUeber === 'mit') {
@@ -1765,8 +1776,13 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             // Einbaukosten already derive from faucetQty, so they scale automatically.
             const N = this.positionCount(this.selectedBasin);
 
-            const label = (this.selectedFaucet?.label || '').toLowerCase();
-            const isSelectedWandModel = label.includes('wandmischer') || label.includes('wandbatterie');
+            // FULL-TEXT RULE: ask the same classifier the finder uses. The old label-only
+            // 'wandmischer'/'wandbatterie' substring test disagreed with it on 22 articles
+            // (Wandsteuerung Laufen Twintronic, Wandarmatur, Wandventil …): the finder offered
+            // them for a hole-less basin, then this test called them deck models and the rule
+            // below zeroed their quantity — a wall mixer emitted as "0 x".
+            const isSelectedWandModel = !!this.selectedFaucet &&
+                this.extractFaucetAusfuehrung(this.selectedFaucet) === 'Wandmischer';
 
             // Quantity rules:
             // - Multi-bowl (Doppel / Reihe) → N faucets (one per bowl)
@@ -1787,7 +1803,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 const label = (this.selectedFaucet.label || '').toLowerCase();
                 const desc = (this.selectedFaucet.description || '').toLowerCase();
                 const fullText = label + ' ' + desc;
-                const isWandModel = label.includes('wandmischer') || label.includes('wandbatterie');
+                const isWandModel = isSelectedWandModel;   // same faucet, one classification
 
                 // Resolve the emitted SKU to the colour chosen in the Armatur Farbe filter:
                 // if a Farbe is active and the base art-Nr isn't that colour, swap in the
@@ -1871,6 +1887,23 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                                 }
                             });
                         }
+                    } else {
+                        // Unterputz is a property of the ARTICLE, not of its wording. 31 wall
+                        // mixers carry an Einbaukörper/Grundkörper in mountingMaterials while
+                        // never saying "Endmontageset" (Wandmischer Axor Starck UP, Axor Uno,
+                        // Hansgrohe Metris, Wandsteuerung Laufen Twintronic …) and reached here
+                        // with an empty hand — the body silently missing from the Stückliste.
+                        // Read the data instead: a body in the mounting list means UP.
+                        // options[0] is the body itself; the trailing 'ohne_einbaukr…' sentinel
+                        // is the opt-out and must never be emitted. No AP model (ad 153 mm)
+                        // carries such a mat, so this cannot poach the branch above.
+                        (this.selectedFaucet.mountingMaterials || []).forEach(mat => {
+                            if (!/einbaukörper|grundkörper/i.test(mat.name || '')) return;
+                            const opt = (mat.options || [])[0];
+                            if (opt && opt.artNr && !/^ohne_/i.test(opt.artNr)) {
+                                faucetItems.push({ qty: faucetQty, label: fullLabel(opt), artNr: opt.artNr });
+                            }
+                        });
                     }
                 } else {
                     // Standard Faucet Logic: Add Einbaukosten
@@ -1913,8 +1946,9 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             // 2. Assemble the final item list in the correct order
             if (isSelectedWandModel) {
                 // Wandmischer case
-                const label = (this.selectedFaucet?.label || '').toLowerCase();
-                const includesAblauf = (label.includes('ablauf') && !label.includes('ohne ablauf')) || this.selectedAblauf;
+                // FULL-TEXT RULE: extractAblauf reads label AND description — "mit Ablaufventil"
+                // is regularly truncated off the label and survives only in the description.
+                const includesAblauf = this.extractAblauf(this.selectedFaucet) === 'mit' || this.selectedAblauf;
 
                 if (includesAblauf) {
                     // Core order: Wandmischer items -> G1 -> Waschtisch -> Einbaukosten
