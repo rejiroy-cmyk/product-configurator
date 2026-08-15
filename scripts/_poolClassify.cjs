@@ -104,7 +104,31 @@ function classifyAccessoryType(item) {
     return { type: 'Andere', certain: false };
 }
 
+// ---------------------------------------------------------------------------
+// The only pool types whose colour VARIANTS anything reads at runtime:
+//
+//   accPoolOf()                    _shared.js — the accessory colour match.
+//                                  Brausegarnitur is absent on purpose: sets
+//                                  carry no tag of their own and are found by
+//                                  text among the Handbrause items.
+//   matchColouredAccessory()       createMixAndMatchApp.js — Regulierventil
+//                                  and Siphon match the faucet's finish.
+//
+// Everything else in the pool is picked by art-Nr from a flat list
+// (renderAccessoiresPanel filters base trays and never looks at .variants), so
+// hydrating finishes onto it buys nothing. Hydrating the whole pool once took
+// custom-data.json from 59 MB to 447 MB — 520k variants on Spiegelschrank
+// alone, none of them reachable — and put the file over GitHub's 100 MB limit.
+//
+// KEEP THIS IN SYNC with accPoolOf's ACC_POOL_TYPES / family list.
+// ---------------------------------------------------------------------------
+const COLOUR_MATCHED_TYPES = [
+    'Anschlussbogen', 'Brauseschlauch', 'Regenbrause', 'Brausearm',
+    'Gleitstange', 'Duschgleitstange', 'Handbrause', 'Brausehalter',
+    'Regulierventil', 'Siphon',
+];
+
 module.exports = {
     MIXER_POOLS, productText, isMainProduct, buildOwnedIndex,
-    classifyAccessoryType, MAIN_PRODUCT_PREFIX,
+    classifyAccessoryType, MAIN_PRODUCT_PREFIX, COLOUR_MATCHED_TYPES,
 };
