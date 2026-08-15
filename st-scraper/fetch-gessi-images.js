@@ -8,8 +8,8 @@
 // a 788-byte blurry one — and it had to be reverted wholesale.
 //
 // The cause was here: the URL was taken as `result.image` with no preference
-// between the two, so whichever the API happened to return won. Candidates are
-// now ranked, PG1 first and PS1 last.
+// between the two, so whichever the API happened to return won. The primary is
+// now upgraded to its PG1 twin whenever the response carries one.
 //
 'use strict';
 const fs = require('fs');
@@ -28,24 +28,10 @@ Object.values(gessiData).forEach(entry => {
 
 console.log(`Need to fetch images for ${todo.length} Gessi variants.`);
 
-// NOTE: '_nV' is listed here as a placeholder, but the image audit found it is
-// the real per-article drawing profishop lists, not a blank. Left in place
-// because changing what gets collected needs a live session to re-verify —
-// but if this script is ever re-run in anger, check that first.
-const PLACEHOLDER = ['_nV', 'no-image', 'placeholder', '_100_000', '_000_000'];
-const NON_PHOTO = ['/multimedia/SAP/', '/Energieetiketten/'];
-const isDistinctive = u => !!(u && u.trim()) && !PLACEHOLDER.some(s => u.includes(s)) && !NON_PHOTO.some(s => u.includes(s));
+// Blocklist and picking rule live in _imagePick.cjs — see the header there for
+// why '_nV', '_100_000' and '_000_000' are NOT placeholder markers.
+const { isDistinctive, bestImage } = require('./_imagePick.cjs');
 const digits = a => String(a).replace(/[^0-9]/g, '');
-
-// PG1 = real product photo, PS1 = low-res thumbnail of the same article. Prefer
-// the photo; take a PS1 only when nothing better came back.
-const imgRank = (u) => (/\/PG1\//.test(u) ? 0 : /\/PS1\//.test(u) ? 2 : 1);
-const bestImage = (result) => {
-    const seen = [result.image, ...(Array.isArray(result.images) ? result.images : [])]
-        .filter(isDistinctive);
-    if (!seen.length) return null;
-    return seen.slice().sort((a, b) => imgRank(a) - imgRank(b))[0];
-};
 
 const results = {};
 let done = 0;

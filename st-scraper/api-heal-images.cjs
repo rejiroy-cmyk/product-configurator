@@ -26,12 +26,12 @@ const ORIGIN = 'https://' + HOST;
 const CONC = 4;
 const MAX = parseInt(process.argv[2] || '9999999', 10);
 
-const PLACEHOLDER = ['_nV', 'no-image', 'placeholder', '_100_000', '_000_000'];
-// Non-photo banks: SAP/YM1 = technical drawings/Schallschutz, Energieetiketten = EU labels.
-const NON_PHOTO = ['/multimedia/SAP/', '/Energieetiketten/'];
-const isDistinctive = u => !!(u && u.trim())
-  && !PLACEHOLDER.some(s => u.includes(s))
-  && !NON_PHOTO.some(s => u.includes(s));
+// Blocklist and picking rule live in _imagePick.cjs. This file used to carry
+// its own copy listing '_nV', '_100_000' and '_000_000' as placeholders — see
+// that header for why all three mean the opposite. With them on the list the
+// walk below judged 23,321 articles that hold a real, on-disk image as needing
+// a re-heal, and re-healing overwrites them.
+const { isDistinctive, needsImage, bestImage } = require('./_imagePick.cjs');
 const digits = a => String(a).replace(/[^0-9]/g, '');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -58,13 +58,7 @@ function getJson(pathname) {
 }
 
 /** Best image URL from an article.ws result, or null */
-function pickImage(result) {
-  if (!result) return null;
-  if (isDistinctive(result.image)) return result.image;
-  const arr = Array.isArray(result.images) ? result.images : [];
-  for (const u of arr) if (isDistinctive(u)) return u;
-  return null;
-}
+const pickImage = bestImage;
 
 // ── collect unique numeric art-Nrs needing an image ───────────────────────────
 const data = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
@@ -75,7 +69,7 @@ const wanted = new Map(); // artNr -> digits
 (function walk(node) {
   if (Array.isArray(node)) { node.forEach(walk); return; }
   if (!node || typeof node !== 'object') return;
-  if (node.artNr && 'imgUrl' in node && !isDistinctive(node.imgUrl)) {
+  if (node.artNr && 'imgUrl' in node && needsImage(node.imgUrl)) {
     const d = digits(node.artNr);
     if (d.length >= 7 && !(node.artNr in cache)) wanted.set(node.artNr, d);
   }
