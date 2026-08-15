@@ -26,22 +26,10 @@
 //
 const fs = require('fs');
 const path = require('path');
+const { buildOwnedIndex, classifyAccessoryType } = require('./_poolClassify.cjs');
 
 const WRITE = process.argv.includes('--write');
 const DATA = path.resolve(__dirname, '..', 'custom-data.json');
-
-// Pools that own a mixer as a MAIN product. A base found here is a duplicate.
-const MIXER_POOLS = ['bademischer', 'duschenmischer', 'waschtischmischer',
-                     'spueltischmischer', 'bidet', 'mixandmatch'];
-
-// Leading-noun types, matching the pool's existing taxonomy (Ablaufventil,
-// Regulierventil, Einlaufgarnitur …). Ordered: first match wins.
-const TYPE_RULES = [
-    [/\beinbauk[öo]rper\b/i, 'Einbaukörper'],
-    [/\bauslauf\b/i, 'Auslauf'],
-];
-
-const productText = (t) => `${t.label || ''} ${t.description || ''}`;
 
 function main() {
     const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
@@ -49,14 +37,7 @@ function main() {
     if (!Array.isArray(pool)) throw new Error('zubehoer_pool.trays missing');
 
     // Every art-Nr a mixer pool owns, as a base tray or as a variant SKU.
-    const owned = new Map();
-    for (const p of MIXER_POOLS) {
-        for (const t of (data[p] && data[p].trays) || []) {
-            for (const sku of [t, ...(t.variants || [])]) {
-                if (sku.artNr && !owned.has(sku.artNr)) owned.set(sku.artNr, { pool: p, tray: t });
-            }
-        }
-    }
+    const owned = buildOwnedIndex(data);
 
     const removed = [], retyped = [], kept = [];
     const next = [];
@@ -77,12 +58,11 @@ function main() {
             continue;
         }
 
-        const text = productText(item);
-        const rule = TYPE_RULES.find(([rx]) => rx.test(text));
-        if (rule) {
-            item.productType = rule[1];
-            for (const v of item.variants || []) v.productType = rule[1];
-            retyped.push(`${item.artNr} → ${rule[1]}`);
+        const { type, certain } = classifyAccessoryType(item);
+        if (certain) {
+            item.productType = type;
+            for (const v of item.variants || []) v.productType = type;
+            retyped.push(`${item.artNr} → ${type}`);
         } else {
             kept.push(`${item.artNr} — no rule matched: ${(item.label || '').slice(0, 60)}`);
         }
