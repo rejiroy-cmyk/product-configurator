@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem , fullLabel, cleanSerie } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, productText, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem , fullLabel, cleanSerie, artFinishCode, accFamilyOf, accSkuInColour, accGroupChoice, accTierNote, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, requiredBodyFor, bomExtraRowHTML } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
@@ -121,6 +121,11 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         const n = (mat.name || "").toLowerCase();
         const opts = mat.options;
         if (!Array.isArray(opts) || opts.length < 2) return;
+        // An "Ohne …" first option IS the documented default of an optional group
+        // (Regenbrause above). The brand-first reorder below used to push it down and
+        // silently make the rain head mandatory — leave those groups alone.
+        // label-prefix by design: the option literally starts with "Ohne".
+        if (/^ohne/i.test((opts[0] || {}).label || "")) return;
         // Fixed / brand-neutral groups keep their existing order.
         if (n.includes("gleitstange") || n.includes("abstellverschraubung")
           || n.includes("grundkörper") || n.includes("grundkoerper")
@@ -240,6 +245,11 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       mainImgUrl: R,
       selectedTray: null,
       mischerOptionsState: {},
+      // Per-group accessory choice on top of mischerOptionsState: {k:'std',i} keeps a
+      // curated/ERP option, {k:'pool',art} a colour-matched part from the Zubehör pool.
+      // A pool pick survives a finish change — the MODEL is remembered, the colour
+      // follows the Armatur (accSkuInColour).
+      accPick: {},
       currentHersteller: "all",
       currentMontage: "all",
       currentSerie: "all",
@@ -252,6 +262,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       init: function () {
         ((this.selectedTray = null),
           (this.mischerOptionsState = {}),
+          (this.accPick = {}),
           (this.currentHersteller = "all"),
           (this.currentMontage = "all"),
           (this.currentSerie = "all"),
@@ -725,6 +736,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           if (!r) {
               this.selectedTray = null;
               this.mischerOptionsState = {};
+              this.accPick = {};
               this.showAccessoires = false;
               this.selectedAddonAccessoires = [];
               if (config.enableGalleryUX) {
@@ -740,6 +752,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           if (!r) {
               this.selectedTray = null;
               this.mischerOptionsState = {};
+              this.accPick = {};
               this.showAccessoires = false;
               this.selectedAddonAccessoires = [];
               if (config.enableGalleryUX) {
@@ -754,6 +767,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           }
         ((this.selectedTray = this.trays.find((e) => e.id === r)),
           (this.mischerOptionsState = {}),
+          (this.accPick = {}),
           this.selectedTray &&
             this.selectedTray.mountingMaterials &&
             this.selectedTray.mountingMaterials.forEach((e, t) => {
@@ -764,6 +778,28 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           this.filterResults(),
           (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.populateAccessoires(), this.renderConfigurator(), this.updateBOM());
       },
+      // The SKU in the BOM's main row — the chosen finish variant, or the tray itself.
+      // Accessory colour matching keys off its art-Nr triplet (COLOUR RULE).
+      activeSku: function () {
+        if (!this.selectedTray) return null;
+        const v = this.selectedTray.variants || [];
+        return (this.selectedVariantIdx > 0 && v[this.selectedVariantIdx - 1]) ? v[this.selectedVariantIdx - 1] : this.selectedTray;
+      },
+      // The part actually sitting in group `idx`: the user's dropdown pick (a pool
+      // part, re-resolved into the current finish) or the standard option. Rules that
+      // read one group to decide another's visibility must go through this, or they
+      // judge a part the BOM no longer shows.
+      effectiveMat: function (idx) {
+        const g = ((this.selectedTray && this.selectedTray.mountingMaterials) || [])[idx];
+        if (!g) return null;
+        const p = this.accPick && this.accPick[idx];
+        if (p && p.k === "pool") {
+          const hit = accSkuInColour(accFamilyOf(g.name), p.art, artFinishCode((this.activeSku() || {}).artNr));
+          if (hit) return hit;
+        }
+        const i = this.mischerOptionsState[idx];
+        return (i !== void 0 && g.options) ? g.options[i] : null;
+      },
       isMatVisible: function (r, e) {
         if (!this.selectedTray || !this.selectedTray.mountingMaterials)
           return !0;
@@ -771,16 +807,13 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           const n = this.selectedTray.mountingMaterials.findIndex((i) =>
             (i.name || "").toLowerCase().includes("brausehalter"),
           );
-          if (n >= 0) {
-            const i = this.mischerOptionsState[n];
-            if (i !== void 0) {
-              const a = this.selectedTray.mountingMaterials[n].options[i];
-              return !!(
-                a &&
-                a.label &&
-                a.label.toLowerCase().startsWith("ohne")
-              );
-            }
+          if (n >= 0 && (this.mischerOptionsState[n] !== void 0 || (this.accPick && this.accPick[n]))) {
+            const a = this.effectiveMat(n);
+            return !!(
+              a &&
+              a.label &&
+              a.label.toLowerCase().startsWith("ohne")
+            );
           }
         }
         return !0;
@@ -839,42 +872,16 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
               const a = parseInt(n.dataset.midx),
                 l = parseInt(n.value);
               this.mischerOptionsState[a] = l;
+              if (!this.accPick) this.accPick = {};
+              this.accPick[a] = { k: "std", i: l };   // an explicit pick outranks the colour auto-match
               ((this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.populateAccessoires(), this.renderConfigurator(), this.updateBOM());
             });
           }));
       },
-      // Map a mounting-group name to the accessory pool's productType tag.
-      _accFamily: function (groupName) {
-        const n = (groupName || "").toLowerCase();
-        if (/brauseschlauch/.test(n)) return "Brauseschlauch";
-        if (/handbrause/.test(n)) return "Handbrause";
-        if (/brausehalter/.test(n)) return "Brausehalter";
-        if (/gleitstange/.test(n)) return "Gleitstange";
-        if (/regenbrause|kopfbrause/.test(n)) return "Regenbrause";
-        if (/brausearm|deckenanschluss/.test(n)) return "Brausearm";
-        if (/anschlussbogen/.test(n)) return "Anschlussbogen";
-        return null;
-      },
-      // Colour-match a mandatory accessory to the main mixer's brand + finish, like the MM
-      // Regulierventil/Siphon: same-brand accessory of the same family in the mixer's colour
-      // (Ch6 accessory pool). Returns {artNr,label,imgUrl} or null (chrome/no match -> default).
-      matchAccessory: function (family, brand, colourCode) {
-        if (!family || !brand || brand.toLowerCase() === "andere" || !colourCode || colourCode === "501") return null;
-        const codeOf = (a) => { const m = String(a || "").match(/\.(\d{3})(?:\.|$)/); return m ? m[1] : null; };
-        this._accPool = this._accPool || {};
-        if (!this._accPool[family] || !this._accPool[family].length) {
-          const pool = (window.productApps && window.productApps.zubehoer_pool && window.productApps.zubehoer_pool.trays) || [];
-          this._accPool[family] = pool.filter((t) => t.productType === family);
-        }
-        const bl = brand.toLowerCase();
-        for (const t of this._accPool[family]) {
-          if ((t.manufacturer || "").toLowerCase() !== bl) continue;
-          if (codeOf(t.artNr) === colourCode) return { artNr: t.artNr, label: t.label, imgUrl: t.imgUrl };
-          const v = (t.variants || []).find((x) => codeOf(x.artNr) === colourCode);
-          if (v) return { artNr: v.artNr, label: v.label || t.label, imgUrl: v.imgUrl || "" };
-        }
-        return null;
-      },
+      // Group name -> pool family, colour candidates and the merged dropdown all live in
+      // _shared.js (accFamilyOf / accCandidates / accGroupChoice) so the Bademischer
+      // behaves identically. The old matchAccessory() froze the row on a single auto-
+      // match and took the choice away; accGroupChoice keeps the whole list selectable.
       updateBOM: function () {
         let backBtn = document.getElementById("backToCatalogBtn");
         if (config.enableGalleryUX) {
@@ -921,8 +928,14 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         const _active = (this.selectedVariantIdx > 0 && _variants[this.selectedVariantIdx - 1]) ? _variants[this.selectedVariantIdx - 1] : this.selectedTray;
         const _finishName = (art) => { const m = String(art || '').match(/\.(\d{3})(?:\.|$)/); return (m && COLOR_NAMES[m[1]]) || (art || ''); };
         // Effective finish of the main mixer — mandatory accessories colour-match to it.
-        const _mainCode = (String(_active.artNr).match(/\.(\d{3})(?:\.|$)/) || [])[1] || null;
+        const _mainCode = artFinishCode(_active.artNr);
         const _mixerBrand = this.selectedTray.manufacturer || '';
+        // Series token, so an Uno Zero set does not open on a Starck hose.
+        const _mixerSerie = String(this.extractSerie ? (this.extractSerie(this.selectedTray) || '') : '').toLowerCase().trim();
+        // Art-Nrs already in this BOM: two groups of the same family must not auto-match
+        // onto the identical SKU (Handbrause + Handbrausegarnitur used to duplicate).
+        const _usedArt = new Set([_active.artNr]);
+        if (!this.accPick) this.accPick = {};
         // NOTE: a _imgDerive() helper used to sit here, fabricating a vendor CDN URL from
         // the art-Nr at render time and letting <img onerror> swallow the 404s. That is
         // live third-party traffic on every render and the exact pattern that got the
@@ -938,6 +951,11 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                 <div class="bom-desc" style="margin-top:0.35rem; margin-bottom:0.25rem; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">Ausführung / Farbe</div>
                 <select class="inline-bom-select" data-variant="1" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid var(--border); background:var(--bg-surface); color:var(--text-primary); font-size:0.9rem; font-family:inherit; font-weight:500; cursor:pointer; outline:none;">${_opts}</select>`;
         }
+
+        const _garnitur = brausegarniturPlan(this.selectedTray.mountingMaterials, {
+            brand: _mixerBrand, code: _mainCode, serie: _mixerSerie, picks: this.accPick
+        });
+
         ((r.innerHTML += `
                 <tr class="bom-main-item">
                     <td><div class="img-cell">${imgOf(_active) ? `<img src="${imgOf(_active)}">` : '<i class="ri-image-line placeholder-icon" style="opacity:0.3;"></i>'}</div></td>
@@ -952,45 +970,41 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
               if (!this.isMatVisible(n, i)) return;
               const a = this.mischerOptionsState[i];
               if (a !== void 0) {
-                const l = n.options[a];
-                const isOhne = l && l.label.toLowerCase().startsWith("ohne");
+                const fam = accFamilyOf(n.name);
+                const allowAuto = _garnitur.forceAuto && fam === 'Brausegarnitur';
+                const forceOhne = _garnitur.forceOhne && ACC_BUNDLED_BY_GARNITUR.indexOf(fam) >= 0;
 
-                let isInlineDropdown = config.enableGalleryUX && n.options.length > 1;
+                const choice = accGroupChoice(n, {
+                    brand: _mixerBrand, code: _mainCode, serie: _mixerSerie,
+                    stdIdx: a, pick: this.accPick[i], used: _usedArt,
+                    forceOhne: forceOhne, allowOhneAutoMatch: allowAuto
+                });
+                const l = choice.item;
+                const isOhne = choice.isOhne;
 
-                if (!isInlineDropdown && isOhne) return;
+                let isInlineDropdown = config.enableGalleryUX && choice.hasChoices;
+
+                if (!isInlineDropdown && isOhne && !choice.forcedOhne) return;
 
                 const o = l ? (l.menge || 1) : 1;
-
-                // Colour-match: when the main mixer is a coloured brand product, a mandatory
-                // accessory becomes that brand's part in the matching finish (the Alterna
-                // standard parts are chrome-only). Overrides the emitted line + drops the model
-                // dropdown for that group (colour is dictated by the Armatur). Skipped for "ohne".
-                const _fam = this._accFamily(n.name);
-                const _cm = (_fam && !isOhne) ? this.matchAccessory(_fam, _mixerBrand, _mainCode) : null;
+                if (l && l.artNr) _usedArt.add(l.artNr);
 
                 let descHTML, artNrDisplay, imgSrc;
-                if (_cm) {
-                    artNrDisplay = _cm.artNr;
-                    imgSrc = imgOf(_cm);
-                    descHTML = `<div class="bom-desc">${fullLabel(_cm)}</div>
-                        <div class="bom-desc" style="margin-top:0.2rem; font-size:0.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.03em;">${n.name || 'Zubehör'} · Farbe passend zur Armatur</div>`;
+                artNrDisplay = isOhne ? '-' : (l ? l.artNr : '');
+                imgSrc = l ? imgOf(l) : '';
+                if (isInlineDropdown) {
+                    descHTML = `
+                        <div class="bom-desc" style="margin-bottom:0.25rem; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">${n.name || 'Zubehör'}</div>
+                        <select class="inline-bom-select" data-midx="${i}" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.9rem; margin-bottom: 0.25rem; font-family: inherit; font-weight: 500; cursor: pointer; outline: none; transition: border-color 0.2s ease;">
+                            ${choice.optionsHTML}
+                        </select>
+                    `;
+                    if (choice.tier) descHTML += `<div class="bom-desc" style="font-size:0.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.03em;">${accTierNote(choice.tier)}</div>`;
                 } else {
                     descHTML = `<div class="bom-desc">${l ? fullLabel(l) : ''}</div>`;
-                    if (isInlineDropdown) {
-                        const optionsHTML = n.options.map((opt, idx) => {
-                            const selected = (a === idx) ? 'selected' : '';
-                            return `<option value="${idx}" ${selected}>${opt.label} (${opt.artNr})</option>`;
-                        }).join('');
-                        descHTML = `
-                            <div class="bom-desc" style="margin-bottom:0.25rem; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">${n.name || 'Zubehör'}</div>
-                            <select class="inline-bom-select" data-midx="${i}" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.9rem; margin-bottom: 0.25rem; font-family: inherit; font-weight: 500; cursor: pointer; outline: none; transition: border-color 0.2s ease;">
-                                ${optionsHTML}
-                            </select>
-                        `;
-                    }
-                    artNrDisplay = isOhne ? '-' : (l ? l.artNr : '');
-                    imgSrc = l ? imgOf(l) : '';
+                    if (choice.tier) descHTML += `<div class="bom-desc" style="margin-top:0.2rem; font-size:0.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.03em;">${n.name || 'Zubehör'} · ${accTierNote(choice.tier)}</div>`;
                 }
+                if (choice.forcedOhne) descHTML += `<div class="bom-desc" style="margin-top:0.2rem; font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.03em;">In der Brausegarnitur enthalten</div>`;
 
                 if (!isOhne) t += o;
 
@@ -1005,6 +1019,15 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                         <td><strong>${isOhne ? '-' : o}</strong></td>
                     </tr>
                 `;
+
+                // A concealed head names the Einbaukörper it is sold without — it rides along.
+                if (!isOhne && l) {
+                    const body = requiredBodyFor(l);
+                    if (body && !(body.artNr && _usedArt.has(body.artNr))) {
+                        if (body.artNr) { _usedArt.add(body.artNr); t += 1; }
+                        r.innerHTML += bomExtraRowHTML(body, `zwingend zu ${n.name || 'Zubehör'}`);
+                    }
+                }
               }
             }),
           (function() {
@@ -1028,9 +1051,20 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
             r.querySelectorAll('.inline-bom-select').forEach(sel => {
                 sel.addEventListener('change', (ev) => {
                     if (ev.target.dataset.variant) {
+                        // Finish change: pool picks are NOT reset — accGroupChoice re-resolves
+                        // each chosen model into the new colour, so the user keeps their parts.
                         this.selectedVariantIdx = parseInt(ev.target.value) || 0;
                     } else {
-                        this.mischerOptionsState[parseInt(ev.target.dataset.midx)] = parseInt(ev.target.value);
+                        const midx = parseInt(ev.target.dataset.midx);
+                        const v = String(ev.target.value || '');
+                        if (!this.accPick) this.accPick = {};
+                        if (v.charAt(0) === 'c') {
+                            this.accPick[midx] = { k: 'pool', art: v.slice(1) };
+                        } else {
+                            const oi = parseInt(v.slice(1)) || 0;
+                            this.accPick[midx] = { k: 'std', i: oi };
+                            this.mischerOptionsState[midx] = oi;
+                        }
                     }
                     this.showAccessoires = false;
                     this.selectedAddonAccessoires = [];
@@ -1044,7 +1078,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       },
 
       clearBOM: function () {
-        ((this.mischerOptionsState = {}), (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.updateBOM());
+        ((this.mischerOptionsState = {}), (this.accPick = {}), (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.updateBOM());
       },
       copyToClipboard: window.copyBOMToClipboard,
     };

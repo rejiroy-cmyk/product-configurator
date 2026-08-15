@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups , fullLabel, cleanSerie } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, productText, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups , fullLabel, cleanSerie, artFinishCode, accFamilyOf, accSkuInColour, accGroupChoice, accTierNote, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, requiredBodyFor, bomExtraRowHTML } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
@@ -99,6 +99,11 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
       mainImgUrl: R,
       selectedTray: null,
       mischerOptionsState: {},
+      // Per-group accessory choice on top of mischerOptionsState: {k:'std',i} keeps a
+      // curated/ERP option, {k:'pool',art} a colour-matched part from the Zubehör pool.
+      // A pool pick survives a finish change — the MODEL is remembered, the colour
+      // follows the Armatur (accSkuInColour).
+      accPick: {},
       currentHersteller: "all",
       currentMontage: "all",
       currentSerie: "all",
@@ -108,6 +113,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
       init: function () {
         ((this.selectedTray = null),
           (this.mischerOptionsState = {}),
+          (this.accPick = {}),
           (this.currentHersteller = "all"),
           (this.currentMontage = "all"),
           (this.currentSerie = "all"),
@@ -586,6 +592,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
           if (!r) {
               this.selectedTray = null;
               this.mischerOptionsState = {};
+              this.accPick = {};
               this.showAccessoires = false;
               this.selectedAddonAccessoires = [];
               if (config.enableGalleryUX) {
@@ -601,6 +608,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
           if (!r) {
               this.selectedTray = null;
               this.mischerOptionsState = {};
+              this.accPick = {};
               this.showAccessoires = false;
               this.selectedAddonAccessoires = [];
               if (config.enableGalleryUX) {
@@ -615,6 +623,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
           }
         ((this.selectedTray = this.trays.find((e) => e.id === r)),
           (this.mischerOptionsState = {}),
+          (this.accPick = {}),
           this.selectedTray &&
             this.selectedTray.mountingMaterials &&
             (this.selectedTray.mountingMaterials.forEach((e, t) => {
@@ -631,6 +640,28 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
           this.filterResults(),
           (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.populateAccessoires(), this.renderConfigurator(), this.updateBOM());
       },
+      // The SKU in the BOM's main row — the chosen finish variant, or the tray itself.
+      // Accessory colour matching keys off its art-Nr triplet (COLOUR RULE).
+      activeSku: function () {
+        if (!this.selectedTray) return null;
+        const v = this.selectedTray.variants || [];
+        return (this.selectedVariantIdx > 0 && v[this.selectedVariantIdx - 1]) ? v[this.selectedVariantIdx - 1] : this.selectedTray;
+      },
+      // The part actually sitting in group `idx`: the user's dropdown pick (a pool
+      // part, re-resolved into the current finish) or the standard option. Rules that
+      // read one group to decide another's visibility must go through this, or they
+      // judge a part the BOM no longer shows.
+      effectiveMat: function (idx) {
+        const g = ((this.selectedTray && this.selectedTray.mountingMaterials) || [])[idx];
+        if (!g) return null;
+        const p = this.accPick && this.accPick[idx];
+        if (p && p.k === "pool") {
+          const hit = accSkuInColour(accFamilyOf(g.name), p.art, artFinishCode((this.activeSku() || {}).artNr));
+          if (hit) return hit;
+        }
+        const i = this.mischerOptionsState[idx];
+        return (i !== void 0 && g.options) ? g.options[i] : null;
+      },
       isMatVisible: function (r, e) {
         if (!this.selectedTray || !this.selectedTray.mountingMaterials)
           return !0;
@@ -640,27 +671,20 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
               (a.name || "").toLowerCase().includes("duschgleitstange") ||
               (a.name || "").toLowerCase().includes("gleitstange"),
           );
-          if (n >= 0 && this.mischerOptionsState[n] !== void 0) {
-            const a =
-              this.selectedTray.mountingMaterials[n].options[
-                this.mischerOptionsState[n]
-              ];
-            if (a && !a.label.toLowerCase().startsWith("ohne")) return !1;
+          if (n >= 0) {
+            const a = this.effectiveMat(n);
+            if (a && !(a.label || "").toLowerCase().startsWith("ohne")) return !1;
           }
           const i = this.selectedTray.mountingMaterials.findIndex((a) =>
             (a.name || "").toLowerCase().includes("anschlussbogen"),
           );
-          if (i >= 0 && this.mischerOptionsState[i] !== void 0) {
-            const a =
-              this.selectedTray.mountingMaterials[i].options[
-                this.mischerOptionsState[i]
-              ];
+          if (i >= 0) {
+            // FULL-TEXT RULE: the integrated-holder wording is regularly truncated out
+            // of the label and only stated in the description.
+            const a = this.effectiveMat(i);
+            const x = a ? productText(a) : "";
             if (
-              (a &&
-                a.label
-                  .toLowerCase()
-                  .includes("mit integriertem brausehalter")) ||
-              (a && a.label.toLowerCase().includes("mit brausehalter")) ||
+              (a && /mit integriertem brausehalter|mit brausehalter/.test(x)) ||
               (a && a.artNr === "bitte_waehlen")
             )
               return !1;
@@ -722,6 +746,8 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
               const a = parseInt(n.dataset.midx),
                 l = parseInt(n.value);
               this.mischerOptionsState[a] = l;
+              if (!this.accPick) this.accPick = {};
+              this.accPick[a] = { k: "std", i: l };   // an explicit pick outranks the colour auto-match
               const o = this.selectedTray.mountingMaterials[a],
                 y = (o.name || "").toLowerCase();
               if (y.includes("gleitstange") || y.includes("duschgleitstange")) {
@@ -776,6 +802,14 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
         const _variants = this.selectedTray.variants || [];
         const _active = (this.selectedVariantIdx > 0 && _variants[this.selectedVariantIdx - 1]) ? _variants[this.selectedVariantIdx - 1] : this.selectedTray;
         const _finishName = (art) => { const m = String(art || '').match(/\.(\d{3})(?:\.|$)/); return (m && COLOR_NAMES[m[1]]) || (art || ''); };
+        // Effective finish of the main mixer — the accessory dropdowns are narrowed to it.
+        const _mainCode = artFinishCode(_active.artNr);
+        const _mixerBrand = this.selectedTray.manufacturer || '';
+        const _mixerSerie = String(this.extractSerie ? (this.extractSerie(this.selectedTray) || '') : '').toLowerCase().trim();
+        // Art-Nrs already in this BOM: two groups of the same family must not auto-match
+        // onto the identical SKU (Handbrause + Handbrausegarnitur would duplicate).
+        const _usedArt = new Set([_active.artNr]);
+        if (!this.accPick) this.accPick = {};
         let _mainDesc = `<div class="bom-desc">${fullLabel(_active)}</div>`;
         if (config.enableGalleryUX && _variants.length) {
             const _opts = [this.selectedTray, ..._variants].map((sk, idx) =>
@@ -784,6 +818,11 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
                 <div class="bom-desc" style="margin-top:0.35rem; margin-bottom:0.25rem; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">Ausführung / Farbe</div>
                 <select class="inline-bom-select" data-variant="1" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid var(--border); background:var(--bg-surface); color:var(--text-primary); font-size:0.9rem; font-family:inherit; font-weight:500; cursor:pointer; outline:none;">${_opts}</select>`;
         }
+
+        const _garnitur = brausegarniturPlan(this.selectedTray.mountingMaterials, {
+            brand: _mixerBrand, code: _mainCode, serie: _mixerSerie, picks: this.accPick
+        });
+
         ((r.innerHTML += `
                 <tr class="bom-main-item">
                     <td><div class="img-cell">${imgOf(_active) ? `<img src="${imgOf(_active)}">` : '<i class="ri-image-line placeholder-icon" style="opacity:0.3;"></i>'}</div></td>
@@ -798,43 +837,62 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
               if (!this.isMatVisible(n, i)) return;
               const a = this.mischerOptionsState[i];
               if (a !== void 0) {
-                const l = n.options[a];
-                const isOhne = l && l.label.toLowerCase().startsWith("ohne");
-                
-                let isInlineDropdown = config.enableGalleryUX && n.options.length > 1;
-                
-                if (!isInlineDropdown && isOhne) return;
+                const fam = accFamilyOf(n.name);
+                const allowAuto = _garnitur.forceAuto && fam === 'Brausegarnitur';
+                const forceOhne = _garnitur.forceOhne && ACC_BUNDLED_BY_GARNITUR.indexOf(fam) >= 0;
+
+                const choice = accGroupChoice(n, {
+                    brand: _mixerBrand, code: _mainCode, serie: _mixerSerie,
+                    stdIdx: a, pick: this.accPick[i], used: _usedArt,
+                    forceOhne: forceOhne, allowOhneAutoMatch: allowAuto
+                });
+                const l = choice.item;
+                const isOhne = choice.isOhne;
+
+                let isInlineDropdown = config.enableGalleryUX && choice.hasChoices;
+
+                if (!isInlineDropdown && isOhne && !choice.forcedOhne) return;
+                if (l && l.artNr) _usedArt.add(l.artNr);
 
                 let descHTML = `<div class="bom-desc">${l ? fullLabel(l) : ''}</div>`;
                 if (isInlineDropdown) {
-                    const optionsHTML = n.options.map((opt, idx) => {
-                        const selected = (a === idx) ? 'selected' : '';
-                        return `<option value="${idx}" ${selected}>${opt.label} (${opt.artNr})</option>`;
-                    }).join('');
-                    
                     descHTML = `
                         <div class="bom-desc" style="margin-bottom:0.25rem; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">${n.name || 'Zubehör'}</div>
                         <select class="inline-bom-select" data-midx="${i}" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.9rem; margin-bottom: 0.25rem; font-family: inherit; font-weight: 500; cursor: pointer; outline: none; transition: border-color 0.2s ease;">
-                            ${optionsHTML}
+                            ${choice.optionsHTML}
                         </select>
                     `;
+                    if (choice.tier) descHTML += `<div class="bom-desc" style="font-size:0.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.03em;">${accTierNote(choice.tier)}</div>`;
+                } else if (choice.tier) {
+                    descHTML += `<div class="bom-desc" style="margin-top:0.2rem; font-size:0.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.03em;">${n.name || 'Zubehör'} · ${accTierNote(choice.tier)}</div>`;
                 }
+                if (choice.forcedOhne) descHTML += `<div class="bom-desc" style="margin-top:0.2rem; font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.03em;">In der Brausegarnitur enthalten</div>`;
 
                 const o = l ? (l.menge || 1) : 1;
                 if (!isOhne) t += o;
 
                 const rowOpacity = isOhne ? 'opacity: 0.6; background: rgba(0,0,0,0.02);' : '';
                 const artNrDisplay = isOhne ? '-' : (l ? l.artNr : '');
-                const imgDisplay = (l && l.imgUrl) ? `<img src="${l.imgUrl}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>';
+                const imgSrc = l ? imgOf(l) : '';
+                const imgDisplay = imgSrc ? `<img src="${imgSrc}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>';
 
                 r.innerHTML += `
                     <tr style="${rowOpacity}">
-                        <td><div class="img-cell" ${!(l && l.imgUrl) ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>${imgDisplay}</div></td>
+                        <td><div class="img-cell" ${!imgSrc ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>${imgDisplay}</div></td>
                         <td><span class="bom-code">${artNrDisplay}</span></td>
                         <td>${descHTML}</td>
                         <td><strong>${isOhne ? '-' : o}</strong></td>
                     </tr>
                 `;
+
+                // A concealed head names the Einbaukörper it is sold without — it rides along.
+                if (!isOhne && l) {
+                    const body = requiredBodyFor(l);
+                    if (body && !(body.artNr && _usedArt.has(body.artNr))) {
+                        if (body.artNr) { _usedArt.add(body.artNr); t += 1; }
+                        r.innerHTML += bomExtraRowHTML(body, `zwingend zu ${n.name || 'Zubehör'}`);
+                    }
+                }
               }
             }),
           (function() {
@@ -858,14 +916,24 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
             r.querySelectorAll('.inline-bom-select').forEach(sel => {
                 sel.addEventListener('change', (ev) => {
                     if (ev.target.dataset.variant) {
+                        // Finish change: pool picks are NOT reset — accGroupChoice re-resolves
+                        // each chosen model into the new colour, so the user keeps their parts.
                         this.selectedVariantIdx = parseInt(ev.target.value) || 0;
                     } else {
                         const midx = parseInt(ev.target.dataset.midx);
-                        this.mischerOptionsState[midx] = parseInt(ev.target.value);
-                        const o = this.selectedTray.mountingMaterials[midx],
-                          y = (o.name || "").toLowerCase();
-                        if (y.includes("gleitstange") || y.includes("duschgleitstange")) {
-                          this.applyGleitstangeHoseRelation(midx);
+                        const v = String(ev.target.value || '');
+                        if (!this.accPick) this.accPick = {};
+                        if (v.charAt(0) === 'c') {
+                            this.accPick[midx] = { k: 'pool', art: v.slice(1) };
+                        } else {
+                            const oi = parseInt(v.slice(1)) || 0;
+                            this.accPick[midx] = { k: 'std', i: oi };
+                            this.mischerOptionsState[midx] = oi;
+                            const o = this.selectedTray.mountingMaterials[midx],
+                              y = (o.name || "").toLowerCase();
+                            if (y.includes("gleitstange") || y.includes("duschgleitstange")) {
+                              this.applyGleitstangeHoseRelation(midx);
+                            }
                         }
                     }
                     this.showAccessoires = false;
@@ -880,7 +948,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
       },
 
       clearBOM: function () {
-        ((this.mischerOptionsState = {}), (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.updateBOM());
+        ((this.mischerOptionsState = {}), (this.accPick = {}), (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.updateBOM());
       },
       copyToClipboard: window.copyBOMToClipboard,
     };

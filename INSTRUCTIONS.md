@@ -87,6 +87,14 @@ This document outlines the strict business logic rules and safeguards that must 
      - 8.2 Brausearm (if not already included with the Regenbrause)
 - **Note:** the current scraped data already complies with order items 2–7; the rules above are encoded in the transform so future imports stay compliant.
 
+### Accessory Combinations (Brausegarnitur & Regenbrause)
+
+Applies to **both Duschenmischer and Bademischer** — every mixer configurator, not just the Aufputz/Unterputz cases above:
+
+- **Brausegarnitur Bundle Rule**: If a user selects a `Brausegarnitur`, the individual `Brauseschlauch`, `Handbrause`, and `Duschgleitstange` MUST automatically switch to `ohne` — those three items are bundled together inside the Brausegarnitur.
+- **Brausegarnitur Fallback (Colour Matching)**: A `Brausegarnitur` is never offered as the standard/default selection *unless* one of the individual accessories (e.g. `Duschgleitstange`) is not available in the selected colour (example: mixer `6415 120.475.000` in colour `.475` has no Duschgleitstange). In that fallback case, the `Brausegarnitur` becomes the standard/default and the individual accessories default to `ohne`.
+- **Regenbrause Einbaukörper Injection**: If a `Regenbrause`'s description contains `ohne Einbaukörper` (or a similar required-missing-element phrase), the engine must automatically look up and inject the proper `Einbau-` or `Grundkörper` directly below it in the BOM.
+
 ## 3. Brand & Bundling Rules
 
 ### Kaldewei

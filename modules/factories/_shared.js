@@ -737,6 +737,9 @@ const SHOWER_STD = {
         { artNr: "6543 132.501.000", label: "Brausehalter Alterna, Rosette rund, Verchromt", menge: 1, type: "Zubehör", imgUrl: "img/PG1_06543132_501_000_8287472d.webp" },
         { artNr: "ohne_halter", label: "Ohne Brausehalter", menge: 0, type: "Option", imgUrl: "" }
     ],
+    brausegarnitur: [
+        { artNr: "ohne_garnitur", label: "Ohne Brausegarnitur", menge: 0, type: "Option", imgUrl: "" }
+    ],
     // Unterputz only (INSTRUCTIONS.md §2 UP item 4). Standard = "für Handbrause" (ohne
     // Brausehalter); "mit integriertem Brausehalter" as a dropdown option.
     anschlussbogen: [
@@ -788,31 +791,407 @@ function needsShowerAccessories(tray, opts = {}) {
 // list is re-ranked to the INSTRUCTIONS.md §2 order. Returns the (possibly new) array.
 function ensureShowerGroups(materials, tray, opts = {}) {
     if (!Array.isArray(materials)) materials = [];
+    
+    // Strip out redundant mixer accessories (the main item IS already a mixer).
+    materials = materials.filter(m => {
+        const t = (m.name || "").toLowerCase();
+        return !/(?:thermostat|duschen|bade|waschtisch)?mischer|armatur|batterie/i.test(t) || /abstellverschraubung|absperrventil|regulier/i.test(t);
+    });
+
     if (!needsShowerAccessories(tray, opts)) return materials;
     const hasGroup = (re) => materials.some(m => re.test((m.name || "")));
-    let added = false;
     // Unterputz mixers need the Anschlussbogen (the concealed connection to the hose) — a
     // house-standard part (§2 UP item 4), added when the ERP data omits it.
-    if (opts.isUP && !hasGroup(/anschlussbogen/i)) { materials.push({ name: "Anschlussbogen", options: _cloneOpts(SHOWER_STD.anschlussbogen) }); added = true; }
-    if (!hasGroup(/brauseschlauch/i)) { materials.push({ name: "Brauseschlauch", options: _cloneOpts(SHOWER_STD.brauseschlauch) }); added = true; }
-    if (!hasGroup(/handbrause/i)) { materials.push({ name: "Handbrause", options: _cloneOpts(SHOWER_STD.handbrause) }); added = true; }
-    if (opts.isBath && !hasGroup(/brausehalter/i)) { materials.push({ name: "Brausehalter", options: _cloneOpts(SHOWER_STD.brausehalter) }); added = true; }
-    if (added) {
-        const rank = (name) => {
-            const x = (name || "").toLowerCase();
-            if (/grundk[öo]rper|einbauk[öo]rper|ibox|homebox/.test(x)) return 0;
-            if (/montageschiene|montageset/.test(x)) return 1;
-            if (/anschlussbogen/.test(x)) return 2;
-            if (/abstellverschraubung/.test(x)) return 3;
-            if (/brauseschlauch/.test(x)) return 4;
-            if (/handbrause/.test(x)) return 5;
-            if (/brausehalter/.test(x)) return 6;
-            if (/gleitstange/.test(x)) return 7;
-            return 8;
-        };
-        materials = materials.map((m, i) => ({ m, i })).sort((a, b) => (rank(a.m.name) - rank(b.m.name)) || (a.i - b.i)).map(x => x.m);
-    }
-    return materials;
+    if (opts.isUP && !hasGroup(/anschlussbogen/i)) { materials.push({ name: "Anschlussbogen", options: _cloneOpts(SHOWER_STD.anschlussbogen) }); }
+    if (!hasGroup(/brauseschlauch/i)) { materials.push({ name: "Brauseschlauch", options: _cloneOpts(SHOWER_STD.brauseschlauch) }); }
+    if (!hasGroup(/handbrause/i)) { materials.push({ name: "Handbrause", options: _cloneOpts(SHOWER_STD.handbrause) }); }
+    if (opts.isBath && !hasGroup(/brausehalter/i)) { materials.push({ name: "Brausehalter", options: _cloneOpts(SHOWER_STD.brausehalter) }); }
+    // Add Brausegarnitur to all
+    if (!hasGroup(/brausegarnitur/i)) { materials.push({ name: "Brausegarnitur", options: _cloneOpts(SHOWER_STD.brausegarnitur) }); }
+
+    const rank = (m) => {
+        const x = ((m.name || "") + " " + (m.options?.[0]?.label || "") + " " + (m.options?.[0]?.description || "")).toLowerCase();
+        if (/grundk[öo]rper|einbauk[öo]rper|ibox|homebox/.test(x)) return 0;
+        if (/montageschiene|montageset/.test(x)) return 1;
+        if (/anschlussbogen/.test(x)) return 2;
+        if (/abstellverschraubung/.test(x)) return 3;
+        if (/brauseschlauch/.test(x)) return 4;
+        if (/handbrause/.test(x)) return 5;
+        if (/brausehalter/.test(x)) return 6;
+        if (/gleitstange/.test(x)) return 7;
+        if (/brausegarnitur/.test(x)) return 8;
+        return 9;
+    };
+    return materials.map((m, i) => ({ m, i })).sort((a, b) => (rank(a.m) - rank(b.m)) || (a.i - b.i)).map(x => x.m);
 }
 
-export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, cleanSerie, galleryGridHTML, renderGalleryGrid, galleryBackButton, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs };
+// ============================================================================
+//  Accessory colour matching — the Zubehör pool, narrowed to ONE finish
+//
+//  A coloured mixer wants its Anschlussbogen / Brauseschlauch / Handbrause /
+//  Regenbrause in the SAME finish. COLOUR RULE: the finish is the art-Nr triplet,
+//  never label text — so a candidate is any pool SKU of the same product family
+//  whose triplet equals the mixer's. Ranked in three tiers:
+//    1  own brand, right colour  — a Gessi bathroom gets Gessi parts
+//    2  any brand, right colour  — the part is visible, so colour beats brand
+//    3  own brand, any colour    — ONLY when the family has nothing in that colour
+//                                  at all (Gessi builds no coloured Anschlussbogen).
+//                                  Still better than the Alterna chrome standard.
+//  The point is that the caller renders the WHOLE ranked list as a dropdown: the
+//  finish is matched FOR the user, not decided for them. Hose length, hand-shower
+//  design and rain-head shape stay free inside the matching colour — which a
+//  single frozen auto-match took away.
+// ============================================================================
+const artFinishCode = (artNr) => { const m = String(artNr || '').match(/\.(\d{3})(?:\.|$)/); return m ? m[1] : null; };
+
+// Mounting-group name → the pool's `productType` tag. This reads the GROUP name (an
+// internal bucket label like "3. Anschlussbogen"), not a product, so the full-text
+// rule does not apply here; the pool side matches on the structured productType.
+// Order matters: "Handbrausegarnitur" must not fall through to Brausehalter, and
+// "Anschlussbogen mit integriertem Brausehalter" is an Anschlussbogen.
+const ACC_FAMILY_RULES = [
+    [/anschlussbogen/, 'Anschlussbogen'],
+    [/^brausegarnitur/i, 'Brausegarnitur'],
+    [/brause[ns]?schlauch/, 'Brauseschlauch'],
+    [/regenbrause|kopfbrause/, 'Regenbrause'],
+    [/brausen?(?:wand)?arm|wandarm|deckenanschluss/, 'Brausearm'],
+    [/gleitstange/, 'Gleitstange'],
+    [/handbrause/, 'Handbrause'],
+    [/brausehalter|steckhalter/, 'Brausehalter'],
+];
+const accFamilyOf = (groupName) => {
+    const n = (groupName || '').toLowerCase();
+    for (const [rx, fam] of ACC_FAMILY_RULES) if (rx.test(n)) return fam;
+    return null;
+};
+
+// Pool tags do not line up 1:1 with these families. Rails are tagged BOTH
+// `Gleitstange` (33) and `Duschgleitstange` (96) — reading only the first missed
+// three quarters of them, which made the colour-gap check below always see a gap.
+const ACC_POOL_TYPES = { Gleitstange: ['Gleitstange', 'Duschgleitstange'] };
+
+// A Brausegarnitur carries no productType of its own — the sets sit under
+// `Handbrause` and are recognised by their text. The RAIL is what makes a set a
+// substitute for three separate rows, so a "Handbrausegarnitur" without one is an
+// ordinary hand shower and stays in the Handbrause family.
+// FULL-TEXT RULE: read label + description + specs via productText().
+const _RX_GARNITUR = /garnitur|brauseset|duschset/;
+const _RX_GARNITUR_RAIL = /gleitstange|brausestange|wandstange/;
+function isGarniturSet(t) {
+    const x = productText(t);
+    return _RX_GARNITUR.test(x) && _RX_GARNITUR_RAIL.test(x);
+}
+
+// The pool is scanned per family and cached; the cache drops itself when the pool
+// size changes (data loads after the first configurator may already be open).
+let _accPoolCache = {}, _accPoolSize = -1;
+const accPoolOf = (family) => {
+    const pool = (typeof window !== 'undefined' && window.productApps
+        && window.productApps.zubehoer_pool && window.productApps.zubehoer_pool.trays) || [];
+    if (_accPoolSize !== pool.length) { _accPoolCache = {}; _accPoolSize = pool.length; }
+    if (!_accPoolCache[family]) {
+        if (family === 'Brausegarnitur') {
+            _accPoolCache[family] = pool.filter(isGarniturSet);
+        } else {
+            const types = ACC_POOL_TYPES[family] || [family];
+            _accPoolCache[family] = pool.filter(t => types.indexOf(t.productType) >= 0
+                && !(family === 'Handbrause' && isGarniturSet(t)));
+        }
+    }
+    return _accPoolCache[family];
+};
+
+const _accItem = (base, sku) => ({
+    artNr: sku.artNr,
+    label: sku.label || base.label || '',
+    description: sku.description || base.description || '',
+    specs: sku.specs || base.specs,
+    imgUrl: sku.imgUrl || base.imgUrl || '',
+    menge: 1,
+    brand: base.manufacturer || '',
+    baseArtNr: base.artNr,
+});
+
+const ACC_TIER2_CAP = 80, ACC_TIER3_CAP = 12;
+// Ranked candidate list for one family in one finish. `opts.serie` keeps an Uno Zero
+// set from opening on a Starck hose; `opts.prefer`/`opts.avoid` keep the shape of the
+// standard part (an Anschlussbogen "mit integriertem Brausehalter" replaces the
+// separate Brausehalter, so the two shapes are not interchangeable).
+// FULL-TEXT RULE: the serie/shape checks read label + description + specs.
+function accCandidates(family, brand, code, opts = {}) {
+    if (!family || !code) return [];
+    const bl = (brand || '').toLowerCase().trim();
+    const ownBrand = !!bl && bl !== 'andere';
+    const serie = (opts.serie || '').toLowerCase().trim();
+    const t1 = [], t2 = [], t3 = [];
+    const seen = new Set();
+    for (const base of accPoolOf(family)) {
+        const m = (base.manufacturer || '').toLowerCase();
+        const isOwn = ownBrand && (m === bl || (/gessi|emporio/.test(bl) && /gessi|emporio/.test(m)));
+        for (const sku of [base, ...(base.variants || [])]) {
+            if (!sku || !sku.artNr || seen.has(sku.artNr)) continue;
+            seen.add(sku.artNr);
+            const c = artFinishCode(sku.artNr);
+            const item = _accItem(base, sku);
+            if (c === code) { item.tier = isOwn ? 1 : 2; (isOwn ? t1 : t2).push(item); }
+            else if (isOwn) { item.tier = 3; t3.push(item); }
+        }
+    }
+    const score = (x) => {
+        const t = productText(x);
+        let s = 0;
+        if (opts.prefer && opts.prefer.test(t)) s += 4;
+        if (opts.avoid && opts.avoid.test(t)) s -= 4;
+        if (serie && t.includes(serie)) s += 2;
+        return s;
+    };
+    const rank = (arr) => arr.map((x, i) => ({ x, i, s: score(x) }))
+        .sort((a, b) => (b.s - a.s) || (a.i - b.i)).map(o => o.x);
+    if (t1.length || t2.length) return rank(t1).concat(rank(t2).slice(0, ACC_TIER2_CAP));
+    return rank(t3).slice(0, ACC_TIER3_CAP);
+}
+
+// Keep the user's chosen MODEL when the mixer's finish changes: same base article,
+// the SKU carrying the new triplet. Falls back to the picked SKU itself.
+function accSkuInColour(family, artNr, code) {
+    if (!family || !artNr) return null;
+    for (const base of accPoolOf(family)) {
+        const all = [base, ...(base.variants || [])];
+        if (!all.some(s => s && s.artNr === artNr)) continue;
+        const hit = code ? all.find(s => artFinishCode(s.artNr) === code) : null;
+        const sku = hit || all.find(s => s.artNr === artNr);
+        const item = _accItem(base, sku);
+        item.tier = hit ? 1 : 3;   // colour matched, or the picked model has no such finish
+        return item;
+    }
+    return null;
+}
+
+const _accEsc = (s) => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+// What one mounting group shows in the BOM, and what its dropdown offers.
+// `pick` is the user's stored choice for the group — {k:'std',i} (a curated/ERP
+// option) or {k:'pool',art} (a pool part, re-resolved into the current finish).
+// Without a pick the best colour match wins, EXCEPT on chrome (the curated
+// standards already ARE chrome) and on an "Ohne …" default (an optional group
+// stays off until the user asks for it).
+// Returns { item, isOhne, tier, family, optionsHTML, hasChoices }.
+function accGroupChoice(group, opts = {}) {
+    const stdOpts = Array.isArray(group.options) ? group.options : [];
+    const stdIdx = Math.min(Math.max(0, opts.stdIdx | 0), Math.max(0, stdOpts.length - 1));
+    const std = stdOpts[stdIdx] || null;
+    const family = accFamilyOf(group.name);
+    const code = opts.code || null;
+    const pick = opts.pick || null;
+    // label-prefix by design: an option literally starting with "Ohne" IS the opt-out.
+    const isOhneOpt = (o) => !!(o && /^ohne/i.test(o.label || ''));
+
+    // Anschlussbogen comes in two shapes and they are not interchangeable — the
+    // integrated-holder one replaces the separate Brausehalter group.
+    let prefer = null, avoid = null;
+    if (family === 'Anschlussbogen' && std) {
+        const withHolder = /integriertem brausehalter|mit brausehalter/.test(productText(std));
+        prefer = withHolder ? /integriertem brausehalter|mit brausehalter/ : null;
+        avoid = withHolder ? null : /integriertem brausehalter|mit brausehalter/;
+    }
+    const cands = family ? accCandidates(family, opts.brand, code, { serie: opts.serie, prefer, avoid }) : [];
+
+    let item = std, tier = 0, chosenArt = null, pickedStd = -1, forcedOhne = false;
+    if (opts.forceOhne) {
+        // Bundled away by another group. Only SOME of these groups carry an "Ohne …"
+        // option (the Handbrause and Gleitstange lists do not), so the opt-out is
+        // synthesized when it is missing — otherwise the rule would silently skip
+        // exactly the rows it is supposed to switch off.
+        const ohneIdx = stdOpts.findIndex(isOhneOpt);
+        item = ohneIdx >= 0 ? stdOpts[ohneIdx] : { artNr: 'ohne_' + (family || 'zubehoer').toLowerCase(), label: 'Ohne ' + (group.name || 'Zubehör'), menge: 0 };
+        pickedStd = ohneIdx;
+        forcedOhne = true;
+    } else if (pick && pick.k === 'std') {
+        if (stdOpts[pick.i]) { item = stdOpts[pick.i]; pickedStd = pick.i; }
+    } else if (pick && pick.k === 'pool') {
+        const hit = accSkuInColour(family, pick.art, code);
+        if (hit) { item = hit; tier = hit.tier; chosenArt = hit.artNr; }
+    } else if (cands.length && code && code !== '501' && (!isOhneOpt(std) || opts.allowOhneAutoMatch)) {
+        // Auto-match. `used` holds the art-Nrs already emitted in this BOM, so two
+        // groups of the same family (Handbrause + Handbrausegarnitur) cannot both
+        // land on the identical SKU.
+        const auto = cands.find(c => !opts.used || !opts.used.has(c.artNr)) || cands[0];
+        item = auto; tier = auto.tier; chosenArt = auto.artNr;
+    }
+
+    // A resolved pick may sit outside the ranked list (tier-3 fallback) — make sure
+    // the option it selects actually exists in the markup.
+    let listed = cands;
+    if (chosenArt && !cands.some(c => c.artNr === chosenArt)) listed = [item].concat(cands);
+
+    const selVal = chosenArt ? 'c' + chosenArt : 'o' + (pickedStd >= 0 ? pickedStd : stdIdx);
+    const optHTML = (c) => `<option value="c${_accEsc(c.artNr)}"${selVal === 'c' + c.artNr ? ' selected' : ''}>${_accEsc(c.label)} (${_accEsc(c.artNr)})</option>`;
+    const stdHTML = stdOpts.map((o, i) => `<option value="o${i}"${selVal === 'o' + i ? ' selected' : ''}>${_accEsc(o.label)} (${_accEsc(o.artNr)})</option>`).join('');
+    const colourLbl = (code && COLOR_NAMES[code]) || 'Farbe';
+    const brandLbl = opts.brand || 'Marke';
+    let optionsHTML;
+    if (!listed.length) {
+        optionsHTML = stdHTML;                      // no pool coverage → unchanged behaviour
+    } else {
+        const g = (t) => listed.filter(c => c.tier === t);
+        optionsHTML = '';
+        if (g(1).length) optionsHTML += `<optgroup label="${_accEsc(brandLbl + ' · ' + colourLbl)}">${g(1).map(optHTML).join('')}</optgroup>`;
+        if (g(2).length) optionsHTML += `<optgroup label="${_accEsc('Weitere Marken · ' + colourLbl)}">${g(2).map(optHTML).join('')}</optgroup>`;
+        if (g(3).length) optionsHTML += `<optgroup label="${_accEsc(brandLbl + ' · andere Farbe')}">${g(3).map(optHTML).join('')}</optgroup>`;
+        if (stdHTML) optionsHTML += `<optgroup label="Standard">${stdHTML}</optgroup>`;
+    }
+    return {
+        item, family, tier, forcedOhne,
+        isOhne: forcedOhne || (!chosenArt && isOhneOpt(item)),
+        optionsHTML,
+        // A forced row offers no dropdown: the group that bundled it away is the
+        // control, and a pick here would just be overwritten on the next render.
+        hasChoices: !forcedOhne && (listed.length + stdOpts.length) > 1,
+    };
+}
+
+// The badge under a colour-matched BOM row. Honest about WHY the part was swapped —
+// a brand fallback must not claim the colour matches.
+const accTierNote = (tier) => {
+    if (tier === 1) return 'Farbe passend zur Armatur';
+    if (tier === 2) return 'Farbe passend, andere Marke';
+    if (tier === 3) return 'Marke passend, Farbe abweichend';
+    return '';
+};
+
+// ============================================================================
+//  Brausegarnitur bundling — INSTRUCTIONS.md §2, all Dusch-/Bademischer
+//
+//  A Brausegarnitur IS the Brauseschlauch + Handbrause + Gleitstange in one
+//  art-Nr, so picking one switches those rows off; ordering both would bill the
+//  hose twice. It is never the default — EXCEPT when a bundled part has no SKU in
+//  the mixer's finish while a Garnitur does. Axor Citterio M in .475
+//  (`6415 120.475.000`) is the case: 14 Handbrausen and 5 Brauseschläuche exist
+//  in that finish, zero Duschgleitstangen, three Axor Garnituren. Then the set is
+//  the only colour-correct way to get a shower, so it becomes the standard and
+//  the three individual rows go to "Ohne".
+//  The `inColour('Brausegarnitur')` guard matters: without a colour-matched set
+//  to fall back ON, forcing the bundle would switch three working rows off and
+//  put nothing in their place.
+// ============================================================================
+const ACC_BUNDLED_BY_GARNITUR = ['Brauseschlauch', 'Handbrause', 'Gleitstange', 'Brausehalter'];
+const _GARNITUR_PARTS = ['Brauseschlauch', 'Handbrause', 'Gleitstange'];
+
+function brausegarniturPlan(materials, opts = {}) {
+    const plan = { idx: -1, forceAuto: false, forceOhne: false };
+    if (!Array.isArray(materials)) return plan;
+    plan.idx = materials.findIndex(m => accFamilyOf(m.name) === 'Brausegarnitur');
+    if (plan.idx < 0) return plan;
+
+    const pick = (opts.picks || {})[plan.idx];
+    if (pick) {
+        // An explicit choice decides it. A pool pick is always a real Garnitur; a
+        // curated pick bundles unless it is the "Ohne" opt-out.
+        // label-prefix by design: an option starting with "Ohne" IS the opt-out.
+        const opt = pick.k === 'std' ? (materials[plan.idx].options || [])[pick.i] : null;
+        plan.forceOhne = pick.k === 'pool' || !!(opt && !/^ohne/i.test(opt.label || ''));
+        return plan;
+    }
+
+    const code = opts.code;
+    if (!code || code === '501') return plan;   // chrome: the house standards already are chrome
+    const inColour = (fam) => accCandidates(fam, opts.brand, code, { serie: opts.serie })
+        .some(c => c.tier === 1 || c.tier === 2);
+    if (_GARNITUR_PARTS.some(f => !inColour(f)) && inColour('Brausegarnitur')) {
+        plan.forceAuto = true;
+        plan.forceOhne = true;
+    }
+    return plan;
+}
+
+// ============================================================================
+//  Regenbrause → its Einbaukörper — INSTRUCTIONS.md §2, all Dusch-/Bademischer
+//
+//  A concealed rain head is sold without its body and NAMES the body it needs in
+//  its own text ("… ohne Einbaukörper 6418 101"). Ordering the head alone leaves
+//  an unbuildable Stückliste, so the named body rides along in the BOM.
+//  FULL-TEXT RULE: that art-Nr lives in the description — the label is truncated
+//  long before it. 160 pool SKUs name a body; only some of those bodies are in
+//  the catalogue today, and a missing one is REPORTED, never invented: guessing a
+//  finish triplet would put a wrong art-Nr into a real order.
+// ============================================================================
+const _RX_REQUIRED_BODY = /ohne\s+(?:einbau|grund)k[öo]rper\s+(\d{4})\s?(\d{3})/i;
+
+// Art-Nr base (7 digits) → article, indexed across every loaded pool: the body a
+// rain head names often sits in another category's trays or inside a mounting
+// group, not beside the head. Built once, dropped when the data reloads.
+let _artIndex = null, _artIndexSize = -1;
+const _artBase = (artNr) => { const d = String(artNr || '').replace(/[^0-9]/g, ''); return d.length >= 7 ? d.slice(0, 7) : null; };
+
+function _buildArtIndex() {
+    const apps = (typeof window !== 'undefined' && window.productApps) || {};
+    const idx = {};
+    let size = 0;
+    const add = (a) => {
+        if (!a || !a.artNr || !a.label) return;
+        const b = _artBase(a.artNr);
+        if (!b) return;
+        // A body is colourless (.000.000); prefer one that says so over a random
+        // sibling that happens to share the base.
+        const better = /^(?:einbau|grund)k[öo]rper/i.test(a.label);
+        if (!idx[b] || (better && !idx[b]._pref)) idx[b] = { artNr: a.artNr, label: a.label, description: a.description || '', imgUrl: a.imgUrl || '', _pref: better };
+    };
+    for (const key of Object.keys(apps)) {
+        const trays = (apps[key] && apps[key].trays) || [];
+        size += trays.length;
+        for (const t of trays) {
+            add(t);
+            for (const v of t.variants || []) add(v);
+            for (const g of t.mountingMaterials || []) for (const o of g.options || []) add(o);
+        }
+    }
+    _artIndex = idx;
+    _artIndexSize = size;
+}
+
+function findArticleByBase(base) {
+    const apps = (typeof window !== 'undefined' && window.productApps) || {};
+    let size = 0;
+    for (const key of Object.keys(apps)) size += ((apps[key] && apps[key].trays) || []).length;
+    if (!_artIndex || _artIndexSize !== size) _buildArtIndex();
+    return _artIndex[base] || null;
+}
+
+// The body one chosen accessory still needs, or null. Returns `{ missingBase }`
+// when the text names a body the catalogue does not carry — the caller shows that
+// as a warning row so the gap is visible instead of silently dropped.
+function requiredBodyFor(item) {
+    if (!item || !item.artNr) return null;
+    // ERP descriptions carry hard line breaks as markup, and they land INSIDE the
+    // art-Nr ("ohne Einbaukörper 6438<br>844") — a plain \s+ separator misses those.
+    const m = _RX_REQUIRED_BODY.exec(productText(item).replace(/<[^>]*>/g, ' '));
+    if (!m) return null;
+    const base = m[1] + m[2];
+    const hit = findArticleByBase(base);
+    if (!hit) return { missingBase: m[1] + ' ' + m[2] };
+    return { artNr: hit.artNr, label: hit.label, description: hit.description, imgUrl: hit.imgUrl, menge: 1 };
+}
+
+// One extra BOM row, rendered identically by both Mischer apps.
+function bomExtraRowHTML(item, note) {
+    if (item.missingBase) {
+        return `
+            <tr style="background: rgba(255,166,0,0.07);">
+                <td><div class="img-cell" style="background: transparent; border: 1px dashed var(--border);"><i class="ri-alert-line" style="font-size:1.2rem;opacity:0.5;"></i></div></td>
+                <td><span class="bom-code">${_accEsc(item.missingBase)}</span></td>
+                <td><div class="bom-desc">Einbaukörper ${_accEsc(item.missingBase)} wird benötigt, ist im Katalog aber nicht erfasst — bitte manuell ergänzen.</div></td>
+                <td><strong>1</strong></td>
+            </tr>`;
+    }
+    const img = isRealImg(item.imgUrl) ? `<img src="${_accEsc(item.imgUrl)}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>';
+    return `
+        <tr>
+            <td><div class="img-cell" ${!isRealImg(item.imgUrl) ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>${img}</div></td>
+            <td><span class="bom-code">${_accEsc(item.artNr)}</span></td>
+            <td><div class="bom-desc">${fullLabel(item)}</div>${note ? `<div class="bom-desc" style="margin-top:0.2rem; font-size:0.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.03em;">${_accEsc(note)}</div>` : ''}</td>
+            <td><strong>${item.menge || 1}</strong></td>
+        </tr>`;
+}
+
+export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, cleanSerie, galleryGridHTML, renderGalleryGrid, galleryBackButton, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs, artFinishCode, accFamilyOf, accCandidates, accSkuInColour, accGroupChoice, accTierNote, isGarniturSet, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, findArticleByBase, requiredBodyFor, bomExtraRowHTML };

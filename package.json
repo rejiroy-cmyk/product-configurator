@@ -1,11 +1,11 @@
 {
   "name": "product-configurator",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
   "scripts": {
     "dev": "vite --port 5175",
-    "test": "node tests/verify-duschtrennwand.js && node tests/verify-all-apps.js && node tests/verify-shower-rules.js && node tests/verify-servicepaket.mjs && node tests/verify-fulltext-rule.js && node tests/verify-product-display.js && node tests/verify-no-kitchen-in-waschtischmischer.js && node tests/verify-scraper-maktx2.js",
+    "test": "node tests/verify-duschtrennwand.js && node tests/verify-all-apps.js && node tests/verify-shower-rules.js && node tests/verify-servicepaket.mjs && node tests/verify-fulltext-rule.js && node tests/verify-product-display.js && node tests/verify-no-kitchen-in-waschtischmischer.js && node tests/verify-scraper-maktx2.js && node tests/verify-accessory-colormatch.js",
     "replay:tape": "node scripts/replay-shower-rules.js",
     "lint": "eslint .",
     "format": "prettier --write .",

@@ -1,6 +1,6 @@
-import { DATA_VERSION, catalog } from './modules/data.js?v=2.6.3';
-import { productApps } from './modules/apps.js?v=2.8.1';
-import { setupAdmin } from './modules/admin.js?v=2.5.7';
+import { DATA_VERSION, catalog } from './modules/data.js?v=2.6.4';
+import { productApps } from './modules/apps.js?v=2.8.4';
+import { setupAdmin } from './modules/admin.js?v=2.5.8';
 // Catalog + price table are embedded as gzip+base64 (see vite.config.js) and inflated at
 // runtime, so the shipped single-file build stays small and the catalog/prices are not
 // casually readable in the file. Code is untouched — this only changes how DATA is stored.

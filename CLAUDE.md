@@ -17,10 +17,11 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
 - **Vanilla JS SPA**, no framework. ES modules, bundled by **Vite** into a single
   `dist/index.html` via `vite-plugin-singlefile` (everything inlined).
 - `npm run dev` — Vite dev server on **port 5175** (see `.claude/launch.json`).
-- `npm test` — runs **8 suites, 190 assertions**: `verify-duschtrennwand` (38),
+- `npm test` — runs **9 suites, 237 assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
-  `verify-fulltext-rule` (71), `verify-product-display` (37),
-  `verify-no-kitchen-in-waschtischmischer` (4), `verify-scraper-maktx2` (7). Plain Node with hand-rolled DOM
+  `verify-fulltext-rule` (73), `verify-product-display` (37),
+  `verify-no-kitchen-in-waschtischmischer` (4), `verify-scraper-maktx2` (7),
+  `verify-accessory-colormatch` (32). Plain Node with hand-rolled DOM
   mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the one jsdom
   test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
   **Run this after any change to `modules/factories/`.**
@@ -116,6 +117,38 @@ Do **not** hand-roll another accessory filter. The three that existed before
 (`renderAccessoiresPanel`, Mix & Match's own, and the Serie-only ones in
 `createRelationalApp` / `createWCApp`) all drifted apart — that drift is exactly
 what this helper exists to prevent.
+
+### Accessory colour matching — one helper, both Mischer apps
+
+A coloured Armatur wants its Anschlussbogen / Brauseschlauch / Handbrause /
+Regenbrause / Brausearm / Gleitstange in the **same finish**, and the finish is the
+art-Nr triplet (COLOUR RULE), never label text. `_shared.js` owns the whole rule:
+
+- **`accFamilyOf(groupName)`** — mounting-group name → the pool's `productType`
+  (`"3. Anschlussbogen"` → `Anschlussbogen`, `Handbrausegarnitur` → `Handbrause`,
+  `Deckenanschluss` → `Brausearm`). Reads a *group* name, not a product, so the
+  full-text rule doesn't apply; the pool side matches the structured field.
+- **`accCandidates(family, brand, code, {serie, prefer, avoid})`** — ranked SKUs:
+  **1** own brand + right colour · **2** any brand + right colour · **3** own brand
+  in another colour, and tier 3 *only* when the family has nothing in that colour
+  at all (Gessi builds no coloured Anschlussbogen — that gap is what used to leave
+  the row sitting on the Alterna chrome standard).
+- **`accGroupChoice(group, opts)`** — what the BOM row shows *and* the merged
+  `<optgroup>` markup: colour candidates first, the curated/ERP options under
+  `Standard`. Default = best colour match, **except** on chrome 501 (the house
+  standards already are chrome) and on an `Ohne …` default (an optional group stays
+  off). `opts.used` stops two groups of one family auto-matching the same SKU.
+- **`accSkuInColour(family, artNr, code)`** — a user's pick is stored as a MODEL, so
+  changing the mixer's finish keeps the part and swaps its colour.
+
+State lives in `app.accPick[groupIdx]`: `{k:'std',i}` or `{k:'pool',art}`; an explicit
+pick always outranks the auto-match. Reset it wherever `mischerOptionsState` is reset.
+Any rule that reads one group to decide another's visibility must go through
+`app.effectiveMat(idx)`, or it judges a part the BOM no longer shows.
+
+**Never freeze a colour-matched row again** — the previous `matchAccessory()` replaced
+the row with a single SKU and dropped its dropdown, so hose length, hand-shower design
+and rain head became unchangeable. Covered by `tests/verify-accessory-colormatch.js`.
 
 ### Serie pills — one cleaner, all apps
 
@@ -286,3 +319,42 @@ label+description concatenation) as the source for such checks.
   `custom-data.json`). `_archive/` and `scratch/` are git-ignored throwaways.
 - After touching `modules/factories/`, verify with: `npm test`, then load the dev
   server and open a couple of configurators (watch the console for `ReferenceError`).
+
+## Accessory Combinations (Brausegarnitur & Regenbrause)
+
+Applies to **all Duschenmischer and Bademischer** (not one montage type or brand). Both
+rules live in `_shared.js` and are called from both factories' `updateBOM`; covered by
+`tests/verify-accessory-colormatch.js`.
+
+- **Brausegarnitur Bundle Rule** — `brausegarniturPlan(materials, {brand, code, serie, picks})`
+  returns `{idx, forceAuto, forceOhne}`. Selecting a Garnitur switches `Brauseschlauch`,
+  `Handbrause`, `Gleitstange` (+`Brausehalter`, per `ACC_BUNDLED_BY_GARNITUR`) to `ohne` —
+  the set IS those parts in one art-Nr, so billing both double-charges the hose.
+- **Brausegarnitur Fallback** — the Garnitur is never the default *unless* a bundled part
+  has no SKU in the mixer's finish **and a colour-matched Garnitur exists**. Axor Citterio M
+  `6415 120.475.000` is the case: in `.475` there are 14 Handbrausen, 5 Brauseschläuche,
+  **0 Duschgleitstangen**, 3 Axor Garnituren. Without the second half of that condition the
+  rule would empty three rows and put nothing in their place.
+- A forced-off row renders as `Ohne …` **without a dropdown** (`choice.forcedOhne`) — the
+  Garnitur row is the control, and a pick there would be overwritten on the next render.
+  Not every group carries an `Ohne …` option (Handbrause and Gleitstange do not), so
+  `accGroupChoice` **synthesizes** one; without that the rule silently skipped exactly the
+  rows it was meant to switch off.
+- **Regenbrause Einbaukörper Rule** — `requiredBodyFor(item)` reads `ohne Einbaukörper NNNN NNN`
+  out of the **description** (FULL-TEXT RULE — the label truncates long before it) and
+  `findArticleByBase` resolves it across every loaded pool, since the body usually sits in
+  another category. The row is injected directly below the head and deduped against the
+  BOM's existing art-Nrs (a mixer's own iBox must not appear twice). 396 pool SKUs name a
+  body; 85 resolve today — the rest render a **visible warning row** rather than a guessed
+  art-Nr, because inventing a finish triplet puts a wrong part into a real order.
+  ERP descriptions break lines *inside* the number (`6438<br>844`), so tags are stripped
+  before matching — that alone took detection from 160 SKUs to 396.
+
+### Pool tags do not equal these families
+
+`accPoolOf` translates. Rails are tagged **both** `Gleitstange` (33) and `Duschgleitstange`
+(96) — reading only the first missed three quarters of them and made the colour-gap check
+above see a gap everywhere. A **Brausegarnitur has no tag at all**: the sets sit under
+`Handbrause` and are found by text (`isGarniturSet` — needs a *rail*, or it is an ordinary
+hand shower), and are excluded from the `Handbrause` family so a hand-shower row can never
+silently become a whole rail set.

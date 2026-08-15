@@ -80,7 +80,11 @@ const GUARDED = {
     ],
     // Abgang budget + system detection: the outlet count is stated in the description
     // ("1 Abgang", "2 Abgänge") and is regularly truncated out of the label.
-    'modules/factories/_shared.js': ['outletCount', 'isShowerSystem', 'needsShowerAccessories'],
+    // Abgang budget + system detection, plus the two accessory-bundling classifiers:
+    // a Garnitur states its rail, and a rain head names the Einbaukörper it lacks,
+    // in the description — both are truncated out of the label.
+    'modules/factories/_shared.js': ['outletCount', 'isShowerSystem', 'needsShowerAccessories',
+        'isGarniturSet', 'requiredBodyFor'],
     // Injection-time routing counts too: classify-ch3 decides which pool a catalogue
     // article lands in, and Ch3's distinguishing words ("Standklosett Keramik", "für
     // Urinoir") live in the description far more often than in the truncated ERP label.
