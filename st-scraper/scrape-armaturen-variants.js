@@ -36,6 +36,10 @@ async function scroll(page, n) { for (let i = 0; i < n; i++) { await page.mouse.
 
 // ---- bases from catalogue chapter 6 (all distinct 7-digit base art-Nrs) ----
 function buildBases() {
+    if (process.env.ONLY_BASES) {
+        return process.env.ONLY_BASES.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    if (!fs.existsSync(CATALOG)) return [];
     const cat = JSON.parse(fs.readFileSync(CATALOG, 'utf8'));
     const bases = new Set();
     const add = (s) => { if (!s) return; const d = String(s).replace(/[^0-9]/g, ''); if (d.length >= 7) bases.add(d.slice(0, 7)); };
