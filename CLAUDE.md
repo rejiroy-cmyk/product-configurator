@@ -279,6 +279,41 @@ stripped before use (an em-dash in it throws `ERR_INVALID_CHAR`).
   selects from `zubehoer_pool` by `targetSubcats.includes(subcatKey)` and nothing is
   tagged `spueltischmischer` yet.
 
+### Images — judge by BANK, never by filename
+
+`_nV`, `_100_000` and `_000_000` look like placeholder markers and mean the
+exact opposite. They sat on the blocklist in every image fetcher for months:
+
+- **`_nV`** — the per-article technical drawing profishop itself renders as the
+  primary listing thumbnail. Blocking it is why 1,673 Duschtrennwand slots once
+  shared 12 bathroom scene photos.
+- **`_000_000`** — the finish triplet of a **colourless** article: every
+  Einbaukörper and Grundkörper in the catalogue.
+- **`_100_000`** — the same mistake, caught a round earlier.
+
+Together they name ~3,158 images that are on disk and referenced today. The
+quality signal is the **bank**: `PS1/…_nV.png` is an 859-byte blank while
+`PG1/…_nV.png` is the real ~26 KB drawing — *same basename, different bank*.
+
+Two rules follow, both in **`st-scraper/_imagePick.cjs`** (`isDistinctive`,
+`needsImage`, `bestImage`) — import it, never re-derive it. This filter had been
+copied into every fetcher and the copies drifted with the same wrong list.
+
+1. **A local `img/…` path is real, unconditionally.** It exists only because a
+   scraper already fetched, decoded and size-checked it, and the local filenames
+   literally contain `_nV` / `_000_000`. Re-judging them by name marked 23,321
+   articles holding good images as needing a re-heal — and re-healing overwrites
+   them. `isRealImg()` in `_shared.js` encodes the same rule for the runtime.
+2. **Picking = take `result.image`, then upgrade to its PG1 twin** (same
+   basename, PG1 bank) when the response actually carries one. That reproduces
+   what the shop lists. Do *not* "take the best PG1 anywhere in `images[]`" — it
+   swaps in a different picture than the shop shows. The twin must be present in
+   the response; a synthesized PG1 URL is just a recorded 404.
+
+`scrape-image-urls.js` knows this trap and gates re-scraping behind
+`ONLY_EMPTY`. The `proxy` helpers in `inject-ch*.cjs` still carry the old list,
+but they build `wsrv.nl` URLs — a path retired when localisation went direct.
+
 ## GLOBAL RULE — full-text classification (no exceptions without a comment)
 
 **Any logic that classifies, matches, or filters a product** (type, situation,
