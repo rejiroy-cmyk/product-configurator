@@ -22,6 +22,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const ROOT = path.resolve(path.dirname(fs.realpathSync(__filename)), '..');
 const DATA = path.join(ROOT, 'custom-data.json');
@@ -36,7 +40,7 @@ const APPLY = process.argv.includes('--apply');
 const products = JSON.parse(fs.readFileSync(PRODUCTS, 'utf8'));
 const api = JSON.parse(fs.readFileSync(API, 'utf8'));
 const vars = JSON.parse(fs.readFileSync(VARS, 'utf8'));
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 const pricesFile = JSON.parse(fs.readFileSync(PRICES, 'utf8'));
 const prices = pricesFile.prices || pricesFile;
 
@@ -390,7 +394,7 @@ if (report.skippedUnresolved.length) {
 
 if (APPLY) {
     fs.copyFileSync(DATA, DATA + '.bak-ch2wt');
-    fs.writeFileSync(DATA, JSON.stringify(data, null, 2) + '\n');
+    writeData(data, { backup: false });
     if (pricesFile.prices) {
         pricesFile.prices = prices;
         pricesFile.meta = { ...pricesFile.meta, entries: Object.keys(prices).length };

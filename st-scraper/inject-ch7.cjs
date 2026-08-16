@@ -23,6 +23,10 @@
 const fs = require('fs');
 const path = require('path');
 const C = require('./classify-ch7.cjs');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const DIR = __dirname;
 const ROOT = path.resolve(DIR, '..');
@@ -49,7 +53,7 @@ function techMap(arr) {
     return out;
 }
 
-const data = readJSON(DATA);
+const data = readData();
 const pricesFile = readJSON(PRICES);
 const prices = pricesFile.prices;
 const apiRaw = readJSON(API);
@@ -192,7 +196,7 @@ data.waschtrog.parts.push(...newParts);
 data.zubehoer_pool.trays.push(...newPool);
 Object.assign(prices, priceAdds);
 if (pricesFile.meta) pricesFile.meta.entries = Object.keys(prices).length;
-fs.writeFileSync(DATA, JSON.stringify(data, null, 2));
+writeData(data, { backup: false });
 fs.writeFileSync(PRICES, JSON.stringify(pricesFile, null, 2));
 console.log(`\nAPPLIED — ${newParts.length} wash-station parts, ${newPool.length} pool items, ${report.newPrices} new prices.`);
 console.log('backups: custom-data.json.bak-ch7, prices.json.bak-ch7');

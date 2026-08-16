@@ -39,6 +39,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const WRITE = process.argv.includes('--write');
 const ROOT = path.join(__dirname, '..');
@@ -81,7 +85,7 @@ const techMap = (t) => {
 };
 
 // ── 1. the work-list, computed from the live data ────────────────────────────
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 const traysOf = (pool) => (pool && pool.trays) || (Array.isArray(pool) ? pool : []) || [];
 
 // Every art-Nr base findArticleByBase can reach: trays, their variants, and the
@@ -212,7 +216,7 @@ if (!WRITE) {
 }
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 fs.copyFileSync(DATA, `${DATA}.bak-${stamp}`);
-fs.writeFileSync(DATA, JSON.stringify(data, null, 2));   // MUST stay indent-2, or the diff is all 94k records
+writeData(data, { backup: false });   // MUST stay indent-2, or the diff is all 94k records
 fs.writeFileSync(PRICES, JSON.stringify(pricesFile, null, 2));
 fs.writeFileSync(REPORT, JSON.stringify(report, null, 2));
 console.log(`\nbackup : custom-data.json.bak-${stamp}`);

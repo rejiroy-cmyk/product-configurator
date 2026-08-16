@@ -32,6 +32,10 @@
  */
 const fs = require('fs');
 const path = require('path');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const WRITE = process.argv.includes('--write');
 const ROOT = path.join(__dirname, '..');
@@ -43,7 +47,7 @@ const BRACKET_ART = '4611 863.000.000';
 // The bin bases the catalogue pairs this bracket with (pp. 4.170, 4.179).
 const BINS = ['4611 611', '4611 612', '4611 861', '4611 862'];
 
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 const trays = (data.zubehoer_pool && data.zubehoer_pool.trays) || [];
 if (!trays.length) { console.error('zubehoer_pool.trays is empty — wrong data file?'); process.exit(1); }
 
@@ -98,6 +102,6 @@ console.log(`Price  : +${pAdded} added${pFixed ? `, corrected ${pFixed}` : ''}`)
 if (!WRITE) { console.log('\n(dry run — pass --write to apply)'); process.exit(0); }
 
 for (const f of [DATA, PRICES]) fs.copyFileSync(f, `${f}.bak-wandhalterung`);
-fs.writeFileSync(DATA, JSON.stringify(data, null, 2));
+writeData(data, { backup: false });
 fs.writeFileSync(PRICES, JSON.stringify(priceDoc, null, 2));
 console.log('\n✅ written (backups: *.bak-wandhalterung)');

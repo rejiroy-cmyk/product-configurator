@@ -21,6 +21,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const DIR = __dirname;
 const ROOT = path.resolve(DIR, '..');
@@ -321,7 +325,7 @@ if (plan.unclassified.length) {
 }
 
 // Loaded here (not only on --write) so the dry run can report the parentBases heal too.
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 const heal = healParents(data.waschtrog.parts);
 console.log(`\n=== parentBases heal (existing waschtrog.parts): ${heal.touched} records gain ${heal.added} basin references`);
 for (const p of data.waschtrog.parts) {
@@ -389,7 +393,7 @@ for (const p of data.waschtrog.parts) {
 }
 
 // JSON.stringify(data, null, 2) — anything else reformats all 94k records (CLAUDE.md).
-fs.writeFileSync(DATA, JSON.stringify(data, null, 2));
+writeData(data, { backup: false });
 
 const pj = JSON.parse(fs.readFileSync(PRICES, 'utf8'));
 let priced = 0;

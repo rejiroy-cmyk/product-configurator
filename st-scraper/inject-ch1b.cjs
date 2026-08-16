@@ -25,6 +25,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const DIR = __dirname, ROOT = path.resolve(DIR, '..');
 const DATA = path.join(ROOT, 'custom-data.json');
@@ -67,7 +71,7 @@ const FAMILY = [
 ];
 const familyOf = (s) => { const t = String(s || ''); for (const [re, f] of FAMILY) if (re.test(t)) return f; return ''; };
 
-const data = readJSON(DATA);
+const data = readData();
 const prices = readJSON(PRICES).prices;
 const apiRaw = readJSON(API);
 const api = (Array.isArray(apiRaw) ? apiRaw : Object.values(apiRaw)).filter(Boolean);
@@ -211,6 +215,6 @@ if (defaultsChanged) {
     fs.copyFileSync(DATA + '.bak-ch1b', DATA);
     process.exit(3);
 }
-fs.writeFileSync(DATA, JSON.stringify(data, null, 2));
+writeData(data, { backup: false });
 console.log(`\nAPPLIED — ${report.added} options across ${report.traysAffected} trays. defaultsChanged=0.`);
 console.log('backup: custom-data.json.bak-ch1b');

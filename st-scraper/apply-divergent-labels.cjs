@@ -25,6 +25,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const SCRIPT_DIR = path.dirname(fs.realpathSync(__filename));
 const ROOT = path.resolve(SCRIPT_DIR, '..');
@@ -40,7 +44,7 @@ const rows = JSON.parse(fs.readFileSync(REVIEW, 'utf8'));
 const want = new Map(rows.map(r => [String(r.artNr).replace(/[^0-9]/g, ''), r]));
 
 const clean = (s) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 
 let records = 0, changed = 0, skipped = 0;
 const samples = [];
@@ -78,6 +82,6 @@ if (!WRITE) { console.log('\nDRY RUN — nothing written. Re-run with --write to
 
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 fs.copyFileSync(DATA, `${DATA}.bak-${stamp}`);
-fs.writeFileSync(DATA, JSON.stringify(data, null, 2));   // indent 2 — must match the file
+writeData(data, { backup: false });   // indent 2 — must match the file
 console.log(`\nbackup : custom-data.json.bak-${stamp}`);
 console.log('written: custom-data.json — now run `npm test`.');

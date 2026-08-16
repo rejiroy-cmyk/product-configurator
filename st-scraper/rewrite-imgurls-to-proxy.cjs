@@ -15,6 +15,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const DATA = path.resolve(path.dirname(fs.realpathSync(__filename)), '../custom-data.json');
 const DRY = process.argv.includes('--dry');
@@ -28,7 +32,7 @@ const fromProxy = u => {
   return /^https?:\/\//.test(raw) ? raw : 'https://' + raw;
 };
 
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 let changed = 0;
 (function w(n) {
   if (Array.isArray(n)) { n.forEach(w); return; }
@@ -51,5 +55,5 @@ if (!changed) { console.log('Nothing to change.'); process.exit(0); }
 
 const bak = DATA + `.bak-proxy-${REVERSE ? 'reverse' : 'apply'}`;
 fs.copyFileSync(DATA, bak);
-fs.writeFileSync(DATA, JSON.stringify(data, null, 2) + '\n');
+writeData(data, { backup: false });
 console.log(`Wrote custom-data.json (backup: ${path.basename(bak)}).`);

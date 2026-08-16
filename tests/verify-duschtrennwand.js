@@ -48,9 +48,13 @@ Object.defineProperty(global, 'navigator', {
 // 2. Dynamic import to prevent hoisting issues in ESM
 const { createGlassApp } = await import('../modules/factories.js');
 
-// Load actual catalog data
+// Load actual catalog data. custom-data.json is stored INTERNED (repeated
+// mountingMaterials options and services live once in a shared table), so it has to be
+// expanded — read raw, `tray.services` is the string "s3" and every service rule here
+// silently matches nothing.
 const projectDir = path.join(__dirname, '..');
-const data = JSON.parse(fs.readFileSync(path.join(projectDir, 'custom-data.json'), 'utf8'));
+const { expandData } = await import('../modules/dataHydrate.js');
+const data = expandData(JSON.parse(fs.readFileSync(path.join(projectDir, 'custom-data.json'), 'utf8')));
 const trays = data.duschtrennwand.trays || [];
 
 // Create an instance of the Glass App and load trays

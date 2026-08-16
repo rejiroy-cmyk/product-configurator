@@ -20,7 +20,10 @@ global.document = {
 Object.defineProperty(global,'navigator',{value:{clipboard:{}},writable:true,configurable:true});
 
 const { createGlassApp } = await import('../modules/factories.js');
-const data = JSON.parse(fs.readFileSync(path.join(__dirname,'..','custom-data.json'),'utf8'));
+// INTERNED on disk — expand, or every tray's `services` is a bare key string and the
+// Servicepaket rules below test nothing (see modules/dataHydrate.js).
+const { expandData } = await import('../modules/dataHydrate.js');
+const data = expandData(JSON.parse(fs.readFileSync(path.join(__dirname,'..','custom-data.json'),'utf8')));
 const app = createGlassApp('DUSCHTRENNWAND','t','x.png');
 app.trays = data.duschtrennwand.trays;
 

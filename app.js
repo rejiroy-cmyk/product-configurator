@@ -1,6 +1,7 @@
 import { DATA_VERSION, catalog } from './modules/data.js?v=2.6.4';
 import { productApps } from './modules/apps.js?v=2.8.6';
 import { setupAdmin } from './modules/admin.js?v=2.5.8';
+import { expandData } from './modules/dataHydrate.js?v=1.0.0';
 // Catalog + price table are embedded as gzip+base64 (see vite.config.js) and inflated at
 // runtime, so the shipped single-file build stays small and the catalog/prices are not
 // casually readable in the file. Code is untouched — this only changes how DATA is stored.
@@ -764,6 +765,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modifiedApps = new Set();
 
     function applyDataToApps(data) {
+        // custom-data.json is stored interned — repeated mountingMaterials options and
+        // services are shared table entries referenced by key. Expanding here covers all
+        // THREE load paths (/api/data, the bundled blob, the IndexedDB backup) at once,
+        // and is a no-op on data that is already expanded (an older backup, say).
+        expandData(data);
         Object.keys(data).forEach(appId => {
             if (!productApps[appId]) return;
             const src = data[appId];

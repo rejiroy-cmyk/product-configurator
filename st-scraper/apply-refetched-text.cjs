@@ -35,6 +35,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const SCRIPT_DIR = path.dirname(fs.realpathSync(__filename));
 const ROOT = path.resolve(SCRIPT_DIR, '..');
@@ -122,7 +126,7 @@ if (!fetched.size) {
     process.exit(1);
 }
 
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 
 const stats = { records: 0, matched: 0, fromFetch: 0, fromCache: 0, labelHealed: 0, descImproved: 0, descKept: 0, techAdded: 0, charsGained: 0 };
 const samples = [];
@@ -206,7 +210,7 @@ if (!WRITE) {
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 const backup = `${DATA}.bak-${stamp}`;
 fs.copyFileSync(DATA, backup);
-fs.writeFileSync(DATA, JSON.stringify(data, null, 2));   // MUST match the file's existing indent-2, or the diff is all 94k records
+writeData(data, { backup: false });   // MUST match the file's existing indent-2, or the diff is all 94k records
 console.log(`\nbackup : ${path.basename(backup)}`);
 console.log(`written: custom-data.json`);
 console.log('NOW RUN `npm test` — description feeds the full-text classification rules.');

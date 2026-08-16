@@ -42,6 +42,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const WRITE = process.argv.includes('--write');
 const ROOT = path.join(__dirname, '..');
@@ -100,7 +104,7 @@ if (fs.existsSync(SHOP_IMAGES)) {
         for (const a of ((v && v.all) || [])) SHOP_IMG[a.art] = a.url;
     }
 }
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 const trays = (data.waschtisch && data.waschtisch.trays) || [];
 if (!trays.length) { console.error('waschtisch.trays is empty — wrong data file?'); process.exit(1); }
 
@@ -226,6 +230,6 @@ if (pConflict.length) {
 if (!WRITE) { console.log('\n(dry run — pass --write to apply)'); process.exit(0); }
 
 for (const f of [DATA, PRICES]) fs.copyFileSync(f, `${f}.bak-progetto`);
-fs.writeFileSync(DATA, JSON.stringify(data, null, 2));
+writeData(data, { backup: false });
 fs.writeFileSync(PRICES, JSON.stringify(priceDoc, null, 2));
 console.log('\n✅ written (backups: *.bak-progetto)');

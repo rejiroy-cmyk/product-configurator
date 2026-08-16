@@ -37,6 +37,10 @@
  */
 const fs = require('fs');
 const path = require('path');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const WRITE = process.argv.includes('--write');
 const ROOT = path.join(__dirname, '..');
@@ -116,7 +120,7 @@ for (const s of [...sku.values()].sort((a, b) => a.artNr.localeCompare(b.artNr))
     bases.get(b).push(s);
 }
 
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 const pool = (data.zubehoer_pool && data.zubehoer_pool.trays) || [];
 if (!pool.length) { console.error('zubehoer_pool.trays is empty — wrong file?'); process.exit(1); }
 const byArt = new Map(pool.map(p => [p.artNr, p]));
@@ -183,6 +187,6 @@ if (!WRITE) { console.log('\nDRY RUN — nothing written. Re-run with --write to
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 const backup = `${DATA}.bak-${stamp}`;
 fs.copyFileSync(DATA, backup);
-fs.writeFileSync(DATA, JSON.stringify(data, null, 2));   // MUST stay indent-2, or the diff is all 94k records
+writeData(data, { backup: false });   // MUST stay indent-2, or the diff is all 94k records
 console.log(`\nbackup : ${path.basename(backup)}`);
 console.log(`written: custom-data.json`);

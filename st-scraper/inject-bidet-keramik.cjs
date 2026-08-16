@@ -25,6 +25,10 @@
 
 const fs = require('fs');
 const path = require('path');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const DIR = __dirname;
 const ROOT = path.resolve(DIR, '..');
@@ -230,7 +234,7 @@ if (warnings.length) { console.log('\nWarnings:'); warnings.forEach(w => console
 if (!APPLY) { console.log('\nDry run — pass --apply to write custom-data.json + prices.json.'); process.exit(0); }
 
 // ---------------------------------------------------------------- write
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 fs.writeFileSync(DATA + '.bak-bidetkeramik', JSON.stringify(data));
 
 // Keep any image already localized into public/img: this script emits vendor URLs, and
@@ -262,7 +266,7 @@ for (const t of ((data.zubehoer_pool && data.zubehoer_pool.trays) || [])) {
     if (!t.targetSubcats.includes('bidet')) { t.targetSubcats.push('bidet'); tagged++; }
 }
 
-fs.writeFileSync(DATA, JSON.stringify(data, null, 2));
+writeData(data, { backup: false });
 
 const prices = JSON.parse(fs.readFileSync(PRICES, 'utf8'));
 let added = 0;

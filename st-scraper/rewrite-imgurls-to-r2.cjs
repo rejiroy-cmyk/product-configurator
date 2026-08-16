@@ -10,6 +10,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const DIR = path.dirname(fs.realpathSync(__filename));
 const DATA = path.resolve(DIR, '../custom-data.json');
@@ -21,7 +25,7 @@ const manifest = JSON.parse(fs.readFileSync(MANIFEST, 'utf8'));   // vendorUrl -
 const map = {};
 for (const [vendor, r2] of Object.entries(manifest)) map[REVERSE ? r2 : vendor] = REVERSE ? vendor : r2;
 
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 let rewritten = 0, unmappedVendor = 0;
 const VENDOR_RE = /\/\/[^/]*sanitastroesch\.ch\//;
 
@@ -44,5 +48,5 @@ if (!rewritten) { console.log('Nothing to rewrite.'); process.exit(0); }
 
 const bak = DATA + `.bak-r2-${REVERSE ? 'reverse' : 'apply'}`;
 fs.copyFileSync(DATA, bak);
-fs.writeFileSync(DATA, JSON.stringify(data, null, 2) + '\n');
+writeData(data, { backup: false });
 console.log(`Wrote custom-data.json (backup: ${path.basename(bak)}).`);

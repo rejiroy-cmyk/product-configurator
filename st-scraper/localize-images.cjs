@@ -25,6 +25,10 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const crypto = require('crypto');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const DIR = __dirname;
 const ROOT = path.resolve(DIR, '..');
@@ -45,7 +49,7 @@ const PLAN = process.argv.includes('--plan');
 const IMG_KEYS = ['imgUrl', 'mainImgUrl'];
 
 // ── collect every distinct source url, and the widest tier it needs ────────────
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 
 function walk(node, fn) {
     if (!node || typeof node !== 'object') return;
@@ -340,7 +344,7 @@ function fetchOne(job) {
             else if (spec) stillBlank++;
         }
     });
-    fs.writeFileSync(DATA, JSON.stringify(data, null, 2));
+    writeData(data, { backup: false });
     console.log(`custom-data.json  : ${repointed} repointed, ${blanked} blanked (confirmed 404), ${left} still remote`);
     if (left) console.log(`  WARNING: ${left} vendor URLs survive — re-run the fetcher, they failed for a recoverable reason`);
     console.log(`guesser replaced  : ${filled} items gained a real local image, ${stillBlank} keep the local icon`);

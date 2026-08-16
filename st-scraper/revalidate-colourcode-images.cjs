@@ -20,6 +20,10 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const DIR = __dirname;
 const DATA = path.resolve(DIR, '..', 'custom-data.json');
@@ -61,7 +65,7 @@ function head(rawUrl) {
 const isLive = r => !!r && r.code === 200 && r.len >= MIN_BYTES;
 
 // ── 1. collect every distinct colour-code URL in the data ─────────────────────
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 const urls = new Set();
 const IMG_KEYS = ['imgUrl', 'mainImgUrl'];
 
@@ -125,7 +129,7 @@ console.log(`need a network check      : ${uncached.length}`);
     console.log(`fields restored: ${countFields(data)} colour-code image fields now render`);
 
     if (DRY) { console.log('\n--dry: custom-data.json not written'); return; }
-    fs.writeFileSync(DATA, JSON.stringify(data, null, 2));
+    writeData(data, { backup: false });
     console.log('custom-data.json written');
 })();
 

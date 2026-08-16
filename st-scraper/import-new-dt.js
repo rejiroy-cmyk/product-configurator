@@ -1,5 +1,9 @@
 const fs = require('fs');
 const path = require('path');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const DATA_PATH = path.resolve(__dirname, '../custom-data.json');
 const CSV_FILE = process.argv[2];
@@ -36,7 +40,7 @@ const records = rawRows.slice(1).map(r => {
     return obj;
 });
 
-let data = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
+let data = readData();
 if (!data.duschtrennwand) data.duschtrennwand = { trays: [] };
 const existing = data.duschtrennwand.trays;
 const existingArtNrs = new Set(existing.map(t => t.artNr));
@@ -111,5 +115,5 @@ clusters.forEach(c => {
     }
 });
 
-fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
+writeData(data, { backup: false });
 console.log(`Updated JSON! Added ${added} new products, updated ${skipped} existing products.`);

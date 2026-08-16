@@ -21,6 +21,10 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const crypto = require('crypto');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const DIR = __dirname;
 const ROOT = path.resolve(DIR, '..');
@@ -46,7 +50,7 @@ function localName(srcUrl) {
     return `${bank}_${base}_${hash}.webp`;
 }
 
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 const trays = (data.bidet_keramik && data.bidet_keramik.trays) || [];
 if (!trays.length) { console.error('No bidet_keramik trays — run inject-bidet-keramik.cjs --apply first.'); process.exit(1); }
 
@@ -87,7 +91,7 @@ if (REWRITE) {
         if (file && fs.existsSync(path.join(OUT_DIR, file))) { s.set('img/' + file); done++; }
         else { s.set(''); blank++; }   // no image is better than a 404 request
     }
-    fs.writeFileSync(DATA, JSON.stringify(data, null, 2));
+    writeData(data, { backup: false });
     console.log(`rewritten: ${done} slots -> img/…   left empty: ${blank}`);
     process.exit(0);
 }

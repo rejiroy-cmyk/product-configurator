@@ -25,6 +25,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const ROOT = path.resolve(path.dirname(fs.realpathSync(__filename)), '..');
 const DATA = path.join(ROOT, 'custom-data.json');
@@ -94,7 +98,7 @@ const isNeutralFinish = code => NEUTRAL_NAME.test(COLOR_NAMES[code] || '');
 const NEUTRAL_ORDER = ['100', '105', '101', '536', '713', '379', '104', '114', '501', '124', '123'];
 const neutralRank = code => { const i = NEUTRAL_ORDER.indexOf(code); return i === -1 ? NEUTRAL_ORDER.length : i; };
 
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 const pricesFile = JSON.parse(fs.readFileSync(PRICES, 'utf8'));
 const prices = pricesFile.prices || pricesFile;
 let scrape = {};
@@ -192,7 +196,7 @@ if (artChanged.length > 15) console.log(`    … and ${artChanged.length - 15} m
 
 if (APPLY) {
     fs.copyFileSync(DATA, DATA + '.bak-ch2heal');
-    fs.writeFileSync(DATA, JSON.stringify(data, null, 2) + '\n');
+    writeData(data, { backup: false });
     if (pricesFile.prices) { pricesFile.prices = prices; pricesFile.meta = { ...pricesFile.meta, entries: Object.keys(prices).length }; }
     else Object.assign(pricesFile, prices);
     fs.writeFileSync(PRICES, JSON.stringify(pricesFile, null, 2));

@@ -3,6 +3,13 @@ import fs from 'fs';
 import path from 'path';
 import zlib from 'zlib';
 import { viteSingleFile } from 'vite-plugin-singlefile';
+import { createRequire } from 'module';
+
+// custom-data.json is stored INTERNED (see modules/dataHydrate.js): repeated
+// mountingMaterials options and services live once in a shared table. /api/data serves
+// the file as it is and the client expands it; /api/save has to intern again, or the
+// admin panel posting its expanded in-memory copy would undo ~20 MB of it on first save.
+const { internData } = createRequire(import.meta.url)('./st-scraper/_dataFile.cjs');
 
 // Data is embedded as gzip+base64 (inflated at runtime via DecompressionStream) instead of
 // raw JSON, so the shipped single-file build stays small and the catalog/prices are not
@@ -63,7 +70,18 @@ export default defineConfig({
                         req.on('end', () => {
                             console.log('[VITE] /api/save called. Body length received:', body.length);
                             const dataPath = path.join(__dirname, 'custom-data.json');
-                            fs.writeFileSync(dataPath, body);
+                            try {
+                                // Re-intern whatever the client posted, and keep indent 2:
+                                // minified, every future edit is a one-line whole-file diff.
+                                const out = JSON.stringify(internData(JSON.parse(body)), null, 2);
+                                fs.writeFileSync(dataPath, out);
+                                console.log(`[VITE] /api/save wrote ${(out.length / 1048576).toFixed(2)} MB (interned).`);
+                            } catch (e) {
+                                // Unparseable body: write it through rather than lose the edit,
+                                // and say so — a silently dropped save is worse than a big file.
+                                console.warn('[VITE] /api/save could not intern, writing raw:', e.message);
+                                fs.writeFileSync(dataPath, body);
+                            }
                             res.setHeader('Content-Type', 'application/json');
                             res.end(JSON.stringify({ success: true }));
                         });

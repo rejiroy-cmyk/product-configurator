@@ -20,6 +20,10 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const crypto = require('crypto');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const DIR = __dirname;
 const ROOT = path.resolve(DIR, '..');
@@ -43,7 +47,7 @@ function localName(srcUrl) {
     return `${bank}_${base}_${hash}.webp`;
 }
 
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 const POOLS = ['waschtisch', 'wandklosett', 'standklosett', 'urinoir', 'zubehoer_pool'];
 
 // One slot per image position, keyed by art-Nr. The tray carries the API's own URL;
@@ -90,7 +94,7 @@ if (REWRITE) {
         if (file && fs.existsSync(path.join(OUT_DIR, file))) { s.set('img/' + file); done++; }
         else { s.set(''); blank++; }   // no image is better than a request that 404s
     }
-    fs.writeFileSync(DATA, JSON.stringify(data, null, 2) + '\n');
+    writeData(data, { backup: false });
     console.log(`rewritten: ${done} slots -> img/…   left empty: ${blank}`);
     process.exit(0);
 }

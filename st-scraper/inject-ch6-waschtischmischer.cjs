@@ -15,6 +15,10 @@
 const fs = require('fs');
 const path = require('path');
 const { classify, destinationsOf } = require('./classify-ch6.cjs');
+// custom-data.json is stored INTERNED (repeated mountingMaterials options and
+// services live once in a shared table) — readData/writeData hide that. Reading it
+// with fs directly yields the STRING "o412" where an option object is expected.
+const { readData, writeData } = require('./_dataFile.cjs');
 
 const ROOT = path.resolve(path.dirname(fs.realpathSync(__filename)), '..');
 const DATA = path.join(ROOT, 'custom-data.json');
@@ -28,7 +32,7 @@ const DEST = 'waschtischmischer';
 const api = JSON.parse(fs.readFileSync(API, 'utf8'));
 const refetch = fs.existsSync(REFETCH) ? JSON.parse(fs.readFileSync(REFETCH, 'utf8')) : {};
 const vars = JSON.parse(fs.readFileSync(VARS, 'utf8'));
-const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+const data = readData();
 const pricesFile = JSON.parse(fs.readFileSync(PRICES, 'utf8'));
 const prices = pricesFile.prices || pricesFile;
 
@@ -141,7 +145,7 @@ if (sample) {
 }
 if (APPLY) {
     fs.copyFileSync(DATA, DATA + '.bak-ch6wm');
-    fs.writeFileSync(DATA, JSON.stringify(data, null, 2) + '\n');
+    writeData(data, { backup: false });
     if (pricesFile.prices) pricesFile.prices = prices; else Object.assign(pricesFile, prices);
     fs.writeFileSync(PRICES, JSON.stringify(pricesFile, null, 2));
     console.log('\nWROTE custom-data.json (backup .bak-ch6wm) + prices.json');
