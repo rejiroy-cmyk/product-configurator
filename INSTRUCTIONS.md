@@ -87,6 +87,35 @@ This document outlines the strict business logic rules and safeguards that must 
      - 8.2 Brausearm (if not already included with the Regenbrause)
 - **Note:** the current scraped data already complies with order items 2–7; the rules above are encoded in the transform so future imports stay compliant.
 
+### Bademischer (Bath Mixers) — Standmodell
+
+A **free-standing** bath mixer is sold as a complete set: its own short text lists the
+parts ("… Höhe 949-981 mm, **Brauseschlauch 1250 mm, Stabhandbrause TwinStick**"). So it
+takes **no house-standard accessories at all**.
+
+- **BOM Sorting Order — the whole list:**
+  1. Bademischer (Main Item / Hauptartikel)
+  2. Einbaukörper or Grundkörper — the **Bodeneinbaukörper**, mandatory
+  3. Montageschiene or Montageset — **only if required** (never auto-added; the floor
+     body is set in concrete and the brand bracket map is for wall boxes)
+- **NO** Anschlussbogen, Brauseschlauch, Handbrause, Brausehalter or Brausegarnitur —
+  they are inside the article's art-Nr. Adding them bills the hose and hand shower twice.
+- **Detection:** `standmodell` or `freistehend` in the full text, bath context only
+  (`needsShowerAccessories` in `_shared.js`, tested BEFORE the Unterputz branch).
+- ⚠ **The trap:** a Standmodell's own text says "Einbaukörper … für **Bodeneinbau**", and
+  `_isUPbath` matches `/einbau/` — so it classified as Unterputz and pinned the UP-only
+  Anschlussbogen (`6544 100.501.000`, CHF 83.50) onto 34 of 36 trays, with **no "Ohne"
+  option in `SHOWER_STD.anschlussbogen`** to remove it. Test the Standmodell first.
+- **The body may exist only as a text reference.** Five Standmodelle carry no Einbaukörper
+  group and merely name the art-Nr; `createBademischerApp#updateBOM` resolves it via
+  `requiredBodyFor` and injects the row under the main item, skipping the injection when a
+  mounting group already offers that base (or it would be billed twice).
+- **One article, one row.** 14 Standmodelle carried a "Zubehör (Automatisch Erkannt)" group
+  holding exactly the Einbaukörper their Einbaukörper group already offered — two rows,
+  two charges (Alterna `6252 811`, Hansgrohe `6412 905`, KWC `6118 128`). The transform
+  drops a group whose art-Nr SET matches an earlier one's.
+- Covered by `tests/verify-accessory-colormatch.js`.
+
 ### Accessory Combinations (Brausegarnitur & Regenbrause)
 
 Applies to **both Duschenmischer and Bademischer** — every mixer configurator, not just the Aufputz/Unterputz cases above:

@@ -17,11 +17,11 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
 - **Vanilla JS SPA**, no framework. ES modules, bundled by **Vite** into a single
   `dist/index.html` via `vite-plugin-singlefile` (everything inlined).
 - `npm run dev` — Vite dev server on **port 5175** (see `.claude/launch.json`).
-- `npm test` — runs **9 suites, 237 assertions**: `verify-duschtrennwand` (38),
+- `npm test` — runs **10 suites, 311 assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
-  `verify-fulltext-rule` (73), `verify-product-display` (37),
+  `verify-fulltext-rule` (78), `verify-product-display` (37),
   `verify-no-kitchen-in-waschtischmischer` (4), `verify-scraper-maktx2` (7),
-  `verify-accessory-colormatch` (32). Plain Node with hand-rolled DOM
+  `verify-accessory-colormatch` (47), `verify-mixmatch-rules` (67). Plain Node with hand-rolled DOM
   mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the one jsdom
   test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
   **Run this after any change to `modules/factories/`.**
@@ -244,6 +244,50 @@ stripped before use (an em-dash in it throws `ERR_INVALID_CHAR`).
   (`GET /api/data`, `POST /api/save`).
 - **Prod (single-file):** there is no server; state persists in `localStorage`
   (e.g. `sanitas_wishlist`).
+- **`skippedUnresolved` was a work-list, not a verdict — and it is now empty.**
+  `inject-ch2-waschtisch.cjs` parked 29 bases because neither the variant scrape nor
+  `ch2-api.json` could resolve a full art-Nr (the API dump holds every one of those
+  keys with the value **null**, so nothing was ever coming). All 29 are in now:
+  **`inject-ch2-progetto.cjs`** — 6 bases / 12 SKUs, Waschtischkombination Alterna
+  progetto 46, the house's own combination, absent for as long as Laufen's and
+  Duravit's were in. **`inject-ch2-unresolved.cjs`** — the other 23 / 118 SKUs
+  (5 Waschtischkombination Laufen Pro S, 16 Auflegewaschtisch Catalano Zero/Sfera/Green,
+  2 Villeroy & Boch Antao).
+  The source is the catalogue's own `Farbe:` tail, which states the finish codes AND
+  their net prices — a stated art-Nr, not a synthesized one. Four things any
+  catalogue-sourced injector has to get right, all of them learned the hard way here:
+  - **Heal the PDF's soft hyphens** (`Armaturenlö‐ cher` → `Armaturenlöcher`).
+    `productText()` normalises that hyphen to ASCII and would keep the split word forever.
+  - **Cut the `Farbe: … Zubehör` price tail** off `description`, or every classifier
+    reads "379 871" as product text.
+  - **A price can look like a colour code.** With the "202: Cleaneffekt" marker lifted
+    out, "… 227, 228,  322.— 348.10" leaves the net price exactly where the next code
+    would be and a greedy comma-run swallows it — that is how a phantom
+    `2231 640.322.000` appeared. A 3-digit token immediately followed by `.—` or a
+    decimal is a PRICE.
+  - **⚠ THE CATALOGUE CANNOT BE TRUSTED FOR THE ART-NR — only the shop can.** The
+    expensive lesson of this exercise. "202: Cleaneffekt" was read as a stray legend
+    token, and the evidence looked conclusive: 202 is in no article, no price key, and
+    not in the 339-code Farbschlüssel. It is the **THIRD art-Nr group** — the coating.
+    The shop serves `PG1/02231638_536_202.png`, so the real SKU is
+    `2231 638.536.202`, not the `…536.000` that went in. **78 wrong art-Nrs were
+    injected** and only `scrape-ch7-images.cjs` caught them. The reconstructed colour
+    LISTS were wrong too: catalogue said {228,423,535,536} for `2231 638`, the shop
+    shows {172,226,423,535,536} — not a subset, not a superset, different.
+    **So: scrape the images before believing a Farbe list.** The filenames carry the
+    full 13-digit art-Nr, one page visit returns the whole variant matrix, and it needs
+    no login. `inject-ch2-unresolved.cjs` now treats `ch2-gap-images.json` as
+    authoritative and uses the catalogue only for specs and the two price tiers; with
+    no scrape it emits ONLY the tier-1 finish and holds the coloured SKUs back. It also
+    PURGES any art-Nr under a handled base that the shop does not list — that is how
+    the 78 went away.
+  **The VAT gate**: every printed net/gross pair must satisfy gross ≈ net × 1.081, and
+  every colour must resolve in COLOR_NAMES, or the base is reported and skipped. 39/39
+  pass. Note what it can and cannot do — it proved the numbers were prices, and it
+  could never have caught the third-group error above.
+  Labels carry the discriminators (`2112 273` vs `274` are both 120 cm, `2231 641` vs
+  `642` both Ø 42): three BOM lines that read alike are three chances to order the
+  wrong one. Images: all 143 SKUs carry a scraped PG1 shot, localised to `public/img`.
 - **Chapter 3 injection (Einzelsanitärapparate + Installationssysteme).** 887 articles,
   the largest single injection. Routing is owned by **`st-scraper/classify-ch3.cjs`**
   (`classify(entry)` → `waschtisch` | `wandklosett` | `standklosett` | `urinoir` |
@@ -314,6 +358,22 @@ copied into every fetcher and the copies drifted with the same wrong list.
 `ONLY_EMPTY`. The `proxy` helpers in `inject-ch*.cjs` still carry the old list,
 but they build `wsrv.nl` URLs — a path retired when localisation went direct.
 
+**`scrape-ch7-images.cjs` is the image scraper to reach for, and it is not Ch7-only** —
+`OUT=` points it at another chapter's file rather than forking it (every forked filter
+in this toolkit drifted). It is **anonymous**: no login, no `cookie.txt`, so it works
+where the `article.ws` API returns null. Two things make it worth running beyond images:
+the URL is read from the DOM and never constructed, and the filename carries the full
+13-digit art-Nr — which makes it the **ground truth for what SKUs actually exist**.
+`all[]` returns every per-SKU image the page showed, so ONE visit covers a base's whole
+variant matrix. Run it before trusting any catalogue-derived art-Nr:
+
+```bash
+BASES=2231638,2231640 OUT=ch2-gap-images.json node st-scraper/scrape-ch7-images.cjs
+```
+
+Then localise, or the data holds a remote URL that fires a vendor request on every
+render: `localize-images.cjs --emit-jobs` → `localize_fetch.py` → `--rewrite`.
+
 ## GLOBAL RULE — full-text classification (no exceptions without a comment)
 
 **Any logic that classifies, matches, or filters a product** (type, situation,
@@ -332,6 +392,85 @@ label+description concatenation) as the source for such checks.
 - Enforced by `tests/verify-fulltext-rule.js` (static source guard + behavioral
   fixtures; part of `npm test`, so `npm run build` fails on regression). When
   adding/migrating a classification function, ADD IT to the `GUARDED` list there.
+
+## Mix & Match — what SAP receives
+
+Covered by `tests/verify-mixmatch-rules.js` (part of `npm test`).
+
+- **The set header is G1 or G4.** `setCodeFor(basin)` picks it. A
+  **Waschtischkombination / Möbelkombination** (42 articles — Laufen Pro S,
+  Duravit Happy D.2 Plus) is basin AND furniture under ONE art-Nr, and SAP books
+  that as **G4**; everything else is G1 and nothing else about the set changes.
+  The test is **`isWaschtischKombination`** in `_shared.js` — one rule, because the
+  **Ausführung pill** in *both* basin configurators reads it too
+  (`extractBasinTyp` in Mix & Match, `extractAusfuehrung` in `createWashbasinApp`,
+  where it must be checked FIRST or a combination that is also a Doppelwaschtisch
+  files under that instead). It is an identity-PREFIX check (the word is at the
+  head of the short text, the one part truncation never eats) — deliberately not a
+  full-text search, because a Möbelwaschtisch's description says "passend zur
+  Waschtischkombination" and is not one. The copy button retitles itself in
+  `updateBOM`; `app.js` writes "G1 kopieren" when the configurator opens, before a
+  basin exists.
+  53 combinations today: 42 Laufen/Duravit, six **Alterna progetto 46** and five more
+  **Laufen Pro S** (`2112 267`–`274`) recovered from Ch2's `skippedUnresolved` — see
+  the Data layer.
+- **A round bowl has a width.** It states a DIAMETER and no Breite, and the `Ø` form
+  is in both the label and the `size` field ("Ø 45"), so `extractBreite` read neither
+  and 33 basins across Laufen Pro, Kartell, Gessi and Catalano fell into `unknown` —
+  out of the Breite pill entirely. The diameter IS the width; `extractBreite` reads it
+  now and `unknown` is down to 0 of 941.
+- **TXK103 is a text position, not an article.** Furniture in the order adds it:
+  under the Möbel line, under a Hochschrank/Seitenschrank, and for a G4
+  combination (whose furniture is inside the ceramic's art-Nr) on the first line
+  *after* the spacer — past the last Einbaukosten, so it never lands inside the
+  G4 block that gets pasted as one set. `pushTextCode` emits it **once** per
+  Stückliste. It carries NO quantity: `sapLine` exports it as a bare line with no
+  tab and no Menge, and both the BOM row and the preview summary show "—".
+- **A CWS dispenser needs its front Panel.** 24 dispensers (12 Paradise,
+  12 PureLine) state "ohne Panel <name> <art-Nr>" in their own text;
+  `requiredPanelFor` (`_shared.js`) reads that art-Nr — FULL-TEXT RULE, the label
+  truncates long before the number, and ERP `<br>` tags are stripped first — and
+  resolves the **white** SKU via `findPanelSku(base, '100')`. COLOUR RULE: white is
+  the finish triplet 100, never a word; the seven colours a panel comes in are all
+  real SKUs. The row goes directly under its dispenser. `4611 183.000.000` says
+  "ohne Panel" and names nothing — the catalogue pairs it (p. 4.169) and
+  `inject-cws-panels.cjs` writes that onto the article as `panelBase`. A panel that
+  resolves to nothing renders a **visible warning row**, never a guessed art-Nr.
+  The 13 Panel articles were injected by `st-scraper/inject-cws-panels.cjs`; five
+  of them also had the *dispenser's* price bled onto them by the catalogue PDF
+  parser (a CHF 199 panel), corrected there from the per-art-Nr shop scrape.
+- **A Panel is never a standalone accessory choice.** Its label names the dispenser
+  it serves ("Panel CWS Paper Slim, zu Papierhandtuchspender CWS Paradise …"), so
+  the accessory keywords match it — the partner-reference trap. Guarded by a
+  `^panel` identity prefix in `populateAddonPanel`.
+- **A bin needs its Wandhalterung.** `requiredWallMountFor` puts the bracket
+  directly under the bin. `WALL_MOUNT_BY_BASE` is an explicit pairing taken from the
+  catalogue's own Zubehör list — the four CWS Papierkorb bases (`4611 611/612/861/862`)
+  → **`4611 863`**, injected by `st-scraper/inject-cws-wandhalterung.cjs`. It is
+  deliberately NOT inferred from text: nearly every Abfallbehälter says "freistehend
+  oder Wandmontage" while no bracket exists to order, and the pool's five
+  "Wandhalter*" articles all belong to Duschwischer and Geberit Duofix. The Paperbin
+  Zubehör (`4611 876/877` …) look like brackets in a Zubehör column and are Deckel
+  and Rahmen. Two bins sharing one bracket give ONE line at quantity 2.
+- **Accessoires keyword map** (`populateAddonPanel`): `handtuchspender` alone
+  covers Papier-/Stoff-/Rollenpapierhandtuchspender (81); `abfallbehälter` covers
+  Papierabfallbehälter and the combined Papierhandtuchspender-Abfallbehälter (116);
+  plus `papierkorb` (34). **`Hygieneabfallbehälter` is excluded** — WC sanitary
+  disposal belongs to the WC app, and it ends in the same word.
+- **The Accessoires scan is FULL-TEXT, guarded.** The match is
+  `keyword in label` **OR** `keyword in withoutPartnerRefs(productText(t))`. The
+  label arm is kept as its own arm so the change can only ever ADD. The description
+  arm is what finds "Spenderkombination KWC Rodan RODX 617", which names
+  Seifenspender + Papierhandtuchspender + Abfallbehälter nowhere in its truncated
+  label; 12 articles are reachable only that way (5 Spenderkombination,
+  4 Handtuchwärmer with integrated Handtuchhalter, 3 Duschablage).
+  **`withoutPartnerRefs`** (`_shared.js`) is the trap guard: it blanks the noun
+  after a zu/zur/zum/für marker plus any coordinated list ("zu Seifenspender **und**
+  Handtuchhalter"), and stops at the first non-coordinator — so a Duschablage's
+  "zur Glasbefestigung mit … und aussenliegendem Handtuchhalter" keeps the
+  Handtuchhalter it genuinely is. Blanking to the next comma would swallow it.
+  The mirror and Möbel toggles still match on the label alone; they were left
+  alone on purpose (mirrors match by `productType` tag first).
 
 ## Conventions & gotchas
 
@@ -361,15 +500,49 @@ Applies to **all Duschenmischer and Bademischer** (not one montage type or brand
 rules live in `_shared.js` and are called from both factories' `updateBOM`; covered by
 `tests/verify-accessory-colormatch.js`.
 
+- **A set is only ever offered by the bundle row.** No part dropdown may list one —
+  it is three articles under one art-Nr, so picking it beside the individual rows
+  double-charges the hose. Two gates enforce it, and both are needed: `accPoolOf`
+  withholds sets from **every** part family (not just `Handbrause`), and
+  `accGroupChoice` hides a set that a curated/ERP option list carries, keeping the
+  surviving options on their **original indices** so a stored `{k:'std',i}` pick and
+  `mischerOptionsState` cannot slide onto a different article.
+- **The bundle row sits directly under the Handbrause** — it is the alternative to that
+  row. Three rank functions decide it and all three must agree: `ensureShowerGroups` in
+  `_shared.js` plus the AP and UP sorts in `createDuschenmischerApp`. Each ranks by NAME,
+  so each tests `isGarniturGroupName()` **before** its part rules —
+  `"handbrausegarnitur".includes("handbrause")` is true and files the bundle row as a part.
+- **A group NAMED for a set is the bundle row** (`RX_GARNITUR_GROUP`, used by
+  `accFamilyOf`, `ensureShowerGroups` and the factory sorts via `isGarniturGroupName`). "Handbrausegarnitur" contains "Handbrause"
+  and used to be read as the tray's hand-shower group — which cost three things at
+  once on the 35 trays that ship one: no Handbrause row of their own, no Garnitur
+  group for `brausegarniturPlan` to key off (the whole bundle rule was inert there),
+  and a set pre-selected at options[0] next to the hose it contains. `ensureShowerGroups`
+  now pulls the `Ohne …` option to the front of such a group (the set is never the
+  default) and **merges** duplicates — Dornbracht ships the row under two spellings
+  ("Handbrausegarnitur" + "Handbrausengarnitur") holding different articles.
 - **Brausegarnitur Bundle Rule** — `brausegarniturPlan(materials, {brand, code, serie, picks})`
-  returns `{idx, forceAuto, forceOhne}`. Selecting a Garnitur switches `Brauseschlauch`,
-  `Handbrause`, `Gleitstange` (+`Brausehalter`, per `ACC_BUNDLED_BY_GARNITUR`) to `ohne` —
-  the set IS those parts in one art-Nr, so billing both double-charges the hose.
+  returns `{idx, forceAuto, forceOhne, bundled, autoArt}`. `bundled` is
+  `garniturCovers(chosen)` — the families **that** set actually contains, read off its
+  own text: a hose set must not empty the `Gleitstange` row it never had, and Dornbracht
+  `6431 725.501.000` says "ohne Handbrause" outright. `ACC_BUNDLED_BY_GARNITUR` is only
+  the default (all four).
+- **The bar is often only in SAP** (`garniturHasRail`). Half the sets never write
+  "Gleitstange" — the bar IS the series name ("Unica'C, 900 mm"; Dornbracht "800 mm,
+  Gelenkhalter"). `tech.Ausprägung` is a bare length for a bar set ("900 mm", "110 cm")
+  while a hose set's carries the thread spec (`½" x ⅜", 1250 mm`), and `tech.Höhe` is the
+  built height; ≥ **600 mm** is a bar (below that is hand-shower geometry). 8 of the 61
+  sets are bar sets by this route only — without it a Unica'C set left a CHF 479 rail row
+  standing beside itself. A length in the *label* alone still infers nothing: a wrong bar
+  empties the row and ships an order without one.
 - **Brausegarnitur Fallback** — the Garnitur is never the default *unless* a bundled part
-  has no SKU in the mixer's finish **and a colour-matched Garnitur exists**. Axor Citterio M
-  `6415 120.475.000` is the case: in `.475` there are 14 Handbrausen, 5 Brauseschläuche,
-  **0 Duschgleitstangen**, 3 Axor Garnituren. Without the second half of that condition the
-  rule would empty three rows and put nothing in their place.
+  has no SKU in the mixer's finish **and a colour-matched Garnitur covers every missing
+  part**. Axor Citterio M `6415 120.475.000` is the case: in `.475` there are 14
+  Handbrausen, 5 Brauseschläuche, **0 Duschgleitstangen**, 3 Axor Garnituren. Without the
+  second half of that condition the rule would empty three rows and put nothing in their
+  place — and a *hose* set would pass a mere existence check while leaving the shower
+  railless. The plan hands the row its `autoArt`, so the set the row fills with is the
+  one the plan verified.
 - A forced-off row renders as `Ohne …` **without a dropdown** (`choice.forcedOhne`) — the
   Garnitur row is the control, and a pick there would be overwritten on the next render.
   Not every group carries an `Ohne …` option (Handbrause and Gleitstange do not), so
@@ -379,17 +552,99 @@ rules live in `_shared.js` and are called from both factories' `updateBOM`; cove
   out of the **description** (FULL-TEXT RULE — the label truncates long before it) and
   `findArticleByBase` resolves it across every loaded pool, since the body usually sits in
   another category. The row is injected directly below the head and deduped against the
-  BOM's existing art-Nrs (a mixer's own iBox must not appear twice). 396 pool SKUs name a
-  body; 85 resolve today — the rest render a **visible warning row** rather than a guessed
-  art-Nr, because inventing a finish triplet puts a wrong part into a real order.
-  ERP descriptions break lines *inside* the number (`6438<br>844`), so tags are stripped
-  before matching — that alone took detection from 160 SKUs to 396.
+  BOM's existing art-Nrs (a mixer's own iBox must not appear twice). Across every pool,
+  1161 SKUs name a body and **1159 resolve**; the rest render a **visible warning row**
+  rather than a guessed art-Nr, because inventing a finish triplet puts a wrong part into
+  a real order. ERP descriptions break lines *inside* the number (`6438<br>844`), so tags
+  are stripped before matching — that alone took detection from 160 SKUs to 396.
+  **The gap was never the rule, it was the catalogue.** 75 of those SKUs pointed at 21
+  bodies that had simply never been injected, though 20 sat fully specified in
+  `ch6-api.json`. `st-scraper/inject-ch6-named-bodies.cjs` closed it: it takes its
+  work-list from the LIVE data (scan → unresolved bases → API dump), so a re-run after any
+  future injection only adds what is still missing, and it cross-checks SAP's `matnr`
+  against the shop's image filename before writing — a base the shop has no page for is
+  reported and keeps its warning row (`6171 974` is the one). Not to be confused with
+  `inject-ch6-einbaukoerper.cjs`, which attaches a body to UP mixers from the catalogue's
+  own Zubehör bundles.
+  Note the rule fires on the **chosen accessory**, not on the tray: a mixer whose own text
+  says "ohne Einbaukörper NNNN NNN" gets its body from an `Einbaukörper` mounting group, and
+  a tray that has neither shows no body row at all.
+- **Regenbrause Brausearm Rule** — `requiredArmFor(head, {brand, code, used})`. The other
+  half of what a head is sold without: "ohne Anschlussbogen" names **no art-Nr** at all,
+  so `requiredBodyFor` never fired and 19 of the 178 pool heads could be swapped into a
+  tray with no Brausearm row, leaving a Stückliste that cannot be mounted. The arm follows
+  the **head's** brand (a Hansgrohe Raindance takes a Hansgrohe arm), the colour still
+  follows the mixer, and wall vs ceiling follows whatever the head states — a ceiling
+  connector cannot mount a wall head. Injected only when no Brausearm row is already
+  standing (`effectiveMat`), and since the injected row has no dropdown it prints its own
+  tier note; nothing at all in the catalogue is REPORTED, never invented.
+- **A part sold FOR one body leaves with it** — `bodyPresentFor(item, usedArtNrs)`.
+  "Befestigungsset Gessi, zu Einbaukörper 6252 861" has no purpose once that body is out
+  of the BOM. 44 articles name their body this way, some as a shared-prefix list
+  ("6252 820 / 826 / 850"), which `bodyRefsFor` expands. Note this is the Einbaukörper's
+  set, NOT the Regenbrause's — swapping the head leaves it standing, correctly.
+
+### A candidate must be a free-standing article, and the badge must be honest
+
+- **`isSystemPart`** — a COMPONENT of another product is not an accessory. KWC
+  `6545 114/115.501.000` is a "Duschgleitstange … für Duschsystem, **wasserführende**"
+  (SAP agrees: `tech.Ausprägung: "für Duschsystem"`) — a water-carrying bar that only
+  works inside its Duschsystem, and at CHF 479 it was the brand-matched default rail on
+  every KWC mixer. Watch the partner-reference trap: the text must say what the article
+  IS, not what it pairs with. Exactly 2 articles match today.
+- **`Abstellverschraubung` is a family** whose pool articles carried **no `productType`** —
+  a productType-only lookup found none, so the row never even got a dropdown.
+  `ACC_POOL_LABEL` matches them by identity prefix as well (the permitted exception),
+  and `st-scraper/inject-abstellverschraubung.cjs` tagged them and injected the rest:
+  **4 chrome articles → 39 SKUs in 11 finishes**. That script reads TWO sources and
+  reading only the first is why its first run came up short — the `ch6-api*.json` dumps
+  carry the full SAP record but only ONE finish per article; the OTHER finishes live in
+  `chapter-6-variants-scraped.json` (Edelstahloptik, Brushed copper/graphite, the PVD
+  golds). Entries are written per 7-digit base with the rest as `variants`, which is
+  what `accSkuInColour` needs to swap a chosen model's colour.
+- **A thread is not interchangeable, so a mismatch is REMOVED, not ranked down**
+  (`threadOf` + the new `opts.filter` on `accCandidates`). ½" x ¾" does not screw onto
+  a ½" x ½" inlet; offering it anywhere in the list is offering the wrong part. An
+  article that states no thread stays — there is nothing to contradict.
+- **`packUnits(item)` — how many pieces one art-Nr delivers.** Alterna sells its stop
+  valves as a "Set à 2 Stück", so the position that needs two takes **one** line, while
+  a single-piece KWC valve takes two. `accGroupChoice` divides the position's `menge` by
+  the pack size; getting this wrong bills four valves.
+- **A swap must not change the POSITION's quantity.** `_accItem` stamps every pool part
+  `menge: 1`, so colour-matching a Duschmischer's Abstellverschraubung silently ordered
+  one stop valve instead of two. `accGroupChoice` now carries the curated option's
+  quantity onto the matched article. All 88 mixer groups with `menge > 1` are this family.
+- **No brand match → the HOUSE line is the standard** (`ACC_HOUSE_BRAND` = Alterna /
+  Emporio, +3 in the ranking). Tier 2 is by definition another brand, and it used to be
+  whichever the pool listed first — a Schwarz-matt KWC Ora opened on a CHF 519 Emporio
+  rail while the Alterna one at CHF 282 sat further down. Inert in tiers 1 and 3, where
+  every candidate already is the own brand.
+- **Tier 4 = "Farbe abweichend": states a mismatch, claims nothing.** Tier 3 means "own
+  brand, other colour", and it was being printed under a *Hansgrohe* set on a KWC mixer
+  (a pool pick survives a finish change, and its brand need not match). Tier 4 also
+  replaces the old SILENT tier 0 whenever a curated part's triplet differs from the
+  mixer's — a chrome Alterna rail in a copper BOM with no badge reads as "matched".
+  `000` is the colourless code and never counts as a mismatch.
 
 ### Pool tags do not equal these families
 
 `accPoolOf` translates. Rails are tagged **both** `Gleitstange` (33) and `Duschgleitstange`
 (96) — reading only the first missed three quarters of them and made the colour-gap check
-above see a gap everywhere. A **Brausegarnitur has no tag at all**: the sets sit under
-`Handbrause` and are found by text (`isGarniturSet` — needs a *rail*, or it is an ordinary
-hand shower), and are excluded from the `Handbrause` family so a hand-shower row can never
-silently become a whole rail set.
+above see a gap everywhere. A **Brausegarnitur has no tag at all**: all 58 sit under
+`productType: Handbrause` and are found by text (`isGarniturSet`), then withheld from every
+part family so a hand-shower row can never silently become a whole set.
+
+`isGarniturSet` = a **Brause**-anchored Garnitur word (`brausen?garnitur|brauseset|duschset|
+duschgarnitur` — a *Duschwannengarnitur* is a drain part) **and** a rail or a hose. Three
+traps sit in that second half, all of them label-invisible:
+
+- the hose is spelled four ways plus a typo — `Brauseschlauch`, `Brausenschlauch`,
+  `Metallschlauch`, a bare `Schlauch 1750 mm`, and Dornbracht's `Brauseschaluch`
+  (`6431 263.501.000`). Matching only the tidy spelling left three sets in the Handbrause row.
+- **only the description says so.** "Handbrausegarnitur Fantini Fit ½", mit integiertem
+  Brausenanschluss, Rosette" reads like one article until the description adds
+  "Brauseschlauch 1500 mm, Handbrause Fantini Fit". Reading labels alone left **29** sets
+  in the Handbrause dropdown — half of them.
+- what a set does NOT say is not inferred. Dornbracht's `800 mm, Gelenkhalter,
+  Arretierungshebel` family reads like a rail set but never states a rail; inferring one
+  would switch off the `Gleitstange` row and ship an order without a rail, so it does not.
