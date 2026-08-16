@@ -74,6 +74,10 @@ const GUARDED = {
         'extractSerie', 'extractFaucetSerie', 'extractUeberlauf', 'extractAblauf',
         'extractAbstellflaeche', 'extractAusladung', 'extractAuslauf', 'extractBasinTyp',
         'extractBreite', 'extractHahnloch', 'extractFaucetAusfuehrung', 'isAblaufItem',
+        // The Accessoires candidate scan: an ERP label truncates at ~40 chars, so what
+        // an article IS ("Spenderkombination … Seifenspender und Papierhandtuchspender")
+        // regularly survives only in the description. Guarded by withoutPartnerRefs.
+        'populateAddonPanel',
     ],
     'modules/factories/createRelationalApp.js': [
         'extractSerie', 'extractMontage', 'extractTrayMontage', 'classifyAccessory',
@@ -83,8 +87,12 @@ const GUARDED = {
     // Abgang budget + system detection, plus the two accessory-bundling classifiers:
     // a Garnitur states its rail, and a rain head names the Einbaukörper it lacks,
     // in the description — both are truncated out of the label.
+    // requiredPanelFor: a CWS dispenser names the front panel it ships WITHOUT
+    // ("ohne Panel CF Slim 4611 230"). "ohne Panel" is the last thing the truncated
+    // label ever keeps and the art-Nr never survives the cut.
     'modules/factories/_shared.js': ['outletCount', 'isShowerSystem', 'needsShowerAccessories',
-        'isGarniturSet', 'requiredBodyFor'],
+        'isGarniturSet', 'garniturCovers', 'garniturHasRail', 'isSystemPart', 'requiredBodyFor',
+        'requiredPanelFor'],
     // Injection-time routing counts too: classify-ch3 decides which pool a catalogue
     // article lands in, and Ch3's distinguishing words ("Standklosett Keramik", "für
     // Urinoir") live in the description far more often than in the truncated ERP label.

@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, productText, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups , fullLabel, cleanSerie, artFinishCode, accFamilyOf, accSkuInColour, accGroupChoice, accTierNote, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, requiredBodyFor, bomExtraRowHTML } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, productText, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups , fullLabel, cleanSerie, artFinishCode, accFamilyOf, accSkuInColour, accGroupChoice, accTierNote, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, requiredBodyFor, requiredArmFor, bodyPresentFor, bomExtraRowHTML } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
@@ -17,11 +17,27 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
         );
       }
 
+      // The SAME article under two group names is billed twice. 14 Standmodell trays
+      // carry a "Zubehör (Automatisch Erkannt)" group holding exactly the Einbaukörper
+      // the "Einbaukörper" group already offers (Alterna 6252 811, Hansgrohe 6412 905,
+      // KWC 6118 128), so the Stückliste ordered — and charged — two floor bodies.
+      // Compared by art-Nr SET, so a group that merely shares a first option survives;
+      // the earlier group wins because the ERP name is the specific one.
+      if (Array.isArray(tray.mountingMaterials)) {
+        const seen = new Set();
+        tray.mountingMaterials = tray.mountingMaterials.filter(m => {
+          const key = (m.options || []).map(o => o && o.artNr).filter(Boolean).sort().join('|');
+          if (!key || !seen.has(key)) { if (key) seen.add(key); return true; }
+          return false;
+        });
+      }
+
       // Shower set (AP + UP): ERP-injected Bademischer often ship WITHOUT their
       // Brauseschlauch / Handbrause / Brausehalter. Add the house-standard groups when
       // missing so the copied Stückliste is complete — skips bath-only fillers
-      // (Wanneneinlauf/Wannenfüll) and self-contained systems. Runs before the UP-only
-      // logic below so Aufputz Bademischer are covered too.
+      // (Wanneneinlauf/Wannenfüll), self-contained systems and Standmodelle (which ship
+      // the accessories inside the article). Runs before the UP-only logic below so
+      // Aufputz Bademischer are covered too.
       const _isUPbath = /unterputz|endmontage|einbau|grundk[öo]rper/i.test(trayFull.toLowerCase());
       tray.mountingMaterials = ensureShowerGroups(tray.mountingMaterials || [], tray, { isBath: true, isUP: _isUPbath });
 
@@ -822,6 +838,32 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
         const _garnitur = brausegarniturPlan(this.selectedTray.mountingMaterials, {
             brand: _mixerBrand, code: _mainCode, serie: _mixerSerie, picks: this.accPick
         });
+        // Does the tray already show an arm? A head sold "ohne Anschlussbogen" only needs
+        // one injected when no Brausearm/Deckenanschluss row is standing. effectiveMat()
+        // is the rule for reading one group to decide another — it sees the user's pick.
+        const _hasArmRow = (this.selectedTray.mountingMaterials || []).some((m, idx) => {
+            if (accFamilyOf(m.name) !== 'Brausearm' || !this.isMatVisible(m, idx)) return false;
+            const cur = this.effectiveMat(idx);
+            return !!(cur && !/^ohne/i.test(cur.label || ''));   // label-prefix by design
+        });
+
+        // The mixer's OWN body. A Standmodell is the mixer plus its Bodeneinbaukörper and
+        // nothing else, so when the tray only NAMES the body in its text and carries no
+        // Einbaukörper group to pick it from, the one mandatory position would be missing
+        // altogether — five Standmodelle were in exactly that state. Injected only when no
+        // group already offers that base, or the group and this row would bill it twice.
+        let _trayBodyHTML = '';
+        const _trayBody = requiredBodyFor(_active);
+        if (_trayBody) {
+            const _base = (a) => String(a || '').replace(/[^0-9]/g, '').slice(0, 7);
+            const _wanted = _trayBody.artNr ? _base(_trayBody.artNr) : String(_trayBody.missingBase || '').replace(/[^0-9]/g, '');
+            const _inGroup = (this.selectedTray.mountingMaterials || []).some(m =>
+                (m.options || []).some(o => o && _base(o.artNr) === _wanted));
+            if (!_inGroup) {
+                if (_trayBody.artNr) { _usedArt.add(_trayBody.artNr); t += 1; }
+                _trayBodyHTML = bomExtraRowHTML(_trayBody, 'zwingend zur Armatur');
+            }
+        }
 
         ((r.innerHTML += `
                 <tr class="bom-main-item">
@@ -831,7 +873,7 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
 
                     <td><strong>1</strong></td>
                 </tr>
-            `),
+            ` + _trayBodyHTML),
           this.selectedTray.mountingMaterials &&
             this.selectedTray.mountingMaterials.forEach((n, i) => {
               if (!this.isMatVisible(n, i)) return;
@@ -839,12 +881,15 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
               if (a !== void 0) {
                 const fam = accFamilyOf(n.name);
                 const allowAuto = _garnitur.forceAuto && fam === 'Brausegarnitur';
-                const forceOhne = _garnitur.forceOhne && ACC_BUNDLED_BY_GARNITUR.indexOf(fam) >= 0;
+                // Only the rows the CHOSEN set actually contains go off (a hose set
+                // leaves the Gleitstange row standing).
+                const forceOhne = _garnitur.forceOhne && (_garnitur.bundled || ACC_BUNDLED_BY_GARNITUR).indexOf(fam) >= 0;
 
                 const choice = accGroupChoice(n, {
                     brand: _mixerBrand, code: _mainCode, serie: _mixerSerie,
                     stdIdx: a, pick: this.accPick[i], used: _usedArt,
-                    forceOhne: forceOhne, allowOhneAutoMatch: allowAuto
+                    forceOhne: forceOhne, allowOhneAutoMatch: allowAuto,
+                    autoArt: allowAuto ? _garnitur.autoArt : null
                 });
                 const l = choice.item;
                 const isOhne = choice.isOhne;
@@ -852,6 +897,9 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
                 let isInlineDropdown = config.enableGalleryUX && choice.hasChoices;
 
                 if (!isInlineDropdown && isOhne && !choice.forcedOhne) return;
+                // A part sold "zu Einbaukörper NNNN NNN" leaves with that body: the
+                // Einbaukörper row is rendered first, so _usedArt already knows.
+                if (!isOhne && l && !bodyPresentFor(l, _usedArt)) return;
                 if (l && l.artNr) _usedArt.add(l.artNr);
 
                 let descHTML = `<div class="bom-desc">${l ? fullLabel(l) : ''}</div>`;
@@ -891,6 +939,18 @@ export function createBademischerApp(title, desc, mainImgUrl, config = {}) {
                     if (body && !(body.artNr && _usedArt.has(body.artNr))) {
                         if (body.artNr) { _usedArt.add(body.artNr); t += 1; }
                         r.innerHTML += bomExtraRowHTML(body, `zwingend zu ${n.name || 'Zubehör'}`);
+                    }
+                    // …and a head sold "ohne Anschlussbogen" needs an arm to hang on.
+                    // Skipped when the tray already carries a filled Brausearm row.
+                    if (!_hasArmRow) {
+                        const arm = requiredArmFor(l, { brand: l.brand || _mixerBrand, code: _mainCode, used: _usedArt });
+                        if (arm) {
+                            if (arm.artNr) { _usedArt.add(arm.artNr); t += 1; }
+                            // The row carries no dropdown, so it says what it settled for.
+                            const armNote = `zwingend zu ${n.name || 'Zubehör'}`
+                                + (arm.tier && arm.tier !== 1 ? ` · ${accTierNote(arm.tier)}` : '');
+                            r.innerHTML += bomExtraRowHTML(arm, armNote);
+                        }
                     }
                 }
               }

@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel , fullLabel, renderGalleryGrid, galleryBackButton } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel , fullLabel, renderGalleryGrid, galleryBackButton, isWaschtischKombination, KOMBI_LABEL } from './_shared.js';
 
 export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
     const suffix = title.replace(/\s/g, '');
@@ -68,6 +68,10 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
         },
         extractAusfuehrung: function (t) {
             const lbl = ((t.label || '') + ' ' + (t.description || '')).toLowerCase();
+            // FIRST: basin + furniture in one art-Nr is its own Ausführung. It has to
+            // outrank the rest — a "Waschtischkombination … Doppelwaschtisch aus Keramik"
+            // would otherwise file under Doppelwaschtisch and the pill would never fill.
+            if (isWaschtischKombination(t)) return KOMBI_LABEL;
             if (lbl.includes('doppelwaschtisch')) return 'Doppelwaschtisch';
             if (lbl.includes('aufsatzwaschbecken') || lbl.includes('aufsatzbecken') || lbl.includes('auflegewaschtisch')) return 'Aufsatzwaschtisch';
             if (lbl.includes('wandbecken')) return 'Wandbecken';

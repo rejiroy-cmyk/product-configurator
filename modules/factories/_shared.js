@@ -246,6 +246,52 @@ const productText = (m) => {
         .trim();
 };
 
+// ── The partner-reference trap, defused ──────────────────────────────────────
+// Reading the FULL text is the global rule, but a description also says what an
+// article PAIRS WITH: "Panel CWS CF Slim, zu Seifenspender CWS Paradise" is not a
+// Seifenspender. Keyword-classifying the raw text turns every such accessory into
+// the thing it hangs on.
+//
+// The marker is a zu/zur/zum/für immediately followed by the partner's NAME, and
+// only that name is blanked — plus the rest of a coordinated list, because ERP
+// writes "zu Seifenspender und Handtuchhalter der Serie Bali" and blanking one
+// half would let the other through.
+//
+// The list stops at the first word that is not a coordinator, and that boundary is
+// what keeps it from being greedy: a Duschablage reads "zur Glasbefestigung mit
+// innenliegender Ablage und aussenliegendem Handtuchhalter" — "mit" ends the list
+// at "Glasbefestigung", so the Handtuchhalter it genuinely IS still counts.
+// Blanking to the next comma instead would have swallowed it.
+//
+// Use it on the description side of an inclusive keyword match, never as the only
+// arm: keep the plain label match beside it so this can only ever subtract false
+// positives, never a hit the label already earned. Identity checks (a label
+// literally STARTING with the word) need none — they read the label.
+const _RX_PARTNER_REF = /\b(?:passend\s+|geeignet\s+)?(?:zu|zur|zum|f[üu]r)\s+(\S+(?:\s*(?:,|und|oder|&|\/)\s*\S+)*)/g;
+const withoutPartnerRefs = (text) =>
+    String(text || '').replace(_RX_PARTNER_REF, (m, names) => m.slice(0, m.length - names.length));
+
+// ── Waschtischkombination = basin + furniture in ONE art-Nr ──────────────────
+// One article that is both the ceramic and the cabinet (Laufen Pro S, Duravit
+// Happy D.2 Plus, Alterna progetto). Two things ride on it: SAP books the set
+// under G4 rather than G1 (Mix & Match), and both basin configurators offer it as
+// its own Ausführung pill.
+//
+// Deliberately an identity-PREFIX check, and the one place where reading less
+// than the full text is right: the word sits at the head of the short text, which
+// is the one part ERP truncation never eats, while a Möbelwaschtisch's
+// description says "passend zur Waschtischkombination Happy D.2 Plus" and is a
+// plain basin. The description is read too — with the same prefix rule — because
+// it repeats the label's opening when the label itself is cut short.
+// label-prefix by design
+const KOMBI_LABEL = 'Waschtischkombination';          // the Ausführung pill's caption
+const _RX_KOMBI = /^\s*(?:waschtisch|m[öo]bel|waschplatz)kombination\b/i;
+const isWaschtischKombination = (product) => {
+    if (!product) return false;
+    return _RX_KOMBI.test((product.label || product.name || '').trim())
+        || _RX_KOMBI.test((product.description || '').trim());
+};
+
 const priceBOM = (tbody, cols = 5) => {
     if (!tbody || !tbody.querySelectorAll) return;
     let grand = 0, anyNA = false, anyRow = false;
@@ -774,16 +820,38 @@ function outletCount(tray) {
 function isShowerSystem(tray) { return _SELF_CONTAINED.test(productText(tray)); }
 
 // A mixer needs shower accessories UNLESS it is a self-contained shower system
-// (Duschsystem / Showerpipe / Paneel — the brause is already part of the unit) or a
-// bath-only filler with no shower outlet. FULL-TEXT RULE: read label AND description.
+// (Duschsystem / Showerpipe / Paneel — the brause is already part of the unit), a
+// bath-only filler with no shower outlet, or a BATH STANDMODELL (see below).
+// FULL-TEXT RULE: read label AND description.
 const _SELF_CONTAINED = /duschsystem|showerpipe|shower\s*pipe|duschpaneel|duschs[äa]ule|showerstation|duschset|brauseset|duschgarnitur|kopfbrausenset/i;
 const _BATH_ONLY = /wanneneinlauf|wannenf[üu]ll|einlaufgarnitur|wannenrandgarnitur|wannenrandarmatur|wannenzulauf/i;
+// A free-standing bath mixer SHIPS with its Brauseschlauch, Handbrause and holder —
+// the article IS the set. Its Stückliste is the mixer plus its Bodeneinbaukörper and,
+// where one is needed, the Montageschiene/Montageset: nothing else (Reji, 2026-08-16).
+// This has to be tested BEFORE the UP branch, because a Standmodell's own text says
+// "Einbaukörper … für Bodeneinbau" — the `einbau` in its floor body is what made
+// `_isUPbath` classify it Unterputz and pin a wall Anschlussbogen (CHF 83.50, and
+// SHOWER_STD.anschlussbogen carries no "Ohne" option) onto 34 of 36 trays.
+const _BATH_STANDMODELL = /standmodell|freistehend/i;
 function needsShowerAccessories(tray, opts = {}) {
     const t = productText(tray).toLowerCase();
     if (_SELF_CONTAINED.test(t)) return false;
+    if (opts.isBath && _BATH_STANDMODELL.test(t)) return false;
     if (opts.isBath && _BATH_ONLY.test(t) && !/brause|dusch/.test(t)) return false;
     return true;
 }
+
+// A group whose NAME says Garnitur/-set is the BUNDLE row, never a part row.
+// "Handbrausegarnitur" contains "Handbrause" and was therefore read as the tray's
+// hand-shower group — which cost three things at once: the tray got no Handbrause
+// row of its own, the bundling rule never found a Garnitur group to key off, and a
+// three-part set sat in a dropdown next to single hand showers where it could be
+// picked by accident. Group names are internal bucket labels, so this reads the name
+// alone; the FULL-TEXT rule applies to the PRODUCTS inside a group (isGarniturSet).
+const RX_GARNITUR_GROUP = /(?:hand)?brausen?garnitur|duschgarnitur|brauseset|duschset/i;
+// Exported for the factories' own BOM-order sorts: they rank by name too, and
+// `"handbrausegarnitur".includes("handbrause")` would file the bundle row as a part.
+const isGarniturGroupName = (name) => RX_GARNITUR_GROUP.test(name || "");
 
 // Ensure a qualifying AP/UP mixer carries Brauseschlauch + Handbrause (+ Brausehalter for
 // baths). Only ADDS groups that are missing — curated trays that already have them are left
@@ -799,15 +867,46 @@ function ensureShowerGroups(materials, tray, opts = {}) {
     });
 
     if (!needsShowerAccessories(tray, opts)) return materials;
-    const hasGroup = (re) => materials.some(m => re.test((m.name || "")));
+    // A Garnitur group never satisfies a part group: a tray whose only "Handbrause"
+    // is a "Handbrausegarnitur" still needs its own Handbrause row.
+    const isGarniturGroup = (m) => RX_GARNITUR_GROUP.test(m.name || "");
+    const hasGroup = (re) => materials.some(m => re.test((m.name || "")) && !isGarniturGroup(m));
     // Unterputz mixers need the Anschlussbogen (the concealed connection to the hose) — a
     // house-standard part (§2 UP item 4), added when the ERP data omits it.
     if (opts.isUP && !hasGroup(/anschlussbogen/i)) { materials.push({ name: "Anschlussbogen", options: _cloneOpts(SHOWER_STD.anschlussbogen) }); }
     if (!hasGroup(/brauseschlauch/i)) { materials.push({ name: "Brauseschlauch", options: _cloneOpts(SHOWER_STD.brauseschlauch) }); }
     if (!hasGroup(/handbrause/i)) { materials.push({ name: "Handbrause", options: _cloneOpts(SHOWER_STD.handbrause) }); }
     if (opts.isBath && !hasGroup(/brausehalter/i)) { materials.push({ name: "Brausehalter", options: _cloneOpts(SHOWER_STD.brausehalter) }); }
-    // Add Brausegarnitur to all
-    if (!hasGroup(/brausegarnitur/i)) { materials.push({ name: "Brausegarnitur", options: _cloneOpts(SHOWER_STD.brausegarnitur) }); }
+    // Add Brausegarnitur to all — one bundle row per tray, whatever the ERP called it.
+    if (!materials.some(isGarniturGroup)) { materials.push({ name: "Brausegarnitur", options: _cloneOpts(SHOWER_STD.brausegarnitur) }); }
+
+    // …and exactly one. Dornbracht ships the same row under two ERP spellings
+    // ("Handbrausegarnitur" + "Handbrausengarnitur"), each holding different sets: two
+    // rows let two rail sets be ordered side by side, and only the first would drive
+    // the bundling rule. Merge them, keeping every article, deduped by art-Nr.
+    const gIdx = materials.map((m, i) => isGarniturGroup(m) ? i : -1).filter(i => i >= 0);
+    if (gIdx.length > 1) {
+        const seen = new Set(), merged = [];
+        for (const i of gIdx) for (const o of (materials[i].options || [])) {
+            if (o && !seen.has(o.artNr)) { seen.add(o.artNr); merged.push(o); }
+        }
+        materials[gIdx[0]] = { ...materials[gIdx[0]], options: merged };
+        materials = materials.filter((m, i) => gIdx.indexOf(i) <= 0);
+    }
+
+    // The Garnitur is never the default (INSTRUCTIONS.md §2): a set billed beside the
+    // individual rows charges the hose twice. ERP Garnitur groups do carry an
+    // "Ohne …" option but list it LAST, so the set was selected on open — the exact
+    // accident this row is supposed to prevent. Pull the opt-out to the front, and
+    // synthesize one for a group that has none.
+    materials = materials.map(m => {
+        if (!isGarniturGroup(m)) return m;
+        const o = (m.options || []).slice();
+        const i = o.findIndex(x => /^ohne/i.test(x.label || ""));   // label-prefix by design
+        if (i > 0) o.unshift(o.splice(i, 1)[0]);
+        else if (i < 0) o.unshift({ artNr: "ohne_garnitur", label: "Ohne " + (m.name || "Brausegarnitur"), menge: 0, type: "Option", imgUrl: "" });
+        return { ...m, options: o };
+    });
 
     const rank = (m) => {
         const x = ((m.name || "") + " " + (m.options?.[0]?.label || "") + " " + (m.options?.[0]?.description || "")).toLowerCase();
@@ -815,11 +914,14 @@ function ensureShowerGroups(materials, tray, opts = {}) {
         if (/montageschiene|montageset/.test(x)) return 1;
         if (/anschlussbogen/.test(x)) return 2;
         if (/abstellverschraubung/.test(x)) return 3;
+        // The bundle row sits directly UNDER the Handbrause — it is the alternative to
+        // that row and reads as one with it. Tested on the NAME and before the part
+        // rules, since "Handbrausegarnitur" would otherwise rank as a Handbrause.
+        if (isGarniturGroup(m)) return 6;
         if (/brauseschlauch/.test(x)) return 4;
         if (/handbrause/.test(x)) return 5;
-        if (/brausehalter/.test(x)) return 6;
-        if (/gleitstange/.test(x)) return 7;
-        if (/brausegarnitur/.test(x)) return 8;
+        if (/brausehalter/.test(x)) return 7;
+        if (/gleitstange/.test(x)) return 8;
         return 9;
     };
     return materials.map((m, i) => ({ m, i })).sort((a, b) => (rank(a.m) - rank(b.m)) || (a.i - b.i)).map(x => x.m);
@@ -847,11 +949,13 @@ const artFinishCode = (artNr) => { const m = String(artNr || '').match(/\.(\d{3}
 // Mounting-group name → the pool's `productType` tag. This reads the GROUP name (an
 // internal bucket label like "3. Anschlussbogen"), not a product, so the full-text
 // rule does not apply here; the pool side matches on the structured productType.
-// Order matters: "Handbrausegarnitur" must not fall through to Brausehalter, and
-// "Anschlussbogen mit integriertem Brausehalter" is an Anschlussbogen.
+// Order matters: "Handbrausegarnitur" is a BUNDLE row, not the tray's Handbrause, so
+// the Garnitur rule sits above the part rules; and "Anschlussbogen mit integriertem
+// Brausehalter" is an Anschlussbogen.
 const ACC_FAMILY_RULES = [
     [/anschlussbogen/, 'Anschlussbogen'],
-    [/^brausegarnitur/i, 'Brausegarnitur'],
+    [/abstellverschraubung/, 'Abstellverschraubung'],
+    [RX_GARNITUR_GROUP, 'Brausegarnitur'],
     [/brause[ns]?schlauch/, 'Brauseschlauch'],
     [/regenbrause|kopfbrause/, 'Regenbrause'],
     [/brausen?(?:wand)?arm|wandarm|deckenanschluss/, 'Brausearm'],
@@ -871,16 +975,88 @@ const accFamilyOf = (groupName) => {
 const ACC_POOL_TYPES = { Gleitstange: ['Gleitstange', 'Duschgleitstange'] };
 
 // A Brausegarnitur carries no productType of its own — the sets sit under
-// `Handbrause` and are recognised by their text. The RAIL is what makes a set a
-// substitute for three separate rows, so a "Handbrausegarnitur" without one is an
-// ordinary hand shower and stays in the Handbrause family.
-// FULL-TEXT RULE: read label + description + specs via productText().
-const _RX_GARNITUR = /garnitur|brauseset|duschset/;
+// `Handbrause` and are recognised by their text. A set is a SET when it names more
+// than the hand shower: a rail or a hose. Both make it a substitute for separate
+// rows, so it belongs in the bundle row and nowhere else — Hansgrohe Pulsify,
+// Dornbracht and Axor One all ship hose sets that were sitting in the Handbrause
+// dropdown next to bare hand showers.
+// FULL-TEXT RULE, and it earns its keep here: "Handbrausegarnitur Fantini Fit ½",
+// mit integiertem Brausenanschluss, Rosette" reads like a single article until the
+// description adds "Brauseschlauch 1500 mm, Handbrause Fantini Fit".
+// The word must be BRAUSE-anchored — a Duschwannengarnitur / Ablaufgarnitur is a
+// drain part, not a shower set.
+const _RX_GARNITUR = /brausen?garnitur|brauseset|duschset|duschgarnitur/;
 const _RX_GARNITUR_RAIL = /gleitstange|brausestange|wandstange/;
+// The hose is spelled four ways inside these sets — "Brauseschlauch",
+// "Brausenschlauch", "Metallschlauch", a bare "Schlauch 1750 mm" — and Dornbracht
+// `6431 263.501.000` carries the ERP typo "Brauseschaluch". Matching only the tidy
+// spelling left three sets sitting in the Handbrause dropdown. Safe to read loosely:
+// the word only counts inside an article already named a Brause-Garnitur, and not one
+// of the 61 in the catalogue says "ohne …schlauch".
+const _RX_GARNITUR_HOSE = /schlauch|schaluch/;
 function isGarniturSet(t) {
-    const x = productText(t);
-    return _RX_GARNITUR.test(x) && _RX_GARNITUR_RAIL.test(x);
+    // ERP descriptions carry hard line breaks as markup, and they land inside the very
+    // phrases read here ("ohne<br>Handbrause").
+    const x = productText(t).replace(/<[^>]*>/g, ' ');
+    return _RX_GARNITUR.test(x) && (_RX_GARNITUR_RAIL.test(x) || _RX_GARNITUR_HOSE.test(x));
 }
+
+// Half the sets never write the word "Gleitstange" — the bar is the series name
+// ("Unica'C, 900 mm", Dornbracht "800 mm, Gelenkhalter"). SAP states the length as
+// STRUCTURED data instead, and structured attributes beat the regex for the same
+// question: `Ausprägung` is a bare length for a bar set ("900 mm", "110 cm") while a
+// hose set's carries the thread spec (`½" x ⅜", 1250 mm`), and `Höhe` is the built
+// height. Below 600 mm nothing is a shower bar, so the threshold keeps hand-shower
+// dimensions out. Missing the bar left a CHF 479 rail row standing beside a set that
+// already contains one.
+const _RX_BARE_LENGTH = /^\s*(\d{2,4})\s*(mm|cm)?\s*$/i;
+const ACC_RAIL_MIN_MM = 600;
+// `Ausprägung` must carry its unit ("900 mm"); `Höhe` is a plain millimetre number.
+const _lenMM = (v, unitOptional) => {
+    const m = _RX_BARE_LENGTH.exec(String(v == null ? '' : v));
+    if (!m || (!m[2] && !unitOptional)) return 0;
+    return +m[1] * (m[2] && m[2].toLowerCase() === 'cm' ? 10 : 1);
+};
+function garniturHasRail(item) {
+    if (_RX_GARNITUR_RAIL.test(productText(item).replace(/<[^>]*>/g, ' '))) return true;
+    const tech = (item && item.tech) || null;
+    if (!tech) return false;
+    return _lenMM(tech['Ausprägung']) >= ACC_RAIL_MIN_MM || _lenMM(tech['Höhe'], true) >= ACC_RAIL_MIN_MM;
+}
+
+// Which part rows one CHOSEN set replaces. A set names its contents, so read them:
+// switching off more rows than the set actually contains empties a row and puts
+// nothing in its place. A bar set carries the holder with it; Dornbracht
+// `6431 725.501.000` (bar + hose) says "ohne Handbrause" outright.
+function garniturCovers(item) {
+    const x = productText(item).replace(/<[^>]*>/g, ' ');   // "ohne<br>Handbrause"
+    const fams = [];
+    if (_RX_GARNITUR_HOSE.test(x)) fams.push('Brauseschlauch');
+    if (!/ohne\s+handbrause/.test(x)) fams.push('Handbrause');
+    if (garniturHasRail(item)) fams.push('Gleitstange', 'Brausehalter');
+    else if (/halter/.test(x)) fams.push('Brausehalter');
+    return fams;
+}
+
+// A COMPONENT of another product is not a free-standing accessory. KWC's
+// `6545 114/115.501.000` is a "Duschgleitstange … für Duschsystem, wasserführende" —
+// a water-carrying bar that only functions as part of its Duschsystem (SAP agrees:
+// `tech.Ausprägung: "für Duschsystem"`), and at CHF 479 it was auto-filling the rail
+// row of any KWC mixer as a brand match. Beware the partner-reference trap: this must
+// state what the article IS, not what it pairs with — "passend zu …" does not count,
+// and only these two articles in the whole accessory pool match today.
+// FULL-TEXT RULE: read label + description + specs via productText().
+const _RX_SYSTEM_PART = /f[üu]r\s+duschsystem|ersatzteil/;
+function isSystemPart(t) {
+    if (t && t.tech && /^f[üu]r\s+duschsystem$/i.test(String(t.tech['Ausprägung'] || ''))) return true;
+    return _RX_SYSTEM_PART.test(productText(t));
+}
+
+// Abstellverschraubungen sit in the pool UNTAGGED (productType undefined), so a
+// productType-only lookup found none and the row never got a dropdown at all.
+// label-prefix by design: a label starting with "Abstellverschraubung" states what
+// the product IS — the permitted identity exception to the full-text rule.
+const ACC_POOL_LABEL = { Abstellverschraubung: /^abstellverschraubung/i };
 
 // The pool is scanned per family and cached; the cache drops itself when the pool
 // size changes (data loads after the first configurator may already be open).
@@ -890,13 +1066,19 @@ const accPoolOf = (family) => {
         && window.productApps.zubehoer_pool && window.productApps.zubehoer_pool.trays) || [];
     if (_accPoolSize !== pool.length) { _accPoolCache = {}; _accPoolSize = pool.length; }
     if (!_accPoolCache[family]) {
+        let list;
         if (family === 'Brausegarnitur') {
-            _accPoolCache[family] = pool.filter(isGarniturSet);
+            list = pool.filter(isGarniturSet);
         } else {
+            // A set is three parts in one art-Nr and belongs to the Garnitur row alone —
+            // it is excluded from EVERY part family, not just the Handbrause one it is
+            // tagged under today, so a re-tagged set can never surface in a part dropdown.
             const types = ACC_POOL_TYPES[family] || [family];
-            _accPoolCache[family] = pool.filter(t => types.indexOf(t.productType) >= 0
-                && !(family === 'Handbrause' && isGarniturSet(t)));
+            const byLabel = ACC_POOL_LABEL[family];
+            list = pool.filter(t => (types.indexOf(t.productType) >= 0 || (byLabel && byLabel.test(t.label || '')))
+                && !isGarniturSet(t));
         }
+        _accPoolCache[family] = list.filter(t => !isSystemPart(t));
     }
     return _accPoolCache[family];
 };
@@ -906,6 +1088,9 @@ const _accItem = (base, sku) => ({
     label: sku.label || base.label || '',
     description: sku.description || base.description || '',
     specs: sku.specs || base.specs,
+    // SAP's structured attributes ride along: garniturHasRail reads the bar length
+    // out of them when the text never names the bar.
+    tech: sku.tech || base.tech,
     imgUrl: sku.imgUrl || base.imgUrl || '',
     menge: 1,
     brand: base.manufacturer || '',
@@ -913,10 +1098,16 @@ const _accItem = (base, sku) => ({
 });
 
 const ACC_TIER2_CAP = 80, ACC_TIER3_CAP = 12;
+// Alterna is the house line — the standard whenever the mixer's own brand builds
+// nothing in the finish. (Emporio is the same house range under its design name.)
+const ACC_HOUSE_BRAND = /^(alterna|emporio)/i;
 // Ranked candidate list for one family in one finish. `opts.serie` keeps an Uno Zero
 // set from opening on a Starck hose; `opts.prefer`/`opts.avoid` keep the shape of the
 // standard part (an Anschlussbogen "mit integriertem Brausehalter" replaces the
-// separate Brausehalter, so the two shapes are not interchangeable).
+// separate Brausehalter, so the two shapes are not interchangeable). `opts.filter`
+// REMOVES what does not fit at all — ranking is not enough when the mismatch is a
+// dimension: a ½" x ¾" Abstellverschraubung does not screw onto a ½" x ½" inlet, so
+// it must not be in the list, however far down.
 // FULL-TEXT RULE: the serie/shape checks read label + description + specs.
 function accCandidates(family, brand, code, opts = {}) {
     if (!family || !code) return [];
@@ -928,6 +1119,7 @@ function accCandidates(family, brand, code, opts = {}) {
     for (const base of accPoolOf(family)) {
         const m = (base.manufacturer || '').toLowerCase();
         const isOwn = ownBrand && (m === bl || (/gessi|emporio/.test(bl) && /gessi|emporio/.test(m)));
+        if (opts.filter && !opts.filter(base)) continue;
         for (const sku of [base, ...(base.variants || [])]) {
             if (!sku || !sku.artNr || seen.has(sku.artNr)) continue;
             seen.add(sku.artNr);
@@ -942,6 +1134,10 @@ function accCandidates(family, brand, code, opts = {}) {
         let s = 0;
         if (opts.prefer && opts.prefer.test(t)) s += 4;
         if (opts.avoid && opts.avoid.test(t)) s -= 4;
+        // No brand match to be had (tier 2 is by definition another brand): then the
+        // HOUSE line is the standard, not whichever brand the pool happened to list
+        // first. Inert in tiers 1 and 3 — every item there is already the own brand.
+        if (ACC_HOUSE_BRAND.test((x.brand || ''))) s += 3;
         if (serie && t.includes(serie)) s += 2;
         return s;
     };
@@ -967,6 +1163,26 @@ function accSkuInColour(family, artNr, code) {
     return null;
 }
 
+// The thread an article connects with, normalised ("½"x¾"). Two Abstellverschraubungen
+// differ in nothing else, and a wrong one simply does not screw on.
+// FULL-TEXT RULE: the size can sit in either field, and SAP repeats it in Ausprägung.
+const _RX_THREAD = /([½⅜¾⅝]"|\d\s*\/\s*\d\s*")\s*x\s*([½⅜¾⅝]"|\d\s*\/\s*\d\s*")/;
+function threadOf(item) {
+    const m = _RX_THREAD.exec(productText(item).replace(/<[^>]*>/g, ' '));
+    return m ? (m[1] + 'x' + m[2]).replace(/\s+/g, '') : null;
+}
+
+// How many pieces one art-Nr delivers. Alterna's stop valves are sold "Set à 2 Stück":
+// a position that needs two takes ONE set, and ordering two sets bills four valves.
+// FULL-TEXT RULE: the pack size is stated in the label, and truncated labels put it
+// in the description instead.
+const _RX_PACK = /set\s+[àa]\s+(\d+)\s*st(?:\.|ück|k)?/i;
+function packUnits(item) {
+    const m = _RX_PACK.exec(productText(item).replace(/<[^>]*>/g, ' '));
+    const n = m ? parseInt(m[1], 10) : 1;
+    return n > 0 ? n : 1;
+}
+
 const _accEsc = (s) => String(s == null ? '' : s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -978,24 +1194,43 @@ const _accEsc = (s) => String(s == null ? '' : s)
 // stays off until the user asks for it).
 // Returns { item, isOhne, tier, family, optionsHTML, hasChoices }.
 function accGroupChoice(group, opts = {}) {
-    const stdOpts = Array.isArray(group.options) ? group.options : [];
-    const stdIdx = Math.min(Math.max(0, opts.stdIdx | 0), Math.max(0, stdOpts.length - 1));
-    const std = stdOpts[stdIdx] || null;
+    const allOpts = Array.isArray(group.options) ? group.options : [];
     const family = accFamilyOf(group.name);
     const code = opts.code || null;
     const pick = opts.pick || null;
     // label-prefix by design: an option literally starting with "Ohne" IS the opt-out.
     const isOhneOpt = (o) => !!(o && /^ohne/i.test(o.label || ''));
 
+    // A Brausegarnitur is Brauseschlauch + Handbrause + Gleitstange in ONE art-Nr, so
+    // it may only ever be offered by the Garnitur row: in a part row it is a
+    // double-charge waiting to be clicked. The pool side already withholds sets from
+    // the part families; this does the same for a curated/ERP list that carries one.
+    // Options keep their ORIGINAL index, so a hidden entry cannot shift a stored pick
+    // ({k:'std',i}) or mischerOptionsState onto a different article.
+    const stdShown = allOpts.map((o, i) => ({ o, i }))
+        .filter(x => family === 'Brausegarnitur' || !isGarniturSet(x.o));
+    const shown = (i) => stdShown.some(x => x.i === i);
+    let stdIdx = Math.min(Math.max(0, opts.stdIdx | 0), Math.max(0, allOpts.length - 1));
+    if (!shown(stdIdx)) stdIdx = stdShown.length ? stdShown[0].i : 0;   // never default onto a hidden set
+    const std = allOpts[stdIdx] || null;
+
     // Anschlussbogen comes in two shapes and they are not interchangeable — the
     // integrated-holder one replaces the separate Brausehalter group.
-    let prefer = null, avoid = null;
+    let prefer = null, avoid = null, filter = null;
     if (family === 'Anschlussbogen' && std) {
         const withHolder = /integriertem brausehalter|mit brausehalter/.test(productText(std));
         prefer = withHolder ? /integriertem brausehalter|mit brausehalter/ : null;
         avoid = withHolder ? null : /integriertem brausehalter|mit brausehalter/;
     }
-    const cands = family ? accCandidates(family, opts.brand, code, { serie: opts.serie, prefer, avoid }) : [];
+    // An Abstellverschraubung IS a thread size, and ½" x ¾" does not screw onto a
+    // ½" x ½" inlet — offering it is offering the wrong part, so the mismatches are
+    // REMOVED, not merely ranked down. An article that states no thread stays (nothing
+    // to contradict); the mixer's own thread comes from the curated option.
+    if (family === 'Abstellverschraubung' && std) {
+        const want = threadOf(std);
+        if (want) filter = (c) => { const t = threadOf(c); return !t || t === want; };
+    }
+    const cands = family ? accCandidates(family, opts.brand, code, { serie: opts.serie, prefer, avoid, filter }) : [];
 
     let item = std, tier = 0, chosenArt = null, pickedStd = -1, forcedOhne = false;
     if (opts.forceOhne) {
@@ -1003,21 +1238,54 @@ function accGroupChoice(group, opts = {}) {
         // option (the Handbrause and Gleitstange lists do not), so the opt-out is
         // synthesized when it is missing — otherwise the rule would silently skip
         // exactly the rows it is supposed to switch off.
-        const ohneIdx = stdOpts.findIndex(isOhneOpt);
-        item = ohneIdx >= 0 ? stdOpts[ohneIdx] : { artNr: 'ohne_' + (family || 'zubehoer').toLowerCase(), label: 'Ohne ' + (group.name || 'Zubehör'), menge: 0 };
-        pickedStd = ohneIdx;
+        const ohne = stdShown.find(x => isOhneOpt(x.o));
+        item = ohne ? ohne.o : { artNr: 'ohne_' + (family || 'zubehoer').toLowerCase(), label: 'Ohne ' + (group.name || 'Zubehör'), menge: 0 };
+        pickedStd = ohne ? ohne.i : -1;
         forcedOhne = true;
     } else if (pick && pick.k === 'std') {
-        if (stdOpts[pick.i]) { item = stdOpts[pick.i]; pickedStd = pick.i; }
+        if (allOpts[pick.i] && shown(pick.i)) { item = allOpts[pick.i]; pickedStd = pick.i; }
     } else if (pick && pick.k === 'pool') {
         const hit = accSkuInColour(family, pick.art, code);
-        if (hit) { item = hit; tier = hit.tier; chosenArt = hit.artNr; }
+        if (hit) {
+            item = hit; tier = hit.tier; chosenArt = hit.artNr;
+            // Tier 3 means "own brand, other colour". A pick the user made in one
+            // finish and carried into another can be ANY brand, and the badge must not
+            // claim a brand match it does not have — the row would read
+            // "Marke passend" under a Hansgrohe set on a KWC mixer.
+            const bl = (opts.brand || '').toLowerCase().trim();
+            if (tier === 3 && bl && (hit.brand || '').toLowerCase().trim() !== bl) tier = 4;
+        }
     } else if (cands.length && code && code !== '501' && (!isOhneOpt(std) || opts.allowOhneAutoMatch)) {
         // Auto-match. `used` holds the art-Nrs already emitted in this BOM, so two
-        // groups of the same family (Handbrause + Handbrausegarnitur) cannot both
-        // land on the identical SKU.
-        const auto = cands.find(c => !opts.used || !opts.used.has(c.artNr)) || cands[0];
+        // groups of the same family cannot both land on the identical SKU. `autoArt`
+        // pins the article a caller already decided on — the Garnitur fallback checked
+        // that ITS set closes the colour gap, so the row must not fill with another.
+        const auto = (opts.autoArt && cands.find(c => c.artNr === opts.autoArt))
+            || cands.find(c => !opts.used || !opts.used.has(c.artNr)) || cands[0];
         item = auto; tier = auto.tier; chosenArt = auto.artNr;
+    }
+
+    // Swapping the ARTICLE must not change the POSITION's need: a Duschmischer takes
+    // two Abstellverschraubungen (one per inlet, `menge: 2` on the curated option)
+    // whichever brand they are, and _accItem stamps every pool part `menge: 1`.
+    // What changes is how many PIECES one art-Nr delivers — Alterna sells its stop
+    // valves as a "Set à 2 Stück", so two pieces are one order line, not two.
+    // 88 mixer groups carry a quantity > 1 and all of them are this family.
+    if (chosenArt && std) {
+        const need = std.menge || 1;
+        const qty = Math.max(1, Math.ceil(need / packUnits(item)));
+        if (qty !== (item.menge || 1)) item = { ...item, menge: qty };
+    }
+
+    // A curated standard in a coloured BOM says so. The house parts are chrome, and a
+    // chrome Abstellverschraubung or Alterna rail under a Brushed-copper mixer used to
+    // render with no badge at all — silence reads as "matched". It is not always a
+    // fault: for several families the catalogue simply builds nothing in that finish.
+    // COLOUR RULE: compare art-Nr triplets. `000` is the colourless code (every
+    // Einbau-/Grundkörper), so it never counts as a mismatch.
+    if (!tier && !forcedOhne && code && item && item.artNr) {
+        const c = artFinishCode(item.artNr);
+        if (c && c !== '000' && c !== code) tier = 4;
     }
 
     // A resolved pick may sit outside the ranked list (tier-3 fallback) — make sure
@@ -1027,7 +1295,7 @@ function accGroupChoice(group, opts = {}) {
 
     const selVal = chosenArt ? 'c' + chosenArt : 'o' + (pickedStd >= 0 ? pickedStd : stdIdx);
     const optHTML = (c) => `<option value="c${_accEsc(c.artNr)}"${selVal === 'c' + c.artNr ? ' selected' : ''}>${_accEsc(c.label)} (${_accEsc(c.artNr)})</option>`;
-    const stdHTML = stdOpts.map((o, i) => `<option value="o${i}"${selVal === 'o' + i ? ' selected' : ''}>${_accEsc(o.label)} (${_accEsc(o.artNr)})</option>`).join('');
+    const stdHTML = stdShown.map(({ o, i }) => `<option value="o${i}"${selVal === 'o' + i ? ' selected' : ''}>${_accEsc(o.label)} (${_accEsc(o.artNr)})</option>`).join('');
     const colourLbl = (code && COLOR_NAMES[code]) || 'Farbe';
     const brandLbl = opts.brand || 'Marke';
     let optionsHTML;
@@ -1047,7 +1315,7 @@ function accGroupChoice(group, opts = {}) {
         optionsHTML,
         // A forced row offers no dropdown: the group that bundled it away is the
         // control, and a pick here would just be overwritten on the next render.
-        hasChoices: !forcedOhne && (listed.length + stdOpts.length) > 1,
+        hasChoices: !forcedOhne && (listed.length + stdShown.length) > 1,
     };
 }
 
@@ -1057,6 +1325,7 @@ const accTierNote = (tier) => {
     if (tier === 1) return 'Farbe passend zur Armatur';
     if (tier === 2) return 'Farbe passend, andere Marke';
     if (tier === 3) return 'Marke passend, Farbe abweichend';
+    if (tier === 4) return 'Farbe abweichend';   // a kept pick of another brand: claim nothing
     return '';
 };
 
@@ -1065,7 +1334,9 @@ const accTierNote = (tier) => {
 //
 //  A Brausegarnitur IS the Brauseschlauch + Handbrause + Gleitstange in one
 //  art-Nr, so picking one switches those rows off; ordering both would bill the
-//  hose twice. It is never the default — EXCEPT when a bundled part has no SKU in
+//  hose twice. WHICH rows go off is read off the chosen set (garniturCovers) — a
+//  hose set must not empty the Gleitstange row it never contained.
+//  It is never the default — EXCEPT when a bundled part has no SKU in
 //  the mixer's finish while a Garnitur does. Axor Citterio M in .475
 //  (`6415 120.475.000`) is the case: 14 Handbrausen and 5 Brauseschläuche exist
 //  in that finish, zero Duschgleitstangen, three Axor Garnituren. Then the set is
@@ -1079,18 +1350,23 @@ const ACC_BUNDLED_BY_GARNITUR = ['Brauseschlauch', 'Handbrause', 'Gleitstange', 
 const _GARNITUR_PARTS = ['Brauseschlauch', 'Handbrause', 'Gleitstange'];
 
 function brausegarniturPlan(materials, opts = {}) {
-    const plan = { idx: -1, forceAuto: false, forceOhne: false };
+    // `bundled` = the families this plan switches off; the caller asks it per row
+    // rather than assuming a set contains all four parts.
+    const plan = { idx: -1, forceAuto: false, forceOhne: false, bundled: ACC_BUNDLED_BY_GARNITUR };
     if (!Array.isArray(materials)) return plan;
     plan.idx = materials.findIndex(m => accFamilyOf(m.name) === 'Brausegarnitur');
     if (plan.idx < 0) return plan;
 
     const pick = (opts.picks || {})[plan.idx];
     if (pick) {
-        // An explicit choice decides it. A pool pick is always a real Garnitur; a
-        // curated pick bundles unless it is the "Ohne" opt-out.
-        // label-prefix by design: an option starting with "Ohne" IS the opt-out.
-        const opt = pick.k === 'std' ? (materials[plan.idx].options || [])[pick.i] : null;
-        plan.forceOhne = pick.k === 'pool' || !!(opt && !/^ohne/i.test(opt.label || ''));
+        // An explicit choice decides it, and only a real set bundles: an ERP Garnitur
+        // group also lists articles that merely carry the word (a hand shower with a
+        // wall connector). What the set covers comes from the set itself.
+        const chosen = pick.k === 'std'
+            ? (materials[plan.idx].options || [])[pick.i]
+            : accSkuInColour('Brausegarnitur', pick.art, opts.code);
+        if (chosen && isGarniturSet(chosen)) { plan.forceOhne = true; plan.bundled = garniturCovers(chosen); }
+        else if (pick.k === 'pool' && !chosen) plan.forceOhne = true;   // pool picks here are always sets
         return plan;
     }
 
@@ -1098,9 +1374,17 @@ function brausegarniturPlan(materials, opts = {}) {
     if (!code || code === '501') return plan;   // chrome: the house standards already are chrome
     const inColour = (fam) => accCandidates(fam, opts.brand, code, { serie: opts.serie })
         .some(c => c.tier === 1 || c.tier === 2);
-    if (_GARNITUR_PARTS.some(f => !inColour(f)) && inColour('Brausegarnitur')) {
+    const missing = _GARNITUR_PARTS.filter(f => !inColour(f));
+    if (!missing.length) return plan;
+    // The fallback has to actually CLOSE the gap: a hose set cannot stand in for a
+    // rail that has no SKU in this finish, so the set must contain every missing part.
+    const cover = accCandidates('Brausegarnitur', opts.brand, code, { serie: opts.serie })
+        .filter(c => (c.tier === 1 || c.tier === 2) && missing.every(f => garniturCovers(c).indexOf(f) >= 0));
+    if (cover.length) {
         plan.forceAuto = true;
         plan.forceOhne = true;
+        plan.bundled = garniturCovers(cover[0]);
+        plan.autoArt = cover[0].artNr;   // the row fills with THIS set, so the two agree
     }
     return plan;
 }
@@ -1174,7 +1458,188 @@ function requiredBodyFor(item) {
 }
 
 // One extra BOM row, rendered identically by both Mischer apps.
+// ============================================================================
+//  Regenbrause → its Brausearm — INSTRUCTIONS.md §2, all Dusch-/Bademischer
+//
+//  A rain head states what it is sold WITHOUT. "ohne Einbaukörper 6418 101" names
+//  an art-Nr (requiredBodyFor); "ohne Anschlussbogen" names none — the head simply
+//  has no way onto the wall or ceiling until an arm is ordered with it. 19 of the
+//  178 pool heads say so, and swapping a head into a tray that has no Brausearm row
+//  (the Emporio Via Meravigli ships heads with the arm built in) left a Stückliste
+//  that cannot be mounted.
+//  The arm follows the HEAD's brand, not the mixer's: a Hansgrohe Raindance takes a
+//  Hansgrohe arm. Colour still comes from the mixer's triplet (COLOUR RULE).
+//  FULL-TEXT RULE: the phrase lives in the description; the label truncates.
+// ============================================================================
+const _RX_NEEDS_ARM = /ohne\s+(?:anschlussbogen|brausen?arm|wandarm|wandanschluss|deckenanschluss)/;
+function requiredArmFor(item, opts = {}) {
+    if (!item || !item.artNr) return null;
+    const x = productText(item).replace(/<[^>]*>/g, ' ');
+    if (!_RX_NEEDS_ARM.test(x)) return null;
+    const brand = opts.brand || item.brand || '';
+    // Wall or ceiling is the head's decision when the head states one — a ceiling
+    // connector cannot mount a head meant for the wall.
+    const ceiling = /decken(?:anschluss|montage|arm)/.test(x);
+    const wall = !ceiling && /wand(?:anschluss|montage|arm)/.test(x);
+    const prefer = ceiling ? /deckenanschluss|deckenarm/ : wall ? /wandarm|wandanschluss|brausen?arm/ : null;
+    const avoid = ceiling ? /wandarm|wandanschluss/ : wall ? /deckenanschluss|deckenarm/ : null;
+    const cands = accCandidates('Brausearm', brand, opts.code || artFinishCode(item.artNr), { prefer, avoid });
+    const hit = cands.find(c => !opts.used || !opts.used.has(c.artNr));
+    // No arm in that brand and finish: report it. Guessing one would put a part that
+    // does not fit — or does not exist in the colour — into a real order.
+    if (!hit) return { missingArm: brand || 'passend' };
+    return { artNr: hit.artNr, label: hit.label, description: hit.description, imgUrl: hit.imgUrl, menge: 1, tier: hit.tier };
+}
+
+// ============================================================================
+//  CWS dispenser → its front Panel
+//
+//  A CWS dispenser is a housing; the coloured front Panel is a separate article
+//  and the dispenser says so in its own text, naming the panel's art-Nr base:
+//
+//      "… Schaumgenerator für Seifenkonzentrate, ohne Panel CF Slim 4611 230"
+//
+//  24 dispensers do this (12 Paradise, 12 PureLine). Ordering one without its
+//  panel ships a housing nobody can use, so the panel goes into the BOM directly
+//  under the dispenser it belongs to.
+//
+//  COLOUR RULE — the panel is always ordered in WHITE, and white is the finish
+//  code 100 in the art-Nr triplet, never a word in the label. The seven colours
+//  a panel comes in are all real SKUs; picking by name would pick the wrong one.
+//
+//  FULL-TEXT RULE: the phrase lives in the description — "ohne Panel" is the last
+//  thing the truncated label ever keeps and the art-Nr never survives the cut.
+//  ERP breaks lines inside the number, so tags come off before matching, exactly
+//  as requiredBodyFor does.
+//
+//  `4611 183.000.000` says "ohne Panel" and names nothing; the catalogue pairs it
+//  (p. 4.169) and inject-cws-panels.cjs writes that pairing onto the article as
+//  `panelBase`. A dispenser with neither returns `{ missingPanel }` so the gap is
+//  a visible row — inventing a base would put a wrong art-Nr into a real order.
+// ============================================================================
+const PANEL_COLOUR = '100';                                  // COLOR_NAMES['100'] === 'Weiss'
+const _RX_OHNE_PANEL = /ohne\s+panel\b([^.;]*?)(\d{4})\s*(\d{3})\b/;
+const _RX_HAS_PANEL_PHRASE = /ohne\s+panel\b/;
+// label-prefix by design: a label starting with "Panel" states what the article IS.
+const _RX_PANEL_IDENTITY = /^panel\b/i;
+
+let _panelIdx = null, _panelIdxSize = -1;
+function _buildPanelIndex() {
+    const pool = ((typeof window !== 'undefined' && window.productApps
+        && window.productApps.zubehoer_pool && window.productApps.zubehoer_pool.trays) || []);
+    const idx = {};
+    const add = (a) => {
+        if (!a || !a.artNr || !_RX_PANEL_IDENTITY.test(a.label || '')) return;
+        const d = String(a.artNr).replace(/[^0-9]/g, '');
+        if (d.length < 13) return;
+        idx[`${d.slice(0, 7)}.${d.slice(7, 10)}`] = a;
+    };
+    for (const t of pool) { add(t); for (const v of t.variants || []) add(v); }
+    _panelIdx = idx;
+    _panelIdxSize = pool.length;
+}
+// The panel article for one art-Nr base in one finish, or null.
+function findPanelSku(base, code = PANEL_COLOUR) {
+    const pool = ((typeof window !== 'undefined' && window.productApps
+        && window.productApps.zubehoer_pool && window.productApps.zubehoer_pool.trays) || []);
+    if (!_panelIdx || _panelIdxSize !== pool.length) _buildPanelIndex();
+    return _panelIdx[`${String(base).replace(/[^0-9]/g, '')}.${code}`] || null;
+}
+
+// The white front panel a dispenser still needs, or null when it needs none.
+function requiredPanelFor(item) {
+    if (!item || !item.artNr) return null;
+    const x = productText(item).replace(/<[^>]*>/g, ' ');
+    if (!_RX_HAS_PANEL_PHRASE.test(x)) return null;
+    const m = _RX_OHNE_PANEL.exec(x);
+    const base = m ? m[2] + m[3] : String(item.panelBase || '').replace(/[^0-9]/g, '');
+    if (!base || base.length !== 7) return { missingPanel: true };
+    const hit = findPanelSku(base);
+    if (!hit) return { missingPanel: true, missingBase: `${base.slice(0, 4)} ${base.slice(4)}` };
+    return { artNr: hit.artNr, label: hit.label, description: hit.description, imgUrl: hit.imgUrl || '', menge: 1 };
+}
+
+// ============================================================================
+//  A bin that goes on the wall needs its Wandhalterung
+//
+//  "Papierkorb CWS, 31 x 21 cm, … zusammenlegbar, freistehend, ohne
+//  Befestigungsmaterial" — the bin ships with nothing to fix it to a wall, and the
+//  bracket is a separate art-Nr. The catalogue lists ONE against all four CWS
+//  Papierkorb bases (pp. 4.170, 4.179): `4611 863` Wandhalterung CWS weiss.
+//
+//  An explicit pairing, NOT a text rule, and that is the whole point: nearly every
+//  Abfallbehälter says "freistehend oder Wandmontage" while no bracket article
+//  exists to order — the pool's five "Wandhalter*" articles all belong to
+//  Duschwischer and Geberit Duofix. Inferring one from the words would put a
+//  Duschwischer bracket under a waste bin. The Paperbin Zubehör (`4611 876/877`
+//  …) look like brackets in a Zubehör column and are Deckel and Rahmen.
+//
+//  Extend the map from the catalogue's own Zubehör list when a brand gains one.
+//  Keyed by the bin's 7-digit BASE, so every finish of a bin inherits it.
+// ============================================================================
+const WALL_MOUNT_BY_BASE = {
+    '4611611': '4611863',   // Papierkorb CWS, Eisengitter 31 × 21
+    '4611612': '4611863',   // Papierkorb CWS, Eisengitter 40 × 25
+    '4611861': '4611863',   // Papierkorb CWS Stainless Steel 40 × 25
+    '4611862': '4611863',   // Papierkorb CWS Stainless Steel 30 × 18
+};
+
+// The wall bracket a bin still needs, or null when the catalogue pairs it with none.
+function requiredWallMountFor(item) {
+    if (!item || !item.artNr) return null;
+    const digits = String(item.artNr).replace(/[^0-9]/g, '');
+    if (digits.length < 7) return null;
+    const base = WALL_MOUNT_BY_BASE[digits.slice(0, 7)];
+    if (!base) return null;
+    const hit = findArticleByBase(base);
+    // Paired by the catalogue but absent from the data: report it rather than
+    // guessing a finish triplet. inject-cws-wandhalterung.cjs is what fills it.
+    if (!hit) return { missingWallMount: true, missingBase: `${base.slice(0, 4)} ${base.slice(4)}` };
+    return { artNr: hit.artNr, label: hit.label, description: hit.description, imgUrl: hit.imgUrl || '', menge: 1 };
+}
+
+// ============================================================================
+//  A part sold FOR one body leaves with it
+//
+//  "Befestigungsset Gessi, zu Einbaukörper 6252 859, 6252 891" only has a purpose
+//  while one of those bodies is in the BOM — switch the Einbaukörper to "Ohne" (or
+//  to a body it does not serve) and the set is dead weight in the order. 44 articles
+//  name their body this way, some as a shared-prefix list ("6252 820 / 826 / 850").
+//  FULL-TEXT RULE, and the tags are stripped first: ERP breaks lines inside the
+//  number exactly as it does for the "ohne Einbaukörper" case.
+// ============================================================================
+const _RX_FOR_BODY = /zu\s+(?:einbau|grund)k[öo]rper\s+([\d\s,/.]+)/i;
+function bodyRefsFor(item) {
+    const m = _RX_FOR_BODY.exec(productText(item).replace(/<[^>]*>/g, ' '));
+    if (!m) return [];
+    const refs = [];
+    let prefix = null;
+    for (const tok of m[1].match(/\d+/g) || []) {
+        if (tok.length >= 7) { refs.push(tok.slice(0, 7)); prefix = tok.slice(0, 4); }
+        else if (tok.length === 4) prefix = tok;                       // "6252" — a new base prefix
+        else if (tok.length === 3 && prefix) refs.push(prefix + tok);   // "859" / "891" under that prefix
+    }
+    return refs;
+}
+// True unless the item names bodies and none of them is in the BOM.
+function bodyPresentFor(item, usedArtNrs) {
+    const refs = bodyRefsFor(item);
+    if (!refs.length) return true;
+    const bases = new Set();
+    for (const a of (usedArtNrs || [])) { const d = String(a).replace(/[^0-9]/g, ''); if (d.length >= 7) bases.add(d.slice(0, 7)); }
+    return refs.some(r => bases.has(r));
+}
+
 function bomExtraRowHTML(item, note) {
+    if (item.missingArm) {
+        return `
+            <tr style="background: rgba(255,166,0,0.07);">
+                <td><div class="img-cell" style="background: transparent; border: 1px dashed var(--border);"><i class="ri-alert-line" style="font-size:1.2rem;opacity:0.5;"></i></div></td>
+                <td><span class="bom-code">—</span></td>
+                <td><div class="bom-desc">Diese Regenbrause wird ohne Anschlussbogen geliefert — es gibt keinen Brausearm ${_accEsc(item.missingArm)} in dieser Farbe. Bitte manuell ergänzen.</div></td>
+                <td><strong>1</strong></td>
+            </tr>`;
+    }
     if (item.missingBase) {
         return `
             <tr style="background: rgba(255,166,0,0.07);">
@@ -1194,4 +1659,4 @@ function bomExtraRowHTML(item, note) {
         </tr>`;
 }
 
-export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, cleanSerie, galleryGridHTML, renderGalleryGrid, galleryBackButton, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs, artFinishCode, accFamilyOf, accCandidates, accSkuInColour, accGroupChoice, accTierNote, isGarniturSet, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, findArticleByBase, requiredBodyFor, bomExtraRowHTML };
+export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, cleanSerie, galleryGridHTML, renderGalleryGrid, galleryBackButton, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs, artFinishCode, accFamilyOf, accCandidates, accSkuInColour, accGroupChoice, accTierNote, isGarniturSet, garniturCovers, garniturHasRail, isSystemPart, isGarniturGroupName, threadOf, packUnits, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, findArticleByBase, requiredBodyFor, requiredArmFor, bodyRefsFor, bodyPresentFor, bomExtraRowHTML, findPanelSku, requiredPanelFor, PANEL_COLOUR, withoutPartnerRefs, isWaschtischKombination, KOMBI_LABEL, requiredWallMountFor, WALL_MOUNT_BY_BASE };

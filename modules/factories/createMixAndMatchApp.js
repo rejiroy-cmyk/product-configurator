@@ -1,5 +1,9 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, accessoryHersteller, accessorySerie, accessoryFacetBar, fullLabel, differentiatingChips } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, accessoryHersteller, accessorySerie, accessoryFacetBar, fullLabel, differentiatingChips, requiredPanelFor, requiredWallMountFor, productText, withoutPartnerRefs, isWaschtischKombination, KOMBI_LABEL } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
+
+// SAP text position for furniture. Not an article: it triggers a standing text on
+// the order and takes no quantity. See pushTextCode.
+const TXT_MOEBEL_CODE = 'TXK103';
 
 export function createMixAndMatchApp(title, desc, mainImgUrl) {
     const suffix = 'MixMatch';
@@ -233,6 +237,21 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             return 1;
         },
 
+        // ── SAP set code: G1 vs G4 ────────────────────────────────────────────
+        // The Stückliste opens with the set header the whole block is booked under.
+        // G1 is the normal Waschtisch set — ceramic and furniture ordered as separate
+        // articles. A **Waschtischkombination / Möbelkombination** (Laufen Pro S,
+        // Duravit Happy D.2 Plus, Alterna progetto) is basin AND furniture in ONE
+        // art-Nr, and SAP books that under **G4**. Nothing else about the set changes.
+        // The rule lives in _shared.js — the Waschtisch app's Ausführung pill reads it too.
+        isKombination: function (obj) {
+            return isWaschtischKombination(obj);
+        },
+
+        setCodeFor: function (obj) {
+            return this.isKombination(obj) ? 'G4' : 'G1';
+        },
+
         extractUeberlauf: function (obj) {
             const lbl = (obj.label || '').toLowerCase();
             const text = (obj.description || '').toLowerCase() + ' ' + lbl;
@@ -300,6 +319,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         extractBasinTyp: function (t) {
             // FULL-TEXT RULE: read label AND description.
             const lbl = ((t.label || '') + ' ' + (t.description || '')).toLowerCase();
+            // FIRST: basin + furniture in one art-Nr is its own Ausführung (and what makes
+            // the set G4). It has to outrank the rest — a "Waschtischkombination …
+            // Doppelwaschtisch aus Keramik" would otherwise file under Doppelwaschtisch.
+            if (this.isKombination(t)) return KOMBI_LABEL;
             if (lbl.includes('doppelwaschtisch')) return 'Doppelwaschtisch';
             if (lbl.includes('aufsatzwaschbecken') || lbl.includes('aufsatzbecken') || lbl.includes('auflegewaschtisch')) return 'Aufsatzwaschtisch';
             if (lbl.includes('wandbecken')) return 'Wandbecken';
@@ -331,9 +354,21 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 return val;
             }
 
-            // 2. Fallback to size field
+            // 2. A round bowl states a DIAMETER and no Breite — "Ø 40 cm" — and its
+            // diameter is its width. Both the label and the `size` field carry the Ø
+            // form ("Ø 45"), and neither the Breite regex above nor the leading-digit
+            // fallback below can see past the symbol, so every round Catalano dropped
+            // into "unknown" and out of the Breite filter.
+            const dMatch = label.match(/Ø\s*([\d,.]+)\s*(cm|mm)?/i);
+            if (dMatch) {
+                const val = parseFloat(dMatch[1].replace(',', '.'));
+                const unit = (dMatch[2] || 'cm').toLowerCase();
+                return (unit === 'mm' || val > 250 ? val / 10 : val).toString();
+            }
+
+            // 3. Fallback to size field ("60 x 46", "Ø 45")
             const size = (obj.size || '');
-            const match = size.match(/^(\d+(?:[.,]\d+)?)/);
+            const match = size.match(/(\d+(?:[.,]\d+)?)/);
             return match ? match[1].replace(',', '.') : 'unknown';
         },
 
@@ -1274,7 +1309,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 spiegelschrank: ['spiegelschrank', 'spiegelkabinett', 'miroir', 'mirror', ' mirror '],
                 lichtspiegel: ['lichtspiegel'],
                 spiegel: [], // matched purely by productType tag (avoids catching Spiegelschrank/Lichtspiegel)
-                accessoires: ['accessoire', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'hakenleiste'],
+                // 'handtuchspender' is the tail of Papier-/Stoff-/Rollenpapierhandtuchspender,
+                // so one keyword catches all 81. 'abfallbehälter' likewise covers
+                // Papierabfallbehälter and the combined Papierhandtuchspender-Abfallbehälter.
+                accessoires: ['accessoire', 'seifenhalter', 'seifenspender', 'glashalter', 'doppelglashalter', 'handtuchhalter', 'handtuchring', 'handtuchhaken', 'hakenleiste', 'handtuchspender', 'papierkorb', 'abfallbehälter', 'abfallbehaelter'],
                 accessoires_wc: ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste'],
                 accessoires_dusche: ['drahtseifenhalter', 'duschkorb', 'badetuchstange', 'schwammhalter']
             };
@@ -1285,6 +1323,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             const MIRROR_TARGETS = ['spiegelschrank', 'spiegel', 'lichtspiegel'];
             const MIRROR_PTYPE = { spiegelschrank: 'Spiegelschrank', spiegel: 'Spiegel', lichtspiegel: 'Lichtspiegel' };
             const isMirror = MIRROR_TARGETS.includes(target);
+            const isAccTarget = target === 'accessoires' || target === 'accessoires_wc' || target === 'accessoires_dusche';
 
             // 1. Search all app data for matching products (Gather Base Candidates)
             let baseCandidates = [];
@@ -1295,15 +1334,34 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 const items = app.trays || app.basinTrays || app.faucets || [];
                 items.forEach(t => {
                     const lbl = (t.label || t.name || '').toLowerCase();
+                    // FULL-TEXT RULE for the three Accessoires toggles: an ERP label is
+                    // truncated at ~40 chars, so what the article IS regularly survives only
+                    // in the description — "Spenderkombination KWC Rodan RODX 617" says
+                    // Seifenspender + Papierhandtuchspender + Abfallbehälter nowhere in its
+                    // label. The description side runs through withoutPartnerRefs first, or
+                    // every "zu Seifenspender …" accessory becomes a Seifenspender.
+                    // The label match is kept as its own arm, so this can only ADD.
+                    const hitsText = (text) => keywords.some(k => text.includes(k));
                     const matched = isMirror
-                        ? (t.productType === MIRROR_PTYPE[target] || (keywords.length > 0 && keywords.some(k => lbl.includes(k))))
-                        : keywords.some(k => lbl.includes(k));
+                        ? (t.productType === MIRROR_PTYPE[target] || (keywords.length > 0 && hitsText(lbl)))
+                        : (hitsText(lbl) || (isAccTarget && hitsText(withoutPartnerRefs(productText(t)))));
                     if (matched) {
                         if (isMirror) {
                             if (lbl.includes('schallschutz')) return;
                         }
-                        if (target === 'accessoires' || target === 'accessoires_wc' || target === 'accessoires_dusche') {
+                        if (isAccTarget) {
                             if (lbl.includes('spiegelschrank') || lbl.includes('spiegelkabinett')) return;
+                            // A Hygieneabfallbehälter is WC sanitary disposal, not washbasin
+                            // kit — it belongs to the WC app. It ends in "abfallbehälter",
+                            // so the bin keyword would otherwise pull all 17 in here.
+                            // label-prefix by design: the label states what the article IS.
+                            if (/^hygiene/i.test((t.label || t.name || '').trim())) return;
+                            // PARTNER-REFERENCE TRAP: a CWS Panel's label names the dispenser
+                            // it belongs to ("Panel CWS Paper Slim, zu Papierhandtuchspender
+                            // CWS Paradise …"), so the dispenser keywords match it. A panel is
+                            // never a standalone choice — requiredPanelFor pulls it into the
+                            // BOM under its own dispenser. // label-prefix by design
+                            if (/^panel\b/i.test((t.label || t.name || '').trim())) return;
                         }
 
                         // Filter to matching rules if basin is selected
@@ -1707,8 +1765,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             <div style="background: rgba(255,255,255,0.02); border-radius: 12px; padding: 0.75rem 1rem; border: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: 24px max-content minmax(0, 1fr); gap: 0.4rem 0.75rem; align-items: start;">
                                 ${this.getBOMPreviewItems().map(item => {
                 if (item.isSpacer) return '<div style="grid-column: 1 / -1; margin: 0.3rem 0; border-top: 1px dashed rgba(255,255,255,0.1);"></div>';
+                // A text position (TXK103) and a warning row carry no orderable quantity.
+                const qtyCell = (item.isTextCode || item.isWarning) ? '—' : `${item.qty}x`;
                 return `
-                                        <div style="color: var(--text-secondary); font-size: 0.7rem; padding-top: 2px;">${item.qty}x</div>
+                                        <div style="color: var(--text-secondary); font-size: 0.7rem; padding-top: 2px;">${qtyCell}</div>
                                         <div style="font-family: monospace; color: var(--accent); font-weight: 700; font-size: 0.76rem; white-space: nowrap; text-align: left;">${item.artNr}</div>
                                         <div style="font-weight: 500; color: var(--text-primary); line-height: 1.35; font-size: 0.76rem; overflow-wrap: anywhere;">${item.label}</div>
                                     `;
@@ -1911,18 +1971,21 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             }
 
             // 2. Assemble the final item list in the correct order
+            // G4 when the basin is a Waschtischkombination (basin + furniture in one
+            // art-Nr), G1 otherwise — see setCodeFor.
+            const setCode = this.setCodeFor(this.selectedBasin);
             if (isSelectedWandModel) {
                 // Wandmischer case
                 const label = (this.selectedFaucet?.label || '').toLowerCase();
                 const includesAblauf = (label.includes('ablauf') && !label.includes('ohne ablauf')) || this.selectedAblauf;
 
                 if (includesAblauf) {
-                    // Core order: Wandmischer items -> G1 -> Waschtisch -> Einbaukosten
+                    // Core order: Wandmischer items -> G1/G4 -> Waschtisch -> Einbaukosten
                     const cleanFaucetItems = faucetItems.filter(it => !it.label.toLowerCase().includes('einbaukosten'));
                     const einbauItems = faucetItems.filter(it => it.label.toLowerCase().includes('einbaukosten'));
 
                     items.push(...cleanFaucetItems);
-                    items.push({ qty: 1, label: 'Gürtelset', artNr: 'G1' });
+                    items.push({ qty: 1, label: 'Gürtelset', artNr: setCode });
                     items.push({ qty: 1, label: fullLabel(this.selectedBasin), artNr: this.selectedBasin.artNr });
 
                     // Standalone valve article if selected
@@ -1939,12 +2002,12 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     }
                 } else {
                     items.push(...faucetItems);
-                    items.push({ qty: 1, label: 'Gürtelset', artNr: 'G1' });
+                    items.push({ qty: 1, label: 'Gürtelset', artNr: setCode });
                     items.push({ qty: 1, label: fullLabel(this.selectedBasin), artNr: this.selectedBasin.artNr });
                 }
             } else {
-                // Standard case: G1 -> Basin -> Faucet items
-                items.push({ qty: 1, label: 'Gürtelset', artNr: 'G1' });
+                // Standard case: G1/G4 -> Basin -> Faucet items
+                items.push({ qty: 1, label: 'Gürtelset', artNr: setCode });
                 items.push({ qty: 1, label: fullLabel(this.selectedBasin), artNr: this.selectedBasin.artNr });
                 items.push(...faucetItems);
             }
@@ -1972,8 +2035,14 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 }
             }
 
-            // 3. Spacer for SAP (Breaks the G1 bundle)
+            // 3. Spacer for SAP (Breaks the G1/G4 bundle)
             items.push({ isSpacer: true });
+
+            // 3b. A G4 combination brings its furniture inside the ceramic's art-Nr, so
+            // the TXK103 text belongs to it too — but AFTER the set is closed. It sits
+            // on the first loose line, past the last Einbaukosten position, so it never
+            // lands inside the G4 block. See pushTextCode.
+            if (setCode === 'G4') this.pushTextCode(items);
 
             // 4. Mounting screws and Basin isolation (Dübelschrauben etc.)
             if (this.selectedBasin.mountingMaterials && this.selectedBasin.mountingMaterials.length > 0) {
@@ -2005,6 +2074,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 if (cabinetObj) {
                     items.push({ qty: 1, label: fullLabel(cabinetObj), artNr: cabinetObj.artNr });
                 }
+                // Furniture in the order → the TXK103 text, directly under the Möbel line.
+                this.pushTextCode(items);
 
                 // Cabinet Isolation Tape (Automatically based on width)
                 const width = parseFloat(this.extractBreite(this.selectedBasin));
@@ -2103,6 +2174,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     obj = its.find(t => t.artNr === this.selectedSchraenke);
                 });
                 items.push({ qty: 1, label: obj ? fullLabel(obj) : this.selectedSchraenke, artNr: this.selectedSchraenke });
+                // Furniture in the order → the TXK103 text, directly under the Schrank line.
+                this.pushTextCode(items);
             }
 
             // 7. Add Accessories
@@ -2117,6 +2190,35 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     });
                     if (accObj) {
                         items.push({ qty: 1, label: fullLabel(accObj), artNr: accObj.artNr });
+                        // A CWS dispenser ships without its front panel and names it in
+                        // its own text — the panel goes in directly under it, in white.
+                        // See requiredPanelFor in _shared.js (COLOUR + FULL-TEXT rules).
+                        const panel = requiredPanelFor(accObj);
+                        if (panel && panel.artNr) {
+                            items.push({ qty: 1, label: fullLabel(panel), artNr: panel.artNr });
+                        } else if (panel) {
+                            items.push({
+                                qty: 1, isWarning: true, artNr: panel.missingBase || '—',
+                                label: `Panel${panel.missingBase ? ' ' + panel.missingBase : ''} wird benötigt — ${accObj.artNr} wird ohne Panel geliefert, der Artikel ist im Katalog aber nicht erfasst. Bitte manuell ergänzen.`
+                            });
+                        }
+                        // A bin ships "ohne Befestigungsmaterial" — its Wandhalterung is a
+                        // separate art-Nr, and goes in directly under it. Only the bins the
+                        // catalogue actually pairs with one; see requiredWallMountFor.
+                        const mount = requiredWallMountFor(accObj);
+                        if (mount && mount.artNr) {
+                            // One bracket per bin, but ONE line: the four CWS Papierkörbe all
+                            // take 4611 863, so two bins in a set would otherwise paste the
+                            // same art-Nr twice. Bump the existing row instead.
+                            const already = items.find(it => it.artNr === mount.artNr && !it.isWarning);
+                            if (already) already.qty += 1;
+                            else items.push({ qty: 1, label: fullLabel(mount), artNr: mount.artNr });
+                        } else if (mount) {
+                            items.push({
+                                qty: 1, isWarning: true, artNr: mount.missingBase || '—',
+                                label: `Wandhalterung${mount.missingBase ? ' ' + mount.missingBase : ''} wird benötigt — ${accObj.artNr} wird ohne Befestigungsmaterial geliefert, der Artikel ist im Katalog aber nicht erfasst. Bitte manuell ergänzen.`
+                            });
+                        }
                     }
                 });
             }
@@ -2124,7 +2226,27 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             return items;
         },
 
-        // Copies only the G1 set lines (G1 header → basin → faucet → einbaukosten → ablaufventil → ablauf einbaukosten)
+        // ── TXK103 — the furniture text position ──────────────────────────────
+        // A pure SAP text trigger: it prints a standing note on the order and carries
+        // NO quantity, so it is exported as a bare line (no tab, no Menge) and the BOM
+        // shows "-" in the Menge column — priceBOM reads that as "no price", which a
+        // text code has. Emitted at most ONCE per Stückliste: a set with both a
+        // Waschtischkombination and a Hochschrank still wants one note, not three.
+        pushTextCode: function (items) {
+            if (items.some(it => it.artNr === TXT_MOEBEL_CODE)) return;
+            items.push({ qty: null, isTextCode: true, label: 'Textposition Möbel (SAP)', artNr: TXT_MOEBEL_CODE });
+        },
+
+        // One SAP paste line. A text code (TXK103) carries NO quantity, so it goes out
+        // bare — no tab, no Menge. A warning row has no art-Nr to order and is dropped.
+        sapLine: function (item) {
+            if (item.isWarning) return null;
+            const cleanArtNr = (item.artNr || '').toString().replace(/\t/g, '').trim();
+            if (!cleanArtNr) return null;
+            return item.isTextCode ? cleanArtNr : `${cleanArtNr}\t${item.qty}`;
+        },
+
+        // Copies only the set lines (G1/G4 header → basin → faucet → einbaukosten → ablaufventil → ablauf einbaukosten)
         copyToClipboard: function () {
             const previewItems = this.getBOMPreviewItems();
             if (previewItems.length === 0) {
@@ -2132,29 +2254,27 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 return;
             }
 
-            // G1 set = all items up to (but NOT including) the spacer
-            const g1Items = [];
+            // The set = all items up to (but NOT including) the spacer
+            const setItems = [];
             for (const item of previewItems) {
                 if (item.isSpacer) break;
-                g1Items.push(item);
+                setItems.push(item);
             }
 
-            if (g1Items.length === 0) {
-                alert('Kein G1-Set vorhanden.');
+            const setCode = this.setCodeFor(this.selectedBasin);
+            if (setItems.length === 0) {
+                alert(`Kein ${setCode}-Set vorhanden.`);
                 return;
             }
 
-            const textLines = g1Items.map(item => {
-                let cleanArtNr = (item.artNr || '').toString().replace(/\t/g, '').trim();
-                return `${cleanArtNr}\t${item.qty}`;
-            });
+            const textLines = setItems.map(it => this.sapLine(it)).filter(Boolean);
             const textArray = textLines.join('\n');
             window.copyTextToClipboard(textArray).then(() => {
-                alert("✅ G1-Set kopiert für SAP (" + g1Items.length + " Zeilen):\n\n" + textArray.replace(/\t/g, "    "));
+                alert(`✅ ${setCode}-Set kopiert für SAP (` + textLines.length + " Zeilen):\n\n" + textArray.replace(/\t/g, "    "));
             }).catch(e => alert("Kopieren fehlgeschlagen."));
         },
 
-        // Copies ONLY the loose items (Schallschutz + Dübelschrauben) — paste SEPARATELY after the G1 set is closed
+        // Copies ONLY the loose items (Schallschutz + Dübelschrauben) — paste SEPARATELY after the G1/G4 set is closed
         copyLooseItemsToClipboard: function () {
             const previewItems = this.getBOMPreviewItems();
             if (previewItems.length === 0) {
@@ -2175,13 +2295,11 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                 return;
             }
 
-            const textLines = looseItems.map(item => {
-                let cleanArtNr = (item.artNr || '').toString().replace(/\t/g, '').trim();
-                return `${cleanArtNr}\t${item.qty}`;
-            });
+            const textLines = looseItems.map(it => this.sapLine(it)).filter(Boolean);
             const textArray = textLines.join('\n');
+            const setCode = this.setCodeFor(this.selectedBasin);
             window.copyTextToClipboard(textArray).then(() => {
-                alert("✅ Lose Artikel kopiert für SAP (" + looseItems.length + " Zeilen):\n\nBitte NACH dem G1-Set einfügen!\n\n" + textArray.replace(/\t/g, "    "));
+                alert("✅ Lose Artikel kopiert für SAP (" + textLines.length + ` Zeilen):\n\nBitte NACH dem ${setCode}-Set einfügen!\n\n` + textArray.replace(/\t/g, "    "));
             }).catch(e => alert("Kopieren fehlgeschlagen."));
         },
 
@@ -2203,6 +2321,32 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     return;
                 }
 
+                // A needed part the catalogue does not carry — shown, never guessed.
+                if (item.isWarning) {
+                    bomHtml += `
+                    <tr style="background: rgba(255,166,0,0.07);">
+                        <td><div class="img-cell" style="background: transparent; border: 1px dashed var(--border);"><i class="ri-alert-line" style="font-size:1.2rem;opacity:0.5;"></i></div></td>
+                        <td><span class="bom-code">${item.artNr}</span></td>
+                        <td><div class="bom-desc">${item.label}</div></td>
+                        <td><strong>-</strong></td>
+                    </tr>
+                `;
+                    return;
+                }
+
+                // TXK103 and friends: a text trigger, not an article — no Menge, no price.
+                if (item.isTextCode) {
+                    bomHtml += `
+                    <tr style="background: rgba(59, 130, 246, 0.03);">
+                        <td><div class="img-cell" style="background: transparent; border: 1px dashed var(--border);"><i class="ri-chat-1-line" style="font-size:1.2rem;opacity:0.5;"></i></div></td>
+                        <td><span class="bom-code">${item.artNr}</span></td>
+                        <td><div class="bom-desc">${item.label}</div></td>
+                        <td><strong>-</strong></td>
+                    </tr>
+                `;
+                    return;
+                }
+
                 const isService = item.label.toLowerCase().includes('einbaukosten');
                 bomHtml += `
                     <tr style="${isService ? 'background: rgba(59, 130, 246, 0.03);' : ''}">
@@ -2213,7 +2357,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         <td>
                             <div class="bom-desc">${item.label}</div>
                         </td>
-                        
+
                         <td><strong>${item.qty}</strong></td>
                     </tr>
                 `;
@@ -2222,6 +2366,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             bomTableBody.innerHTML = bomHtml;
             bomCountCounter.textContent = `${totalCount} Artikel`;
+            // The copy button says which set it copies — app.js sets "G1 kopieren" when the
+            // configurator opens, before a basin is picked, so a G4 combination must retitle it.
+            const copyBtnText = document.getElementById('copyBtnText');
+            if (copyBtnText) copyBtnText.textContent = `${this.setCodeFor(this.selectedBasin)} kopieren`;
             priceBOM(bomTableBody);   // services (Einbaukosten) have no product price → shown as "-"
 
             if (window.saveWishlist) window.saveWishlist();

@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, productText, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem , fullLabel, cleanSerie, artFinishCode, accFamilyOf, accSkuInColour, accGroupChoice, accTierNote, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, requiredBodyFor, bomExtraRowHTML } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, productText, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem , fullLabel, cleanSerie, artFinishCode, accFamilyOf, accSkuInColour, accGroupChoice, accTierNote, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, isGarniturGroupName, requiredBodyFor, requiredArmFor, bodyPresentFor, bomExtraRowHTML } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
@@ -174,14 +174,17 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
             }]
           });
         }
-        // BOM order: Abstellverschraubung → Brauseschlauch → Handbrause → Gleitstange
+        // BOM order: Abstellverschraubung → Brauseschlauch → Handbrause → Brausegarnitur → Gleitstange
+        // The Garnitur is the alternative to the Handbrause row and sits under it; it is
+        // tested FIRST because "handbrausegarnitur".includes("handbrause") is true.
         const rank = (name) => {
           const x = (name || "").toLowerCase();
           if (x.includes("abstellverschraubung")) return 0;
+          if (isGarniturGroupName(x)) return 3;
           if (x.includes("brauseschlauch")) return 1;
           if (x.includes("handbrause")) return 2;
-          if (x.includes("gleitstange")) return 3;
-          return 4;
+          if (x.includes("gleitstange")) return 4;
+          return 5;
         };
         materials.sort((a, b) => rank(a.name) - rank(b.name));
       } else {
@@ -208,18 +211,21 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         }
 
         // === Unterputz BOM order (INSTRUCTIONS.md §2) ===
-        // Grundkörper → Montageschiene → Anschlussbogen → Brauseschlauch → Handbrause → Gleitstange.
-        // (Regenbrause block = future work.) No Abstellverschraubung — it sits on the Grundkörper.
+        // Grundkörper → Montageschiene → Anschlussbogen → Brauseschlauch → Handbrause →
+        // Brausegarnitur → Gleitstange. (Regenbrause block = future work.)
+        // No Abstellverschraubung — it sits on the Grundkörper.
+        // The Garnitur is tested FIRST: "handbrausegarnitur".includes("handbrause").
         const rank = (name) => {
           const x = (name || "").toLowerCase();
           if (x.includes("grundkörper") || x.includes("grundkoerper") || x.includes("einbaukörper") || x.includes("einbaukoerper") || x.includes("ibox")) return 0;
           if (x.includes("montageschiene") || x.includes("montageset")) return 1;
+          if (isGarniturGroupName(x)) return 5;
           if (x.includes("anschlussbogen")) return 2;
           if (x.includes("brauseschlauch")) return 3;
           if (x.includes("handbrause")) return 4;
-          if (x.includes("gleitstange")) return 5;
-          if (x.includes("regenbrause") || x.includes("brausearm")) return 6;
-          return 7;
+          if (x.includes("gleitstange")) return 6;
+          if (x.includes("regenbrause") || x.includes("brausearm")) return 7;
+          return 8;
         };
         materials.sort((a, b) => rank(a.name) - rank(b.name));
       }
@@ -955,6 +961,14 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
         const _garnitur = brausegarniturPlan(this.selectedTray.mountingMaterials, {
             brand: _mixerBrand, code: _mainCode, serie: _mixerSerie, picks: this.accPick
         });
+        // Does the tray already show an arm? A head sold "ohne Anschlussbogen" only needs
+        // one injected when no Brausearm/Deckenanschluss row is standing. effectiveMat()
+        // is the rule for reading one group to decide another — it sees the user's pick.
+        const _hasArmRow = (this.selectedTray.mountingMaterials || []).some((m, idx) => {
+            if (accFamilyOf(m.name) !== 'Brausearm' || !this.isMatVisible(m, idx)) return false;
+            const cur = this.effectiveMat(idx);
+            return !!(cur && !/^ohne/i.test(cur.label || ''));   // label-prefix by design
+        });
 
         ((r.innerHTML += `
                 <tr class="bom-main-item">
@@ -972,12 +986,15 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
               if (a !== void 0) {
                 const fam = accFamilyOf(n.name);
                 const allowAuto = _garnitur.forceAuto && fam === 'Brausegarnitur';
-                const forceOhne = _garnitur.forceOhne && ACC_BUNDLED_BY_GARNITUR.indexOf(fam) >= 0;
+                // Only the rows the CHOSEN set actually contains go off (a hose set
+                // leaves the Gleitstange row standing).
+                const forceOhne = _garnitur.forceOhne && (_garnitur.bundled || ACC_BUNDLED_BY_GARNITUR).indexOf(fam) >= 0;
 
                 const choice = accGroupChoice(n, {
                     brand: _mixerBrand, code: _mainCode, serie: _mixerSerie,
                     stdIdx: a, pick: this.accPick[i], used: _usedArt,
-                    forceOhne: forceOhne, allowOhneAutoMatch: allowAuto
+                    forceOhne: forceOhne, allowOhneAutoMatch: allowAuto,
+                    autoArt: allowAuto ? _garnitur.autoArt : null
                 });
                 const l = choice.item;
                 const isOhne = choice.isOhne;
@@ -985,6 +1002,9 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                 let isInlineDropdown = config.enableGalleryUX && choice.hasChoices;
 
                 if (!isInlineDropdown && isOhne && !choice.forcedOhne) return;
+                // A part sold "zu Einbaukörper NNNN NNN" leaves with that body: the
+                // Einbaukörper row is rendered first, so _usedArt already knows.
+                if (!isOhne && l && !bodyPresentFor(l, _usedArt)) return;
 
                 const o = l ? (l.menge || 1) : 1;
                 if (l && l.artNr) _usedArt.add(l.artNr);
@@ -1026,6 +1046,18 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                     if (body && !(body.artNr && _usedArt.has(body.artNr))) {
                         if (body.artNr) { _usedArt.add(body.artNr); t += 1; }
                         r.innerHTML += bomExtraRowHTML(body, `zwingend zu ${n.name || 'Zubehör'}`);
+                    }
+                    // …and a head sold "ohne Anschlussbogen" needs an arm to hang on.
+                    // Skipped when the tray already carries a filled Brausearm row.
+                    if (!_hasArmRow) {
+                        const arm = requiredArmFor(l, { brand: l.brand || _mixerBrand, code: _mainCode, used: _usedArt });
+                        if (arm) {
+                            if (arm.artNr) { _usedArt.add(arm.artNr); t += 1; }
+                            // The row carries no dropdown, so it says what it settled for.
+                            const armNote = `zwingend zu ${n.name || 'Zubehör'}`
+                                + (arm.tier && arm.tier !== 1 ? ` · ${accTierNote(arm.tier)}` : '');
+                            r.innerHTML += bomExtraRowHTML(arm, armNote);
+                        }
                     }
                 }
               }
