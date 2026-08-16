@@ -17,11 +17,11 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
 - **Vanilla JS SPA**, no framework. ES modules, bundled by **Vite** into a single
   `dist/index.html` via `vite-plugin-singlefile` (everything inlined).
 - `npm run dev` — Vite dev server on **port 5175** (see `.claude/launch.json`).
-- `npm test` — runs **10 suites, 311 assertions**: `verify-duschtrennwand` (38),
+- `npm test` — runs **11 suites, 319 assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
   `verify-fulltext-rule` (78), `verify-product-display` (37),
   `verify-no-kitchen-in-waschtischmischer` (4), `verify-scraper-maktx2` (7),
-  `verify-accessory-colormatch` (47), `verify-mixmatch-rules` (67). Plain Node with hand-rolled DOM
+  `verify-accessory-colormatch` (47), `verify-mixmatch-rules` (67), `verify-data-intern` (8). Plain Node with hand-rolled DOM
   mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the one jsdom
   test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
   **Run this after any change to `modules/factories/`.**
@@ -200,15 +200,47 @@ whichever one the app's title falls into.
 
 ## Data layer
 
-- The product database is **`custom-data.json`** (tracked, **~58 MB / ~1.34 M lines**
-  after the Ch2/Ch3/Ch4/Ch5/Ch6 injections). It is the source of truth for article
-  numbers, labels, prices, services, and rules. "Healing" labels in this file is a
-  routine maintenance task. It is too big to read or grep whole — go through
-  `node -e` and address it by top-level pool. Merge conflicts in it are best
-  resolved **per pool** (separate workstreams inject into separate pools, so the
-  edits are usually disjoint), never textually.
+- The product database is **`custom-data.json`** (tracked, **~36 MB on disk**, ~55 MB
+  expanded). It is the source of truth for article numbers, labels, prices, services,
+  and rules. "Healing" labels in this file is a routine maintenance task. It is too big
+  to read or grep whole — go through `node -e` and address it by top-level pool. Merge
+  conflicts in it are best resolved **per pool** (separate workstreams inject into
+  separate pools, so the edits are usually disjoint), never textually.
   **Write it with `JSON.stringify(data, null, 2)`** — anything else reformats all
   94k records and buries the real change in a whole-file diff.
+
+  ### ⚠ It is stored INTERNED — never read it with plain `fs`
+
+  Every tray used to carry its own full copy of the same options: 29,779
+  `mountingMaterials` options were copies of **1,894** distinct objects, and 16,956
+  `services` copies of **279**. They now live once in top-level `_options` / `_services`
+  tables and each tray holds the **key string** (`"o412"`). Read the file raw and
+  `group.options[0].label` is `undefined` — a classifier silently matches nothing and an
+  injector happily writes a duplicate.
+
+  - **Scripts:** `const { readData, writeData } = require('./_dataFile.cjs')`.
+    `readData()` expands, `writeData(data)` re-interns + backs up + holds indent 2.
+    33 scripts are migrated; the handful that were not are listed in that file's header
+    and none of them inspect an option or service object.
+  - **Runtime:** `modules/dataHydrate.js#expandData` is called once in
+    `app.js#applyDataToApps`, which covers all THREE load paths (`/api/data`, the
+    bundled gz blob, the IndexedDB backup).
+  - **Saving from the admin panel:** `/api/save` in `vite.config.js` re-interns before
+    writing, or the first save undoes ~20 MB of it.
+  - **Tests that read the file must expand it too** — `verify-duschtrennwand` and
+    `verify-servicepaket` do; forgetting it makes every service rule test nothing while
+    still reporting green-ish failures.
+  - Expanding is idempotent and tolerant: an already-expanded file, an old IndexedDB
+    backup and a half-migrated file all load. Each reference expands into its OWN copy,
+    so an in-place edit of one tray's option cannot leak into another's.
+  - Guarded by `tests/verify-data-intern.js`, which pins the ESM and CommonJS
+    expanders against each other (they exist separately because the `.cjs` injectors
+    cannot import ESM synchronously).
+
+  Together with the redundant-`description` prune
+  (`st-scraper/prune-redundant-descriptions.mjs`, 24,265 fields that the label already
+  contained), this took the file from **59.48 MB to 36.13 MB**. The remaining lever is
+  splitting per pool — `zubehoer_pool` alone is ~16 MB of it.
 - **`tech` — SAP's structured attributes.** A flat map on ~32k records
   (`{Marke, Serie, Ausprägung, Breite, Höhe, Modell, Montage, …}`) written by
   `st-scraper/apply-refetched-text.cjs`. Stored flat, not as an array of objects:
