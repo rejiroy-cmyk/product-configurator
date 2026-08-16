@@ -1,0 +1,677 @@
+{
+  "generatedFor": "Ch6 — the Einbaukörper a Regenbrause names in its own text",
+  "mode": "APPLIED",
+  "refsTotal": 1161,
+  "refsResolvedBefore": 1086,
+  "refsUnresolvedBefore": 75,
+  "bodiesWanted": 21,
+  "injected": 20,
+  "warningRowsCleared": 73,
+  "newPriceRows": 20,
+  "items": [
+    {
+      "base": "6438804",
+      "artNr": "6438 804.000.000",
+      "label": "Einbaukörper Dornbracht ½\", für Regenpaneel Dornbracht Serenity Sky",
+      "manufacturer": "Dornbracht",
+      "net": 2346,
+      "unblocks": 14,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6418163",
+      "artNr": "6418 163.000.000",
+      "label": "Einbaukörper Hansgrohe, ½\" für Kopfbrause Hansgrohe Raindance E",
+      "manufacturer": "Hansgrohe",
+      "net": 165,
+      "unblocks": 12,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6438808",
+      "artNr": "6438 808.000.000",
+      "label": "Einbaukörper Dornbracht ½\", für Regenpaneel Dornbracht Serenity Sky mit",
+      "manufacturer": "Dornbracht",
+      "net": 3127,
+      "unblocks": 12,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6418155",
+      "artNr": "6418 155.000.000",
+      "label": "Einbaukörper Axor Shower Solutions, für Kopfbrause Deckenaufputz, Einbautiefe",
+      "manufacturer": "Axor",
+      "net": 132,
+      "unblocks": 8,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6252848",
+      "artNr": "6252 848.000.000",
+      "label": "Einbaukörper Gessi ½\", zu Wandmischer mit Auslauf, Einbautiefe 69 - 99 mm",
+      "manufacturer": "Gessi",
+      "net": 407,
+      "unblocks": 4,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6438844",
+      "artNr": "6438 844.000.000",
+      "label": "Einbaukörper Dornbracht ½\", für Seitenbrausen, Einbautiefe 100 - 173 mm",
+      "manufacturer": "Dornbracht",
+      "net": 334,
+      "unblocks": 3,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6171692",
+      "artNr": "6171 692.000.000",
+      "label": "Einbaukörper Fantini, zu Kopfbrause Fantini Aquafit",
+      "manufacturer": "Fantini",
+      "net": 348,
+      "unblocks": 2,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6418119",
+      "artNr": "6418 119.000.000",
+      "label": "Einbaukörper Axor ½\", für Kopfbrause Decke Citterio C, Einbautiefe 60 - 80",
+      "manufacturer": "Axor",
+      "net": 122,
+      "unblocks": 2,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6418124",
+      "artNr": "6418 124.000.000",
+      "label": "Einbaukörper Axor ½\", für Kopfbrause 2-jet, mit Deckenanschluss, Einbautiefe",
+      "manufacturer": "Axor",
+      "net": 101,
+      "unblocks": 2,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6418159",
+      "artNr": "6418 159.000.000",
+      "label": "Einbaukörper Axor, für Kopfbrausen Axor mit Deckenanschluss, Einbautiefe 50 -",
+      "manufacturer": "Axor",
+      "net": 300,
+      "unblocks": 2,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6438895",
+      "artNr": "6438 895.000.000",
+      "label": "Einbaukörper Dornbracht ½\", für Deckenanbindung, Bausatz Vormontage, 2",
+      "manufacturer": "Dornbracht",
+      "net": 627,
+      "unblocks": 2,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6438896",
+      "artNr": "6438 896.000.000",
+      "label": "Einbaukörper Dornbracht ½\", für Deckenanbindung mit Licht, Bausatz",
+      "manufacturer": "Dornbracht",
+      "net": 943,
+      "unblocks": 2,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6171689",
+      "artNr": "6171 689.000.000",
+      "label": "Einbaukörper Fantini, zu Doppelkopfbraue, Fantini Aqua fit",
+      "manufacturer": "Fantini",
+      "net": 517,
+      "unblocks": 1,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6418140",
+      "artNr": "6418 140.000.000",
+      "label": "Einbaukörper Axor ½\", Thermostat, 2 Abgänge ¾\", Montage horizontal oder",
+      "manufacturer": "Axor",
+      "net": 779,
+      "unblocks": 1,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6418141",
+      "artNr": "6418 141.000.000",
+      "label": "Einbaukörper Axor ½\", Thermostat, 3 Abgänge ¾\", Montage horizontal oder",
+      "manufacturer": "Axor",
+      "net": 779,
+      "unblocks": 1,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6438841",
+      "artNr": "6438 841.000.000",
+      "label": "Einbaukörper Dornbracht ½\", für Seitenbrause UP, Befestigungssatz,",
+      "manufacturer": "Dornbracht",
+      "net": 249,
+      "unblocks": 1,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6438893",
+      "artNr": "6438 893.000.000",
+      "label": "Einbaukörper Dornbracht ½\", für Deckeneinbau, Bausatz Vormontage, 2 x",
+      "manufacturer": "Dornbracht",
+      "net": 1203,
+      "unblocks": 1,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6438894",
+      "artNr": "6438 894.000.000",
+      "label": "Einbaukörper Dornbracht ½\", für Deckeneinbau mit Licht, Bausatz",
+      "manufacturer": "Dornbracht",
+      "net": 1804,
+      "unblocks": 1,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6438897",
+      "artNr": "6438 897.000.000",
+      "label": "Einbaukörper Dornbracht ½\", für Deckeneinbau, Bausatz Vormontage, 2 x",
+      "manufacturer": "Dornbracht",
+      "net": 1203,
+      "unblocks": 1,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    },
+    {
+      "base": "6438898",
+      "artNr": "6438 898.000.000",
+      "label": "Einbaukörper Dornbracht ½\", für Deckeneinbau mit Licht, Bausatz",
+      "manufacturer": "Dornbracht",
+      "net": 1804,
+      "unblocks": 1,
+      "imgKind": "PG1",
+      "src": "ch6-api.json"
+    }
+  ],
+  "skipped": [
+    {
+      "base": "6171974",
+      "reason": "no SAP record in any api dump",
+      "detail": "shop has no page either",
+      "unblocks": 2,
+      "namedBy": [
+        "6171 304.501.000",
+        "6171 304.501.000"
+      ]
+    }
+  ],
+  "unresolvedRefs": [
+    {
+      "pool": "bademischer",
+      "artNr": "6171 304.501.000",
+      "label": "Bade- und Duschmischer Endmontageset Fantini Torino, 3-Wege Umsteller,",
+      "base": "6171974"
+    },
+    {
+      "pool": "waschtischmischer",
+      "artNr": "6241 560.495.111",
+      "label": "Wandmischer-Endmontageset Gessi 316,",
+      "base": "6252848"
+    },
+    {
+      "pool": "waschtischmischer",
+      "artNr": "6241 562.495.115",
+      "label": "Wandmischer-Endmontageset Gessi 316,",
+      "base": "6252848"
+    },
+    {
+      "pool": "waschtischmischer",
+      "artNr": "6241 564.495.111",
+      "label": "Wandmischer-Endmontageset Gessi 316,",
+      "base": "6252848"
+    },
+    {
+      "pool": "waschtischmischer",
+      "artNr": "6241 565.495.111",
+      "label": "Wandmischer-Endmontageset Gessi 316,",
+      "base": "6252848"
+    },
+    {
+      "pool": "duschenmischer",
+      "artNr": "6410 942.501.810",
+      "label": "Duschsystem Axor Citterio C, Abdeckplatte 380 x 120 mm, 2",
+      "base": "6418140"
+    },
+    {
+      "pool": "duschenmischer",
+      "artNr": "6410 943.501.810",
+      "label": "Duschsystem Axor Citterio C, mit 3 Rosetten, 120 x 120 mm, 3 Verbraucher,",
+      "base": "6418141"
+    },
+    {
+      "pool": "duschenmischer",
+      "artNr": "6171 304.501.000",
+      "label": "Bade- und Duschmischer Endmontageset Fantini Torino, 3-Wege Umsteller,",
+      "base": "6171974"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6171 371.501.000",
+      "label": "Kopfbrause Fantini Aquafit, für Wandmontage, 2 Strahlarten, 300 x 450",
+      "base": "6171692"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6171 372.501.000",
+      "label": "Kopfbrause Fantini Aquafit, für Wandmontage, 2 Strahlarten, 300 x 450",
+      "base": "6171692"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6171 373.501.000",
+      "label": "Doppelkopfbrause Fantini, für Wandmontage, Regen und Wasserfall,",
+      "base": "6171689"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6410 949.501.000",
+      "label": "Regenbrause Axor Citterio C, Durchflussleistung 11,3 l/min., mit",
+      "base": "6418119"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6410 950.501.000",
+      "label": "Regenbrause Axor Citterio C, EcoSmart, Durchflussleistung 6,8 l/min., mit",
+      "base": "6418119"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6417 730.501.000",
+      "label": "Regenbrause Axor ShowerSphere EcoSmart, EcoSmart, Durchflussmenge 8 l/min., mit",
+      "base": "6418159"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6417 736.501.000",
+      "label": "Regenbrause Axor ShowerSphere ½\", Durchflussmenge 10,4 l/min., mit",
+      "base": "6418124"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6417 737.501.000",
+      "label": "Regenbrause Axor ShowerSphere ½\" EcoSmart, EcoSmart, Durchflussmenge 6,7",
+      "base": "6418124"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6417 774.501.000",
+      "label": "Regenbrause Axor One ½\", mit Deckenanschluss, Länge 211 mm,",
+      "base": "6418159"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6437 640.501.000",
+      "label": "Regenbrause Dornbracht, für Deckenanbindung, Ø 300 mm,",
+      "base": "6438895"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6437 641.501.000",
+      "label": "Regenbrause Dornbracht mit Licht, für Deckenanbindung, Ø 300 mm,",
+      "base": "6438896"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6437 642.501.000",
+      "label": "Regenbrause Dornbracht, für Deckeneinbau, Ø 300 mm, mindest",
+      "base": "6438893"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6437 643.501.000",
+      "label": "Regenbrause Dornbracht mit Licht, für Deckeneinbau, Ø 300 mm, mindest",
+      "base": "6438894"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6437 644.501.000",
+      "label": "Regenbrause Dornbracht, für Deckenanbindung, 300 x 240 mm,",
+      "base": "6438895"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6437 645.501.000",
+      "label": "Regenbrause Dornbracht mit Licht, für Deckenanbindung, 300 x 240 mm,",
+      "base": "6438896"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6437 646.501.000",
+      "label": "Regenbrause Dornbracht, für Deckeneinbau, 300 x 240 mm, mindest",
+      "base": "6438897"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6437 647.501.000",
+      "label": "Regenbrause Dornbracht mit Licht, für Deckeneinbau, 300 x 240 mm, mindest",
+      "base": "6438898"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 124.501.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky ohne Licht, für Deckeneinbau,",
+      "base": "6438804"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 124.560.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky ohne Licht, für Deckeneinbau, Regenpaneel 60",
+      "base": "6438804"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 124.562.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky ohne Licht, für Deckeneinbau, Regenpaneel 60",
+      "base": "6438804"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 124.567.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky ohne Licht, für Deckeneinbau, Regenpaneel 60",
+      "base": "6438804"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 124.561.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky ohne Licht, für Deckeneinbau, Regenpaneel 60",
+      "base": "6438804"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 124.523.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky ohne Licht, für Deckeneinbau, Regenpaneel 60",
+      "base": "6438804"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 124.432.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky ohne Licht, für Deckeneinbau, Regenpaneel 60",
+      "base": "6438804"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 125.560.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky mit Licht, für Deckeneinbau, Regenpaneel 600",
+      "base": "6438808"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 125.562.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky mit Licht, für Deckeneinbau, Regenpaneel 600",
+      "base": "6438808"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 125.567.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky mit Licht, für Deckeneinbau, Regenpaneel 600",
+      "base": "6438808"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 125.561.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky mit Licht, für Deckeneinbau, Regenpaneel 600",
+      "base": "6438808"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 125.523.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky mit Licht, für Deckeneinbau, Regenpaneel 600",
+      "base": "6438808"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 125.432.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky mit Licht, für Deckeneinbau, Regenpaneel 600",
+      "base": "6438808"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 129.501.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky ohne Licht, für Deckeneinbau,",
+      "base": "6438804"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 129.560.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky ohne Licht, für Deckeneinbau, Regenpaneel 60",
+      "base": "6438804"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 129.562.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky ohne Licht, für Deckeneinbau, Regenpaneel 60",
+      "base": "6438804"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 129.567.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky ohne Licht, für Deckeneinbau, Regenpaneel 60",
+      "base": "6438804"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 129.561.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky ohne Licht, für Deckeneinbau, Regenpaneel 60",
+      "base": "6438804"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 129.523.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky ohne Licht, für Deckeneinbau, Regenpaneel 60",
+      "base": "6438804"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 129.432.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky ohne Licht, für Deckeneinbau, Regenpaneel 60",
+      "base": "6438804"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 130.560.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky mit Licht, für Deckeneinbau, Regenpaneel 600",
+      "base": "6438808"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 130.562.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky mit Licht, für Deckeneinbau, Regenpaneel 600",
+      "base": "6438808"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 130.567.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky mit Licht, für Deckeneinbau, Regenpaneel 600",
+      "base": "6438808"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 130.561.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky mit Licht, für Deckeneinbau, Regenpaneel 600",
+      "base": "6438808"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 130.523.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky mit Licht, für Deckeneinbau, Regenpaneel 600",
+      "base": "6438808"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 130.432.000",
+      "label": "Regenpaneel Dornbracht Serenity Sky mit Licht, für Deckeneinbau, Regenpaneel 600",
+      "base": "6438808"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 151.501.000",
+      "label": "Seitenbrause Dornbracht Water Points UP, Abdeckplatte eckig, 120 x 120 mm,",
+      "base": "6438841"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 152.501.000",
+      "label": "Seitenbrause Dornbracht Water Bar UP, Abdeckplatte eckig, 240 x 60 mm,",
+      "base": "6438844"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 154.501.000",
+      "label": "Seitenbrause Dornbracht Water Fan UP, vertikal, Abdeckplatte eckig, 240 x 60",
+      "base": "6438844"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6438 155.501.000",
+      "label": "Seitenbrause Dornbracht Water Fan UP, horizontal, Abdeckplatte eckig, 240 x",
+      "base": "6438844"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 970.501.000",
+      "label": "Regenbrause Axor Shower Solutions, 250 x 250 mm, dynamische Strahldüsen fahren",
+      "base": "6418155"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 971.501.000",
+      "label": "Regenbrause Axor Shower Solutions, 250 x 250 mm, dynamische Strahldüsen fahren",
+      "base": "6418155"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 972.501.000",
+      "label": "Regenbrause Axor Shower Solutions, 300 x 300 mm, dynamische Strahldüsen fahren",
+      "base": "6418155"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 973.501.000",
+      "label": "Regenbrause Axor Shower Solutions, 300 x 300 mm, dynamische Strahldüsen fahren",
+      "base": "6418155"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 978.501.000",
+      "label": "Regenbrause Axor Shower Solutions, Brausekopf Ø 250 mm, dynamische",
+      "base": "6418155"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 979.501.000",
+      "label": "Regenbrause Axor Shower Solutions, Brausekopf Ø 250 mm, dynamische",
+      "base": "6418155"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 980.501.000",
+      "label": "Regenbrause Axor Shower Solutions, Brausekopf Ø 300 mm, dynamische",
+      "base": "6418155"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 981.501.000",
+      "label": "Regenbrause Axor Shower Solutions, Brausekopf Ø 300 mm, dynamische",
+      "base": "6418155"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 995.501.000",
+      "label": "Regenbrause Hansgrohe Raindance E, Durchflussleistung 20 l/min., 400 x 400",
+      "base": "6418163"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 995.535.000",
+      "label": "Regenbrause Hansgrohe Raindance E, Durchflussleistung 20 l/min., 400 x 400 Schwa",
+      "base": "6418163"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 995.536.000",
+      "label": "Regenbrause Hansgrohe Raindance E, Durchflussleistung 20 l/min., 400 x 400 Weiss",
+      "base": "6418163"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 995.461.000",
+      "label": "Regenbrause Hansgrohe Raindance E, Durchflussleistung 20 l/min., 400 x 400 Brush",
+      "base": "6418163"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 995.462.000",
+      "label": "Regenbrause Hansgrohe Raindance E, Durchflussleistung 20 l/min., 400 x 400 Brush",
+      "base": "6418163"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 995.464.000",
+      "label": "Regenbrause Hansgrohe Raindance E, Durchflussleistung 20 l/min., 400 x 400 Polis",
+      "base": "6418163"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 996.501.000",
+      "label": "Regenbrause Hansgrohe Raindance E, EcoSmart, Durchflussleistung 8 l/min.,",
+      "base": "6418163"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 996.535.000",
+      "label": "Regenbrause Hansgrohe Raindance E, EcoSmart, Durchflussleistung 8 l/min., Schwar",
+      "base": "6418163"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 996.536.000",
+      "label": "Regenbrause Hansgrohe Raindance E, EcoSmart, Durchflussleistung 8 l/min., Weiss ",
+      "base": "6418163"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 996.461.000",
+      "label": "Regenbrause Hansgrohe Raindance E, EcoSmart, Durchflussleistung 8 l/min., Brushe",
+      "base": "6418163"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 996.462.000",
+      "label": "Regenbrause Hansgrohe Raindance E, EcoSmart, Durchflussleistung 8 l/min., Brushe",
+      "base": "6418163"
+    },
+    {
+      "pool": "zubehoer_pool",
+      "artNr": "6545 996.464.000",
+      "label": "Regenbrause Hansgrohe Raindance E, EcoSmart, Durchflussleistung 8 l/min., Polish",
+      "base": "6418163"
+    }
+  ]
+}

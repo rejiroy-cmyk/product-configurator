@@ -10,8 +10,15 @@
  * Distinguishes PG1 (real product shot) from PS1 (per-article drawing) so the injector
  * can prefer the former, and skips obvious sprites/logos.
  *
+ * Not Ch7-only despite the name — OUT= points it at another chapter's file rather
+ * than forking the script. Every image filter in this toolkit that WAS forked drifted
+ * (see _imagePick.cjs); keep this one copy.
+ *
  * Usage: BASES=7311101,7311130 node scrape-ch7-images.cjs
- * Output: st-scraper/ch7-gap-images.json  { "<base>": {url, kind} | null }
+ *        BASES=… OUT=ch2-gap-images.json node scrape-ch7-images.cjs
+ * Output: st-scraper/<OUT>  { "<base>": {url, kind, all:[{art,url,kind}]} | null }
+ *   `all` carries every per-SKU image the page showed, so one visit can cover a
+ *   base's colour variants instead of one visit per SKU.
  */
 'use strict';
 const puppeteer = require('puppeteer-extra');
@@ -20,7 +27,7 @@ puppeteer.use(StealthPlugin());
 const fs = require('fs');
 const path = require('path');
 
-const OUT = path.join(__dirname, 'ch7-gap-images.json');
+const OUT = path.join(__dirname, process.env.OUT || 'ch7-gap-images.json');
 const BASES = (process.env.BASES || '').split(',').map(s => s.trim()).filter(Boolean);
 if (!BASES.length) { console.error('set BASES=<comma-separated 7-digit bases>'); process.exit(1); }
 
@@ -54,11 +61,28 @@ const out = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, 'utf8')) : {};
                     .map(i => i.currentSrc || i.src || '')
                     .filter(u => /multimedia/i.test(u) && !/logo|sprite|icon|placeholder/i.test(u));
                 const abs = u => (u.startsWith('http') ? u : 'https://profishop.sanitastroesch.ch' + u);
+                const kindOf = u => (/\/PG1\//i.test(u) ? 'PG1' : (/\/PS1\//i.test(u) ? 'PS1' : 'other'));
                 // Prefer an image whose filename carries this base, then any PG1, then any.
                 const mine = imgs.filter(u => u.replace(/[^0-9]/g, '').includes(b));
                 const pick = mine.find(u => /\/PG1\//i.test(u)) || mine[0]
                     || imgs.find(u => /\/PG1\//i.test(u)) || imgs[0];
-                return pick ? { url: abs(pick), kind: /\/PG1\//i.test(pick) ? 'PG1' : (/\/PS1\//i.test(pick) ? 'PS1' : 'other') } : null;
+                if (!pick) return null;
+                // Every per-SKU image the page showed. The variant matrix renders one
+                // thumbnail per finish, so a single visit can cover the whole base
+                // instead of one page load per colour. Keyed by the 13-digit art-Nr
+                // read out of the FILENAME — never constructed.
+                const all = [];
+                const seen = new Set();
+                for (const u of mine) {
+                    const m = /(\d{8})_(\d{3})_(\d{3})/.exec(u.split('/').pop() || '');
+                    if (!m) continue;
+                    const art = `${m[1].slice(1, 5)} ${m[1].slice(5)}.${m[2]}.${m[3]}`;
+                    const key = art + '|' + kindOf(u);
+                    if (seen.has(key)) continue;
+                    seen.add(key);
+                    all.push({ art, url: abs(u), kind: kindOf(u) });
+                }
+                return { url: abs(pick), kind: kindOf(pick), all };
             }, base);
             out[base] = hit;
             console.log(`${base} ${hit ? '✅ ' + hit.kind + ' ' + hit.url.slice(-46) : '❌ no image on page'}`);
