@@ -18,9 +18,20 @@ const gzipB64 = (absPath) => zlib.gzipSync(fs.readFileSync(absPath), { level: 9 
 let __isBuildMode = false;   // set by the bundled-data-gzip plugin's config hook
 
 export default defineConfig({
+    // `host: true` binds 0.0.0.0 instead of localhost, so a phone/tablet on the same Wi-Fi
+    // can reach the dev server at http://<this-machine-LAN-IP>:5175. Without it Vite prints
+    // "Network: use --host to expose" and only ever answers on the machine running it.
     server: {
         port: 5175,
-        strictPort: true
+        strictPort: true,
+        host: true
+    },
+    // Same for `npm run preview`, which serves the real single-file build from dist/ —
+    // that's the honest way to test the shipped artifact on a phone.
+    preview: {
+        port: 4175,
+        strictPort: true,
+        host: true
     },
     plugins: [
         viteSingleFile(),

@@ -214,7 +214,7 @@ export function createBidetApp(title, desc, mainImgUrl) {
 
                     <!-- Column 2: the mixer -->
                     <div class="finder-column" id="col_bidetmischer">
-                        <div class="finder-column-header"><h3><i class="ri-drops-line"></i> Bidetmischer</h3></div>
+                        <div class="finder-column-header"><h3><i class="ri-water-flash-line"></i> Bidetmischer</h3></div>
                         <div class="column-search-container">
                             <i class="ri-search-line"></i>
                             <input type="text" id="bidetmischer_local_search" placeholder="Art-Nr oder Modell suchen...">

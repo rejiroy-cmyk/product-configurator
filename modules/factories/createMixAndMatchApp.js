@@ -442,7 +442,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
                     <!-- Column 2: Faucet Logic -->
                     <div class="finder-column" id="col_faucet">
-                        <div class="finder-column-header"><h3><i class="ri-drops-line"></i> Armatur</h3></div>
+                        <div class="finder-column-header"><h3><i class="ri-drop-line"></i> Armatur</h3></div>
                         <div class="column-search-container">
                             <i class="ri-search-line"></i>
                             <input type="text" id="faucet_local_search" placeholder="Art-Nr oder Modell suchen...">

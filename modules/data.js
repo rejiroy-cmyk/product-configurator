@@ -68,7 +68,7 @@ export const catalog = [
     {
         "id": "waschplatz",
         "name": "Waschplatz",
-        "icon": "ri-hand-wash-fill",
+        "icon": "ri-hand-sanitizer-fill",
         "thumbnail": "img/PG1_02112736_100_000_f8ecd198.webp",
         "subcategories": [
             {

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 5175",
-    "test": "node tests/verify-duschtrennwand.js && node tests/verify-all-apps.js && node tests/verify-shower-rules.js && node tests/verify-servicepaket.mjs && node tests/verify-fulltext-rule.js && node tests/verify-product-display.js && node tests/verify-no-kitchen-in-waschtischmischer.js && node tests/verify-scraper-maktx2.js && node tests/verify-accessory-colormatch.js && node tests/verify-mixmatch-rules.js && node tests/verify-data-intern.js",
+    "test": "node tests/verify-duschtrennwand.js && node tests/verify-all-apps.js && node tests/verify-shower-rules.js && node tests/verify-servicepaket.mjs && node tests/verify-fulltext-rule.js && node tests/verify-product-display.js && node tests/verify-no-kitchen-in-waschtischmischer.js && node tests/verify-scraper-maktx2.js && node tests/verify-accessory-colormatch.js && node tests/verify-mixmatch-rules.js && node tests/verify-data-intern.js && node tests/verify-offline-fonts.js",
     "replay:tape": "node scripts/replay-shower-rules.js",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -13,6 +13,7 @@
     "backup": "mkdir -p backups/$(date +%Y%m%d_%H%M%S) && cp -r modules index.html index.css backups/$(date +%Y%m%d_%H%M%S)/",
     "build": "npm run test && npm run backup && vite build && mkdir -p backups/$(date +%Y%m%d_%H%M%S)_dist && cp dist/index.html backups/$(date +%Y%m%d_%H%M%S)_dist/",
     "preview": "vite preview",
+    "serve:tailscale": "./scripts/serve-tailscale.sh",
     "pdf": "node st-scraper/pdf-to-csv.js",
     "heal-images": "node scripts/verify-and-heal-images.cjs"
   },
@@ -24,6 +25,7 @@
     "puppeteer": "^25.6.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "remixicon": "^3.5.0",
     "vite": "^5.0.0",
     "vite-plugin-singlefile": "^2.3.2"
   },
