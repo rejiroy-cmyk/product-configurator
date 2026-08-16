@@ -571,6 +571,13 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
         passesFilters: function(l, searchVal, s, r) {
             const d = this.derived(l);
             if (d.excluded) return false;
+            // label-prefix by design: a label literally starting with "Montagepauschale"
+            // states what the record IS — an installation service, never a standalone
+            // product. It reaches the BOM through `selectedTray.services` (bracket-matched
+            // further down), so it must never be selectable on its own. This has to sit
+            // ABOVE the d.type check: that one lets anything through once a search term is
+            // present, which is how 50 Montagepauschale records stayed findable by search.
+            if (/^\s*montagepauschale\b/i.test((l.label || '').trim())) return false;
             if (d.type === null && !searchVal) return false;
             if (this.currentManufacturer !== "all" && d.manufacturer !== this.currentManufacturer) return false;
             if (this.currentType !== "all" && d.type !== this.currentType) return false;

@@ -1,5 +1,13 @@
 import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM , fullLabel , accessoryFacetBar, renderGalleryGrid } from './_shared.js';
 
+// Serie words whose own spelling carries internal capitals. normalizeSerie lowercases
+// the whole string before re-capitalising each word, so without this table a brand
+// like "CleanFloor30" comes back as "Cleanfloor30". Keys are lowercase.
+const SERIE_WORD_CASE = {
+    'kwc': 'KWC',
+    'cleanfloor30': 'CleanFloor30',
+};
+
 export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
     const w = title;
     const E = desc;
@@ -138,9 +146,12 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
 
             if (!s) return 'Andere';
 
-            // CamelCase formatting
+            // CamelCase formatting. SERIE_WORD_CASE holds the brand spellings whose
+            // internal capitals this pass would otherwise flatten (it lowercases first,
+            // so "CleanFloor30" would come back as "Cleanfloor30"). Keyed lowercase.
             return s.split(' ').map(word => {
-                if (/^kwc$/i.test(word)) return 'KWC';
+                const cased = SERIE_WORD_CASE[word.toLowerCase()];
+                if (cased) return cased;
                 if (/^\d/.test(word)) return word;
                 return word.charAt(0).toUpperCase() + word.slice(1);
             }).join(' ');
@@ -1945,7 +1956,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     const combinedLbl = (enrichedLabel + ' ' + (selectedOption.type || '') + ' ' + (mat.name || '')).toLowerCase();
 
                     let priority = 99; // Fallback
-                    const note = mat.name || 'Zubehör';
+                    const note = mat.note || mat.name || 'Zubehör';
 
                     // 1. Wanne / Duschfläche (Handled earlier, priority: 1)
                     // 2. Ablaufdeckel
@@ -2008,6 +2019,11 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                             priority = 9;
                         }
                     }
+
+                    // Explicit override wins over the keyword heuristics above, so a
+                    // mat whose BOM position matters (CleanFloor30: tray > Rahmen >
+                    // Ablauf) does not depend on a word happening to appear in its label.
+                    if (typeof mat.bomPriority === 'number') priority = mat.bomPriority;
 
                     let calculatedMenge = selectedOption.menge || 1;
 
@@ -2086,6 +2102,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                             priority: priority,
                             isInlineDropdown: isInlineDropdown,
                             matId: mat.id,
+                            dualAxis: mat.dualAxis || null,
                             options: isInlineDropdown ? mat.options : null
                         });
                     }
@@ -2574,6 +2591,53 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                                 <div class="variantStateDataSchmidlin" data-color="${curColor}" data-surface="${curSurface}" style="display:none;"></div>
                             </div>
                         `;
+                    } else if (item.dualAxis) {
+                        // TWO dependent selects that jointly resolve ONE article
+                        // (CleanFloor30: Siphonierhöhe x Fusshöhe -> Duschwannenablauf).
+                        // `combos` is the whitelist, so a combination the vendor has no
+                        // part for cannot be selected: the second axis only offers values
+                        // that pair with the current first-axis value.
+                        const cur = item.options.find(o => o.artNr === this.selectedTray.selections[item.matId])
+                                 || item.options[0];
+                        const curCombo = item.dualAxis.combos.find(c => c.artNr === (cur && cur.artNr))
+                                      || item.dualAxis.combos[0];
+
+                        const axisHTML = item.dualAxis.axes.map((axis, axisIdx) => {
+                            const otherKey = item.dualAxis.axes[axisIdx === 0 ? 1 : 0].key;
+                            const opts = axis.options.filter(o =>
+                                // keep a value only if some combo pairs it with the OTHER
+                                // axis's current value; the first axis stays fully open
+                                axisIdx === 0
+                                    ? item.dualAxis.combos.some(c => c[axis.key] === o.value)
+                                    : item.dualAxis.combos.some(c => c[axis.key] === o.value && c[otherKey] === curCombo[otherKey])
+                            );
+                            const optHTML = opts.map(o =>
+                                `<option value="${o.value}" ${curCombo[axis.key] === o.value ? 'selected' : ''}>${o.label}</option>`
+                            ).join('');
+                            return `
+                                <div style="flex:1; min-width:190px;">
+                                    <div style="font-size:0.7rem; color:var(--st-gray); margin-bottom:0.25rem; font-weight:500; text-transform:uppercase; letter-spacing:0.5px;">${axis.label}</div>
+                                    <select class="inline-bom-select inline-bom-axis" data-matid="${item.matId}" data-axis="${axis.key}" style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid var(--border); background:var(--bg-surface); color:var(--text-primary); font-size:0.9rem; font-family:inherit; font-weight:500; cursor:pointer; outline:none;">
+                                        ${optHTML}
+                                    </select>
+                                </div>`;
+                        }).join('');
+
+                        // NB: no <strong> anywhere in the description cell — copyBOMToClipboard
+                        // takes the row's FIRST <strong> as the quantity, and this cell
+                        // precedes the qty cell. Use font-weight instead.
+                        const warn = cur && cur.warn
+                            ? `<div style="font-size:0.8rem; margin-top:0.5rem; padding:0.5rem; border-radius:4px; border-left:3px solid #ff9800; background:rgba(255,152,0,0.12); color:var(--text-secondary); font-weight:normal; text-align:left;"><span style="font-weight:600;">Achtung:</span> ${cur.warn}</div>`
+                            : '';
+                        const meta = cur && cur.aufbauhoehe
+                            ? `<div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.4rem;">Aufbauhöhe ${cur.aufbauhoehe} · Anschlussstutzen ${cur.anschlussstutzen || '—'}</div>`
+                            : '';
+
+                        descHTML = `
+                            <div class="bom-desc" style="margin-bottom:0.6rem;">${fullLabel(cur || item)}</div>
+                            <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">${axisHTML}</div>
+                            ${meta}${warn}
+                        `;
                     } else {
                         const optionsHTML = item.options.map(opt => {
                             const foundZub = zubPool.find(z => z.artNr === opt.artNr);
@@ -2625,13 +2689,32 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         <td style="${rowOpacity}"><strong>${isPlaceholder ? '-' : item.menge}</strong></td>
                     `;
                     
-                if (item.isInlineDropdown) {
+                if (item.dualAxis) {
+                    row.querySelectorAll('.inline-bom-axis').forEach(sel => {
+                        sel.addEventListener('change', (e) => {
+                            const axisKey = e.target.dataset.axis;
+                            const wanted = e.target.value;
+                            const combos = item.dualAxis.combos;
+                            const curArtNr = this.selectedTray.selections[item.matId];
+                            const cur = combos.find(c => c.artNr === curArtNr) || combos[0];
+                            const otherKey = item.dualAxis.axes.find(a => a.key !== axisKey).key;
+
+                            // Prefer keeping the untouched axis; if that pair has no
+                            // article (e.g. 30 mm + kurze Füsse), fall back to the first
+                            // combo offering the value the user just picked.
+                            const next = combos.find(c => c[axisKey] === wanted && c[otherKey] === cur[otherKey])
+                                      || combos.find(c => c[axisKey] === wanted);
+                            if (next) this.selectedTray.selections[item.matId] = next.artNr;
+                            this.updateBOM();
+                        });
+                    });
+                } else if (item.isInlineDropdown) {
                     const selectEl = row.querySelector('.inline-bom-select');
                     if (selectEl) {
                         selectEl.addEventListener('change', (e) => {
                             const newVal = e.target.value;
                             this.selectedTray.selections[item.matId] = newVal;
-                            
+
                             // Reverse Dependency Check (Bidirectional Auto-switching)
                             console.log("=== INLINE BOM CHANGE ===");
                             console.log("Changed:", item.matId, "to", newVal);
