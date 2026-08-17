@@ -79,7 +79,7 @@ export function createStandardApp(title, desc, mainImgUrl) {
                 alert('Bitte wählen Sie zuerst ein Produkt aus.');
                 return;
             }
-            window.copyTextToClipboard(`${this.selectedTray.artNr}\t1`).then(() => alert('Kopiert:\n\n' + `${this.selectedTray.artNr}    1`)).catch(e => alert("Kopieren fehlgeschlagen."));
+            window.copyTextToClipboard(`${this.selectedTray.artNr}\t1`).then(copied => { if (copied === null) return; alert('Kopiert:\n\n' + copied.replace(/\t/g, "    ")); }).catch(e => alert("Kopieren fehlgeschlagen."));
         }
     };
 }

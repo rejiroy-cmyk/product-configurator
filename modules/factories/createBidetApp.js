@@ -1,4 +1,4 @@
-import { matchesSearchQuery, applyPillUI, bomTableBody, bomCountCounter, priceBOM, productText, renderAccessoiresPanel } from './_shared.js';
+import { matchesSearchQuery, applyPillUI, bomTableBody, bomCountCounter, priceBOM, productText, renderAccessoiresPanel, accQty, bomQtyCell, bomQtyInline } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 /**
@@ -47,6 +47,8 @@ export function createBidetApp(title, desc, mainImgUrl) {
         // Accessoires add-on panel (shared with DM / BM / WTM / Waschtisch)
         showAccessoires: false,
         selectedAddonAccessoires: [],
+        accQty: {},
+
         currentAccessoireSerie: 'Alle',
         accSecondary: {},
 
@@ -74,7 +76,7 @@ export function createBidetApp(title, desc, mainImgUrl) {
             this.mixerSearchQuery = '';
 
             this.showAccessoires = false;
-            this.selectedAddonAccessoires = [];
+            this.selectedAddonAccessoires = [], this.accQty = {};
             this.currentAccessoireSerie = 'Alle';
             this.accSecondary = {};
 
@@ -638,7 +640,7 @@ export function createBidetApp(title, desc, mainImgUrl) {
             this.looseItems().forEach(z => items.push({ qty: z.qty, label: z.label, artNr: z.artNr }));
 
             if (this.showAccessoires && this.selectedAddonAccessoires.length) {
-                this.selectedAddonAccessoires.forEach(a => items.push({ qty: a.qty || 1, label: a.label || a.name, artNr: a.artNr }));
+                this.selectedAddonAccessoires.forEach(a => items.push({ qty: accQty(this, a), label: a.label || a.name, artNr: a.artNr, isAccessory: true }));
             }
 
             return items;
@@ -677,10 +679,10 @@ export function createBidetApp(title, desc, mainImgUrl) {
                     <div class="preview-details">
                         <div class="preview-bom-list" style="border-top: 1px solid var(--border); padding-top: 1.25rem;">
                             <h3 style="font-size: 0.75rem; margin-bottom: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Zusammenfassung</h3>
-                            <div style="background: rgba(255,255,255,0.02); border-radius: 12px; padding: 0.75rem 1rem; border: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: 24px max-content 1fr; gap: 0.4rem 0.75rem; align-items: start; max-width: 900px;">
+                            <div style="background: rgba(255,255,255,0.02); border-radius: 12px; padding: 0.75rem 1rem; border: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: max-content max-content 1fr; gap: 0.4rem 0.75rem; align-items: center; max-width: 900px;">
                                 ${this.getBOMPreviewItems().map(item => item.isSpacer
                     ? '<div style="grid-column: 1 / -1; margin: 0.3rem 0; border-top: 1px dashed rgba(255,255,255,0.1);"></div>'
-                    : `<div style="color: var(--text-secondary); font-size: 0.7rem; padding-top: 2px;">${item.qty}x</div>
+                    : `<div style="color: var(--text-secondary); font-size: 0.7rem;">${bomQtyInline(item.qty, item.isAccessory ? item.artNr : null)}</div>
                                        <div style="font-family: monospace; color: var(--accent); font-weight: 700; font-size: 0.76rem; white-space: nowrap; text-align: left;">${item.artNr}</div>
                                        <div style="font-weight: 500; color: var(--text-primary); line-height: 1.35; font-size: 0.76rem;">${item.label}</div>`).join('')}
                             </div>
@@ -714,7 +716,7 @@ export function createBidetApp(title, desc, mainImgUrl) {
                         </div></td>
                         <td><span class="bom-code">${item.artNr}</span></td>
                         <td><div class="bom-desc">${item.label}</div></td>
-                        <td><strong>${item.qty}</strong></td>
+                        ${bomQtyCell(item.qty, item.isAccessory ? item.artNr : null)}
                     </tr>`;
                 totalCount += item.qty;
             });
@@ -739,8 +741,9 @@ export function createBidetApp(title, desc, mainImgUrl) {
             if (g1Items.length === 0) { alert('Kein G1-Set vorhanden.'); return; }
 
             const textArray = g1Items.map(i => `${String(i.artNr || '').replace(/\t/g, '').trim()}\t${i.qty}`).join('\n');
-            window.copyTextToClipboard(textArray).then(() => {
-                alert("✅ G1-Set kopiert für SAP (" + g1Items.length + " Zeilen):\n\n" + textArray.replace(/\t/g, "    "));
+            window.copyTextToClipboard(textArray).then(copied => {
+                if (copied === null) return;   // Dialog abgebrochen — keine Meldung
+                alert("✅ G1-Set kopiert für SAP (" + g1Items.length + " Zeilen):\n\n" + copied.replace(/\t/g, "    "));
             }).catch(() => alert("Kopieren fehlgeschlagen."));
         },
 
@@ -758,8 +761,9 @@ export function createBidetApp(title, desc, mainImgUrl) {
             if (looseItems.length === 0) { alert('Keine losen Artikel vorhanden.'); return; }
 
             const textArray = looseItems.map(i => `${String(i.artNr || '').replace(/\t/g, '').trim()}\t${i.qty}`).join('\n');
-            window.copyTextToClipboard(textArray).then(() => {
-                alert("✅ Lose Artikel kopiert für SAP (" + looseItems.length + " Zeilen):\n\nBitte NACH dem G1-Set einfügen!\n\n" + textArray.replace(/\t/g, "    "));
+            window.copyTextToClipboard(textArray).then(copied => {
+                if (copied === null) return;   // Dialog abgebrochen — keine Meldung
+                alert("✅ Lose Artikel kopiert für SAP (" + looseItems.length + " Zeilen):\n\nBitte NACH dem G1-Set einfügen!\n\n" + copied.replace(/\t/g, "    "));
             }).catch(() => alert("Kopieren fehlgeschlagen."));
         },
     };

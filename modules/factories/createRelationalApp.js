@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM , fullLabel , accessoryFacetBar, renderGalleryGrid } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, fullLabel, accessoryFacetBar, renderGalleryGrid, accQty, clearAccQty, bomQtyCell } from './_shared.js';
 
 // Serie words whose own spelling carries internal capitals. normalizeSerie lowercases
 // the whole string before re-capitalising each word, so without this table a brand
@@ -96,6 +96,8 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
         showAccessoires: false,
         accFacets: {},
         selectedAccessoires: [],
+        accQty: {},
+
         useMontageset: false,
         toggleMontageset: function (val) {
             this.useMontageset = val;
@@ -344,9 +346,9 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
             this.selectedTray = null;
             this.showAccessoires = false;
             this.accFacets = {};
-            this.selectedAccessoires = [];
+            this.selectedAccessoires = [], this.accQty = {};
             this.showAccessoires = false;
-            this.selectedAccessoires = [];
+            this.selectedAccessoires = [], this.accQty = {};
             this.currentMontageart = 'alle';
             this.currentManufacturer = 'all';
             this.currentSerie = 'all';
@@ -1582,7 +1584,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     toggleBtn.addEventListener('click', () => {
                         this.showAccessoires = !this.showAccessoires;
                         if (!this.showAccessoires) {
-                            this.selectedAccessoires = [];
+                            this.selectedAccessoires = [], this.accQty = {};
                             this.accFacets = {};
                         }
                         this.updateAccessoiresToggles();
@@ -1675,7 +1677,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 `;
                 btn.addEventListener('click', () => {
                     const idx = this.selectedAccessoires.indexOf(c.artNr);
-                    if (idx > -1) this.selectedAccessoires.splice(idx, 1);
+                    if (idx > -1) { clearAccQty(this, c.artNr); this.selectedAccessoires.splice(idx, 1); }
                     else this.selectedAccessoires.push(c.artNr);
                     this.populateAccessoires(); 
                     this.updateBOM();
@@ -2361,7 +2363,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                             artNr: accObj.artNr,
                             label: accObj.label,
                             typ: 'Accessoire',
-                            menge: 1,
+                            menge: accQty(this, accObj),
                             img: accObj.imgUrl,
                             note: 'Accessoire',
                             priority: 90
@@ -2686,7 +2688,7 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                             <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">${item.note}</div>
                         </td>
                         
-                        <td style="${rowOpacity}"><strong>${isPlaceholder ? '-' : item.menge}</strong></td>
+                        ${isPlaceholder ? `<td style="${rowOpacity}"><strong>-</strong></td>` : bomQtyCell(item.menge, item.typ === 'Accessoire' ? item.artNr : null)}
                     `;
                     
                 if (item.dualAxis) {
@@ -2945,8 +2947,9 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
         copyToClipboard: function () {
             if (this._deckCopy && this._deckCopy.g1 && this._deckCopy.g1.length) {
                 const text = this._deckCopy.g1.map(l => l.artNr + '\t' + l.menge).join('\n');
-                window.copyTextToClipboard(text).then(() => {
-                    alert('✅ G1-Set kopiert für SAP (' + this._deckCopy.g1.length + ' Zeilen):\n\n' + text.replace(/\t/g, '    '));
+                window.copyTextToClipboard(text).then(copied => {
+                    if (copied === null) return;   // Dialog abgebrochen — keine Meldung
+                    alert('✅ G1-Set kopiert für SAP (' + this._deckCopy.g1.length + ' Zeilen):\n\n' + copied.replace(/\t/g, '    '));
                 }).catch(() => alert('Kopieren fehlgeschlagen.'));
                 return;
             }
@@ -2958,8 +2961,9 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                 return;
             }
             const text = this._deckCopy.loose.map(l => l.artNr + '\t' + l.menge).join('\n');
-            window.copyTextToClipboard(text).then(() => {
-                alert('✅ Lose Artikel kopiert für SAP (' + this._deckCopy.loose.length + ' Zeilen):\n\nBitte NACH dem G1-Set einfügen!\n\n' + text.replace(/\t/g, '    '));
+            window.copyTextToClipboard(text).then(copied => {
+                if (copied === null) return;   // Dialog abgebrochen — keine Meldung
+                alert('✅ Lose Artikel kopiert für SAP (' + this._deckCopy.loose.length + ' Zeilen):\n\nBitte NACH dem G1-Set einfügen!\n\n' + copied.replace(/\t/g, '    '));
             }).catch(() => alert('Kopieren fehlgeschlagen.'));
         }
     };

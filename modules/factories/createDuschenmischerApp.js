@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, productText, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem , fullLabel, cleanSerie, artFinishCode, accFamilyOf, accSkuInColour, accGroupChoice, accTierNote, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, isGarniturGroupName, requiredBodyFor, requiredArmFor, bodyPresentFor, bomExtraRowHTML } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, productText, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, cleanSerie, artFinishCode, accFamilyOf, accSkuInColour, accGroupChoice, accTierNote, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, isGarniturGroupName, requiredBodyFor, requiredArmFor, bodyPresentFor, bomExtraRowHTML, accQty, bomQtyCell } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
@@ -264,6 +264,8 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       currentFunktion: "all",
       showAccessoires: false,
       selectedAddonAccessoires: [],
+      accQty: {},
+
       accFacets: {},
       init: function () {
         ((this.selectedTray = null),
@@ -274,7 +276,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           (this.currentSerie = "all"),
           (this.currentFunktion = "all"),
           (this.showAccessoires = false),
-          (this.selectedAddonAccessoires = []),
+          (this.selectedAddonAccessoires = [], this.accQty = {}),
           (this.accFacets = {}),
           this.renderSidebar(),
           this.bindFilters(), this.filterResults());
@@ -744,7 +746,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
               this.mischerOptionsState = {};
               this.accPick = {};
               this.showAccessoires = false;
-              this.selectedAddonAccessoires = [];
+              this.selectedAddonAccessoires = [], this.accQty = {};
               if (config.enableGalleryUX) {
                   this.updateBOM();
                   this.filterResults();
@@ -760,7 +762,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
               this.mischerOptionsState = {};
               this.accPick = {};
               this.showAccessoires = false;
-              this.selectedAddonAccessoires = [];
+              this.selectedAddonAccessoires = [], this.accQty = {};
               if (config.enableGalleryUX) {
                   this.updateBOM();
                   this.filterResults();
@@ -782,7 +784,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                 (this.mischerOptionsState[t] = 0);
             }),
           this.filterResults(),
-          (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.populateAccessoires(), this.renderConfigurator(), this.updateBOM());
+          (this.showAccessoires = false), (this.selectedAddonAccessoires = [], this.accQty = {}), this.updateAccessoiresToggles(), this.populateAccessoires(), this.renderConfigurator(), this.updateBOM());
       },
       // The SKU in the BOM's main row — the chosen finish variant, or the tray itself.
       // Accessory colour matching keys off its art-Nr triplet (COLOUR RULE).
@@ -880,7 +882,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
               this.mischerOptionsState[a] = l;
               if (!this.accPick) this.accPick = {};
               this.accPick[a] = { k: "std", i: l };   // an explicit pick outranks the colour auto-match
-              ((this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.populateAccessoires(), this.renderConfigurator(), this.updateBOM());
+              ((this.showAccessoires = false), (this.selectedAddonAccessoires = [], this.accQty = {}), this.updateAccessoiresToggles(), this.populateAccessoires(), this.renderConfigurator(), this.updateBOM());
             });
           }));
       },
@@ -1065,14 +1067,15 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
           (function() {
             if (this.showAccessoires && this.selectedAddonAccessoires && this.selectedAddonAccessoires.length > 0) {
                 this.selectedAddonAccessoires.forEach(acc => {
-                    t += 1;
+                    const q = accQty(this, acc);
+                    t += q;
                     r.innerHTML += `
                         <tr>
                             <td><div class="img-cell"><img src="${acc.imgUrl || ''}"></div></td>
                             <td><span class="bom-code">${acc.artNr}</span></td>
                             <td><div class="bom-desc">${fullLabel(acc)}</div></td>
 
-                            <td><strong>1</strong></td>
+                            ${bomQtyCell(q, acc.artNr)}
                         </tr>
                     `;
                 });
@@ -1099,7 +1102,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
                         }
                     }
                     this.showAccessoires = false;
-                    this.selectedAddonAccessoires = [];
+                    this.selectedAddonAccessoires = [], this.accQty = {};
                     this.updateAccessoiresToggles();
                     this.populateAccessoires();
                     this.renderConfigurator();
@@ -1110,7 +1113,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
       },
 
       clearBOM: function () {
-        ((this.mischerOptionsState = {}), (this.accPick = {}), (this.showAccessoires = false), (this.selectedAddonAccessoires = []), this.updateAccessoiresToggles(), this.updateBOM());
+        ((this.mischerOptionsState = {}), (this.accPick = {}), (this.showAccessoires = false), (this.selectedAddonAccessoires = [], this.accQty = {}), this.updateAccessoiresToggles(), this.updateBOM());
       },
       copyToClipboard: window.copyBOMToClipboard,
     };

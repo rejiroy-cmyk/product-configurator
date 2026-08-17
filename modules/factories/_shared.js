@@ -1,7 +1,7 @@
 import { COLOR_NAMES } from './_colorCodes.js';
 import { fullLabel, differentiatingChips, productAttrs } from './_productDisplay.js';
 
-window.copyTextToClipboard = function(text) {
+function writeClipboard(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         return navigator.clipboard.writeText(text).catch(err => {
             console.warn("navigator.clipboard.writeText failed, trying fallback...", err);
@@ -29,6 +29,339 @@ window.copyTextToClipboard = function(text) {
             return Promise.reject(err);
         }
     }
+}
+
+// ============================================================================
+//  Accessory quantity — ONE store, one helper, every configurator
+// ============================================================================
+// A Glashalter is often needed twice and a hook four times, so a PICKED accessory
+// carries its own quantity. Before this there were four spellings of the same number
+// across eight apps — a hardcoded `<strong>1</strong>` (Bademischer, Duschenmischer),
+// `acc.menge || 1` (Waschtisch, Waschtischmischer), `a.qty || 1` (Bidet) and a
+// hardcoded `menge: 1` / `qty: 1` (Wandklosett, Mix & Match, Relational).
+//
+// The store is a map on the app, keyed by art-Nr:
+//     app.accQty = { '4331 217.100.000': 2 }
+// Keyed, rather than a field on the selection entry, because the eight apps do not
+// agree on what a selection IS: five keep objects (`selectedAddonAccessoires`), three
+// keep bare art-Nr strings (`selectedAccessoires`). One map serves both without
+// rewriting three toggle handlers, and it resets in one place.
+//
+// SCOPE — accessories only. Möbel, Schränke, Spiegelschrank and mirrors keep a fixed
+// quantity of 1: they are configured single units, not serial parts. They are still
+// scaled by the copy dialog, which multiplies the whole Stückliste. Mounting-material
+// and dropdown rows stay read-only as well — their quantities are curated (an
+// Abstellverschraubung position is 2) and `packUnits` divides by pack size, so a
+// user-set quantity there would fight `accGroupChoice`.
+const ACC_QTY_MAX = 99;
+
+// `item` may be a pool object or a bare art-Nr string — the two selection shapes.
+// Falls back to the article's OWN menge, so a data-side quantity still wins when the
+// user has not touched the row (every pool accessory is 1 today, but that can change).
+const accQty = (app, item) => {
+    const art = typeof item === 'string' ? item : (item && item.artNr);
+    const stored = (app && app.accQty) ? parseInt(app.accQty[art], 10) : NaN;
+    if (stored >= 1) return Math.min(stored, ACC_QTY_MAX);
+    const own = (item && typeof item === 'object') ? parseInt(item.menge, 10) : NaN;
+    return (own >= 1) ? own : 1;
+};
+
+const setAccQty = (app, artNr, n) => {
+    if (!app || !artNr) return 1;
+    if (!app.accQty) app.accQty = {};
+    const v = Math.max(1, Math.min(ACC_QTY_MAX, parseInt(n, 10) || 1));
+    app.accQty[artNr] = v;
+    return v;
+};
+
+// Drops a quantity the user can no longer see, so a de-selected accessory does not
+// come back at 4 when it is picked again. Call wherever the selection is reset.
+const clearAccQty = (app, artNr) => {
+    if (!app || !app.accQty) return;
+    if (artNr) delete app.accQty[artNr];
+    else app.accQty = {};
+};
+
+// ---------------------------------------------------------------------------
+// The quantity CONTRACT for a BOM row.
+//
+// Two readers used to recover the quantity by parsing the rendered row TEXT —
+// `copyBOMToClipboard` from the first <strong>, `priceBOM` from the last cell — and
+// both fall back to 1 when the parse fails, silently. That is fine while the cell
+// holds nothing but digits, and a trap the moment it holds a control: a stepper
+// rendering "-2+" makes the export ship ONE and the total bill ONE, with no error
+// anywhere. `data-menge` states the number instead of implying it.
+//
+// Absent → both readers use the old text path unchanged, so a row that has not been
+// migrated behaves exactly as before.
+// Pass an art-Nr and the cell becomes a stepper — that is the ONLY difference between a
+// read-only quantity and an editable one, so a factory opts a row in by handing over the
+// art-Nr and nothing else changes. Mounting-material and dropdown rows simply never pass
+// one, which is how they stay read-only.
+//
+// <strong> keeps ONLY the digits: the SAP export's fallback path reads the first <strong>
+// in the row, so the buttons must sit outside it or the export would read "-3+".
+const qtyStepperInner = (n, artNr) => {
+    const btn = (d, label, glyph, off) =>
+        `<button type="button" class="bom-qty-btn" data-qty-art="${artNr}" data-qty-d="${d}"`
+        + ` aria-label="${label}"${off ? ' disabled' : ''}>${glyph}</button>`;
+    return btn(-1, 'Menge verringern', '&minus;', n <= 1)
+        + `<strong>${n}</strong>`
+        + btn(1, 'Menge erhöhen', '+', n >= ACC_QTY_MAX);
+};
+
+const bomQtyCell = (n, artNr) => artNr
+    ? `<td data-menge="${n}" class="bom-qty-cell">${qtyStepperInner(n, artNr)}</td>`
+    : `<td data-menge="${n}"><strong>${n}</strong></td>`;
+
+// Mix & Match and Bidet hide the BOM table entirely (`.mixmatch-active .bom-section
+// { display:none }`) and show their Stückliste as a GRID in #col_preview instead, so a
+// <td> never reaches the user there. Same stepper, same delegate, no table cell.
+const bomQtyInline = (n, artNr, fallback) => artNr
+    ? `<span class="bom-qty-cell" data-menge="${n}">${qtyStepperInner(n, artNr)}</span>`
+    : (fallback !== undefined ? fallback : `${n}x`);
+
+// ONE delegated listener for every stepper in the app, installed once on `document` —
+// the BOM tbody has its innerHTML replaced on every render, so a listener bound to a
+// button (or even to the tbody, in the apps that rebuild it) would not survive. Reads
+// `window.currentActiveApp`, so a new configurator inherits this without wiring.
+//
+// ⚠ THE GUARD MUST LIVE ON `window`, NOT IN A MODULE-LEVEL `let`.
+// This module is evaluated MORE THAN ONCE. Vite serves it under several URLs — the
+// hand-bumped `?v=` cache-busting chain plus its own `?t=` HMR stamps — and a distinct
+// URL is a distinct module instance with its own module scope:
+//     /modules/factories/_shared.js?t=1786885214389&v=2.8.6
+//     /modules/factories/_shared.js?t=1786885214389
+//     /modules/factories/_shared.js?t=1786919099183
+// A `let installed = false` is therefore per-instance and guards nothing: each instance
+// added its own listener and every click on + stepped the quantity two or three times.
+// Nothing throws, and the only symptom is a wrong number in a real order.
+const installAccQtyDelegate = () => {
+    if (typeof document === 'undefined' || !document.addEventListener) return;
+    if (typeof window === 'undefined' || window.__accQtyDelegateInstalled) return;
+    window.__accQtyDelegateInstalled = true;
+    document.addEventListener('click', (e) => {
+        const btn = e.target && e.target.closest && e.target.closest('.bom-qty-btn[data-qty-art]');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();          // BOM rows carry their own handlers
+        const app = window.currentActiveApp;
+        if (!app || !app.updateBOM) return;
+        const art = btn.getAttribute('data-qty-art');
+        const step = parseInt(btn.getAttribute('data-qty-d'), 10) || 0;
+        const next = accQty(app, art) + step;
+        if (next < 1 || next > ACC_QTY_MAX) return;
+        setAccQty(app, art, next);
+
+        // the row is rebuilt, so the button under the cursor is destroyed — put keyboard
+        // focus back on its replacement or a held Enter/Space walks off to the page
+        const refocus = document.activeElement === btn;
+        app.updateBOM();
+        // Mix & Match and Bidet hide the BOM table and render the Stückliste the user
+        // actually reads into #col_preview, so updateBOM alone would leave the number
+        // they are looking at unchanged while the store moved underneath it.
+        if (app.updatePreview) app.updatePreview();
+        if (refocus) {
+            const again = document.querySelector(`.bom-qty-btn[data-qty-art="${art}"][data-qty-d="${step}"]`);
+            if (again && again.focus) again.focus();
+        }
+    });
+};
+installAccQtyDelegate();
+
+// app.js has no import of this module — window.* is the cross-module bus, the same
+// way copyTextToClipboard / copyBOMToClipboard are published from here.
+const rowMenge = (tr) => {
+    if (!tr || !tr.querySelector) return null;
+    const holder = (tr.hasAttribute && tr.hasAttribute('data-menge')) ? tr : tr.querySelector('[data-menge]');
+    if (!holder) return null;
+    const n = parseInt(holder.getAttribute('data-menge'), 10);
+    return (Number.isFinite(n) && n >= 1) ? n : null;
+};
+
+window.rowMenge = rowMenge;
+
+// ============================================================================
+//  Mengen-Multiplikator — asked once, honoured by every copy path
+// ============================================================================
+// Every copy button in the app funnels through `window.copyTextToClipboard`, so the
+// multiplier is installed HERE and nowhere else; a new configurator inherits it just
+// by calling the same function. There used to be a SECOND, byte-identical definition
+// in `app.js`. Whichever module evaluated last silently won (ES imports evaluate
+// before the importing module's body, so app.js did), which means a wrapper put on
+// the other one would have been dead code that throws nothing. Keep exactly one.
+//
+// The payload is SAP's `Art-Nr⇥Menge`, one position per line:
+//   • a line WITH a quantity column  → Menge × Faktor
+//   • a line WITHOUT one             → untouched. TXK103 is a TEXT position and
+//     carries no Menge by design — multiplying it would invent one.
+//   • Faktor 1                       → the string is returned unchanged, so the
+//     ordinary case stays byte-for-byte what it copied before this existed.
+// Text with no quantity column anywhere never opens the dialog at all, which is what
+// keeps the non-BOM copies (a bare art-Nr, free text) exactly as they were.
+//
+// The multiplier scales the MENGE, never the number of lines: three of a
+// configuration is four positions at ×3, not twelve positions.
+const SAP_QTY_LINE = /^(.*\S)\t(\d+)$/;
+const COPY_FACTOR_MAX = 99;
+
+const hasSapQty = (text) => String(text).split('\n').some(l => SAP_QTY_LINE.test(l));
+
+const multiplySapQty = (text, factor) => {
+    const f = parseInt(factor, 10);
+    if (!(f > 1)) return String(text);
+    return String(text).split('\n').map(line => {
+        const m = line.match(SAP_QTY_LINE);
+        return m ? `${m[1]}\t${parseInt(m[2], 10) * f}` : line;
+    }).join('\n');
+};
+
+// Builds the dialog once, out of the app's own modal classes so it themes with
+// everything else. Resolves the chosen factor, or NULL when the user cancels —
+// null means "say nothing", never an error, so a cancelled copy stays silent.
+let copyQtyDialog = null;
+
+const buildCopyQtyDialog = () => {
+    const el = document.createElement('div');
+    el.className = 'admin-modal-overlay';
+    el.id = 'copyQtyModal';
+    el.innerHTML = `
+        <div class="admin-modal-content" style="width: 400px; max-width: calc(100vw - 2rem);">
+            <div class="admin-modal-header">
+                <!-- Reuses an icon the app already ships. The icon font is SUBSET to the
+                     glyphs referenced today, so a NEW one renders as nothing until
+                     scripts/build-offline-assets.mjs is re-run — and the static scan that
+                     enforces that counts any mention, comments included. -->
+                <h3><i class="ri-clipboard-line" style="color: var(--accent);"></i> Menge multiplizieren</h3>
+                <button class="admin-modal-close" data-act="cancel" aria-label="Modal schließen">
+                    <i class="ri-close-line" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="gap: 0.9rem;">
+                <div style="font-size:0.85rem; color:var(--text-secondary); margin-top:-0.35rem;">
+                    Wie oft wird diese Konfiguration benötigt?
+                </div>
+                <div style="display:flex; gap:0.5rem; align-items:stretch;">
+                    <button class="icon-btn" data-act="minus" aria-label="Weniger" style="width:2.75rem; flex:none; justify-content:center; font-size:1.2rem;">&minus;</button>
+                    <input type="number" class="admin-input" data-el="qty" min="1" max="${COPY_FACTOR_MAX}" value="1"
+                           inputmode="numeric" aria-label="Anzahl Konfigurationen"
+                           style="text-align:center; font-size:1.5rem; font-weight:700; font-family:var(--st-font-mono); padding:0.5rem;">
+                    <button class="icon-btn" data-act="plus" aria-label="Mehr" style="width:2.75rem; flex:none; justify-content:center; font-size:1.2rem;">+</button>
+                </div>
+                <!-- min-height:0 so the preview SHRINKS on a short viewport instead of being
+                     pushed below the scroll of .modal-body, where it may as well not exist. -->
+                <div style="min-height:0; display:flex; flex-direction:column;">
+                    <div style="font-size:0.66rem; letter-spacing:0.13em; text-transform:uppercase; color:var(--text-secondary); margin-bottom:0.4rem;">
+                        Zwischenablage — Vorschau
+                    </div>
+                    <div data-el="preview" style="background:var(--bg-base); border:1px solid var(--border); border-radius:4px; padding:0.6rem 0.7rem; max-height:clamp(4rem, 26vh, 11rem); overflow:auto; font-family:var(--st-font-mono); font-size:0.76rem;"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top:1.25rem;">
+                <button class="icon-btn" data-act="cancel">Abbrechen</button>
+                <button class="icon-btn highlight-btn" data-act="ok" style="background: var(--accent); color:#000; border:none; font-weight:600;">
+                    <i class="ri-clipboard-line"></i> <span data-el="oklabel">Kopieren</span>
+                </button>
+            </div>
+        </div>`;
+    document.body.appendChild(el);
+    return el;
+};
+
+const askCopyFactor = (text) => new Promise((resolve) => {
+    if (typeof document === 'undefined' || !document.body) return resolve(1);
+    // Adopt one already in the DOM before building: this module is evaluated once per
+    // URL Vite serves it under (see the delegate guard above), so a per-instance `let`
+    // would let a second instance append a SECOND #copyQtyModal.
+    if (!copyQtyDialog || !document.body.contains(copyQtyDialog)) {
+        copyQtyDialog = document.getElementById('copyQtyModal') || buildCopyQtyDialog();
+    }
+    const root = copyQtyDialog;
+    const input = root.querySelector('[data-el="qty"]');
+    const preview = root.querySelector('[data-el="preview"]');
+    const okLabel = root.querySelector('[data-el="oklabel"]');
+    const okBtn = root.querySelector('[data-act="ok"]');
+    const lines = String(text).split('\n');
+    const prevFocus = document.activeElement;
+
+    // Always starts at 1 and preselected: one keystroke for the ordinary copy, and a
+    // factor is never silently carried over from the last Stückliste.
+    input.value = '1';
+
+    const factor = () => {
+        const n = parseInt(input.value, 10);
+        return (isNaN(n) || n < 1) ? null : Math.min(n, COPY_FACTOR_MAX);
+    };
+
+    const render = () => {
+        const f = factor();
+        preview.innerHTML = lines.map(line => {
+            const m = line.match(SAP_QTY_LINE);
+            const code = m ? m[1] : line;
+            const qty = m ? String(parseInt(m[2], 10) * (f || 1)) : '—';
+            return `<div style="display:flex; justify-content:space-between; gap:1rem; padding:0.1rem 0; white-space:nowrap;">`
+                + `<span>${code}</span>`
+                + `<span style="color:${m ? 'var(--accent)' : 'var(--text-secondary)'}; font-weight:${m ? '700' : '400'};">${qty}</span>`
+                + `</div>`;
+        }).join('');
+        const ok = f !== null;
+        okLabel.textContent = ok && f > 1 ? `Kopieren (×${f})` : 'Kopieren';
+        okBtn.disabled = !ok;
+        okBtn.style.opacity = ok ? '1' : '0.45';
+        okBtn.style.cursor = ok ? 'pointer' : 'not-allowed';
+    };
+
+    const close = (value) => {
+        root.classList.remove('active');
+        root.removeEventListener('click', onClick);
+        document.removeEventListener('keydown', onKey, true);
+        input.removeEventListener('input', render);
+        if (prevFocus && prevFocus.focus) { try { prevFocus.focus(); } catch (e) { /* gone */ } }
+        resolve(value);
+    };
+
+    const bump = (d) => {
+        const n = parseInt(input.value, 10);
+        input.value = String(Math.max(1, Math.min(COPY_FACTOR_MAX, (isNaN(n) ? 1 : n) + d)));
+        render();
+    };
+
+    function onClick(e) {
+        const act = e.target.closest('[data-act]');
+        if (act) {
+            const a = act.dataset.act;
+            if (a === 'cancel') return close(null);
+            if (a === 'ok') { const f = factor(); if (f !== null) close(f); return; }
+            if (a === 'plus') return bump(1);
+            if (a === 'minus') return bump(-1);
+            return;
+        }
+        if (e.target === root) close(null);   // click the backdrop
+    }
+    function onKey(e) {
+        if (e.key === 'Escape') { e.stopPropagation(); close(null); }
+        else if (e.key === 'Enter') { const f = factor(); if (f !== null) { e.preventDefault(); e.stopPropagation(); close(f); } }
+    }
+
+    root.addEventListener('click', onClick);
+    document.addEventListener('keydown', onKey, true);
+    input.addEventListener('input', render);
+    render();
+    root.classList.add('active');
+    input.focus();
+    input.select();
+});
+
+// Resolves with the text that was ACTUALLY written to the clipboard, so a caller's
+// "Kopiert: …" confirmation shows the multiplied Mengen rather than the pre-dialog
+// ones. Resolves with NULL when the user cancelled — callers must stay silent then.
+window.copyTextToClipboard = function (text) {
+    if (!hasSapQty(text)) return writeClipboard(text).then(() => text);
+    return askCopyFactor(text).then(f => {
+        if (f === null) return null;
+        const out = multiplySapQty(text, f);
+        return writeClipboard(out).then(() => out);
+    });
 };
 
 window.copyBOMToClipboard = function() {
@@ -51,7 +384,12 @@ window.copyBOMToClipboard = function() {
             const qtyStrong = row.querySelector("strong");
             if (codeSpan && codeSpan.textContent.trim()) {
                 let code = codeSpan.textContent.replace(/\t/g, "").trim();
-                let menge = qtyStrong ? qtyStrong.textContent.replace(/\t/g, "").trim() : "1";
+                // data-menge STATES the quantity; the text path is the fallback for rows
+                // that do not carry it. Reading text alone silently shipped 1 as soon as
+                // the cell held anything but digits.
+                const stated = rowMenge(row);
+                let menge = stated != null ? String(stated)
+                    : (qtyStrong ? qtyStrong.textContent.replace(/\t/g, "").trim() : "1");
                 if (!/^\d+$/.test(menge)) menge = "1";
                 if (code !== "-" && code !== "none" && code !== "" && !code.toLowerCase().startsWith("ohne") && code !== "Ausstehend") {
                     textLines.push(code + "\t" + menge);
@@ -63,8 +401,9 @@ window.copyBOMToClipboard = function() {
             return;
         }
         const text = textLines.join("\n");
-        window.copyTextToClipboard(text).then(() => {
-            alert("Kopiert:\n\n" + text.replace(/\t/g, "    "));
+        window.copyTextToClipboard(text).then(copied => {
+            if (copied === null) return;   // Dialog abgebrochen — keine Meldung
+            alert("Kopiert:\n\n" + copied.replace(/\t/g, "    "));
         }).catch(e => alert("Kopieren fehlgeschlagen: " + e.message));
     } catch (err) {
         alert("Fehler beim Kopieren: " + err.message);
@@ -301,7 +640,9 @@ const priceBOM = (tbody, cols = 5) => {
         if (!codeEl || cells.length < 2 || tr.classList.contains('bom-total-row')) return;
         anyRow = true;
         const code = (codeEl.textContent || '').trim();
-        const mengeTxt = (cells[cells.length - 1].textContent || '').trim();
+        // Same contract as the SAP export: data-menge first, cell text as the fallback.
+        const stated = rowMenge(tr);
+        const mengeTxt = stated != null ? String(stated) : (cells[cells.length - 1].textContent || '').trim();
         const menge = parseInt(mengeTxt, 10);
         const m = code.match(ART_RE);
         const p = m ? getPrice(m[0]) : null;
@@ -341,7 +682,15 @@ const priceBOM = (tbody, cols = 5) => {
 // secondary pills. `app` is the configurator instance, `s` its element-id slug.
 // Expects on `app`: accFacets, selectedAddonAccessoires,
 // populateAccessoires(), updateBOM(). Panel DOM ids follow `*_${s}`.
-const DROPDOWN_TYPES = ['Duschgleitstange'];   // handled by the mischer's own dropdown groups, not here
+// Families the configurator's OWN dropdown group owns. Offering them in the Accessoires
+// panel as well gives the same art-Nr two routes into one Stückliste, and the BOM then
+// carries it on two lines — which reads like a mistake once a quantity can be set.
+//   Duschgleitstange — the mischer's rail group.
+//   Ablaufventil     — the basin's drain-valve group. 6 Villeroy & Boch Loop & Friends
+//                      Auflegewaschtische offer 3161 107/108 in an inline BOM select;
+//                      the same articles sat in the pool tagged `waschtisch`.
+// A drain valve belongs to the basin, not to the accessories.
+const DROPDOWN_TYPES = ['Duschgleitstange', 'Ablaufventil'];
 
 // ── Accessory Hersteller / Serie ───────────────────────────────────────────────
 // Accessory labels read "<type words…> <Brand> <Line>, <attributes>". Deriving the
@@ -360,6 +709,19 @@ const ACC_SERIE_NOISE = new Set([
     'glas', 'klarglas', 'aluminium', 'matt', 'glanz', 'hochglanz', 'poliert', 'gebürstet',
     'a', 'b', 'h', 'ø'
 ]);
+// Product lines whose name IS made of words the noise list has to keep rejecting
+// elsewhere. "Stainless Steel" is CWS's own line (17 SKUs — Foam Slim, Paper Slim,
+// Paperbin, Superroll …), but `stainless` is also the tail of Frost's material spec
+// "Edelstahl, Polished stainless steel", which is why the token sits in the noise
+// list. Single-token extraction therefore fell through to the brand and printed the
+// Serie pill as "CWS" — the brand twice, once per facet, and no way to filter the
+// line. A phrase wins over the token rules, so the material spelling stays noise
+// while the line name comes through whole. Anchored at the brand, so it can only
+// ever fire on "<Brand> <Phrase>".
+const ACC_SERIE_PHRASES = [
+    { re: /^stainless\s+steel\b/i, name: 'Stainless Steel' },
+];
+
 const accessorySerie = (t) => {
     if (!t) return 'Andere';
     const cap = w => w ? w.charAt(0).toUpperCase() + w.slice(1) : w;
@@ -371,6 +733,8 @@ const accessorySerie = (t) => {
             const bi = text.toLowerCase().indexOf(mfr.toLowerCase());
             if (bi < 0) continue;
             const after = text.substring(bi + mfr.length).replace(/^[\s\-:,/]+/, '');
+            const phrase = ACC_SERIE_PHRASES.find(p => p.re.test(after));
+            if (phrase) return phrase.name;
             const m = after.match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9.\-]*)/);
             const tok = m ? m[1] : '';
             if (tok && tok.length > 1 && !ACC_SERIE_NOISE.has(tok.toLowerCase())) return cap(tok);
@@ -379,6 +743,49 @@ const accessorySerie = (t) => {
         return mfr;
     }
     return 'Andere';
+};
+
+// ── Accessory Produktkategorie ────────────────────────────────────────────────
+// The value the Produktkategorie facet pills on. SAP's own `productType` is the
+// default, but it is too coarse in two places:
+//   • EVERY bin is tagged `Papierhandtuchspender` — 104 Abfallbehälter and 34
+//     Papierkorb could only be found under "paper-towel dispenser".
+//   • `WC-Zubehör` is ONE pill covering 1'277 articles that are really three
+//     families (496 Papierhalter, 372 Klosettbürstenhalter, 229 Reserverollenhalter).
+// The leading noun of the short text states what an article IS, so it is the honest
+// source for the pill. `// label-prefix by design` (the GLOBAL RULE's identity
+// exception): this asks what the product IS, it does not classify it — and that is
+// precisely what keeps "Ablage …, passt zu Papierhalter" filed under Ablage instead
+// of following the partner reference into the Papierhalter pill.
+// Longest key first, so "Papierhandtuchspender-Abfallbehälter" cannot be eaten by
+// the "Papierhandtuchspender" fallback nor "Papierabfallbehälter" by "Papierhalter".
+const ACC_KATEGORIE_BY_PREFIX = [
+    // bins — Reji's own grouping: "Abfallbehälter, Papierkorb etc."
+    ['papierhandtuchspender-abfallbehälter', 'Abfallbehälter'],
+    ['papierabfallbehälter', 'Abfallbehälter'],
+    ['abfallbehälter', 'Abfallbehälter'],
+    ['papierkorb', 'Abfallbehälter'],
+    // WC-Zubehör, broken out
+    ['doppelpapierhalter', 'Papierhalter'],
+    ['toilettenpapierhalter', 'Papierhalter'],
+    ['toilettenpapierspender', 'Papierhalter'],
+    ['papierhalter', 'Papierhalter'],
+    ['klosettbürstenhalter', 'Klosettbürstenhalter'],
+    ['wc-bürste', 'Klosettbürstenhalter'],
+    ['reserverollenhalter', 'Reserverollenhalter'],
+    // hygiene — their own pills, so the Klosett panel can tell them apart
+    ['hygieneabfallbehälter', 'Hygieneabfallbehälter'],
+    ['hygienebehälter', 'Hygieneabfallbehälter'],
+    ['hygienekombination', 'Hygienekombination'],
+    ['hygienebeutelspender', 'Hygienebeutelspender'],
+    ['winkelgriff', 'Winkelgriff'],
+].sort((a, b) => b[0].length - a[0].length);
+
+const accessoryKategorie = (t) => {
+    if (!t) return null;
+    const lbl = String(t.label || t.name || '').trim().toLowerCase();   // label-prefix by design
+    const hit = ACC_KATEGORIE_BY_PREFIX.find(([p]) => lbl.startsWith(p));
+    return hit ? hit[1] : (t.productType || null);
 };
 // ── Shared accessory facet bar ────────────────────────────────────────────────
 // ONE filter UI for every configurator's Accessoires panel: Produktkategorie,
@@ -401,7 +808,9 @@ const accessoryFacetBar = (candidates, state, wrapEl, idPrefix, onChange) => {
         return m ? (COLOR_NAMES[m[1]] || null) : null;
     };
     const dims = [
-        ['Produktkategorie', (c) => c.productType || null],
+        // accessoryKategorie, not the raw productType: it splits WC-Zubehör into the
+        // three families it really holds and lifts every bin out of Papierhandtuchspender.
+        ['Produktkategorie', (c) => accessoryKategorie(c)],
         ['Hersteller', (c) => { const h = accessoryHersteller(c); return h === 'Andere' ? null : h; }],
         ['Serie', (c) => { const sr = accessorySerie(c); return sr === 'Andere' ? null : sr; }],
         ['Farbe', farbeOf],
@@ -512,7 +921,9 @@ const renderAccessoiresPanel = (app, s) => {
             <div style="font-size:0.75rem; color:var(--st-gray); font-family:var(--st-font-mono); margin-top:0.5rem; text-align:right;">${c.artNr}</div>
         `;
         btn.addEventListener('click', () => {
-            if (isSelected) app.selectedAddonAccessoires = app.selectedAddonAccessoires.filter(x => x.artNr !== c.artNr);
+            // forget the quantity with the pick, or re-ticking an accessory brings back
+            // the 4 you set an hour ago
+            if (isSelected) { clearAccQty(app, c.artNr); app.selectedAddonAccessoires = app.selectedAddonAccessoires.filter(x => x.artNr !== c.artNr); }
             else app.selectedAddonAccessoires.push({ ...c, qty: 1, origin: 'Zusatzoptionen' });
             app.populateAccessoires();
             app.updateBOM();
@@ -1659,4 +2070,6 @@ function bomExtraRowHTML(item, note) {
         </tr>`;
 }
 
-export { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, cleanSerie, galleryGridHTML, renderGalleryGrid, galleryBackButton, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs, artFinishCode, accFamilyOf, accCandidates, accSkuInColour, accGroupChoice, accTierNote, isGarniturSet, garniturCovers, garniturHasRail, isSystemPart, isGarniturGroupName, threadOf, packUnits, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, findArticleByBase, requiredBodyFor, requiredArmFor, bodyRefsFor, bodyPresentFor, bomExtraRowHTML, findPanelSku, requiredPanelFor, PANEL_COLOUR, withoutPartnerRefs, isWaschtischKombination, KOMBI_LABEL, requiredWallMountFor, WALL_MOUNT_BY_BASE };
+export { hasSapQty, multiplySapQty, SAP_QTY_LINE, COPY_FACTOR_MAX,
+    accQty, setAccQty, clearAccQty, bomQtyCell, bomQtyInline, rowMenge, ACC_QTY_MAX,
+    matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, accessoryKategorie, cleanSerie, galleryGridHTML, renderGalleryGrid, galleryBackButton, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs, artFinishCode, accFamilyOf, accCandidates, accSkuInColour, accGroupChoice, accTierNote, isGarniturSet, garniturCovers, garniturHasRail, isSystemPart, isGarniturGroupName, threadOf, packUnits, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, findArticleByBase, requiredBodyFor, requiredArmFor, bodyRefsFor, bodyPresentFor, bomExtraRowHTML, findPanelSku, requiredPanelFor, PANEL_COLOUR, withoutPartnerRefs, isWaschtischKombination, KOMBI_LABEL, requiredWallMountFor, WALL_MOUNT_BY_BASE };

@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel , fullLabel, renderGalleryGrid, galleryBackButton, isWaschtischKombination, KOMBI_LABEL } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, fullLabel, renderGalleryGrid, galleryBackButton, isWaschtischKombination, KOMBI_LABEL, accQty, bomQtyCell } from './_shared.js';
 
 export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
     const suffix = title.replace(/\s/g, '');
@@ -9,11 +9,13 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
         selectedTray: null,
         showAccessoires: false,
         selectedAddonAccessoires: [],
+        accQty: {},
+
         accFacets: {},
         init: function () {
             this.selectedTray = null;
             this.showAccessoires = false;
-            this.selectedAddonAccessoires = [];
+            this.selectedAddonAccessoires = [], this.accQty = {};
             this.accFacets = {};
             this.currentBrand = 'all';
             this.currentAusfuehrung = 'all';
@@ -691,10 +693,10 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                             <div class="bom-desc">${fullLabel(acc)}</div>
                             <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">${acc.productType || 'Accessoire'}</div>
                         </td>
-                        <td><strong>${acc.menge || 1}</strong></td>
+                        ${bomQtyCell(accQty(this, acc), acc.artNr)}
                     `;
                     bomTableBody.appendChild(accRow);
-                    visibleCount += (acc.menge || 1);
+                    visibleCount += accQty(this, acc);
                 });
             }
 
@@ -714,8 +716,17 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                     textLines.push(`${cleanOptArtNr}\t${selectedOption.menge || 1}`);
                 }
             });
+            // Accessoires were rendered in the BOM and priced, but never copied — this
+            // path builds its lines from the tray and its mounting groups only, so a
+            // picked Glashalter silently never reached SAP. Quantity via accQty.
+            if (this.showAccessoires) {
+                (this.selectedAddonAccessoires || []).forEach(acc => {
+                    const cleanAccArtNr = (acc.artNr || '').toString().replace(/\t/g, '').trim();
+                    if (cleanAccArtNr) textLines.push(`${cleanAccArtNr}\t${accQty(this, acc)}`);
+                });
+            }
             const text = textLines.join('\n');
-            window.copyTextToClipboard(text).then(() => alert("Kopiert:\n\n" + text.replace(/\t/g, "    "))).catch(e => alert("Kopieren fehlgeschlagen."));
+            window.copyTextToClipboard(text).then(copied => { if (copied === null) return; alert("Kopiert:\n\n" + copied.replace(/\t/g, "    ")); }).catch(e => alert("Kopieren fehlgeschlagen."));
         }
     };
 }

@@ -872,6 +872,53 @@ body.light-theme .highlight-btn {
   display: inline-block;
 }
 
+/* Accessory quantity stepper. Only rows the factory opts in (by passing an art-Nr to
+   bomQtyCell) get one — Möbel, Spiegelschrank, mirrors and every mounting-material row
+   stay read-only. The digits live in the <strong>, alone, because the SAP export's
+   fallback path reads the first <strong> in the row. */
+.bom-qty-cell {
+  white-space: nowrap;
+}
+
+.bom-qty-cell strong {
+  display: inline-block;
+  min-width: 1.4rem;
+  text-align: center;
+  vertical-align: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+.bom-qty-btn {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.bom-qty-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.bom-qty-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.bom-qty-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .img-cell {
   width: 50px;
   height: 50px;

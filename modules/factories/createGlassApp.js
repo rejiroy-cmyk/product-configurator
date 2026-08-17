@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, priceBOM, productText } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, priceBOM, productText, rowMenge } from './_shared.js';
 
 export function createGlassApp(title, desc, mainImgUrl, config = {}) {
     const appConfig = { enableGalleryUX: true, ...config };
@@ -1687,7 +1687,9 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 const qtyStrong = row.querySelector("strong");
                 if (codeSpan && codeSpan.textContent.trim()) {
                     let code = codeSpan.textContent.replace(/\t/g, "").trim();
-                    let menge = qtyStrong ? qtyStrong.textContent.replace(/\t/g, "").trim() : "1";
+                    const stated = rowMenge(row);   // data-menge contract, see _shared.js
+                    let menge = stated != null ? String(stated)
+                        : (qtyStrong ? qtyStrong.textContent.replace(/\t/g, "").trim() : "1");
                     if (!/^\d+$/.test(menge)) menge = "1";
                     if (code !== "-" && code !== "none" && code !== "" && !code.toLowerCase().startsWith("ohne") && code !== "Ausstehend") {
                         if (row.classList.contains("service-row")) {
@@ -1703,8 +1705,9 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                 return;
             }
             const text = m.join('\n');
-            window.copyTextToClipboard(text).then(() => {
-                alert("Stückliste kopiert:\n\n" + text.replace(/\t/g, "    "));
+            window.copyTextToClipboard(text).then(copied => {
+                if (copied === null) return;   // Dialog abgebrochen — keine Meldung
+                alert("Stückliste kopiert:\n\n" + copied.replace(/\t/g, "    "));
             }).catch(err => {
                 alert("Kopieren fehlgeschlagen.");
             });

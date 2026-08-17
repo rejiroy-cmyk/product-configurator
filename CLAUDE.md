@@ -28,11 +28,13 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   See "Remote access" below. `--off` stops it, `--status` shows current state.
 - `node scripts/build-offline-assets.mjs` — regenerates `assets/offline-fonts.css`.
   Only needed when you add a new `ri-*` icon or change fonts; see "Offline assets".
-- `npm test` — runs **12 suites, 319+ assertions**: `verify-duschtrennwand` (38),
+- `npm test` — runs **14 suites, 424+ assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
-  `verify-fulltext-rule` (78), `verify-product-display` (37),
+  `verify-fulltext-rule` (79), `verify-product-display` (37),
   `verify-no-kitchen-in-waschtischmischer` (4), `verify-scraper-maktx2` (7),
-  `verify-accessory-colormatch` (47), `verify-mixmatch-rules` (67), `verify-data-intern` (8), `verify-offline-fonts`. Plain Node with hand-rolled DOM
+  `verify-accessory-colormatch` (47), `verify-mixmatch-rules` (67),
+  `verify-copy-multiplier` (21), `verify-accessory-quantity` (81),
+  `verify-data-intern` (8), `verify-offline-fonts` (9). Plain Node with hand-rolled DOM
   mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the one jsdom
   test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
   **Run this after any change to `modules/factories/`.**
@@ -177,6 +179,36 @@ Do **not** hand-roll another accessory filter. The three that existed before
 (`renderAccessoiresPanel`, Mix & Match's own, and the Serie-only ones in
 `createRelationalApp` / `createWCApp`) all drifted apart — that drift is exactly
 what this helper exists to prevent.
+
+**Produktkategorie is `accessoryKategorie(t)`, not the raw `productType`.** SAP's tag
+is too coarse in two places, both of them made a family unfindable: EVERY bin is tagged
+`Papierhandtuchspender` (104 Abfallbehälter + 34 Papierkorb, searchable only under
+"paper-towel dispenser"), and `WC-Zubehör` was ONE pill over 1'277 articles that are
+really three families (496 Papierhalter · 372 Klosettbürstenhalter · 229
+Reserverollenhalter). The helper maps the leading noun of the short text to a canonical
+pill and falls back to `productType` — `// label-prefix by design`, the GLOBAL RULE's
+identity exception, and the reason "Ablage …, passt zu Papierhalter" files under Ablage
+instead of following the partner reference. Longest prefix first, or
+"Papierhandtuchspender-Abfallbehälter" is eaten by the plain "Papierhandtuchspender".
+
+**A multi-word line name beats the noise list** (`ACC_SERIE_PHRASES` in `accessorySerie`).
+CWS's own line is "Stainless Steel", but `stainless` also ends Frost's material spec
+("Edelstahl, Polished stainless steel"), so the token sits in `ACC_SERIE_NOISE` and the
+17 CWS SKUs fell through to the brand — printing **CWS** in the Serie pill as well as in
+Hersteller, with no way to filter the line. The phrase is tested first and anchored at
+the brand, so it only ever fires on `<Brand> <Phrase>` and the material spelling stays
+noise. Add a line here rather than deleting a noise token.
+
+**The Klosett panel has its own family list** — `WC_ACC_FAMILIES` + `isWCAccessory` in
+`createWCApp.js`, matched as an identity PREFIX. It replaced a substring scan over four
+keywords that matched anything merely NAMING one (the partner-reference trap), which
+cost three things at once: eight Frost "Ablage …, passt zu Papierhalter" tiles sat in
+the Klosett panel; Hygienekombination and Hygieneabfallbehälter never showed although
+the pool tags all 35 `wandklosett` + `standklosett`; and only 50 of 154 Klappgriff
+appeared — the ones whose text happens to read "Zubehör: Papierhalter". Note this panel
+scans every app's trays and ignores `targetSubcats` entirely; the family list IS the
+routing. A **Winkelgriff carrying a Duschgleitstange is excluded** (FULL-TEXT — half of
+them state the rail only in the description).
 
 ### Accessory colour matching — one helper, both Mischer apps
 
@@ -402,6 +434,21 @@ stripped before use (an em-dash in it throws `ERR_INVALID_CHAR`).
   finish triplet would put a wrong art-Nr into an order.
   **Gotcha:** in `chapter-N-variants-scraped.json`, `variants` is an OBJECT keyed by art-Nr,
   not an array — `Array.isArray(v.variants)` counts 0 SKUs and makes the file look empty.
+- **Ch4 `HOLD` is a work-list, not a verdict** — the same lesson as Ch2's
+  `skippedUnresolved`. `inject-ch4-accessories.js` parks the whole accessibility range
+  (Haltegriff, Winkelgriff, Eckhaltegriff, Stützklappgriff, Duschhandlauf, Badewannensitz …)
+  in a `HOLD` bucket that is scraped but never injected. **`inject-ch4-winkelgriff.cjs`**
+  takes the first family out of it: 94 scraped bases → **197 SKUs** (Hewi 86 · Nosag 81 ·
+  Keuco 22 · KWC 8) tagged `productType: Winkelgriff`, routed to `wandklosett` +
+  `standklosett`. 22 bases stay held — a Winkelgriff carrying a **Duschgleitstange** is a
+  shower rail on a grab bar, not WC kit. It is a separate script because the old one routes
+  per BASE and this rule is per SKU. The rest of `HOLD` is still waiting.
+  **Two traps it hit, both already in this file's rules:** a synthesized PG1 URL is a
+  recorded 404 — 71 of 201 were, because these bases publish one image for a whole colour
+  RANGE (`04711120_100-339_000.png`) or a bare per-base shot (`04722520.png`), neither of
+  which the art-Nr triplet can produce; `scrape-ch7-images.cjs` (anonymous, reads the URL
+  from the DOM) resolved all 40 in one pass. And re-running must never re-judge a local
+  `img/` path — it exists only because the localiser already fetched and size-checked it.
 - **`urinoir` is its own pool + subcategory** (Klosett → Urinoir, after Bidet), 41 urinals
   built on `createWCApp`: a urinal is a ceramic plus the accessories the catalogue pairs
   with it (Steuerung, Absaugesiphon, Trennwand, Dübelschraube), which is exactly what that
@@ -572,6 +619,139 @@ Covered by `tests/verify-mixmatch-rules.js` (part of `npm test`).
   The mirror and Möbel toggles still match on the label alone; they were left
   alone on purpose (mirrors match by `productType` tag first).
 
+## Accessory quantity — one store, one helper, eight apps
+
+Covered by `tests/verify-accessory-quantity.js` (part of `npm test`).
+
+A Glashalter is often needed twice and a hook four times, so a **picked accessory**
+carries its own quantity, set with a `− n +` stepper in its own BOM row.
+
+- **`app.accQty` is the store** — a map keyed by art-Nr, read through `accQty(app, item)`
+  and written with `setAccQty` / `clearAccQty` in `_shared.js`. Keyed rather than stored
+  on the selection entry because the eight apps **do not agree on what a selection is**:
+  five keep objects (`selectedAddonAccessoires`), three keep bare art-Nr strings
+  (`selectedAccessoires`). One map serves both without rewriting three toggle handlers.
+  `accQty` accepts either an object or a bare art-Nr for that reason.
+- Before this the same number had **four spellings**: a hardcoded `<strong>1</strong>`
+  (Bademischer, Duschenmischer), `acc.menge || 1` (Waschtisch, Waschtischmischer),
+  `a.qty || 1` (Bidet) and a hardcoded `menge: 1` (Wandklosett, Mix & Match, Relational).
+- **Scope:** accessories only. Möbel, Schränke, Spiegelschrank *and mirrors* keep a fixed
+  quantity of 1 — they are configured single units. They are still scaled by the copy
+  dialog, which multiplies the whole Stückliste. Mounting-material / dropdown rows stay
+  read-only: their quantities are curated (an Abstellverschraubung position is 2) and
+  `packUnits` divides by pack size, so a user-set quantity there would fight
+  `accGroupChoice`.
+- **The quantity must not outlive the pick.** `clearAccQty` runs on de-select and every
+  `selected*Accessoires = []` reset, or re-ticking an accessory restores the 4 you set an
+  hour ago.
+
+### `data-menge` — the row quantity CONTRACT
+
+**FOUR** places recover a row's quantity, and every one of them used to parse the
+rendered TEXT: `copyBOMToClipboard` (`_shared.js`), the DOM-scraping copy branch in
+`createWCApp`, the one in `createGlassApp`, and the BOM → Eigene Selektion transfer in
+`app.js`. All fell back to 1 on a failed parse, **silently** — and `createWCApp`'s did no
+validation at all, so a `-` row shipped `code⇥-` to SAP.
+
+`bomQtyCell(n)` emits `<td data-menge="n"><strong>n</strong></td>`; `rowMenge(tr)` reads
+it and returns **null** when absent, so an un-migrated row keeps the old text path
+exactly. Add a fifth reader and the test fails. `rowMenge` is also published on the
+`window.*` bus, because `app.js` does not import `_shared.js`.
+
+**A stepper in that cell is exactly what the text path cannot survive** — `"-2+"` parses
+to nothing, the export ships ONE and the total bills ONE, with no error anywhere. That is
+why the contract landed before the UI.
+
+### The stepper, and how a row opts in
+
+`bomQtyCell(n)` renders a read-only quantity; **`bomQtyCell(n, artNr)` renders the
+`− n +` stepper.** Handing over the art-Nr is the only difference, so a factory opts a
+row in and nothing else changes — and Möbel, Schränke, Spiegelschrank, mirrors and every
+mounting-material row stay read-only simply by never passing one. The four generic row
+renderers (Wandklosett, Relational, Mix & Match, Bidet) gate it on the row being tagged
+an accessory (`typ === 'Accessoire'` / `isAccessory`); a test fails if that gate is
+dropped, because an ungated `bomQtyCell(item.menge, item.artNr)` there would make every
+furniture and mounting row editable.
+
+The `<strong>` holds **only the digits** — the SAP export's fallback path reads the first
+`<strong>` in the row, so the buttons must sit outside it or the export reads `-2+`.
+
+One delegated `click` listener on `document` serves every stepper (`installAccQtyDelegate`
+in `_shared.js`): the BOM tbody has its innerHTML replaced on each render, so anything
+bound to a button dies immediately. It reads `window.currentActiveApp`, so a new
+configurator inherits the behaviour without wiring, and it restores focus after
+`updateBOM()` rebuilds the row.
+
+**⚠ Mix & Match and Bidet never show the BOM table.** Both set the `mixmatch-active` body
+class (`app.js#openConfigurator`), and `.mixmatch-active .bom-section { display: none }`.
+Their Stückliste is the **grid** in `#col_preview`, rendered by `updatePreview()` — so a
+`<td>` stepper is built, is correct, and is *invisible*, which is exactly how it first
+shipped. `bomQtyInline(n, artNr, fallback)` is the same stepper without the table cell,
+for that grid; the delegate calls `updatePreview()` alongside `updateBOM()`, or the number
+the user is reading would not move. Their quantity column was `24px` — wide enough for
+`3x`, not for a stepper — and is now `max-content`.
+
+### ⚠ `_shared.js` IS EVALUATED MORE THAN ONCE — a module-level `let` is not a singleton
+
+Vite serves this module under several URLs at the same time: the hand-bumped `?v=`
+cache-busting chain plus its own `?t=` HMR stamps.
+
+    /modules/factories/_shared.js?t=1786885214389&v=2.8.6
+    /modules/factories/_shared.js?t=1786885214389
+    /modules/factories/_shared.js?t=1786919099183
+
+Each distinct URL is a **distinct module instance with its own module scope**. The
+stepper's first guard was a module-level `let installed = false`, so every instance
+installed its own listener and one click on `+` stepped the quantity two or three times.
+Nothing threw, nothing logged — the only symptom was a wrong number in a real order.
+**Any cross-instance singleton here must be keyed on `window`** (`window.__accQtyDelegateInstalled`),
+and any DOM node cached in a module variable must adopt an existing node by id before
+appending its own — which is what the Mengen-Multiplikator dialog now does.
+
+### Two apps never copied their accessories at all
+
+`createWashbasinApp` and `createWaschtischMischerApp` build their SAP lines from the tray
+and its mounting groups only. Picked accessories were rendered in the BOM and counted in
+the price total, then **silently dropped from the clipboard** — so a Glashalter was never
+ordered. Both now append them (with `accQty`), and the test asserts it. Bidet copies from
+`getBOMPreviewItems` and Relational delegates to `copyBOMToClipboard`, so both were fine.
+
+## Mengen-Multiplikator — the quantity dialog on every copy
+
+Covered by `tests/verify-copy-multiplier.js` (part of `npm test`).
+
+Copying a Stückliste asks once how many times the configuration is needed and
+multiplies the Menge column on the way to the clipboard — the same order three times
+is one dialog, not three passes of hand-typing quantities in SAP.
+
+- **There is exactly ONE `window.copyTextToClipboard`, in `_shared.js`.** All fourteen
+  copy paths funnel through it, so the dialog is installed there and nowhere else and a
+  new configurator inherits it for free. It used to be defined **twice** — `app.js` had
+  a byte-identical copy, and since ES imports evaluate before the importing module's
+  body, app.js silently won. A wrapper placed on the loser is dead code that throws
+  nothing and logs nothing; the test now fails if a second definition reappears.
+- **The MENGE is multiplied, never the line count.** Three of a configuration is four
+  positions at ×3, not twelve positions. A position that already reads 2 becomes 6 —
+  the position quantity is the base, not 1.
+- **A line without a Menge column is never touched.** `TXK103` is a text position and
+  carries no quantity by design (see Mix & Match above); the regex only matches
+  `…⇥<digits>`, so multiplying it is impossible rather than merely avoided.
+- **Factor 1 returns the payload byte for byte**, and text with no quantity column
+  anywhere (a bare art-Nr, free text) never opens the dialog at all. That is what keeps
+  "global" from meaning "changed everything".
+- **The dialog resolves the text that was ACTUALLY written**, or `null` when cancelled.
+  Every caller's "Kopiert: …" confirmation reads that resolved value — a caller that
+  kept printing its own local variable would show the pre-dialog quantities and look
+  like the multiplier had not run. `null` means stay silent: a cancelled copy is not an
+  error and must not alert. Both are enforced by a static scan over the call sites.
+- Cap is **99** — a typo of 300 for 3 must not reach SAP unbraked. The field always
+  opens at 1 and preselected (one keystroke for an ordinary copy) and never carries a
+  factor over from the last Stückliste; a forgotten 5 is an expensive mistake.
+- The dialog is **built in JS from the app's own modal classes**, not added to
+  `index.html`. One source of truth, no id collisions, and it cannot be half-removed by
+  an HTML edit. It reuses an icon the app already ships — see the offline-assets note,
+  the subset scan counts a mention in a comment too.
+
 ## Conventions & gotchas
 
 - **`window.*` is the cross-module bus.** `app.js` exposes ~55 functions/state on
@@ -589,6 +769,13 @@ Covered by `tests/verify-mixmatch-rules.js` (part of `npm test`).
 
   This is a deliberate workflow; bump them when shipping if you rely on it. Bumping a
   module means bumping it at its **importer**, not inside the module itself.
+  **Vite serves a `?v=`-tagged asset as `Cache-Control: max-age=31536000, immutable`,**
+  so a browser that has loaded it once never re-fetches it until the version changes.
+  Forget the bump and your edit simply does not exist for that browser — this cost a
+  debugging round twice in one session: an `app.js` change that appeared to do nothing,
+  and stepper CSS that rendered as unstyled 12px buttons. Sub-imports WITHOUT a `?v=`
+  (everything under `modules/factories/`) refresh normally, which is why only the
+  versioned entry points need touching.
 - `st-scraper/` is a separate data-pipeline toolkit (scrapes vendor catalogs into
   `custom-data.json`). `_archive/` and `scratch/` are git-ignored throwaways.
 - After touching `modules/factories/`, verify with: `npm test`, then load the dev

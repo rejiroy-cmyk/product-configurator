@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel , fullLabel, renderGalleryGrid, galleryBackButton, cleanSerie } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, fullLabel, renderGalleryGrid, galleryBackButton, cleanSerie, accQty, bomQtyCell } from './_shared.js';
 
 export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {}) {
     const suffix = title.replace(/\s/g, '');
@@ -9,11 +9,13 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
         selectedTray: null,
         showAccessoires: false,
         selectedAddonAccessoires: [],
+        accQty: {},
+
         accFacets: {},
         init: function () {
             this.selectedTray = null;
             this.showAccessoires = false;
-            this.selectedAddonAccessoires = [];
+            this.selectedAddonAccessoires = [], this.accQty = {};
             this.accFacets = {};
 
             // Auto-fix brands if they are "Andere" or missing
@@ -841,13 +843,13 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
             // Zusatzoptionen: pool accessories chosen via the Accessoires toggle
             if (this.showAccessoires && this.selectedAddonAccessoires && this.selectedAddonAccessoires.length > 0) {
                 this.selectedAddonAccessoires.forEach(acc => {
-                    const accMenge = acc.menge || 1;
+                    const accMenge = accQty(this, acc);
                     bomHtml += `
                         <tr>
                             <td><div class="img-cell"><img src="${acc.imgUrl || ''}" onerror="this.src='https://placehold.co/40x40?text=N/A'"></div></td>
                             <td><span class="bom-code">${acc.artNr}</span></td>
                             <td><div class="bom-desc">${fullLabel(acc)}</div><div style="font-size:0.8rem;color:#9e9e9e;margin-top:0.25rem;">${acc.productType || 'Accessoire'}</div></td>
-                            <td><strong>${accMenge}</strong></td>
+                            ${bomQtyCell(accMenge, acc.artNr)}
                         </tr>
                     `;
                     count += accMenge;
@@ -913,9 +915,19 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                 }
             });
 
+            // Accessoires were rendered in the BOM and priced, but never copied — this
+            // path builds its lines from the tray and its mounting groups only, so a
+            // picked Glashalter silently never reached SAP. Quantity via accQty.
+            if (this.showAccessoires) {
+                (this.selectedAddonAccessoires || []).forEach(acc => {
+                    const cleanAccArtNr = (acc.artNr || '').toString().replace(/\t/g, '').trim();
+                    if (cleanAccArtNr) textLines.push(`${cleanAccArtNr}\t${accQty(this, acc)}`);
+                });
+            }
             const textArray = textLines.join('\n');
-            window.copyTextToClipboard(textArray).then(() => {
-                alert("Artikel und Menge kopiert für SAP:\n\n" + textArray.replace(/\t/g, "    "));
+            window.copyTextToClipboard(textArray).then(copied => {
+                if (copied === null) return;   // Dialog abgebrochen — keine Meldung
+                alert("Artikel und Menge kopiert für SAP:\n\n" + copied.replace(/\t/g, "    "));
             }).catch(e => alert("Kopieren fehlgeschlagen."));
         }
     };

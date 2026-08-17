@@ -92,7 +92,7 @@ export function createFinishesApp(title, desc, mainImgUrl, baseBodyLabel, baseBo
             const finish = this.finishes.find(f => f.id === this.currentFinishId) || this.finishes[0];
             if (!finish) return;
             const text = `${finish.artNr}\t${finish.menge || 1}\n${this.baseBody.artNr}\t${this.baseBody.menge || 1}`;
-            window.copyTextToClipboard(text).then(() => alert("SAP Format kopiert:\n\n" + text.replace(/\t/g, "    "))).catch(e => alert("Fehler."));
+            window.copyTextToClipboard(text).then(copied => { if (copied === null) return; alert("SAP Format kopiert:\n\n" + copied.replace(/\t/g, "    ")); }).catch(e => alert("Fehler."));
         }
     };
 }

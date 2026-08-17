@@ -1,9 +1,47 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM , fullLabel , accessoryFacetBar, renderGalleryGrid, cleanSerie } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, fullLabel, accessoryFacetBar, renderGalleryGrid, cleanSerie, accQty, bomQtyCell, clearAccQty, rowMenge } from './_shared.js';
 
 // An opt-out sentinel ("ohne_wandbedienpanel", "none") rather than a real art-Nr.
 // Such a row is shown so the dropdown stays reachable, but it must not display a
 // code or a quantity — and "-" specifically, because copyBOMToClipboard drops "-".
 const isNoneArtNr = (a) => !a || a === 'none' || /^ohne/i.test(String(a));
+
+// ── What belongs in the Klosett Accessoires toggle ────────────────────────────
+// The families that hang beside a WC, matched as an identity PREFIX of the short
+// text — `// label-prefix by design`, the GLOBAL RULE's identity exception: the
+// leading noun states what the article IS.
+//
+// This replaced a substring scan over four keywords, which matched anything that
+// merely NAMED one of them — the partner-reference trap. It cost three things:
+//   • eight Frost "Ablage …, passt zu Papierhalter Artn. 4331 217" tiles sat in the
+//     Klosett panel; an Ablage belongs to Mix & Match, where its productType already
+//     targets `mixandmatch`;
+//   • Hygienekombination and Hygieneabfallbehälter never showed at all, though the
+//     pool tags all 35 of them `wandklosett` + `standklosett`;
+//   • only 50 of the 154 Klappgriff appeared — the ones whose text happens to read
+//     "Zubehör: Papierhalter". The rest were invisible for no reason.
+const WC_ACC_FAMILIES = [
+    'papierhalter', 'doppelpapierhalter', 'toilettenpapierhalter', 'toilettenpapierspender',
+    'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'wc-set', 'klosettsitzreiniger',
+    'papierabfallbehälter', 'hygienekombination', 'hygieneabfallbehälter', 'hygienebehälter',
+    'hygienebeutelspender', 'klappgriff', 'winkelgriff',
+];
+
+// A Winkelgriff carrying a Duschgleitstange is a shower rail on a grab bar, not WC
+// kit — Reji's rule. FULL-TEXT: the label truncates around 80 chars and half of these
+// state the rail only in the description ("Winkelgriff Hewi 900, Duschgleitstange
+// links (wie Abbildung), Ø 32 mm, 125 x …"). 70 of the 262 Winkelgriff SKUs go.
+const RX_GRIFF_RAIL = /duschgleitstange/i;
+
+function isWCAccessory(t) {
+    const lbl = String((t && (t.label || t.name)) || '').trim().toLowerCase();   // label-prefix by design
+    const fam = WC_ACC_FAMILIES.find(f => lbl.startsWith(f));
+    if (!fam) return false;
+    if (fam === 'winkelgriff') {
+        const full = `${t.label || t.name || ''} ${t.description || ''}`.replace(/<[^>]*>/g, ' ');
+        if (RX_GRIFF_RAIL.test(full)) return false;
+    }
+    return true;
+}
 
 export function createWCApp(title, desc, mainImgUrl, config = {}) {
     const isMixer = config.isMixer || title.toLowerCase().includes('mischer') || title.toLowerCase().includes('armatur');
@@ -20,6 +58,8 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
         showAccessoires: false,
         accFacets: {},
         selectedAccessoires: [],
+        accQty: {},
+
         extractSerie: function (t) {
             // cleanSerie strips the product type in front and the variant behind, so
             // "Moderna R Compact rimless" and "Moderna R - UP" land on one pill.
@@ -202,7 +242,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             this.selectedTray = null;
             this.showAccessoires = false;
             this.accFacets = {};
-            this.selectedAccessoires = [];
+            this.selectedAccessoires = [], this.accQty = {};
             this.currentMontageart = 'alle';
             this.currentManufacturer = 'all';
             this.currentSerie = 'all';
@@ -840,7 +880,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     toggleBtn.addEventListener('click', () => {
                         this.showAccessoires = !this.showAccessoires;
                         if (!this.showAccessoires) {
-                            this.selectedAccessoires = [];
+                            this.selectedAccessoires = [], this.accQty = {};
                             this.accFacets = {};
                         }
                         this.updateAccessoiresToggles();
@@ -854,17 +894,13 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             const suffix = title.replace(/\s/g, '');
             const listEl = document.getElementById(`list_addon_accessoires_wc_${suffix}`);
             if (!listEl) return;
-            const keywords = ['papierhalter', 'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste'];
             let candidates = [];
             const allApps = window.productApps || {};
             Object.keys(allApps).forEach(appKey => {
                 const a = allApps[appKey];
                 if (a.trays) {
                     a.trays.forEach(t => {
-                        const lbl = (t.label || t.name || '').toLowerCase();
-                        if (keywords.some(kw => lbl.includes(kw))) {
-                            candidates.push(t);
-                        }
+                        if (isWCAccessory(t)) candidates.push(t);
                     });
                 }
             });
@@ -909,7 +945,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 `;
                 btn.addEventListener('click', () => {
                     const idx = this.selectedAccessoires.indexOf(c.artNr);
-                    if (idx > -1) this.selectedAccessoires.splice(idx, 1);
+                    if (idx > -1) { clearAccQty(this, c.artNr); this.selectedAccessoires.splice(idx, 1); }
                     else this.selectedAccessoires.push(c.artNr);
                     this.populateAccessoires(); 
                     this.updateBOM();
@@ -1288,7 +1324,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                             artNr: accObj.artNr,
                             label: accObj.label,
                             typ: 'Accessoire',
-                            menge: 1,
+                            menge: accQty(this, accObj),
                             img: accObj.imgUrl,
                             note: 'Accessoire',
                             priority: 90
@@ -1365,7 +1401,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                             <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">${item.note}</div>
                         </td>
 
-                        <td><strong>${isNoneArtNr(item.artNr) ? '-' : item.menge}</strong></td>
+                        ${isNoneArtNr(item.artNr) ? '<td><strong>-</strong></td>' : bomQtyCell(item.menge, item.typ === 'Accessoire' ? item.artNr : null)}
                     `;
                 bomTableBody.appendChild(row);
 
@@ -1446,7 +1482,11 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         const qtyStrong = row.querySelector('strong');
                         if (codeSpan && qtyStrong) {
                             const code = codeSpan.textContent.replace(/\t/g, '').trim();
-                            const menge = qtyStrong.textContent.replace(/\t/g, '').trim();
+                            // data-menge first (see the contract in _shared.js). The text path
+                            // had NO validation here — a "-" row shipped `code\t-` to SAP.
+                            const stated = rowMenge(row);
+                            let menge = stated != null ? String(stated) : qtyStrong.textContent.replace(/\t/g, '').trim();
+                            if (!/^\d+$/.test(menge)) menge = '1';
                             if (code !== "none" && code !== "" && !code.toLowerCase().startsWith("ohne") && code !== "Ausstehend") {
                                 textLines.push(`${code}\t${menge}`);
                             }
@@ -1485,8 +1525,9 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             }
 
             const text = textLines.join('\n');
-            window.copyTextToClipboard(text).then(() => {
-                alert("Artikel und Menge kopiert für SAP:\n\n" + text.replace(/\t/g, "    "));
+            window.copyTextToClipboard(text).then(copied => {
+                if (copied === null) return;   // Dialog abgebrochen — keine Meldung
+                alert("Artikel und Menge kopiert für SAP:\n\n" + copied.replace(/\t/g, "    "));
             }).catch(e => alert("Kopieren fehlgeschlagen."));
         }
     };

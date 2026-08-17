@@ -20,35 +20,12 @@ async function inflateGzB64(b64) {
     return JSON.parse(await new Response(stream).text());
 }
 
-window.copyTextToClipboard = function(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        return navigator.clipboard.writeText(text).catch(err => {
-            console.warn("navigator.clipboard.writeText failed, trying fallback...", err);
-            return copyFallback(text);
-        });
-    }
-    return copyFallback(text);
-
-    function copyFallback(txt) {
-        const textArea = document.createElement("textarea");
-        textArea.value = txt;
-        textArea.style.top = "0";
-        textArea.style.left = "0";
-        textArea.style.position = "fixed";
-        textArea.style.opacity = "0";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        try {
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textArea);
-            return successful ? Promise.resolve() : Promise.reject(new Error("Fallback copy failed"));
-        } catch (err) {
-            document.body.removeChild(textArea);
-            return Promise.reject(err);
-        }
-    }
-};
+// window.copyTextToClipboard used to be defined HERE as well, byte-identical to the
+// one in modules/factories/_shared.js. ES imports evaluate before the importing
+// module's body, so this copy silently overwrote that one — and the Mengen-
+// Multiplikator now wraps it. Two definitions means a wrapper can land on the loser
+// and do nothing, with nothing to show for it in the console. There is exactly ONE
+// definition, in _shared.js. Do not reintroduce it here.
 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1019,8 +996,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
             const text = window.customWishlist.map(i => `${i.artNr}\t${i.menge}`).join('\n');
-            window.copyTextToClipboard(text).then(() => {
-                alert("Eigene Selektion für SAP kopiert:\n\n" + text.replace(/\t/g, "    "));
+            window.copyTextToClipboard(text).then(copied => {
+                if (copied === null) return;   // Dialog abgebrochen — keine Meldung
+                alert("Eigene Selektion für SAP kopiert:\n\n" + copied.replace(/\t/g, "    "));
             }).catch(e => alert("Kopieren fehlgeschlagen."));
         });
     }
@@ -1154,7 +1132,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (label && artNr && artNr !== "Ausstehend" && artNr !== "none" && !artNr.toLowerCase().startsWith("ohne")) {
                         const typ = typEl ? typEl.textContent.trim() : 'Artikel';
                         const imgUrl = imgEl ? imgEl.src : undefined;
-                        const menge = mengeEl ? parseInt(mengeEl.textContent) : 1;
+                        // data-menge contract (modules/factories/_shared.js). Parsing the
+                        // <strong> text alone yields NaN the moment the cell holds a control,
+                        // and NaN.menge silently corrupts the whole wishlist entry.
+                        const stated = window.rowMenge ? window.rowMenge(row) : null;
+                        const parsed = mengeEl ? parseInt(mengeEl.textContent, 10) : 1;
+                        const menge = stated != null ? stated : (Number.isFinite(parsed) && parsed >= 1 ? parsed : 1);
 
                         const exists = window.customWishlist.find(i => i.artNr === artNr);
                         if (exists) {

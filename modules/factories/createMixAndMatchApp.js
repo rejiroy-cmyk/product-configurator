@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, accessoryHersteller, accessorySerie, accessoryFacetBar, fullLabel, differentiatingChips, requiredPanelFor, requiredWallMountFor, productText, withoutPartnerRefs, isWaschtischKombination, KOMBI_LABEL } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, accessoryHersteller, accessorySerie, accessoryFacetBar, fullLabel, differentiatingChips, requiredPanelFor, requiredWallMountFor, productText, withoutPartnerRefs, isWaschtischKombination, KOMBI_LABEL, accQty, bomQtyCell, clearAccQty, bomQtyInline } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 // SAP text position for furniture. Not an article: it triggers a standing text on
@@ -34,6 +34,8 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         selectedLichtspiegel: null,
         selectedSchraenke: null,
         selectedAccessoires: [],
+        accQty: {},
+
         selectedSiphon: null, // New: track user choice for Siphon
 
         // Selection States
@@ -89,7 +91,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             this.currentSchraenkeBreite = 'all';
             this.currentSchraenkeHoehe = 'all';
             this.currentMoebelFarbe = 'all';
-            this.selectedAccessoires = [];
+            this.selectedAccessoires = [], this.accQty = {};
 
             this.currentBasinType = 'all';
             this.currentBasinBrand = 'all';
@@ -1212,7 +1214,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             if (t === 'lichtspiegel') this.selectedLichtspiegel = null;
                             if (t === 'schraenke') { this.selectedSchraenke = null; this.currentSchraenkeFilter = 'all'; this.currentSchraenkeFarbe = 'all'; this.currentSchraenkeBreite = 'all'; this.currentSchraenkeHoehe = 'all'; }
                             if (t === 'accessoires') {
-                                this.selectedAccessoires = [];
+                                this.selectedAccessoires = [], this.accQty = {};
                                 this.accFacets = {};
                             }
                         }
@@ -1716,7 +1718,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     const t = el.dataset.target;
                     if (t === 'accessoires') {
                         const idx = this.selectedAccessoires.indexOf(artNr);
-                        if (idx > -1) this.selectedAccessoires.splice(idx, 1);
+                        if (idx > -1) { clearAccQty(this, artNr); this.selectedAccessoires.splice(idx, 1); }
                         else this.selectedAccessoires.push(artNr);
                     } else if (t === 'moebel') {
                         this.selectedMoebel = this.selectedMoebel === artNr ? null : artNr;
@@ -1762,11 +1764,14 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         <div class="preview-details">
                         <div class="preview-bom-list" style="border-top: 1px solid var(--border); padding-top: 1.25rem;">
                             <h3 style="font-size: 0.75rem; margin-bottom: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Zusammenfassung</h3>
-                            <div style="background: rgba(255,255,255,0.02); border-radius: 12px; padding: 0.75rem 1rem; border: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: 24px max-content minmax(0, 1fr); gap: 0.4rem 0.75rem; align-items: start;">
+                            <div style="background: rgba(255,255,255,0.02); border-radius: 12px; padding: 0.75rem 1rem; border: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: max-content max-content minmax(0, 1fr); gap: 0.4rem 0.75rem; align-items: center;">
                                 ${this.getBOMPreviewItems().map(item => {
                 if (item.isSpacer) return '<div style="grid-column: 1 / -1; margin: 0.3rem 0; border-top: 1px dashed rgba(255,255,255,0.1);"></div>';
                 // A text position (TXK103) and a warning row carry no orderable quantity.
-                const qtyCell = (item.isTextCode || item.isWarning) ? '—' : `${item.qty}x`;
+                // The BOM table is hidden in this layout, so THIS is the only quantity the
+                // user sees — the accessory stepper has to live here, not in a <td>.
+                const qtyCell = (item.isTextCode || item.isWarning) ? '—'
+                    : bomQtyInline(item.qty, item.isAccessory ? item.artNr : null);
                 return `
                                         <div style="color: var(--text-secondary); font-size: 0.7rem; padding-top: 2px;">${qtyCell}</div>
                                         <div style="font-family: monospace; color: var(--accent); font-weight: 700; font-size: 0.76rem; white-space: nowrap; text-align: left;">${item.artNr}</div>
@@ -2189,7 +2194,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         accObj = itemsToSearch.find(t => t.artNr === artNr);
                     });
                     if (accObj) {
-                        items.push({ qty: 1, label: fullLabel(accObj), artNr: accObj.artNr });
+                        items.push({ qty: accQty(this, accObj), label: fullLabel(accObj), artNr: accObj.artNr, isAccessory: true });
                         // A CWS dispenser ships without its front panel and names it in
                         // its own text — the panel goes in directly under it, in white.
                         // See requiredPanelFor in _shared.js (COLOUR + FULL-TEXT rules).
@@ -2269,8 +2274,9 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
             const textLines = setItems.map(it => this.sapLine(it)).filter(Boolean);
             const textArray = textLines.join('\n');
-            window.copyTextToClipboard(textArray).then(() => {
-                alert(`✅ ${setCode}-Set kopiert für SAP (` + textLines.length + " Zeilen):\n\n" + textArray.replace(/\t/g, "    "));
+            window.copyTextToClipboard(textArray).then(copied => {
+                if (copied === null) return;   // Dialog abgebrochen — keine Meldung
+                alert(`✅ ${setCode}-Set kopiert für SAP (` + textLines.length + " Zeilen):\n\n" + copied.replace(/\t/g, "    "));
             }).catch(e => alert("Kopieren fehlgeschlagen."));
         },
 
@@ -2298,8 +2304,9 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             const textLines = looseItems.map(it => this.sapLine(it)).filter(Boolean);
             const textArray = textLines.join('\n');
             const setCode = this.setCodeFor(this.selectedBasin);
-            window.copyTextToClipboard(textArray).then(() => {
-                alert("✅ Lose Artikel kopiert für SAP (" + textLines.length + ` Zeilen):\n\nBitte NACH dem ${setCode}-Set einfügen!\n\n` + textArray.replace(/\t/g, "    "));
+            window.copyTextToClipboard(textArray).then(copied => {
+                if (copied === null) return;   // Dialog abgebrochen — keine Meldung
+                alert("✅ Lose Artikel kopiert für SAP (" + textLines.length + ` Zeilen):\n\nBitte NACH dem ${setCode}-Set einfügen!\n\n` + copied.replace(/\t/g, "    "));
             }).catch(e => alert("Kopieren fehlgeschlagen."));
         },
 
@@ -2358,7 +2365,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             <div class="bom-desc">${item.label}</div>
                         </td>
 
-                        <td><strong>${item.qty}</strong></td>
+                        ${bomQtyCell(item.qty, item.isAccessory ? item.artNr : null)}
                     </tr>
                 `;
                 totalCount += item.qty;
