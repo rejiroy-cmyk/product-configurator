@@ -9,7 +9,7 @@ import { createRequire } from 'module';
 // mountingMaterials options and services live once in a shared table. /api/data serves
 // the file as it is and the client expands it; /api/save has to intern again, or the
 // admin panel posting its expanded in-memory copy would undo ~20 MB of it on first save.
-const { internData } = createRequire(import.meta.url)('./st-scraper/_dataFile.cjs');
+const { internData, diskTables } = createRequire(import.meta.url)('./st-scraper/_dataFile.cjs');
 
 // Data is embedded as gzip+base64 (inflated at runtime via DecompressionStream) instead of
 // raw JSON, so the shipped single-file build stays small and the catalog/prices are not
@@ -84,7 +84,9 @@ export default defineConfig({
                             try {
                                 // Re-intern whatever the client posted, and keep indent 2:
                                 // minified, every future edit is a one-line whole-file diff.
-                                const out = JSON.stringify(internData(JSON.parse(body)), null, 2);
+                                // Seeded from the file on disk, or an admin edit to one tray
+                                // renumbers the whole option table underneath it.
+                                const out = JSON.stringify(internData(JSON.parse(body), { seed: diskTables() }), null, 2);
                                 fs.writeFileSync(dataPath, out);
                                 console.log(`[VITE] /api/save wrote ${(out.length / 1048576).toFixed(2)} MB (interned).`);
                             } catch (e) {

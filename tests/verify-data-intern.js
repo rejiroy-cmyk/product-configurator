@@ -14,6 +14,15 @@
 //   · expanding twice changes nothing                     — tolerant of mixed files
 //   · an already-expanded (un-interned) file still loads  — old backups keep working
 //   · each reference expands into its OWN object          — no shared-mutation leak
+//   · an untouched option keeps the key it had on disk    — see below
+//
+// That last one is why internData takes a seed. expandData strips the tables off the
+// data (deliberately — it is what keeps the two expanders in step), so on the
+// readData -> mutate -> writeData path there was nothing left to carry keys over from
+// and every write reassigned them in first-encounter order. Deleting one option that
+// sat low in the table renumbered every key above it: a four-tray edit came back as a
+// ~24,000-line diff, 752 of 1,893 keys quietly changing meaning. writeData now seeds
+// from the file it is replacing; these tests pin the four rules that follow from that.
 // ============================================================================
 import { createRequire } from 'node:module';
 import assert from 'node:assert';
@@ -96,6 +105,87 @@ test('each reference expands into its OWN object — no shared-mutation leak', (
 test('an unknown reference is left alone, never invented', () => {
     const d = { bademischer: { trays: [{ artNr: 'A', mountingMaterials: [{ name: 'x', options: ['o999'] }] }] }, _options: { o0: clone(HOSE) } };
     assert.strictEqual(expandData(d).bademischer.trays[0].mountingMaterials[0].options[0], 'o999');
+});
+
+// ---------------------------------------------------------------------------
+// Key stability — the diff-hygiene half.
+// ---------------------------------------------------------------------------
+
+/** What writeData does: expand a stored file, mutate, intern again seeded from disk. */
+const reintern = (onDisk, mutate) => {
+    const seed = { _options: clone(onDisk._options || {}), _services: clone(onDisk._services || {}) };
+    const data = expandData(clone(onDisk));
+    mutate(data);
+    return internData(data, { seed });
+};
+
+// The stability tests need a KNOWN encounter order and something to delete at the FRONT
+// of it — that is the case that shifts every key behind it. Here: BOGEN o0 (tray A only),
+// HOSE o1, HAND o2.
+const BOGEN = { artNr: '6542 001.501.000', label: 'Anschlussbogen Alterna, ½"', menge: 2, type: 'Zubehör' };
+const ordered = () => internData({
+    bademischer: {
+        trays: [
+            { artNr: 'A', label: 'A', mountingMaterials: [{ name: 'g', options: [clone(BOGEN), clone(HOSE), clone(HAND)] }] },
+            { artNr: 'B', label: 'B', mountingMaterials: [{ name: 'g', options: [clone(HOSE), clone(HAND)] }] },
+        ],
+    },
+});
+const dropBogen = (d) => {
+    const g = d.bademischer.trays[0].mountingMaterials[0];
+    g.options = g.options.filter((o) => o.artNr !== BOGEN.artNr);
+};
+
+test('an untouched option keeps its key when the one BEFORE it is deleted', () => {
+    const onDisk = ordered();
+    assert.deepStrictEqual(Object.keys(onDisk._options), ['o0', 'o1', 'o2'], 'fixture assumption');
+    const after = reintern(onDisk, dropBogen);
+    assert.strictEqual(after._options.o1.artNr, HOSE.artNr, 'o1 changed meaning');
+    assert.strictEqual(after._options.o2.artNr, HAND.artNr, 'o2 changed meaning');
+    assert.deepStrictEqual(after.bademischer.trays[0].mountingMaterials[0].options, ['o1', 'o2']);
+});
+
+test('an option nobody references any more drops out of the table', () => {
+    const after = reintern(ordered(), dropBogen);
+    assert.deepStrictEqual(Object.keys(after._options), ['o1', 'o2'], 'the orphan is still on the file');
+});
+
+test('a new option takes a fresh key above the highest seeded one', () => {
+    const onDisk = ordered();
+    const NEW = { artNr: '6541 999.501.000', label: 'Handbrause neu', menge: 1, type: 'Zubehör' };
+    // Unshifted, so first-encounter numbering would hand it o0 and shift all three.
+    const after = reintern(onDisk, (d) => {
+        d.bademischer.trays[0].mountingMaterials[0].options.unshift(clone(NEW));
+    });
+    assert.strictEqual(after._options.o3 && after._options.o3.artNr, NEW.artNr, 'the new option is not o3');
+    for (const [k, v] of Object.entries(onDisk._options)) assert.deepStrictEqual(after._options[k], v, `${k} moved`);
+});
+
+test('the table is emitted in key order, whatever order the pools reference it in', () => {
+    // Reversing the pools reverses first-encounter order; the table must not move.
+    const onDisk = ordered();
+    const after = reintern(onDisk, (d) => {
+        d.bademischer.trays.reverse();
+        for (const t of d.bademischer.trays) t.mountingMaterials[0].options.reverse();
+    });
+    assert.deepStrictEqual(Object.keys(after._options), Object.keys(onDisk._options));
+    assert.deepStrictEqual(after._options, onDisk._options);
+});
+
+test('a no-op read/write cycle is byte-identical', () => {
+    const onDisk = ordered();
+    assert.strictEqual(JSON.stringify(reintern(onDisk, () => {})), JSON.stringify(onDisk));
+});
+
+test('a half-interned file keeps its string references resolvable', () => {
+    // A tray that was never expanded sits beside one holding a fresh object.
+    const half = internData(fixture());
+    half.duschenmischer.trays[0].mountingMaterials[0].options = [clone(HOSE)];   // object again
+    const again = internData(half);
+    const refs = again.bademischer.trays[1].mountingMaterials[0].options;
+    assert.strictEqual(typeof refs[0], 'string');
+    assert.ok(refs[0] in again._options, `dangling reference ${refs[0]}`);
+    assert.deepStrictEqual(expandData(clone(again)), expandData(clone(internData(fixture()))));
 });
 
 console.log('\n' + '-'.repeat(50));

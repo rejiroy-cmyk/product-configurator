@@ -287,6 +287,14 @@ whichever one the app's title falls into.
     bundled gz blob, the IndexedDB backup).
   - **Saving from the admin panel:** `/api/save` in `vite.config.js` re-interns before
     writing, or the first save undoes ~20 MB of it.
+  - **The keys are SEEDED from the file being replaced, and must stay that way.**
+    `internData(data, {seed})` hands an unchanged option the key it already had;
+    `writeData` passes `diskTables()` and `/api/save` does the same. Without the seed
+    keys are reassigned in first-encounter order on every write, so deleting one option
+    low in the table renumbers every key above it — dropping 4 trays + 2 options wrote a
+    **24,000-line diff with 752 keys changing meaning**, against 660 lines and none
+    with it. A new option takes a fresh key above the highest; an option nobody
+    references drops out. If you ever call `internData` directly, pass a seed.
   - **Tests that read the file must expand it too** — `verify-duschtrennwand` and
     `verify-servicepaket` do; forgetting it makes every service rule test nothing while
     still reporting green-ish failures.
