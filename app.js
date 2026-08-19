@@ -735,6 +735,77 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // --- Tastenkürzel: Ctrl/Cmd+C = kopieren, Backspace = zurück ---
+    // The guards matter more than the bindings. This app is full of <input>,
+    // <select class="inline-bom-select"> and admin editors, so a global hotkey
+    // that fires while one of those holds focus eats the keystroke the user
+    // meant for it.
+    const isTypingTarget = (el) => {
+        if (!el || !el.tagName) return false;
+        if (el.isContentEditable) return true;
+        return /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+    };
+    // A field's own selection does not show up in window.getSelection(), so a
+    // marked Art-Nr inside the search box has to be asked for separately.
+    const hasSelection = (el) => {
+        if (el && /^(INPUT|TEXTAREA)$/.test(el.tagName || '')) {
+            try { if (el.selectionStart !== el.selectionEnd) return true; } catch (_) { /* type=number has none */ }
+        }
+        const sel = window.getSelection();
+        return !!(sel && !sel.isCollapsed && String(sel).trim());
+    };
+    // Every view carries its own back control; Backspace clicks whichever one
+    // belongs to the view that is up.
+    const VIEW_BACK_BTN = {
+        configView: 'backHomeBtn',
+        adminView: 'exitAdminBtn',
+        searchResultView: 'closeSearchBtn'
+    };
+    const clickIfLive = (btn) => {
+        if (!btn || btn.offsetParent === null) return false;
+        btn.click();
+        return true;
+    };
+
+    document.addEventListener('keydown', (e) => {
+        if (e.altKey) return;
+        const openModal = document.querySelector('.admin-modal-overlay.active');
+
+        // Ctrl/Cmd+C — copy the Stückliste, but ONLY when nothing is selected.
+        // With a selection the native copy is what the user wants (an Art-Nr, a
+        // label out of a BOM row); with none it is a no-op anyway, so taking the
+        // key there costs nothing and can never swallow a real copy. Focus is
+        // deliberately NOT a reason to bail: picking a product parks the caret in
+        // the Anzahl field, and the shortcut has to survive that.
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'c' || e.key === 'C')) {
+            if (hasSelection(e.target)) return;
+            if (openModal) {
+                // The wishlist modal has its own copy button; the others have none.
+                if (openModal.id === 'wishlistModal'
+                    && clickIfLive(document.getElementById('copyWishlistBtn'))) e.preventDefault();
+                return;
+            }
+            const cfg = document.getElementById('configView');
+            if (cfg && cfg.classList.contains('active-view')
+                && clickIfLive(document.getElementById('copyBtn'))) e.preventDefault();
+            return;
+        }
+
+        // Backspace — one step back. Browsers stopped navigating history on
+        // Backspace years ago, so the key is free, but it still has to reach any
+        // field that is being typed in. The gallery button wins when it is up:
+        // it is the inner level (product -> grid -> home).
+        if (e.key === 'Backspace' && !e.ctrlKey && !e.metaKey) {
+            if (openModal || isTypingTarget(e.target)) return;
+            if (clickIfLive(document.getElementById('backToCatalogBtn'))) { e.preventDefault(); return; }
+            const viewId = Object.keys(VIEW_BACK_BTN).find(id => {
+                const v = document.getElementById(id);
+                return v && v.classList.contains('active-view');
+            });
+            if (viewId && clickIfLive(document.getElementById(VIEW_BACK_BTN[viewId]))) e.preventDefault();
+        }
+    });
+
     // --- Boot Sequence ---
     // Priority: (1) Mac filesystem via /api/data  (2) IndexedDB backup
     // localStorage is intentionally NOT used for data — the dataset (4.5MB+) exceeds the 5MB limit.
