@@ -54,6 +54,10 @@ const BASES = [
     { base: '3341 111', why: 'Kombifix — Tango' },
     { base: '3341 112', why: 'Kombifix — Bolero' },
     { base: '3163 160', why: 'Einbausifon-Abdeckung Waschtisch — see the header note' },
+    // Not an Anlageteil at all: a RETIRED article. The shop serves no product page for it
+    // (`scrape-ch7-images.cjs` -> "❌ no product page"), though SAP's ch3-api.json still
+    // carries it at CHF 410, which is how it got injected. Dropped per INSTALLATION_ELEMENT_RULES §8.5.
+    { base: '3612 232', why: 'Waschtischelement Duofix — retired, no shop page' },
 ];
 const isTarget = (artNr) => BASES.some((b) => String(artNr || '').startsWith(b.base));
 

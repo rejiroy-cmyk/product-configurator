@@ -124,6 +124,126 @@ Applies to **both Duschenmischer and Bademischer** — every mixer configurator,
 - **Brausegarnitur Fallback (Colour Matching)**: A `Brausegarnitur` is never offered as the standard/default selection *unless* one of the individual accessories (e.g. `Duschgleitstange`) is not available in the selected colour (example: mixer `6415 120.475.000` in colour `.475` has no Duschgleitstange). In that fallback case, the `Brausegarnitur` becomes the standard/default and the individual accessories default to `ohne`.
 - **Regenbrause Einbaukörper Injection**: If a `Regenbrause`'s description contains `ohne Einbaukörper` (or a similar required-missing-element phrase), the engine must automatically look up and inject the proper `Einbau-` or `Grundkörper` directly below it in the BOM.
 
+### Installationselement (Vorwandelement) — Wandklosett / Standklosett / Waschtisch
+
+Source of truth for the full ruleset: **`INSTALLATION_ELEMENT_RULES.md`** (filled 2026-08-17,
+follow-ups 2026-08-18). Only **Geberit Duofix** is offered — TECE Profil, Kombifix and Laufen
+Ineo are hidden by decision (Ineo is ~0.5% of Duofix volume), and GIS is out of scope. The
+element sits in the SAME Stückliste as the ceramic.
+
+- **House system = Duofix.** Sigma is the default cistern (front actuation); **Omega only on
+  request** (it is the one that also actuates from above, for a half-height wall).
+- **Element choice — Wandklosett:** standard `3612 348` · barrierefrei `3612 329` ·
+  Kinder `3612 344` · halbhohe Wand `3612 301` (Omega 82 cm) · Hygienespülung `3612 304`.
+  A Dusch-WC/AquaClean takes the **standard** `3612 348` — it already carries the
+  Leerrohr für Wasseranschluss Dusch-Klosett.
+- **Element choice — Waschtisch:** standard `3612 287` · Wandarmatur `3612 289` ·
+  Einbausifon `3612 288` · schmale Ausführung `3612 104`. **Barrierefrei also takes
+  `3612 288`** — the catalogue's only barrier-free Waschtischelement is Laufen Ineo
+  `3100 117`, and Ineo is not used. The element does **not** follow the basin width.
+- **The element is ALWAYS in the BOM by default** (Duofix Sigma). The user opts out with a
+  toggle, which replaces the element line with the text position `bau115`.
+- **`bau115` is a TEXT POSITION, not an article** — same contract as `TXK103` (see Mix & Match):
+  it carries **no Menge**, exports as a bare line with no tab, and shows "—" in the BOM.
+  It must never be given a quantity.
+- **Betätigungsplatte — TWO-STAGE selection.** The first dropdown picks the **family**
+  (Sigma01 · Sigma10 · Sigma20 · Sigma40 · Sigma50 · Sigma70 · Sigma80 / Omega20 · Omega60);
+  a second dropdown then lists that family's plates. **Every option's description must name
+  the colour**, resolved from the art-Nr finish triplet via `COLOR_NAMES` — the COLOUR RULE,
+  never from label text. `Sigma*` families for a Sigma element, `Omega*` for an Omega one.
+  Default finish **Weiss** (`100`).
+  - **Sigma60 is not offered.** No Sigma60 plate exists in the catalogue anyway, so the
+    "nicht geeignet für Sigma60" note on `3612 330` / `3612 340` is moot.
+  - **Sigma80 stays.** Its exclusions still hold: `3612 343` and `3612 344` not with Sigma80.
+  - Kappa20/21/50 and Highline plates belong to cisterns we do not offer → never listed.
+- **Schallschutz belongs to the Wandklosett itself, not to the element.** It stays injected by
+  default; the element rule neither adds nor removes it.
+- **Bauschutz `3612 362` is a REPLACEMENT part for the Duofix element** → never auto-added.
+  **Brandschutzset is never automatic** — manual add only.
+- **Rückwandbefestigungssatz `3612 500`** is mandatory alongside the element — **and ONLY
+  with it.** Its own label says "für alle Elemente": it fastens the element to the wall, so
+  with no element there is nothing to fasten. Same `dependsOn` + empty-`optionArtNrs`
+  suppression as the Ablaufbogen below.
+- **Ablaufbogen `3612 374`** (Geberit-Silent, D. 90 mm, CHF 56) is mandatory alongside the
+  element — **and ONLY with it.** It `dependsOn` the Installationselement group: pick a real
+  element and the Ablaufbogen is there; opt out via `bau115` and it disappears, because it
+  has nothing left to connect. Suppression is an empty `optionArtNrs`, the same mechanism
+  the Abstellverschraubung uses in `createRelationalApp`. This is the `Ablaufbogen` group
+  only; the `Ablaufanschluss` groups on 6 Standklosett trays are a different part
+  (`3241 130` / `3241 120` / `3242 110`) and are never touched.
+- **Endmontageset `3612 235` ONLY when the Einbausifon element `3612 288` is chosen** — it
+  finishes that element's concealed siphon and bundles the Abdeckplatte. Offer its three
+  finishes: `501` Verchromt · `100` Weiss · `523` Edelstahl matt.
+- **Anschlussbogen `3612 272`** is mandatory on Waschtisch.
+- **A Duofix element suppresses the Dübel-/Schraubenset** — that fixing is only required when
+  no Duofix element is in the BOM.
+- Brand priority: **always the house system**, regardless of the ceramic's brand.
+- **These rules OVERRULE the earlier hard-coded auto-injection.** `createWCApp.js` and
+  `createRelationalApp.js` each carry a `step6/step7/step8` block that injects `3612 348` +
+  `3612 500` + `3612 374` (Ablaufbogen Geberit-Silent) as fixed defaults. Both copies are
+  superseded and must go when the linker ships.
+- **Plate before element, by design.** The Betätigungsplatte stays at BOM position 3, above
+  the Installationselement at 6: the user picks the plate and the engine adjusts the element
+  to match its cistern. The dependency runs plate → element.
+
+- **BOM Sorting Order — Wandklosett:**
+  1. Wand-Klosett (Hauptartikel)
+  2. WC-Sitz
+  3. Betätigungsplatte
+  4. Schallschutz
+  5. Dübel-/Schraubenset (only when no Duofix element is present)
+  6. Installationselement (Vorwandelement inkl. Einbauspülkasten)
+  7. Rückwandbefestigungssatz
+  8. Ablaufbogen
+  9. Brandschutzset (if required)
+  10. Other accessories
+
+- **Standklosett uses the SAME element as Wandklosett, `3612 348`** — deliberately, not an
+  oversight; `3612 343` (the dedicated Standklosettelement) is not used.
+
+- **BOM Sorting Order — Standklosett:**
+  1. Stand-Klosett (Hauptartikel)
+  2. WC-Sitz
+  3. Betätigungsplatte
+  4. Schallschutz
+  5. Dübel-/Schraubenset (only when no Duofix element is present)
+  6. Spülkasten / Installationselement
+  7. Rückwandbefestigungssatz
+  8. Ablaufbogen / Ablaufanschluss
+  9. Other accessories
+
+- **Waschtisch (Mix & Match only):** the MM BOM order is unchanged. The Waschtischelement gets
+  its own toggle under **Möbel**, **OFF by default**, and its lines go **under the
+  Regulierventil** in this fixed order:
+  1. Installationselement (`3612 287` standard · `3612 289` Wandarmatur · `3612 288` Einbausifon ·
+     `3612 104` schmal — the user picks; MM has no montage field to derive it from)
+  2. Rückwandbefestigungssatz `3612 500`
+  3. Anschlussbogen `3612 272`
+  4. Endmontageset `3612 235` — ONLY with the Einbausifon element `3612 288`
+
+  **⚠ The Einbausifon element `3612 288` reorders the whole block, because the
+  Endmontageset REPLACES the Siphon:**
+
+      Waschtisch -> Endmontageset 3612 235 -> Regulierventil -> 3612 288 -> 3612 500
+
+  The element carries its siphon inside the wall ("mit Einbausifon"), so the Möbelsiphon /
+  designer siphon must NOT also be ordered — one basin, one siphon. `3612 235` takes that
+  slot. **`3612 272` is dropped** for this element: the Endmontageset already states
+  "Anschlussbogen 1¼" x 32 mm", so ordering 272 beside it buys the connection twice — the
+  same double-charge the Brausegarnitur bundle rule prevents. The Rückwandbefestigungssatz
+  `3612 500` stays; it is the wall fixing and nothing bundles it.
+
+  The siphon and the Regulierventil are **independent slots** in `updatePreview()`. They
+  used to be nested in one if/else, which made the Regulierventil vanish the moment the
+  Einbausifon branch took over the siphon.
+  MM renders its Stückliste as the GRID in `#col_preview`, not the BOM table
+  (`.mixmatch-active .bom-section { display:none }`), so this is a toggle + `updatePreview()`
+  line — **not** a `mountingMaterials` group. The article numbers are imported from
+  `modules/rules/linkInstallationElement.js` so the two implementations cannot drift.
+
+- **Urinoir is deliberately NOT covered.** It needs research first; half a rule is worse than
+  none here.
+
 ## 3. Brand & Bundling Rules
 
 ### Kaldewei

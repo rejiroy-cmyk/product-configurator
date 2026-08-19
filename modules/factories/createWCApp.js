@@ -1029,10 +1029,71 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
 
                 const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
 
+                // What each group ACTUALLY resolved to this render. A child must read its
+                // parent's EFFECTIVE choice, not `parent.options[0]`: the parent has its own
+                // cascade, so its raw first option can be one its own rules just excluded.
+                // (allFamilies sorts Omega before Sigma, so options[0] is fam_omega20 even
+                // when a Sigma element has narrowed the parent to Sigma01.)
+                const effectiveSel = {};
                 materials.forEach(mat => {
                     const selectedArtNr = this.selectedTray.selections[mat.id];
-                    const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
+                    let activeOptions = mat.options || [];
+
+                    // ── CASCADE (Wandklosett + Standklosett only; createWCApp also backs
+                    // Urinoir — INSTRUCTIONS §0, branch shared-factory logic on the title).
+                    // A dependent group offers ONLY what its parent's current choice allows:
+                    // pick Sigma10 in the family selector and the Betätigungsplatte dropdown
+                    // must list Sigma10 plates alone, not all 119. An EMPTY optionArtNrs means
+                    // the row disappears entirely (the bau115 opt-out drops the Ablaufbogen and
+                    // the Rückwandbefestigungssatz).
+                    if ((titleLower.includes('wandklosett') || titleLower.includes('standklosett'))
+                        && mat.dependsOn && Array.isArray(mat.optionRules)) {
+                        const parentMat = (materials || []).find(m => m.id === mat.dependsOn);
+                        // effectiveSel FIRST — it is what the parent actually resolved to this
+                        // render, after its own cascade. `selections` is pre-seeded to every
+                        // group's options[0], so the stored family can be one the parent's
+                        // rules exclude (allFamilies sorts Omega first, so a Sigma element was
+                        // seeded fam_omega20 and the plate list followed the stale seed).
+                        // A real user pick lands in BOTH, so preferring the cache is safe.
+                        const parentSel = effectiveSel[mat.dependsOn]
+                            || this.selectedTray.selections[mat.dependsOn]
+                            || (parentMat && parentMat.options && parentMat.options[0] && parentMat.options[0].artNr);
+                        const rule = mat.optionRules.find(r => r.whenArtNr === parentSel);
+                        if (rule) {
+                            if (rule.optionArtNrs.length === 0) return;          // suppressed
+                            if (mat.cascadeMode === 'validate') {
+                                // Keep every option visible; only repair a selection the rule
+                                // excludes, so the reverse direction stays reachable.
+                                const stored = this.selectedTray.selections[mat.id];
+                                if (stored && !rule.optionArtNrs.includes(stored)) {
+                                    const firstOk = activeOptions.find(o => rule.optionArtNrs.includes(o.artNr));
+                                    if (firstOk) this.selectedTray.selections[mat.id] = firstOk.artNr;
+                                }
+                            } else {
+                                activeOptions = activeOptions.filter(o => rule.optionArtNrs.includes(o.artNr));
+                                if (!activeOptions.length) return;
+                            }
+                        }
+                    }
+
+                    // The stored pick may belong to the family the user just switched AWAY
+                    // from — fall back to the first option the cascade still allows, or the
+                    // BOM would keep showing a plate the dropdown no longer offers.
+                    const selectedOption = activeOptions.find(o => o.artNr === selectedArtNr) || activeOptions[0];
                     if (!selectedOption) return;
+                    effectiveSel[mat.id] = selectedOption.artNr;
+
+                    // REPAIR the stored selection when the cascade rejected it. Two ways it
+                    // goes stale, and the rendered row hid both because it recomputes:
+                    //   • selections is pre-seeded to every group's options[0] — for the
+                    //     family that is fam_omega20, wrong under a Sigma element;
+                    //   • the dropdown change handler walks only ONE level (element -> family),
+                    //     so the plate kept an Omega60 art-Nr after switching back to Sigma.
+                    // Anything reading selections instead of the DOM would take the stale one.
+                    // Converges in a single render and only ever touches cascaded children.
+                    if (mat.dependsOn && selectedArtNr && selectedArtNr !== selectedOption.artNr) {
+                        this.selectedTray.selections[mat.id] = selectedOption.artNr;
+                    }
 
                     // Check against active Montageart filter
                     const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
@@ -1057,9 +1118,14 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         else if (matName === 'schallschutz') priority = 4;
                         else if (matName === 'befestigungsschrauben') priority = 6;
                         else if (matName === 'ablaufmanschette') priority = 7;
-                        else if (matName === 'duofix element' || selectedOption.artNr === '3612 348.000.000') priority = 8;
-                        else if (matName === 'rückwandbefestigungssatz' || selectedOption.artNr === '3612 500.000.000') priority = 8;
-                        else if (matName === 'ablaufbogen' || selectedOption.artNr === '3612 374.000.000') priority = 9;
+                        else if (matName === 'betätigungsplatte — familie') priority = 3;
+                        // Element / Rückwand / Ablaufbogen in that order (INSTRUCTIONS §2).
+                        // Matched by GROUP NAME: the element is no longer always 3612 348 —
+                        // an SIA 500 ceramic takes 3612 329 — so an art-Nr test would drop it
+                        // out of the sort. 'duofix element' is the pre-rules spelling.
+                        else if (matName === 'installationselement' || matName === 'duofix element') priority = 8;
+                        else if (matName === 'rückwandbefestigungssatz') priority = 9;
+                        else if (matName === 'ablaufbogen') priority = 10;
                     } else {
                         // AUFPUTZ: 1=Spülkasten 2=Klosett 3=Sitz 4=Schall 5=Screws 6=Ablaufanschluss
                         if (matName === 'spülkasten') priority = 1;
@@ -1069,28 +1135,95 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         else if (matName === 'ablaufanschluss') priority = 7;
                     }
 
-                    const isInlineDropdown = config.enableGalleryUX && mat.options && mat.options.length > 1;
+
+                    const isInlineDropdown = config.enableGalleryUX && activeOptions.length > 1;
 
                     finalBOM.push({
                         artNr: selectedOption.artNr,
                         label: enrichedLabel,
                         typ: selectedOption.type || mat.name || 'Zubehör',
-                        menge: selectedOption.menge || 1,
+                        // A TEXT POSITION (bau115) carries NO Menge — same contract as TXK103.
+                        // A SELECTOR row (the plate-family dropdown) is a UI control: it shows
+                        // its dropdown but has no art-Nr and never reaches SAP.
+                        menge: (selectedOption.isTextPosition || mat.uiOnly) ? null : (selectedOption.menge || 1),
+                        isTextPosition: !!selectedOption.isTextPosition,
+                        isSelector: !!mat.uiOnly,
                         img: enrichedImg,
                         note: note,
                         priority: priority,
                         isInlineDropdown: isInlineDropdown,
                         matId: mat.id,
-                        options: isInlineDropdown ? mat.options : null
+                        options: isInlineDropdown ? activeOptions : null
                     });
                 });
 
             } else if (isWanne) {
                 // ─── DUSCHENWANNE / BADEWANNE: Dedicated Priority Engine ──────────
+                // What each group ACTUALLY resolved to this render. A child must read its
+                // parent's EFFECTIVE choice, not `parent.options[0]`: the parent has its own
+                // cascade, so its raw first option can be one its own rules just excluded.
+                // (allFamilies sorts Omega before Sigma, so options[0] is fam_omega20 even
+                // when a Sigma element has narrowed the parent to Sigma01.)
+                const effectiveSel = {};
                 materials.forEach(mat => {
                     const selectedArtNr = this.selectedTray.selections[mat.id];
-                    const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
+                    let activeOptions = mat.options || [];
+
+                    // ── CASCADE (Wandklosett + Standklosett only; createWCApp also backs
+                    // Urinoir — INSTRUCTIONS §0, branch shared-factory logic on the title).
+                    // A dependent group offers ONLY what its parent's current choice allows:
+                    // pick Sigma10 in the family selector and the Betätigungsplatte dropdown
+                    // must list Sigma10 plates alone, not all 119. An EMPTY optionArtNrs means
+                    // the row disappears entirely (the bau115 opt-out drops the Ablaufbogen and
+                    // the Rückwandbefestigungssatz).
+                    if ((titleLower.includes('wandklosett') || titleLower.includes('standklosett'))
+                        && mat.dependsOn && Array.isArray(mat.optionRules)) {
+                        const parentMat = (materials || []).find(m => m.id === mat.dependsOn);
+                        // effectiveSel FIRST — it is what the parent actually resolved to this
+                        // render, after its own cascade. `selections` is pre-seeded to every
+                        // group's options[0], so the stored family can be one the parent's
+                        // rules exclude (allFamilies sorts Omega first, so a Sigma element was
+                        // seeded fam_omega20 and the plate list followed the stale seed).
+                        // A real user pick lands in BOTH, so preferring the cache is safe.
+                        const parentSel = effectiveSel[mat.dependsOn]
+                            || this.selectedTray.selections[mat.dependsOn]
+                            || (parentMat && parentMat.options && parentMat.options[0] && parentMat.options[0].artNr);
+                        const rule = mat.optionRules.find(r => r.whenArtNr === parentSel);
+                        if (rule) {
+                            if (rule.optionArtNrs.length === 0) return;          // suppressed
+                            if (mat.cascadeMode === 'validate') {
+                                // Keep every option visible; only repair a selection the rule
+                                // excludes, so the reverse direction stays reachable.
+                                const stored = this.selectedTray.selections[mat.id];
+                                if (stored && !rule.optionArtNrs.includes(stored)) {
+                                    const firstOk = activeOptions.find(o => rule.optionArtNrs.includes(o.artNr));
+                                    if (firstOk) this.selectedTray.selections[mat.id] = firstOk.artNr;
+                                }
+                            } else {
+                                activeOptions = activeOptions.filter(o => rule.optionArtNrs.includes(o.artNr));
+                                if (!activeOptions.length) return;
+                            }
+                        }
+                    }
+
+                    // The stored pick may belong to the family the user just switched AWAY
+                    // from — fall back to the first option the cascade still allows, or the
+                    // BOM would keep showing a plate the dropdown no longer offers.
+                    const selectedOption = activeOptions.find(o => o.artNr === selectedArtNr) || activeOptions[0];
                     if (!selectedOption) return;
+                    effectiveSel[mat.id] = selectedOption.artNr;
+
+                    // REPAIR the stored selection when the cascade rejected it. Two ways it
+                    // goes stale, and the rendered row hid both because it recomputes:
+                    //   • selections is pre-seeded to every group's options[0] — for the
+                    //     family that is fam_omega20, wrong under a Sigma element;
+                    //   • the dropdown change handler walks only ONE level (element -> family),
+                    //     so the plate kept an Omega60 art-Nr after switching back to Sigma.
+                    // Anything reading selections instead of the DOM would take the stale one.
+                    // Converges in a single render and only ever touches cascaded children.
+                    if (mat.dependsOn && selectedArtNr && selectedArtNr !== selectedOption.artNr) {
+                        this.selectedTray.selections[mat.id] = selectedOption.artNr;
+                    }
 
                     // Check against active Montageart filter
                     const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
@@ -1177,7 +1310,8 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         }
                     }
 
-                    const isInlineDropdown = config.enableGalleryUX && mat.options && mat.options.length > 1;
+
+                    const isInlineDropdown = config.enableGalleryUX && activeOptions.length > 1;
 
                     finalBOM.push({
                         artNr: selectedOption.artNr,
@@ -1189,16 +1323,77 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         priority: priority,
                         isInlineDropdown: isInlineDropdown,
                         matId: mat.id,
-                        options: isInlineDropdown ? mat.options : null
+                        options: isInlineDropdown ? activeOptions : null
                     });
                 });
 
             } else {
                 // ─── WANDKLOSETT / OTHER: Original Priority Engine ────────────────
+                // What each group ACTUALLY resolved to this render. A child must read its
+                // parent's EFFECTIVE choice, not `parent.options[0]`: the parent has its own
+                // cascade, so its raw first option can be one its own rules just excluded.
+                // (allFamilies sorts Omega before Sigma, so options[0] is fam_omega20 even
+                // when a Sigma element has narrowed the parent to Sigma01.)
+                const effectiveSel = {};
                 materials.forEach(mat => {
                     const selectedArtNr = this.selectedTray.selections[mat.id];
-                    const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
+                    let activeOptions = mat.options || [];
+
+                    // ── CASCADE (Wandklosett + Standklosett only; createWCApp also backs
+                    // Urinoir — INSTRUCTIONS §0, branch shared-factory logic on the title).
+                    // A dependent group offers ONLY what its parent's current choice allows:
+                    // pick Sigma10 in the family selector and the Betätigungsplatte dropdown
+                    // must list Sigma10 plates alone, not all 119. An EMPTY optionArtNrs means
+                    // the row disappears entirely (the bau115 opt-out drops the Ablaufbogen and
+                    // the Rückwandbefestigungssatz).
+                    if ((titleLower.includes('wandklosett') || titleLower.includes('standklosett'))
+                        && mat.dependsOn && Array.isArray(mat.optionRules)) {
+                        const parentMat = (materials || []).find(m => m.id === mat.dependsOn);
+                        // effectiveSel FIRST — it is what the parent actually resolved to this
+                        // render, after its own cascade. `selections` is pre-seeded to every
+                        // group's options[0], so the stored family can be one the parent's
+                        // rules exclude (allFamilies sorts Omega first, so a Sigma element was
+                        // seeded fam_omega20 and the plate list followed the stale seed).
+                        // A real user pick lands in BOTH, so preferring the cache is safe.
+                        const parentSel = effectiveSel[mat.dependsOn]
+                            || this.selectedTray.selections[mat.dependsOn]
+                            || (parentMat && parentMat.options && parentMat.options[0] && parentMat.options[0].artNr);
+                        const rule = mat.optionRules.find(r => r.whenArtNr === parentSel);
+                        if (rule) {
+                            if (rule.optionArtNrs.length === 0) return;          // suppressed
+                            if (mat.cascadeMode === 'validate') {
+                                // Keep every option visible; only repair a selection the rule
+                                // excludes, so the reverse direction stays reachable.
+                                const stored = this.selectedTray.selections[mat.id];
+                                if (stored && !rule.optionArtNrs.includes(stored)) {
+                                    const firstOk = activeOptions.find(o => rule.optionArtNrs.includes(o.artNr));
+                                    if (firstOk) this.selectedTray.selections[mat.id] = firstOk.artNr;
+                                }
+                            } else {
+                                activeOptions = activeOptions.filter(o => rule.optionArtNrs.includes(o.artNr));
+                                if (!activeOptions.length) return;
+                            }
+                        }
+                    }
+
+                    // The stored pick may belong to the family the user just switched AWAY
+                    // from — fall back to the first option the cascade still allows, or the
+                    // BOM would keep showing a plate the dropdown no longer offers.
+                    const selectedOption = activeOptions.find(o => o.artNr === selectedArtNr) || activeOptions[0];
                     if (!selectedOption) return;
+                    effectiveSel[mat.id] = selectedOption.artNr;
+
+                    // REPAIR the stored selection when the cascade rejected it. Two ways it
+                    // goes stale, and the rendered row hid both because it recomputes:
+                    //   • selections is pre-seeded to every group's options[0] — for the
+                    //     family that is fam_omega20, wrong under a Sigma element;
+                    //   • the dropdown change handler walks only ONE level (element -> family),
+                    //     so the plate kept an Omega60 art-Nr after switching back to Sigma.
+                    // Anything reading selections instead of the DOM would take the stale one.
+                    // Converges in a single render and only ever touches cascaded children.
+                    if (mat.dependsOn && selectedArtNr && selectedArtNr !== selectedOption.artNr) {
+                        this.selectedTray.selections[mat.id] = selectedOption.artNr;
+                    }
 
                     // Check against active Montageart filter
                     const matClass = this.classifyAccessory(selectedOption) !== 'common' ? this.classifyAccessory(selectedOption) : this.classifyAccessory(mat);
@@ -1220,25 +1415,40 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     let priority = 99; // Default for unknown
                     let note = mat.name || 'Zubehör';
 
-                    if (combinedLbl.includes('sitz') || combinedLbl.includes('deckel')) priority = isAufputz ? 3 : 2;
+                    // Installationselement groups are matched by GROUP NAME and tested
+                    // FIRST — the keyword chain below would score them 99 and dump them at
+                    // the end of the Stückliste. Manschette keeps its slot at 6, so the
+                    // three element parts follow it, preserving INSTRUCTIONS §2's order.
+                    const matNameWK = (mat.name || '').toLowerCase();
+                    if (matNameWK === 'installationselement') priority = 7;
+                    else if (matNameWK === 'rückwandbefestigungssatz') priority = 8;
+                    else if (matNameWK === 'ablaufbogen') priority = 9;
+                    else if (matNameWK === 'betätigungsplatte — familie') priority = 3;
+                    else if (combinedLbl.includes('sitz') || combinedLbl.includes('deckel')) priority = isAufputz ? 3 : 2;
                     else if (combinedLbl.includes('platte') || combinedLbl.includes('betätigung')) priority = 3;
                     else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = isAufputz ? 5 : 4;
                     else if (combinedLbl.includes('reservoir') || combinedLbl.includes('spülkasten') || combinedLbl.includes('ap128') || combinedLbl.includes('ap116')) priority = 1;
                     else if (combinedLbl.includes('manschette') || combinedLbl.includes('garnitur') || combinedLbl.includes('ablaufanschluss') || selectedOption.artNr.includes('3241 116') || selectedOption.artNr.includes('3241 101') || selectedOption.artNr.includes('3241 102')) priority = 6;
 
-                    const isInlineDropdown = config.enableGalleryUX && mat.options && mat.options.length > 1;
+
+                    const isInlineDropdown = config.enableGalleryUX && activeOptions.length > 1;
 
                     finalBOM.push({
                         artNr: selectedOption.artNr,
                         label: enrichedLabel,
                         typ: selectedOption.type || mat.name || 'Zubehör',
-                        menge: selectedOption.menge || 1,
+                        // A TEXT POSITION (bau115) carries NO Menge — same contract as TXK103.
+                        // A SELECTOR row (the plate-family dropdown) is a UI control: it shows
+                        // its dropdown but has no art-Nr and never reaches SAP.
+                        menge: (selectedOption.isTextPosition || mat.uiOnly) ? null : (selectedOption.menge || 1),
+                        isTextPosition: !!selectedOption.isTextPosition,
+                        isSelector: !!mat.uiOnly,
                         img: enrichedImg,
                         note: note,
                         priority: priority,
                         isInlineDropdown: isInlineDropdown,
                         matId: mat.id,
-                        options: isInlineDropdown ? mat.options : null
+                        options: isInlineDropdown ? activeOptions : null
                     });
                 });
             }
@@ -1280,14 +1490,13 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         finalBOM.push({ ...item, typ: 'Technik', menge: 1, priority: 5, note: 'Standard-Technik' });
                     }
 
-                    const step6 = getZub('3612 348.000.000') || { artNr: '3612 348.000.000', label: 'Wandklosettelement Geberit Duofix' };
-                    finalBOM.push({ ...step6, typ: 'Technik', menge: 1, priority: 6, note: 'Standard-Technik' });
-
-                    const step7 = getZub('3612 500.000.000') || { artNr: '3612 500.000.000', label: 'Rückwandbefestigungssatz Geberit Duofix' };
-                    finalBOM.push({ ...step7, typ: 'Technik', menge: 1, priority: 7, note: 'Standard-Technik' });
-
-                    const step8 = getZub('3612 374.000.000') || { artNr: '3612 374.000.000', label: 'Ablaufbogen Geberit- Silent' };
-                    finalBOM.push({ ...step8, typ: 'Technik', menge: 1, priority: 8, note: 'Standard-Technik' });
+                    // The Installationselement, its Rückwandbefestigungssatz and its
+                    // Ablaufbogen used to be pushed here as fixed defaults (step6/7/8).
+                    // They now come from the tray's own mountingMaterials, written by
+                    // modules/rules/linkInstallationElement.js — which picks 3612 329 for
+                    // an SIA 500 ceramic, offers the whole element range, and drops the
+                    // Ablaufbogen + Rückwandbefestigung when the user opts out via bau115.
+                    // See INSTRUCTIONS.md §2 "Installationselement".
                 }
             }
 
@@ -1391,17 +1600,21 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                 }
 
                 const row = document.createElement('tr');
+                if (item.isTextPosition) row.dataset.textpos = '1';
+                if (item.isSelector) row.dataset.selector = '1';
                 row.innerHTML = `
                         <td><div class="img-cell" ${!item.img ? 'style="background: transparent; border: 1px dashed var(--border);"' : ''}>
                             ${item.img ? `<img src="${item.img}" alt="${item.label}">` : '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.3;"></i>'}
                         </div></td>
-                        <td><span class="bom-code">${isNoneArtNr(item.artNr) ? '-' : item.artNr}</span></td>
+                        <td><span class="bom-code">${(item.isSelector || isNoneArtNr(item.artNr)) ? '-' : item.artNr}</span></td>
                         <td>
                             ${descHTML}
                             <div style="font-size: 0.8rem; color: #9e9e9e; margin-top: 0.25rem;">${item.note}</div>
                         </td>
 
-                        ${isNoneArtNr(item.artNr) ? '<td><strong>-</strong></td>' : bomQtyCell(item.menge, item.typ === 'Accessoire' ? item.artNr : null)}
+                        ${(item.isTextPosition || item.isSelector) ? '<td><strong>—</strong></td>'
+                          : isNoneArtNr(item.artNr) ? '<td><strong>-</strong></td>'
+                          : bomQtyCell(item.menge, item.typ === 'Accessoire' ? item.artNr : null)}
                     `;
                 bomTableBody.appendChild(row);
 
@@ -1418,32 +1631,59 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                                     if (mat.dependsOn === item.matId && mat.optionRules) {
                                         const rule = mat.optionRules.find(r => r.whenArtNr === newVal);
                                         if (rule) {
-                                            const validOpt = mat.options.find(o => rule.optionArtNrs.includes(o.artNr));
-                                            if (validOpt) {
-                                                this.selectedTray.selections[mat.id] = validOpt.artNr;
+                                            // KEEP a still-valid pick. This reset unconditionally to
+                                            // the first allowed option, so choosing Sigma50 and then
+                                            // touching the element threw the choice away — and on the
+                                            // bau115 opt-out, where every family stays allowed, it
+                                            // still jumped to Omega20 (options are sorted Omega-first).
+                                            // Only re-pick when the current choice is genuinely
+                                            // excluded, e.g. a Sigma plate under an Omega cistern.
+                                            const current = this.selectedTray.selections[mat.id];
+                                            if (!current || !rule.optionArtNrs.includes(current)) {
+                                                const validOpt = mat.options.find(o => rule.optionArtNrs.includes(o.artNr));
+                                                if (validOpt) {
+                                                    this.selectedTray.selections[mat.id] = validOpt.artNr;
+                                                }
                                             }
                                         }
                                     }
                                 });
                             }
 
-                            // Reverse Dependency Check (Bidirectional Auto-switching)
+                            // Reverse Dependency (child -> parent), TRANSITIVE.
+                            // Picking a plate must set its family AND, if that family does not
+                            // fit the element currently chosen, the element too — an Omega20
+                            // plate cannot sit on a Sigma cistern. INSTRUCTIONS §2: the user
+                            // picks the plate first and the engine adjusts the element.
+                            //
+                            // The old version read `dependedMat.optionRules` — the PARENT's
+                            // rules — looking for the child's art-Nr. The rules that map a
+                            // child value to its parent live on the CHILD (whenArtNr = parent,
+                            // optionArtNrs = children), so that lookup could never match and
+                            // the reverse direction did nothing at all.
                             if (this.selectedTray && this.selectedTray.mountingMaterials) {
-                                this.selectedTray.mountingMaterials.forEach(mat => {
-                                    if (mat.options && mat.options.length > 0) {
-                                        mat.options.forEach(opt => {
-                                            if (opt.artNr === newVal && mat.dependsOn) {
-                                                const dependedMat = this.selectedTray.mountingMaterials.find(m => m.id === mat.dependsOn);
-                                                if (dependedMat && dependedMat.optionRules) {
-                                                    const matchingRule = dependedMat.optionRules.find(r => r.optionArtNrs.includes(newVal));
-                                                    if (matchingRule) {
-                                                        this.selectedTray.selections[dependedMat.id] = matchingRule.whenArtNr;
-                                                    }
-                                                }
-                                            }
-                                        });
+                                const mats = this.selectedTray.mountingMaterials;
+                                let childMat = mats.find(m => m.id === item.matId);
+                                let value = newVal;
+                                let hops = 0;
+                                while (childMat && childMat.dependsOn && hops++ < 10) {
+                                    const parent = mats.find(m => m.id === childMat.dependsOn);
+                                    if (!parent || !Array.isArray(childMat.optionRules)) break;
+                                    const currentParent = this.selectedTray.selections[parent.id];
+                                    const currentRule = childMat.optionRules.find(r => r.whenArtNr === currentParent);
+                                    // Leave the parent alone when it already permits this value —
+                                    // switching elements between two that both allow Sigma50
+                                    // would throw away a choice for no reason.
+                                    if (currentRule && currentRule.optionArtNrs.includes(value)) {
+                                        value = currentParent;
+                                    } else {
+                                        const need = childMat.optionRules.find(r => r.optionArtNrs.includes(value));
+                                        if (!need) break;
+                                        this.selectedTray.selections[parent.id] = need.whenArtNr;
+                                        value = need.whenArtNr;
                                     }
-                                });
+                                    childMat = parent;
+                                }
                             }
 
                             this.updateBOM();
@@ -1478,6 +1718,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         if (row.style.display === "none" || row.style.opacity === "0.5" || window.getComputedStyle(row).display === "none") return;
                         if (row.querySelector("td[colspan]")) return;
 
+                        if (row.dataset.selector) return;   // UI-only row, never an order line
                         const codeSpan = row.querySelector('.bom-code');
                         const qtyStrong = row.querySelector('strong');
                         if (codeSpan && qtyStrong) {
@@ -1488,7 +1729,11 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                             let menge = stated != null ? String(stated) : qtyStrong.textContent.replace(/\t/g, '').trim();
                             if (!/^\d+$/.test(menge)) menge = '1';
                             if (code !== "none" && code !== "" && !code.toLowerCase().startsWith("ohne") && code !== "Ausstehend") {
-                                textLines.push(`${code}\t${menge}`);
+                                // A TEXT POSITION (bau115) ships as a bare line: no tab, no
+                                // Menge — the TXK103 contract. Without this the "—" cell fell
+                                // through the !/^\d+$/ guard and shipped a fabricated qty of 1.
+                                if (row.dataset.textpos) textLines.push(code);
+                                else textLines.push(`${code}\t${menge}`);
                             }
                         }
                     });

@@ -1913,9 +1913,14 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         else if (matName === 'schallschutz') priority = 4;
                         else if (matName === 'befestigungsschrauben') priority = 6;
                         else if (matName === 'ablaufmanschette') priority = 7;
-                        else if (matName === 'duofix element' || selectedOption.artNr === '3612 348.000.000') priority = 8;
-                        else if (matName === 'rückwandbefestigungssatz' || selectedOption.artNr === '3612 500.000.000') priority = 8;
-                        else if (matName === 'ablaufbogen' || selectedOption.artNr === '3612 374.000.000') priority = 9;
+                        else if (matName === 'betätigungsplatte — familie') priority = 3;
+                        // Element / Rückwand / Ablaufbogen in that order (INSTRUCTIONS §2).
+                        // Matched by GROUP NAME: the element is no longer always 3612 348 —
+                        // an SIA 500 ceramic takes 3612 329 — so an art-Nr test would drop it
+                        // out of the sort. 'duofix element' is the pre-rules spelling.
+                        else if (matName === 'installationselement' || matName === 'duofix element') priority = 8;
+                        else if (matName === 'rückwandbefestigungssatz') priority = 9;
+                        else if (matName === 'ablaufbogen') priority = 10;
                     } else {
                         // AUFPUTZ: 1=Spülkasten 2=Klosett 3=Sitz 4=Schall 5=Screws 6=Ablaufanschluss
                         if (matName === 'spülkasten') priority = 1;
@@ -1929,7 +1934,9 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         artNr: selectedOption.artNr,
                         label: enrichedLabel,
                         typ: selectedOption.type || mat.name || 'Zubehör',
-                        menge: selectedOption.menge || 1,
+                        // A TEXT POSITION (bau115) carries NO Menge — same contract as TXK103.
+                        menge: selectedOption.isTextPosition ? null : (selectedOption.menge || 1),
+                        isTextPosition: !!selectedOption.isTextPosition,
                         img: enrichedImg,
                         note: note,
                         priority: priority
@@ -2224,7 +2231,9 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         artNr: selectedOption.artNr,
                         label: enrichedLabel,
                         typ: selectedOption.type || mat.name || 'Zubehör',
-                        menge: selectedOption.menge || 1,
+                        // A TEXT POSITION (bau115) carries NO Menge — same contract as TXK103.
+                        menge: selectedOption.isTextPosition ? null : (selectedOption.menge || 1),
+                        isTextPosition: !!selectedOption.isTextPosition,
                         img: enrichedImg,
                         note: note,
                         priority: priority,
@@ -2269,7 +2278,16 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     let priority = 99; // Default for unknown
                     let note = mat.name || 'Zubehör';
 
-                    if (combinedLbl.includes('sitz') || combinedLbl.includes('deckel')) priority = isAufputz ? 3 : 2;
+                    // Installationselement groups are matched by GROUP NAME and tested
+                    // FIRST — the keyword chain below would score them 99 and dump them at
+                    // the end of the Stückliste. Manschette keeps its slot at 5, so the
+                    // three element parts follow it, preserving INSTRUCTIONS §2's order.
+                    const matNameWK = (mat.name || '').toLowerCase();
+                    if (matNameWK === 'installationselement') priority = 6;
+                    else if (matNameWK === 'rückwandbefestigungssatz') priority = 7;
+                    else if (matNameWK === 'ablaufbogen') priority = 8;
+                    else if (matNameWK === 'betätigungsplatte — familie') priority = 3;
+                    else if (combinedLbl.includes('sitz') || combinedLbl.includes('deckel')) priority = isAufputz ? 3 : 2;
                     else if (combinedLbl.includes('platte') || combinedLbl.includes('betätigung')) priority = 3;
                     else if (combinedLbl.includes('schall') || combinedLbl.includes('isolation')) priority = isAufputz ? 5 : 4;
                     else if (combinedLbl.includes('reservoir') || combinedLbl.includes('spülkasten') || combinedLbl.includes('ap128') || combinedLbl.includes('ap116')) priority = 1;
@@ -2319,14 +2337,13 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                         finalBOM.push({ ...item, typ: 'Technik', menge: 1, priority: 5, note: 'Standard-Technik' });
                     }
 
-                    const step6 = getZub('3612 348.000.000') || { artNr: '3612 348.000.000', label: 'Wandklosettelement Geberit Duofix' };
-                    finalBOM.push({ ...step6, typ: 'Technik', menge: 1, priority: 6, note: 'Standard-Technik' });
-
-                    const step7 = getZub('3612 500.000.000') || { artNr: '3612 500.000.000', label: 'Rückwandbefestigungssatz Geberit Duofix' };
-                    finalBOM.push({ ...step7, typ: 'Technik', menge: 1, priority: 7, note: 'Standard-Technik' });
-
-                    const step8 = getZub('3612 374.000.000') || { artNr: '3612 374.000.000', label: 'Ablaufbogen Geberit- Silent' };
-                    finalBOM.push({ ...step8, typ: 'Technik', menge: 1, priority: 8, note: 'Standard-Technik' });
+                    // The Installationselement, its Rückwandbefestigungssatz and its
+                    // Ablaufbogen used to be pushed here as fixed defaults (step6/7/8).
+                    // They now come from the tray's own mountingMaterials, written by
+                    // modules/rules/linkInstallationElement.js — which picks 3612 329 for
+                    // an SIA 500 ceramic, offers the whole element range, and drops the
+                    // Ablaufbogen + Rückwandbefestigung when the user opts out via bau115.
+                    // See INSTRUCTIONS.md §2 "Installationselement".
                 }
             }
 

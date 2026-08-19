@@ -57,6 +57,12 @@ const GUARDED = {
         'statesCeilingHeight', 'checkSideWallSupport', 'checkIsMustSideWall',
         'isAlternaOrDuscholuxSideWallIncluded', 'getMatchingSideWalls', 'updateBOM',
     ],
+    // The Installationselement linker: which element a Klosett wants, and which cistern
+    // the chosen element carries. Both decide from label+description — a ceramic states
+    // "barrierenfrei" in either, and an element's Sigma/Omega is regularly description-only.
+    'modules/rules/linkInstallationElement.js': [
+        'productText', 'elementSituation', 'cisternOf', 'plateFamilyOf',
+    ],
     'modules/factories/createBademischerApp.js': ['extractSerie', 'extractMontage'],
     'modules/factories/createDuschenmischerApp.js': ['extractSerie', 'extractMontage'],
     // isWCAccessory: the family match is an identity prefix (the permitted exception),

@@ -1,3 +1,4 @@
+import { WT_ELEMENTS, WT_DEFAULT, WT_ENDMONTAGESET, WT_ANSCHLUSSBOGEN, RUECKWAND } from '../rules/linkInstallationElement.js';
 import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, accessoryHersteller, accessorySerie, accessoryFacetBar, fullLabel, differentiatingChips, requiredPanelFor, requiredWallMountFor, productText, withoutPartnerRefs, isWaschtischKombination, KOMBI_LABEL, accQty, bomQtyCell, clearAccQty, bomQtyInline } from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
@@ -486,6 +487,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                                 <span class="addon-toggle-label"><i class="ri-door-line"></i> Möbel</span>
                                 <button class="ios-toggle" data-target="moebel" aria-label="Möbel ein/aus"><span class="ios-toggle-knob"></span></button>
                             </div>
+                            <div class="addon-toggle-row" id="toggle_wtelement">
+                                <span class="addon-toggle-label"><i class="ri-box-3-line"></i> Installationselement</span>
+                                <button class="ios-toggle" data-target="wtelement" aria-label="Installationselement ein/aus"><span class="ios-toggle-knob"></span></button>
+                            </div>
                             <div class="addon-toggle-row" id="toggle_spiegelschrank">
                                 <span class="addon-toggle-label"><i class="ri-contrast-2-line"></i> Spiegelschrank</span>
                                 <button class="ios-toggle" data-target="spiegelschrank" aria-label="Spiegelschrank ein/aus"><span class="ios-toggle-knob"></span></button>
@@ -508,6 +513,10 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                             </div>
                         </div>
 
+                        <div id="addon_wtelement_panel" class="addon-panel" style="display:none;">
+                            <div class="finder-sub-header">Installationselement wählen</div>
+                            <div class="finder-list" id="list_addon_wtelement"></div>
+                        </div>
                         <div id="addon_moebel_panel" class="addon-panel" style="display:none;">
                             <div class="finder-sub-header" id="moebel_farbe_header">Farbe</div>
                             <div class="pill-group" id="list_moebel_farbe" style="margin-bottom: 0.75rem;"></div>
@@ -1188,7 +1197,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
 
         updateAddonToggles: function () {
             // Sync toggle active states from app state
-            const targets = ['moebel', 'spiegelschrank', 'lichtspiegel', 'spiegel', 'schraenke', 'accessoires'];
+            const targets = ['wtelement', 'moebel', 'spiegelschrank', 'lichtspiegel', 'spiegel', 'schraenke', 'accessoires'];
             targets.forEach(t => {
                 const btn = document.querySelector(`.ios-toggle[data-target="${t}"]`);
                 const panel = document.getElementById(`addon_${t}_panel`);
@@ -1208,6 +1217,7 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         this[key] = !this[key];
                         if (!this[key]) {
                             // Clear selection when toggled off
+                            if (t === 'wtelement') this.selectedWtElement = null;
                             if (t === 'moebel') { this.selectedMoebel = null; this.currentMoebelFarbe = 'all'; }
                             if (t === 'spiegelschrank') this.selectedSpiegelschrank = null;
                             if (t === 'spiegel') this.selectedSpiegel = null;
@@ -1236,6 +1246,31 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
         populateAddonPanel: function (target) {
             const listEl = document.getElementById(`list_addon_${target}`);
             if (!listEl) return;
+
+            // Installationselement — a fixed, curated list from INSTALLATION_ELEMENT_RULES §2.2.
+            // MM cannot tell a Wandarmatur from a deck mixer (it has no montage field), so the
+            // situation is the USER's pick here rather than a derived rule.
+            if (target === 'wtelement') {
+                const pool = (window.productApps.zubehoer_pool && window.productApps.zubehoer_pool.trays) || [];
+                if (!this.selectedWtElement) this.selectedWtElement = WT_DEFAULT;
+                listEl.innerHTML = WT_ELEMENTS.map(e => {
+                    const prod = pool.find(t => t.artNr === e.artNr) || {};
+                    const active = this.selectedWtElement === e.artNr;
+                    return `<div class="finder-item ${active ? 'active' : ''}" data-art="${e.artNr}" style="padding:0.75rem;">
+                        <div style="flex:1;">
+                            <div style="font-weight:600;">${e.label}</div>
+                            <div style="font-size:0.75rem;opacity:0.6;">${e.artNr}</div>
+                        </div>
+                        <i class="ri-check-line finder-item-arrow" style="${active ? '' : 'display:none;'}"></i>
+                    </div>`;
+                }).join('');
+                listEl.querySelectorAll('.finder-item').forEach(el => el.addEventListener('click', () => {
+                    this.selectedWtElement = el.dataset.art;
+                    this.populateAddonPanel('wtelement');
+                    this.updatePreview();
+                }));
+                return;
+            }
 
             // Hochschrank / Seitenschrank — self-contained (free-standing furniture by productType tag,
             // with a 2-value Typ filter pill). Independent of the mirror/moebel basin-matching logic.
@@ -2091,12 +2126,28 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
             }
 
             // 5. Add Siphon and Regulierventile
-            if (hasCabinet) {
+            //
+            // ⚠ THE ENDMONTAGESET REPLACES THE SIPHON. Element 3612 288 carries its siphon
+            // INSIDE the wall ("mit Einbausifon"), so a Möbelsiphon or a designer siphon
+            // beside it would be a second siphon on one basin. 3612 235 takes that slot —
+            // it is the part that finishes the concealed one ("Anschlussbogen 1¼" x 32 mm,
+            // Abdeckplatte, ohne Einbausifon"). Order for this element (INSTRUCTIONS §2):
+            //   Waschtisch -> Endmontageset -> Regulierventil -> 3612 288 -> 3612 500
+            const wtEinbausifon = !!this.showWtelement
+                && String(this.selectedWtElement || '').startsWith('3612 288');
+            const pushEndmontageset = () => {
+                const pool = (window.productApps.zubehoer_pool && window.productApps.zubehoer_pool.trays) || [];
+                const ems = pool.find(t => String(t.artNr || '').startsWith(WT_ENDMONTAGESET));
+                if (ems) items.push({ qty: 1, label: fullLabel(ems), artNr: ems.artNr });
+            };
+
+            // ── SIPHON SLOT ──────────────────────────────────────────────────────────
+            // Exactly ONE of these three, never two siphons on one basin.
+            if (wtEinbausifon) {
+                pushEndmontageset();
+            } else if (hasCabinet) {
                 // Siphon (Strictly Möbelsiphon)
                 items.push({ qty: siphonQty, label: 'Möbelsiphon Viega, Raumsparmodell', artNr: '3163 172.100.000' });
-
-                // Regulierventil (Strictly 6511 222.501.000)
-                if (regQty > 0) items.push({ qty: regQty, label: 'Regulierventil Laufen ½" Absperrung vertikal', artNr: '6511 222.501.000' });
             } else {
                 // Siphon — colour-match to the faucet (same brand + finish) when it's a coloured
                 // faucet and a branded designer siphon exists in that colour; otherwise the user's
@@ -2111,8 +2162,15 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                     };
                     items.push({ qty: siphonQty, label: sLabelMap[this.selectedSiphon] || 'Sifon', artNr: this.selectedSiphon });
                 }
+            }
 
-                // Regulierventil.
+            // ── REGULIERVENTIL SLOT ──────────────────────────────────────────────────
+            // Independent of which siphon ran above: the valve is needed either way, and
+            // folding it into the siphon branches is what made it vanish on the Einbausifon.
+            if (hasCabinet) {
+                // Regulierventil (Strictly 6511 222.501.000)
+                if (regQty > 0) items.push({ qty: regQty, label: 'Regulierventil Laufen ½" Absperrung vertikal', artNr: '6511 222.501.000' });
+            } else {
                 if (regQty > 0) {
                     const fbrand = ((this.selectedFaucet && this.selectedFaucet.manufacturer) || '').toLowerCase();
                     if (fbrand === 'hansgrohe' || fbrand === 'axor') {
@@ -2129,6 +2187,31 @@ export function createMixAndMatchApp(title, desc, mainImgUrl) {
                         const reg = this.matchColouredAccessory('Regulierventil') || { artNr: '6511 201.501.000', label: 'Regulierventil Laufen ½" Verchromt' };
                         items.push({ qty: regQty, label: fullLabel(reg), artNr: reg.artNr });
                     }
+                }
+            }
+
+            // 5b. Installationselement — INSTRUCTIONS §2. Sits directly under the
+            // Regulierventil by decision. The toggle is OFF by default, so a Stückliste only
+            // carries an element when it was asked for.
+            if (this.showWtelement) {
+                const pool = (window.productApps.zubehoer_pool && window.productApps.zubehoer_pool.trays) || [];
+                const art = this.selectedWtElement || WT_DEFAULT;
+                const el = pool.find(t => t.artNr === art);
+                // ORDER IS FIXED: Element -> Rückwandbefestigung -> Anschlussbogen.
+                if (el) items.push({ qty: 1, label: fullLabel(el), artNr: el.artNr });
+                // Both are mandatory WITH the element and meaningless without it — the same
+                // dependency the Wandklosett rules encode via optionRules. Here the toggle is
+                // the switch, so "off" already removes all three together.
+                const rueck = pool.find(t => String(t.artNr || '').startsWith(RUECKWAND));
+                if (rueck) items.push({ qty: 1, label: fullLabel(rueck), artNr: rueck.artNr });
+                // 3612 272 is DROPPED for the Einbausifon element: the Endmontageset already
+                // states "Anschlussbogen 1¼" x 32 mm", so ordering 272 beside it buys the
+                // connection twice. The Rückwandbefestigungssatz above stays — it is the wall
+                // fixing and nothing bundles it. (Endmontageset itself is emitted up in §5,
+                // where it replaces the siphon.)
+                if (!wtEinbausifon) {
+                    const bogen = pool.find(t => t.artNr === WT_ANSCHLUSSBOGEN);
+                    if (bogen) items.push({ qty: 1, label: fullLabel(bogen), artNr: bogen.artNr });
                 }
             }
 
