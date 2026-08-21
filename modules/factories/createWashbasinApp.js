@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, fullLabel, renderGalleryGrid, galleryBackButton, isWaschtischKombination, KOMBI_LABEL, accQty, bomQtyCell } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, fullLabel, renderGalleryGrid, galleryBackButton, isWaschtischKombination, KOMBI_LABEL, accQty, bomQtyCell, isOhneOption } from './_shared.js';
 
 export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
     const suffix = title.replace(/\s/g, '');
@@ -711,7 +711,7 @@ export function createWashbasinApp(title, desc, mainImgUrl, config = {}) {
                 const selectedArtNr = this.selectedTray.selections[mat.id];
                 const compatibleOpts = this.getCompatibleOptions(mat);
                 const selectedOption = compatibleOpts.find(o => o.artNr === selectedArtNr) || compatibleOpts[0];
-                if (selectedOption && selectedOption.artNr && selectedOption.artNr !== 'none' && !selectedOption.label.toLowerCase().startsWith('ohne')) {
+                if (selectedOption && !isOhneOption(selectedOption)) {
                     let cleanOptArtNr = (selectedOption.artNr || '').toString().replace(/\t/g, '').trim();
                     textLines.push(`${cleanOptArtNr}\t${selectedOption.menge || 1}`);
                 }

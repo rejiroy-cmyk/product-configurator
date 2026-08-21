@@ -1,7 +1,7 @@
 // The Urinoir BOM order lives with its rules, not here — a second copy of the chain is
 // how these drift. createMixAndMatchApp imports the Klosett article table for the same reason.
 import { urinoirBomBucket, URINOIR_CERAMIC } from '../rules/linkUrinoirElement.js';
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, fullLabel, accessoryFacetBar, renderGalleryGrid, cleanSerie, accQty, bomQtyCell, clearAccQty, rowMenge } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, fullLabel, accessoryFacetBar, renderGalleryGrid, cleanSerie, accQty, bomQtyCell, clearAccQty, rowMenge, isOhneCode, isOhneOption } from './_shared.js';
 
 // An opt-out sentinel ("ohne_wandbedienpanel", "none") rather than a real art-Nr.
 // Such a row is shown so the dropdown stays reachable, but it must not display a
@@ -1802,7 +1802,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                             // on "Ohne", and would have done the same for the Urinoirsteuerung,
                             // whose default IS that row. _shared.js#copyBOMToClipboard and
                             // createGlassApp both already guard it; this reader did not.
-                            if (code !== "-" && code !== "none" && code !== "" && !code.toLowerCase().startsWith("ohne") && code !== "Ausstehend") {
+                            if (!isOhneCode(code)) {
                                 // A TEXT POSITION (bau115) ships as a bare line: no tab, no
                                 // Menge — the TXK103 contract. Without this the "—" cell fell
                                 // through the !/^\d+$/ guard and shipped a fabricated qty of 1.
@@ -1836,7 +1836,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
 
                     const selectedArtNr = this.selectedTray.selections[mat.id];
                     const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                    if (selectedOption && selectedOption.artNr && selectedOption.artNr !== 'none' && !selectedOption.label.toLowerCase().startsWith('ohne')) {
+                    if (selectedOption && !isOhneOption(selectedOption)) {
                         let cleanAccArtNr = (selectedOption.artNr || '').toString().replace(/\t/g, '').trim();
                         textLines.push(`${cleanAccArtNr}\t${selectedOption.menge || 1}`);
                     }

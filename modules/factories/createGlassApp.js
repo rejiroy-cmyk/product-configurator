@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, priceBOM, productText, rowMenge } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, priceBOM, productText, rowMenge, isOhneCode } from './_shared.js';
 
 export function createGlassApp(title, desc, mainImgUrl, config = {}) {
     const appConfig = { enableGalleryUX: true, ...config };
@@ -1691,7 +1691,7 @@ export function createGlassApp(title, desc, mainImgUrl, config = {}) {
                     let menge = stated != null ? String(stated)
                         : (qtyStrong ? qtyStrong.textContent.replace(/\t/g, "").trim() : "1");
                     if (!/^\d+$/.test(menge)) menge = "1";
-                    if (code !== "-" && code !== "none" && code !== "" && !code.toLowerCase().startsWith("ohne") && code !== "Ausstehend") {
+                    if (!isOhneCode(code)) {
                         if (row.classList.contains("service-row")) {
                             m.push(`${code}\t${menge}\t\t\t\tYNOK`);
                         } else {

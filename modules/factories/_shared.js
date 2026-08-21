@@ -182,6 +182,42 @@ const rowMenge = (tr) => {
 window.rowMenge = rowMenge;
 
 // ============================================================================
+//  "Ohne …" is an OPT-OUT, never an order line
+// ============================================================================
+// A group parked on "Ohne Schallschutz" states that the position is NOT wanted.
+// It still renders a BOM row — the dropdown IS the row under gallery UX, so
+// hiding it would make the choice unreachable — but it must never reach SAP.
+//
+// This list used to be spelled out at every copy site, and the copies drifted:
+// three of them read `code !== "-" && … && !startsWith("ohne") && … "Ausstehend"`
+// while `app.js`'s BOM → Eigene Selektion transfer had the same line MINUS the
+// `"-"` arm. A Duschenrinne parked on "Ohne Schallschutz" renders its code cell
+// as `-`, so that one row entered the wishlist as `{artNr: "-", menge: 1}` and
+// the wishlist's own copy button shipped a literal `-⇥1` to SAP. Same failure
+// createWCApp's DOM reader was fixed for once already — one predicate now, so
+// the next reader cannot re-diverge.
+//
+// `bau115` is deliberately NOT caught: it is a TEXT POSITION ("Ohne
+// Installationselement (bauseits)") that SAP is meant to receive as a bare
+// line, the TXK103 contract. It carries a real code, so the code arm passes it
+// and `row.dataset.textpos` decides how it ships.
+const OHNE_LABEL_RE = /^\s*(?:[-–—]\s*)?ohne\b/i;
+const OHNE_CODES = new Set(['', '-', '–', '—', 'none', 'Ausstehend']);
+
+/** The rendered code cell of a row that is an opt-out, a placeholder or empty. */
+const isOhneCode = (code) => {
+    const c = String(code == null ? '' : code).trim();
+    return OHNE_CODES.has(c) || c.toLowerCase().startsWith('ohne');
+};
+
+/** The model-side twin: an option/BOM item that opts its position OUT. */
+const isOhneOption = (opt) =>
+    !opt || !opt.artNr || isOhneCode(opt.artNr) || OHNE_LABEL_RE.test(String(opt.label || ''));
+
+window.isOhneCode = isOhneCode;
+window.isOhneOption = isOhneOption;
+
+// ============================================================================
 //  Mengen-Multiplikator — asked once, honoured by every copy path
 // ============================================================================
 // Every copy button in the app funnels through `window.copyTextToClipboard`, so the
@@ -391,7 +427,7 @@ window.copyBOMToClipboard = function() {
                 let menge = stated != null ? String(stated)
                     : (qtyStrong ? qtyStrong.textContent.replace(/\t/g, "").trim() : "1");
                 if (!/^\d+$/.test(menge)) menge = "1";
-                if (code !== "-" && code !== "none" && code !== "" && !code.toLowerCase().startsWith("ohne") && code !== "Ausstehend") {
+                if (!isOhneCode(code)) {
                     textLines.push(code + "\t" + menge);
                 }
             }
@@ -2072,4 +2108,5 @@ function bomExtraRowHTML(item, note) {
 
 export { hasSapQty, multiplySapQty, SAP_QTY_LINE, COPY_FACTOR_MAX,
     accQty, setAccQty, clearAccQty, bomQtyCell, bomQtyInline, rowMenge, ACC_QTY_MAX,
+    isOhneCode, isOhneOption,
     matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, accessoryKategorie, cleanSerie, galleryGridHTML, renderGalleryGrid, galleryBackButton, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs, artFinishCode, accFamilyOf, accCandidates, accSkuInColour, accGroupChoice, accTierNote, isGarniturSet, garniturCovers, garniturHasRail, isSystemPart, isGarniturGroupName, threadOf, packUnits, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, findArticleByBase, requiredBodyFor, requiredArmFor, bodyRefsFor, bodyPresentFor, bomExtraRowHTML, findPanelSku, requiredPanelFor, PANEL_COLOUR, withoutPartnerRefs, isWaschtischKombination, KOMBI_LABEL, requiredWallMountFor, WALL_MOUNT_BY_BASE };

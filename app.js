@@ -1,5 +1,5 @@
 import { DATA_VERSION, catalog } from './modules/data.js?v=2.6.4';
-import { productApps } from './modules/apps.js?v=2.8.6';
+import { productApps } from './modules/apps.js?v=2.8.7';
 import { setupAdmin } from './modules/admin.js?v=2.5.8';
 import { expandData } from './modules/dataHydrate.js?v=1.0.0';
 // Catalog + price table are embedded as gzip+base64 (see vite.config.js) and inflated at
@@ -1066,7 +1066,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert('Die Eigene Selektion ist leer.');
                 return;
             }
-            const text = window.customWishlist.map(i => `${i.artNr}\t${i.menge}`).join('\n');
+            // Belt and braces: the Selektion PERSISTS in localStorage, so an entry
+            // saved before the transfer guard above was fixed is still on disk and
+            // would keep shipping. Filter on the way out too.
+            const copyable = window.customWishlist.filter(i => !(window.isOhneCode ? window.isOhneCode(i.artNr) : false));
+            if (copyable.length === 0) {
+                alert('Die Eigene Selektion enthält keine kopierbaren Artikel.');
+                return;
+            }
+            const text = copyable.map(i => `${i.artNr}\t${i.menge}`).join('\n');
             window.copyTextToClipboard(text).then(copied => {
                 if (copied === null) return;   // Dialog abgebrochen — keine Meldung
                 alert("Eigene Selektion für SAP kopiert:\n\n" + copied.replace(/\t/g, "    "));
@@ -1200,7 +1208,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                         }
                     }
 
-                    if (label && artNr && artNr !== "Ausstehend" && artNr !== "none" && !artNr.toLowerCase().startsWith("ohne")) {
+                    // Opt-out rows are not articles — see isOhneCode in _shared.js.
+                    // This guard was hand-rolled and MISSING that helper's "-" arm.
+                    if (label && artNr && !(window.isOhneCode ? window.isOhneCode(artNr) : false)) {
                         const typ = typEl ? typEl.textContent.trim() : 'Artikel';
                         const imgUrl = imgEl ? imgEl.src : undefined;
                         // data-menge contract (modules/factories/_shared.js). Parsing the

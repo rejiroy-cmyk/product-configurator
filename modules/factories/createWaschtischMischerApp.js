@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, fullLabel, renderGalleryGrid, galleryBackButton, cleanSerie, accQty, bomQtyCell } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, fullLabel, renderGalleryGrid, galleryBackButton, cleanSerie, accQty, bomQtyCell, isOhneOption } from './_shared.js';
 
 export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {}) {
     const suffix = title.replace(/\s/g, '');
@@ -900,14 +900,14 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                 if (selectedArtNr === 'none') return;
 
                 const selectedOption = (mat.options || []).find(o => o.artNr === selectedArtNr) || (mat.options && mat.options[0]);
-                if (selectedOption && selectedOption.artNr && selectedOption.artNr !== 'none' && !selectedOption.label.toLowerCase().startsWith('ohne')) {
+                if (selectedOption && !isOhneOption(selectedOption)) {
                     textLines.push(`${selectedOption.artNr}\t${selectedOption.menge || 1}`);
 
                     const nativeTray = this.trays.find(t => t.artNr === selectedOption.artNr);
                     if (nativeTray && nativeTray.mountingMaterials) {
                         nativeTray.mountingMaterials.forEach(subMat => {
                             const subOpt = subMat.options && subMat.options[0];
-                            if (subOpt && subOpt.artNr && subOpt.artNr !== 'none' && !subOpt.label.toLowerCase().startsWith('ohne')) {
+                            if (subOpt && !isOhneOption(subOpt)) {
                                 textLines.push(`${subOpt.artNr}\t${subOpt.menge || 1}`);
                             }
                         });

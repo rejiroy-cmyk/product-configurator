@@ -245,13 +245,18 @@ check('nor a Siphon: it is ordered unless the ceramic already includes it',
 // art-Nr and a literal `-` line reached SAP. It was already wrong for any Wandklosett
 // row parked on "Ohne"; two of the three readers happened to guard it, createWCApp did
 // not. Static, because the three readers are DOM scrapers with no unit-testable seam.
+//
+// The dash is no longer spelled out here: all three call `isOhneCode` from _shared.js,
+// which owns the list (app.js's Selektion transfer had drifted from it and was missing
+// the dash entirely). tests/verify-ohne-never-copied.js pins the predicate itself; this
+// stays as the Urinoir-side assertion that these three readers still route through it.
 for (const [file] of [
     ['modules/factories/createWCApp.js'],
     ['modules/factories/createGlassApp.js'],
     ['modules/factories/_shared.js'],
 ]) {
     const src = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
-    check(`${file}: the BOM export skips a "-" code`, /code\s*!==\s*"-"/.test(src),
+    check(`${file}: the BOM export skips a "-" code`, /isOhneCode\s*\(/.test(src),
         'a row parked on "Ohne …" renders as "-" and would ship as an article line');
 }
 
