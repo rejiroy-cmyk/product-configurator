@@ -508,7 +508,12 @@ stripped before use (an em-dash in it throws `ERR_INVALID_CHAR`).
   Keuco 22 · KWC 8) tagged `productType: Winkelgriff`, routed to `wandklosett` +
   `standklosett`. 22 bases stay held — a Winkelgriff carrying a **Duschgleitstange** is a
   shower rail on a grab bar, not WC kit. It is a separate script because the old one routes
-  per BASE and this rule is per SKU. The rest of `HOLD` is still waiting.
+  per BASE and this rule is per SKU.
+  **`HOLD` is now empty.** `inject-ch4-accessibility.cjs` took the remaining 971 SKUs and
+  those 22 held bases with them — see "The Barrierefreiheit range" under the Accessoires
+  panel for the routing, and note the rail no longer holds an article back, it picks the
+  room. A re-run of `inject-ch4-accessories.js` still reports `HOLD: 392`; that is its own
+  bucket, not the state of the data.
   **Two traps it hit, both already in this file's rules:** a synthesized PG1 URL is a
   recorded 404 — 71 of 201 were, because these bases publish one image for a whole colour
   RANGE (`04711120_100-339_000.png`) or a bare per-base shot (`04722520.png`), neither of
