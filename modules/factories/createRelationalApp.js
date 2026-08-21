@@ -1636,6 +1636,24 @@ export function createRelationalApp(title, desc, mainImgUrl, config = {}) {
                     });
                 }
             });
+            // Pool articles ROUTED to THIS app — the `targetSubcats` mechanism every
+            // other configurator's panel uses. This app never read it, so the 118
+            // articles tagged `badewanne` and the 105 tagged `duschenwanne` were
+            // invisible; the Ch4 accessibility range would have joined them, since it
+            // carries no keyword the list above matches.
+            // Kept as its OWN arm beside the keyword scan so the change can only ever
+            // ADD, and it excludes the same DROPDOWN_TYPES: a family the configurator's
+            // own dropdown group owns must not get a second route into one Stückliste.
+            const routedKey = Object.keys(allApps).find(k => allApps[k] === this);
+            if (routedKey) {
+                const zubPool = (allApps['zubehoer_pool'] && allApps['zubehoer_pool'].trays) || [];
+                zubPool.forEach(t => {
+                    if (!t || !Array.isArray(t.targetSubcats) || !t.targetSubcats.includes(routedKey)) return;
+                    if (t.productType === 'Duschgleitstange' || t.productType === 'Ablaufventil') return;
+                    candidates.push(t);
+                });
+            }
+
             const seen = new Set();
             candidates = candidates.filter(c => {
                 if (seen.has(c.artNr)) return false;

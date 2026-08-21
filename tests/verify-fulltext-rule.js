@@ -77,8 +77,9 @@ const GUARDED = {
     'modules/factories/createBademischerApp.js': ['extractSerie', 'extractMontage'],
     'modules/factories/createDuschenmischerApp.js': ['extractSerie', 'extractMontage'],
     // isWCAccessory: the family match is an identity prefix (the permitted exception),
-    // but the Winkelgriff rail test is not — half the grab bars that carry a
-    // Duschgleitstange name it only in the description, past the label's ~80-char cut.
+    // but the rail test is not — half the grab bars that carry a Duschgleitstange or
+    // Brausestange name it only in the description, past the label's ~80-char cut.
+    // It covers every bar family (GRIFF_FAMILIES), not just Winkelgriff.
     'modules/factories/createWCApp.js': ['extractSerie', 'classifyAccessory', 'isWCAccessory'],
     'modules/factories/createWaschtischMischerApp.js': [
         'extractSerie', 'extractAusfuehrung', 'extractAblauf', 'extractAuslauf', 'isAblaufItem',

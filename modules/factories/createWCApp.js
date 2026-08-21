@@ -22,24 +22,45 @@ const isNoneArtNr = (a) => !a || a === 'none' || /^ohne/i.test(String(a));
 //     pool tags all 35 of them `wandklosett` + `standklosett`;
 //   • only 50 of the 154 Klappgriff appeared — the ones whose text happens to read
 //     "Zubehör: Papierhalter". The rest were invisible for no reason.
+// Sorted longest-first, because `find` returns the FIRST prefix that matches and the
+// family it returns decides whether the rail test below runs: a bare 'klappgriff'
+// standing ahead of 'mobiler klappgriff' would be harmless, but 'haltegriff' ahead of
+// 'eckhaltegriff' is not, and the order is not worth relying on by hand.
 const WC_ACC_FAMILIES = [
     'papierhalter', 'doppelpapierhalter', 'toilettenpapierhalter', 'toilettenpapierspender',
     'reserverollenhalter', 'klosettbürstenhalter', 'wc-bürste', 'wc-set', 'klosettsitzreiniger',
     'papierabfallbehälter', 'hygienekombination', 'hygieneabfallbehälter', 'hygienebehälter',
-    'hygienebeutelspender', 'klappgriff', 'winkelgriff',
-];
+    'hygienebeutelspender',
+    // Barrierefreiheit — Ch4's HOLD bucket, injected by inject-ch4-accessibility.cjs.
+    // This panel ignores `targetSubcats` entirely, so a family that is not named here
+    // is invisible at the WC no matter how it was routed.
+    'klappgriff', 'winkelgriff', 'haltegriff', 'eckhaltegriff', 'seitenwandgriff',
+    'stützklappgriff', 'mobiler klappgriff', 'mobiler stützklappgriff',
+    'rückenstütze', 'armlehne',
+    // A floor-standing WC set (Papierhalter + Bürste), not accessibility — it only
+    // sat in that HOLD bucket because the bare 'Stand' prefix swept it up.
+    'stand wc-garnitur',
+].sort((a, b) => b.length - a.length);
 
-// A Winkelgriff carrying a Duschgleitstange is a shower rail on a grab bar, not WC
-// kit — Reji's rule. FULL-TEXT: the label truncates around 80 chars and half of these
-// state the rail only in the description ("Winkelgriff Hewi 900, Duschgleitstange
-// links (wie Abbildung), Ø 32 mm, 125 x …"). 70 of the 262 Winkelgriff SKUs go.
-const RX_GRIFF_RAIL = /duschgleitstange/i;
+// A grab bar carrying a shower rail is a shower rail on a grab bar, not WC kit —
+// Reji's rule. FULL-TEXT: the label truncates around 80 chars and half of these state
+// the rail only in the description ("Winkelgriff Hewi 900, Duschgleitstange links (wie
+// Abbildung), Ø 32 mm, 125 x …"). `Brausestange` is the same article in Keuco's words,
+// and testing Duschgleitstange alone is how two of them walked into this panel.
+// Keep in sync with RX_RAIL in st-scraper/inject-ch4-accessibility.cjs, which routes
+// exactly these to the shower configurators instead of holding them back.
+const RX_GRIFF_RAIL = /dusche?n?gleitstange|brausestange/i;
+// Every bar family the rule applies to. Klappgriff, Stützklappgriff and Seitenwandgriff
+// carry no rail today; they are in because the test asks what the ARTICLE is, and a
+// re-scrape that adds one must not need this list edited again.
+const GRIFF_FAMILIES = new Set(['klappgriff', 'winkelgriff', 'haltegriff', 'eckhaltegriff',
+    'seitenwandgriff', 'stützklappgriff', 'mobiler klappgriff', 'mobiler stützklappgriff']);
 
 function isWCAccessory(t) {
     const lbl = String((t && (t.label || t.name)) || '').trim().toLowerCase();   // label-prefix by design
     const fam = WC_ACC_FAMILIES.find(f => lbl.startsWith(f));
     if (!fam) return false;
-    if (fam === 'winkelgriff') {
+    if (GRIFF_FAMILIES.has(fam)) {
         const full = `${t.label || t.name || ''} ${t.description || ''}`.replace(/<[^>]*>/g, ' ');
         if (RX_GRIFF_RAIL.test(full)) return false;
     }

@@ -28,15 +28,17 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   See "Remote access" below. `--off` stops it, `--status` shows current state.
 - `node scripts/build-offline-assets.mjs` — regenerates `assets/offline-fonts.css`.
   Only needed when you add a new `ri-*` icon or change fonts; see "Offline assets".
-- `npm test` — runs **14 suites, 424+ assertions**: `verify-duschtrennwand` (38),
+- `npm test` — runs **18 suites, 657 assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
-  `verify-fulltext-rule` (79), `verify-product-display` (37),
+  `verify-fulltext-rule` (87), `verify-product-display` (37),
   `verify-no-kitchen-in-waschtischmischer` (4), `verify-scraper-maktx2` (7),
   `verify-accessory-colormatch` (47), `verify-mixmatch-rules` (67),
   `verify-copy-multiplier` (21), `verify-accessory-quantity` (81),
-  `verify-data-intern` (8), `verify-offline-fonts` (9). Plain Node with hand-rolled DOM
-  mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the one jsdom
-  test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
+  `verify-data-intern` (14), `verify-offline-fonts` (9),
+  `verify-installation-rules` (45), `verify-urinoir-rules` (77),
+  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (51). Plain Node with
+  hand-rolled DOM mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the
+  one jsdom test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
   **Run this after any change to `modules/factories/`.**
 - `npm run build` — `test` → `backup` → `vite build` → copies `dist` to `backups/`.
 - `npm run backup` — snapshots `modules/`, `index.html`, `index.css` into `backups/`
@@ -207,8 +209,55 @@ the Klosett panel; Hygienekombination and Hygieneabfallbehälter never showed al
 the pool tags all 35 `wandklosett` + `standklosett`; and only 50 of 154 Klappgriff
 appeared — the ones whose text happens to read "Zubehör: Papierhalter". Note this panel
 scans every app's trays and ignores `targetSubcats` entirely; the family list IS the
-routing. A **Winkelgriff carrying a Duschgleitstange is excluded** (FULL-TEXT — half of
-them state the rail only in the description).
+routing — a family routed to a Klosett and *not* named here is invisible, silently, with
+nothing in the data to show for it. `tests/verify-accessibility-routing.js` pins the two
+files to each other. The list is sorted longest-first, because `find` returns the FIRST
+prefix that matches and the family it returns decides whether the rail rule below runs.
+
+**A grab bar carrying a shower rail is a shower article** — `RX_GRIFF_RAIL` +
+`GRIFF_FAMILIES`, FULL-TEXT, since half of them state the rail only in the description.
+Two things it took a second round to get right. The rule applies to *every* bar family,
+not just Winkelgriff — the first version hardcoded `fam === 'winkelgriff'`. And Keuco
+spells the same article **`Brausestange`**, so testing `Duschgleitstange` alone let two
+of them (`4171 284/285.501.000`) walk into the Klosett panel. The regex is duplicated in
+`st-scraper/inject-ch4-accessibility.cjs`, which routes exactly these to the shower;
+the test fails if the two spellings drift apart.
+
+**`createRelationalApp`'s panel had no routing at all.** Duschenwanne / Duschenrinne /
+Badewanne selected candidates from a hardcoded four-keyword `includes` scan and never
+read `targetSubcats` — so the 118 articles tagged `badewanne` and the 105 tagged
+`duschenwanne` were unreachable for as long as they had been tagged. The routed arm now
+sits BESIDE the keyword scan (so the change can only ever ADD) and excludes the same
+`DROPDOWN_TYPES`. Note the `isToiletApp` branch in that function is dead: those titles
+are "Wandklosett System" / "Standklosett System" and the apps are `createWCApp`.
+
+#### The Barrierefreiheit range — Ch4's HOLD bucket, and how it routes
+
+`inject-ch4-accessories.js` parks the whole accessibility range in a `HOLD` bucket —
+392 bases / 1168 SKUs that were scraped and never injected, so not one grab bar could be
+ordered. `inject-ch4-winkelgriff.cjs` took the first family out (197 SKUs);
+**`inject-ch4-accessibility.cjs`** takes the remaining 971, across 17 productTypes
+(Haltegriff 381 · Eckhaltegriff 138 · Duschhandlauf 106 · Winkelgriff 70 ·
+Rückenstütze 62 · Duschsitz 44 · Stützklappgriff 42 · Duschhocker 42 · Klappgriff 42 ·
+Duschklappsitz 21 · Wannengriff 8 · Seitenwandgriff 6 · Armlehne 5 · and five singles).
+
+- **The rail picks the ROOM, it does not drop the article.** The Winkelgriff script read
+  "not WC kit" as "hold it back", which left 70 SKUs invisible; a bar with an integrated
+  shower rail is a *shower* accessory, so it is routed there instead. It never reaches
+  the Gleitstange dropdown — that group reads `productType`, and these are bars.
+- **The plain bars go to all three rooms** (`wandklosett standklosett duschenmischer
+  duschenwanne bademischer badewanne`): nothing in a Haltegriff's text picks a room.
+- **`Mobiler Klappsitz` is a shower seat, not a Klappgriff.** Longest-prefix-first in
+  the FAMILIES table is what keeps a bare `mobiler` from eating it.
+- The 42 `Mobiler Klappgriff` follow the 154 Klappgriffe already in the pool and include
+  `bidet` — one productType with two different routes reads as an oversight.
+- `Stand WC-Garnitur Neoperl Florida` is the one article in that bucket that is not
+  accessibility at all; the HOLD list's bare `'Stand'` prefix swept it up. It goes in as
+  WC-Zubehör.
+- **⚠ Do not run `inject-ch4-accessories.js` to do any of this.** It predates
+  `_dataFile.cjs` and writes `JSON.stringify(data)` with bare `fs` — minified AND
+  un-interned. One run undoes ~20 MB of interning and buries the change in a whole-file
+  diff.
 
 ### Accessory colour matching — one helper, both Mischer apps
 

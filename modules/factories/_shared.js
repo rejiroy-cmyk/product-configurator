@@ -743,7 +743,11 @@ const ACC_SERIE_NOISE = new Set([
     'bodenmontage', 'selbstklebend', 'eck', 'doppelt', 'einfach', 'zweiarmig', 'einarmig',
     'edelstahl', 'stainless', 'steel', 'chrom', 'verchromt', 'messing', 'kunststoff',
     'glas', 'klarglas', 'aluminium', 'matt', 'glanz', 'hochglanz', 'poliert', 'gebürstet',
-    'a', 'b', 'h', 'ø'
+    'a', 'b', 'h', 'ø',
+    // frame/shape words that follow a brand where a line name would be:
+    // "Duschhocker Hewi, Gestell hochwertig verchromt", "Haltegriff Bodenschatz,
+    // abgewinkelt" — both state construction, not a product line.
+    'gestell', 'abgewinkelt', 'sechskantig'
 ]);
 // Product lines whose name IS made of words the noise list has to keep rejecting
 // elsewhere. "Stainless Steel" is CWS's own line (17 SKUs — Foam Slim, Paper Slim,
@@ -754,8 +758,32 @@ const ACC_SERIE_NOISE = new Set([
 // line. A phrase wins over the token rules, so the material spelling stays noise
 // while the line name comes through whole. Anchored at the brand, so it can only
 // ever fire on "<Brand> <Phrase>".
+// A `brand` narrows an entry to one manufacturer, and `name` may be a function of the
+// match. Both exist for the same reason: a rule that is safe for ONE brand is not safe
+// for all of them — see the Hewi entries below.
 const ACC_SERIE_PHRASES = [
     { re: /^stainless\s+steel\b/i, name: 'Stainless Steel' },
+    // Hewi's product lines ARE bare numbers (801, 802, 805, 900, System 100/800), and
+    // the token rule below cannot read them: it demands a leading LETTER, because a
+    // number after a brand is usually a dimension — "Bodenschatz, 33 - 51 cm" would
+    // otherwise pill as "Bodenschatz 33". Anchoring to the brand is what makes the
+    // digits safe. Without this, 984 pool articles plus 485 of the Ch4 accessibility
+    // range all sat in one undifferentiated "Hewi" pill; they split into System
+    // 100/800 (478), 900 (238), 805 (40), 801 (36), 477 and 162.
+    { brand: 'Hewi', re: /^system\s+\d/i, name: 'System 100/800' },
+    { brand: 'Hewi', re: /^(\d{3})\b/, name: (m) => `Hewi ${m[1]}` },
+    // Keuco's lines are "Collection <name>" — Axess (135), Moll (41), Reva (30).
+    // The single token gives "Collection", which says nothing and merges all three.
+    { brand: 'Keuco', re: /^collection\s+([A-Za-zÀ-ÿ0-9.\-]+)/i, name: (m) => `Collection ${m[1]}` },
+    // The same Nosag line is written both "Nosag Normbau Cavere" (80) and "Nosag
+    // Cavere" (23) — two pills for one line unless the longer form is folded in.
+    { brand: 'Nosag', re: /^normbau\s+cavere\b/i, name: 'Cavere' },
+    // Alterna hangs a SHAPE on its line name with a hyphen — "piana-gewinkelt",
+    // "rondo-gerade", "nonda - gerade". The token rule keeps the hyphen, so one line
+    // spread over a pill per shape. The shape is a variant, the word before it is the
+    // line.
+    { brand: 'Alterna', re: /^([A-Za-zÀ-ÿ]+)\s*-\s*(?:gerade|gewinkelt|eckig|rund)\b/i,
+      name: (m) => m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase() },
 ];
 
 const accessorySerie = (t) => {
@@ -769,8 +797,9 @@ const accessorySerie = (t) => {
             const bi = text.toLowerCase().indexOf(mfr.toLowerCase());
             if (bi < 0) continue;
             const after = text.substring(bi + mfr.length).replace(/^[\s\-:,/]+/, '');
-            const phrase = ACC_SERIE_PHRASES.find(p => p.re.test(after));
-            if (phrase) return phrase.name;
+            const phrase = ACC_SERIE_PHRASES.find(p =>
+                (!p.brand || p.brand.toLowerCase() === mfr.toLowerCase()) && p.re.test(after));
+            if (phrase) return typeof phrase.name === 'function' ? phrase.name(after.match(phrase.re)) : phrase.name;
             const m = after.match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9.\-]*)/);
             const tok = m ? m[1] : '';
             if (tok && tok.length > 1 && !ACC_SERIE_NOISE.has(tok.toLowerCase())) return cap(tok);

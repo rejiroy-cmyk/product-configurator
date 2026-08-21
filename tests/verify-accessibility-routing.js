@@ -1,0 +1,240 @@
+// ============================================================================
+// CH4 ACCESSIBILITY RANGE — ROUTING GUARD  (2026-08-22)
+//
+// Ch4's HOLD bucket (392 bases / 1168 SKUs of Barrierefreiheit — Haltegriff,
+// Eckhaltegriff, Stützklappgriff, Rückenstütze, Duschsitz, Duschhocker …) was
+// scraped and never injected, so no configurator could order a grab bar.
+// st-scraper/inject-ch4-accessibility.cjs injects it and routes each family to
+// the rooms that order it.
+//
+// THE INVARIANT THIS EXISTS FOR — routing a family to a Klosett is NOT enough.
+// createWCApp's Accessoires panel ignores `targetSubcats` entirely and matches
+// its own WC_ACC_FAMILIES prefix list; the family list IS the routing there.
+// A family routed to `wandklosett` whose leading noun is missing from that list
+// is invisible at the WC, silently, with nothing in the data to show for it.
+// That is exactly how only 50 of 154 Klappgriff once appeared. So: every family
+// the injector sends to a Klosett must be named in WC_ACC_FAMILIES, and this
+// test pins the two files to each other.
+//
+// A grab bar carrying a shower rail is a shower rail on a grab bar, not WC kit
+// (Reji's rule). The injector routes those to the shower instead of holding them
+// back, and isWCAccessory drops them from the Klosett panel — both sides read the
+// FULL text, since half of them name the rail only in the description.
+//
+// COST: custom-data.json is ~36 MB interned. Read and expand it ONCE.
+// ============================================================================
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.join(__dirname, '..');
+const require = createRequire(import.meta.url);
+const { readData } = require('../st-scraper/_dataFile.cjs');
+
+let passed = 0, failed = 0;
+const check = (name, cond, detail) => {
+    if (cond) { console.log(`✅ [PASS] ${name}`); passed++; }
+    else { console.log(`❌ [FAIL] ${name}${detail ? `\n     ${detail}` : ''}`); failed++; }
+};
+const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
+// A German comment says "Ch4's HOLD bucket", and that apostrophe pairs with the next
+// one in the source — every quoted entry after it parses as garbage. Strip comments
+// before reading string literals out of a list.
+const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^[ \t]*\/\/.*$/gm, '');
+
+// ============================== 1. THE CROSS-FILE INVARIANT =================
+console.log('\n--- 1. every Klosett-routed family is named in WC_ACC_FAMILIES ---\n');
+
+const injector = read('st-scraper/inject-ch4-accessibility.cjs');
+const wcApp = read('modules/factories/createWCApp.js');
+
+// FAMILIES rows: ['<prefix>', '<productType>', <route>] — the route may be an
+// identifier, an array, a merge(...) call or an arrow function of `rail`.
+const famRows = [...injector.matchAll(/^\s*\['([^']+)',\s*'([^']+)',\s*(.+?)\],\s*$/gm)]
+    .map(m => ({ prefix: m[1], type: m[2], route: m[3] }));
+check('the injector FAMILIES table parses', famRows.length >= 20,
+    `parsed ${famRows.length} rows — the table's shape changed, update this test`);
+
+// A route reaches a Klosett if it names WC, or names a Klosett key literally.
+const reachesWC = (route) => /\bWC\b/.test(route) || /wandklosett|standklosett/.test(route);
+
+const wcFamList = (stripComments(wcApp).match(/const WC_ACC_FAMILIES = \[([\s\S]*?)\]\s*\.sort/) || [])[1] || '';
+const wcFamilies = [...wcFamList.matchAll(/'([^']+)'/g)].map(m => m[1]);
+check('WC_ACC_FAMILIES parses', wcFamilies.length >= 20,
+    `parsed ${wcFamilies.length} entries — the list's shape changed, update this test`);
+
+for (const f of famRows.filter(r => reachesWC(r.route))) {
+    check(`"${f.prefix}" is routed to a Klosett and named in WC_ACC_FAMILIES`,
+        wcFamilies.includes(f.prefix),
+        `routed to a Klosett but not in WC_ACC_FAMILIES — invisible in that panel`);
+}
+
+// The reverse never has to hold: WC_ACC_FAMILIES carries families this injector
+// does not write (Papierhalter, Hygienekombination …).
+
+// ============================== 2. THE RAIL RULE ============================
+console.log('\n--- 2. the rail rule is one rule, spelled the same on both sides ---\n');
+
+const injRail = (injector.match(/const RX_RAIL = (\/.+?\/i);/) || [])[1];
+const wcRail = (wcApp.match(/const RX_GRIFF_RAIL = (\/.+?\/i);/) || [])[1];
+check('both files define a rail regex', Boolean(injRail && wcRail),
+    `injector ${injRail} · createWCApp ${wcRail}`);
+check('the two rail regexes are identical', injRail === wcRail,
+    `injector ${injRail} · createWCApp ${wcRail} — one side would route a bar the other still shows`);
+check('the rail test covers Brausestange, not just Duschgleitstange',
+    /brausestange/i.test(wcRail || ''),
+    'Keuco spells the same article "Brausestange"; two of them walked into the Klosett panel on the narrow test');
+
+// Every bar family must be subject to the rail test, or a rail-carrying bar in
+// that family shows at the WC.
+const griffSet = (stripComments(wcApp).match(/const GRIFF_FAMILIES = new Set\(\[([\s\S]*?)\]\)/) || [])[1] || '';
+const griffFamilies = [...griffSet.matchAll(/'([^']+)'/g)].map(m => m[1]);
+for (const f of wcFamilies.filter(f => /griff/.test(f))) {
+    check(`bar family "${f}" is subject to the rail test`,
+        griffFamilies.includes(f),
+        'a *griff family outside GRIFF_FAMILIES shows its rail-carrying SKUs at the WC');
+}
+check('isWCAccessory applies the rail test by family set, not by one hardcoded name',
+    /GRIFF_FAMILIES\.has\(fam\)/.test(wcApp),
+    'back to `fam === \'winkelgriff\'` — every other bar family loses the rule');
+
+// WC_ACC_FAMILIES must be longest-first: `find` returns the FIRST match, and the
+// family it returns is what decides whether the rail test runs.
+check('WC_ACC_FAMILIES is sorted longest-first',
+    /\]\s*\.sort\(\(a, b\) => b\.length - a\.length\)/.test(wcApp),
+    'without the sort, prefix order decides which family (and which rule) a label gets');
+
+// ============================== 3. THE RELATIONAL ARM =======================
+console.log('\n--- 3. Duschenwanne / Badewanne read targetSubcats ---\n');
+
+const rel = read('modules/factories/createRelationalApp.js');
+const popIdx = rel.indexOf('populateAccessoires: function');
+const popBody = popIdx === -1 ? '' : rel.slice(popIdx, popIdx + 4200);
+check('createRelationalApp.populateAccessoires reads targetSubcats',
+    /targetSubcats/.test(popBody),
+    'back to the keyword-only scan — everything routed to badewanne/duschenwanne goes invisible again');
+check('...and still keeps the keyword arm beside it',
+    /keywords\.some\(/.test(popBody),
+    'the routed arm must ADD to the keyword scan, never replace it');
+check('...and excludes the configurator-owned dropdown families',
+    /Duschgleitstange/.test(popBody) && /Ablaufventil/.test(popBody),
+    'a dropdown family reachable twice puts one art-Nr on two BOM lines');
+
+// ============================== 4. THE DATA =================================
+console.log('\n--- 4. the injected range, in custom-data.json ---\n');
+
+const data = readData();
+const pool = (data.zubehoer_pool && data.zubehoer_pool.trays) || [];
+const RX_RAIL = new RegExp(injRail.slice(1, -2), 'i');
+const KLOSETT = ['wandklosett', 'standklosett'];
+const SHOWER_OR_BATH = ['duschenmischer', 'duschenwanne', 'bademischer', 'badewanne'];
+const plain = (s) => String(s || '').replace(/<[^>]*>/g, ' ');
+const full = (t) => plain(`${t.label || ''} ${t.description || ''}`);
+
+// The bar families, as the pool tags them.
+const BAR_TYPES = ['Haltegriff', 'Eckhaltegriff', 'Winkelgriff', 'Klappgriff',
+    'Stützklappgriff', 'Seitenwandgriff'];
+const bars = pool.filter(t => t && BAR_TYPES.includes(t.productType));
+check(`the pool carries the bar families (${bars.length} SKUs)`, bars.length >= 800,
+    `only ${bars.length} — the injection is missing or was reverted`);
+
+const railBars = bars.filter(t => RX_RAIL.test(full(t)));
+check(`rail-carrying bars are present, not dropped (${railBars.length})`, railBars.length >= 150,
+    `only ${railBars.length} — they are being held back again instead of routed to the shower`);
+
+const railAtWC = railBars.filter(t => (t.targetSubcats || []).some(s => KLOSETT.includes(s)));
+check('no rail-carrying bar is routed to a Klosett', railAtWC.length === 0,
+    railAtWC.slice(0, 5).map(t => `${t.artNr}  ${full(t).slice(0, 80)}`).join('\n     '));
+
+const railHomeless = railBars.filter(t => !(t.targetSubcats || []).some(s => SHOWER_OR_BATH.includes(s)));
+check('every rail-carrying bar reaches a shower or bath configurator', railHomeless.length === 0,
+    railHomeless.slice(0, 5).map(t => `${t.artNr}  ${JSON.stringify(t.targetSubcats)}`).join('\n     '));
+
+const acc = pool.filter(t => t && typeof t.id === 'string' && t.id.startsWith('ch4acc_'));
+check(`the injector's own trays are in the pool (${acc.length})`, acc.length >= 900,
+    `only ${acc.length} — expected ~971 from inject-ch4-accessibility.cjs`);
+check('every injected tray carries a productType', acc.every(t => t.productType),
+    acc.filter(t => !t.productType).slice(0, 5).map(t => t.artNr).join(', '));
+check('every injected tray carries a non-empty route',
+    acc.every(t => Array.isArray(t.targetSubcats) && t.targetSubcats.length > 0),
+    acc.filter(t => !(t.targetSubcats || []).length).slice(0, 5).map(t => t.artNr).join(', '));
+
+// A synthesized PG1 url is a recorded 404 for this range — 71 of 201 were in the
+// Winkelgriff round. The scrape reads the url out of the page; the localiser then
+// turns it into a local img/ path.
+const remoteGuess = acc.filter(t => /multimedia\/Web\/PG1\//.test(t.imgUrl || ''));
+check(`injected images are localised or scraped, not synthesized (${remoteGuess.length} remote)`,
+    remoteGuess.length === 0,
+    `${remoteGuess.length} still point at a constructed profishop URL — run localize-images.cjs`);
+
+
+// ============================== 5. THE SERIE PILL ===========================
+// The facet bar is how 971 new articles become findable, and its Serie dimension
+// is accessorySerie(). Importing _shared.js needs the same DOM mocks every other
+// suite installs.
+console.log('\n--- 5. the Serie pill for the accessibility range ---\n');
+
+global.alert = () => {};
+global.window = {
+    copyTextToClipboard: () => Promise.resolve(),
+    copyBOMToClipboard: () => {},
+    getComputedStyle: () => ({ display: 'block' }),
+};
+global.document = {
+    createElement: () => ({ style: {} }),
+    body: { appendChild: () => {}, removeChild: () => {} },
+    getElementById: () => ({ style: {}, querySelectorAll: () => [], querySelector: () => null }),
+    querySelector: () => null,
+};
+const { accessorySerie } = await import('../modules/factories/_shared.js');
+
+const serie = (manufacturer, label) => accessorySerie({ manufacturer, label });
+
+// Hewi's lines ARE bare numbers. The token rule cannot read them — it demands a
+// leading letter — so all 1'469 Hewi articles pilled as one "Hewi".
+check('Hewi 801 reads as its own line', serie('Hewi', 'Rückenstütze Hewi 801, zu Klappgriff links, Wandmontage') === 'Hewi 801');
+check('Hewi 900 reads as its own line', serie('Hewi', 'Mobiler Klappgriff Hewi 900 Duo, 60 cm, Ø 33,7 mm') === 'Hewi 900');
+check('Hewi 805 reads as its own line', serie('Hewi', 'Seitenwandgriff Hewi 805, rechts, Ø 33 mm, 32,5 x 29,5 cm') === 'Hewi 805');
+check('Hewi System 100/800 is one pill, not "System"',
+    serie('Hewi', 'Duschklappsitz Hewi System 100 / 800, Breite 35 cm') === 'System 100/800');
+check('a letter-led Hewi line still wins over the number rule',
+    serie('Hewi', 'Einhängesitz Hewi LifeSystem Premium, ohne Hygieneausschnitt') === 'LifeSystem');
+
+// The number rule is BRAND-SCOPED on purpose: after any other brand a number is
+// usually a dimension, and reading it would invent lines that do not exist.
+check('a size range after another brand is NOT read as a line',
+    serie('Bodenschatz', 'Handtuchhalter ausziehbar Bodenschatz, 33 - 51 cm, Führung seitlich') === 'Bodenschatz',
+    'the bare-number rule leaked past Hewi — "Bodenschatz 33" is half a size range');
+check('a diameter after another brand is NOT read as a line',
+    serie('Geberit', 'Duschwannenablauf Geberit 90 Ø Abgang Ø 56 mm direkt verschweissbar') === 'Geberit',
+    'the bare-number rule leaked past Hewi — "Geberit 90" is a drain diameter');
+
+check('Keuco Collection Axess keeps both words', serie('Keuco', 'Rückenstütze Keuco Collection Axess, 348 x 250 x 51 mm') === 'Collection Axess');
+check('Keuco Collection Moll is its own pill', serie('Keuco', 'Papierhalter Keuco Collection Moll, Breite 156 mm') === 'Collection Moll',
+    'Axess, Moll (41) and Reva (30) all merged into a bare "Collection"');
+check('Keuco Collection Reva is its own pill', serie('Keuco', 'Handtuchhalter Keuco Collection Reva, Breite 450 mm') === 'Collection Reva');
+check('Keuco Elegance is untouched', serie('Keuco', 'Duschhandlauf Keuco Elegance, 114,2 x 62,8 cm') === 'Elegance');
+check('"Nosag Normbau Cavere" folds into the Cavere pill', serie('Nosag', 'Armlehne Nosag Normbau Cavere, 59 x 50,9 x 10 cm') === 'Cavere');
+check('"Nosag Cavere" reaches the same pill', serie('Nosag', 'Duschhocker Nosag Cavere, Beine pulverbeschichtet') === 'Cavere');
+check('piana-gewinkelt is the piana line', serie('Alterna', 'Haltegriff Alterna piana-gewinkelt, 37 x 17 cm') === 'Piana');
+check('piana is unchanged', serie('Alterna', 'Haltegriff Alterna piana - gerade, 30 cm') === 'Piana');
+check('rondo-gerade is the rondo line', serie('Alterna', 'Haltegriff Alterna rondo-gerade, Seifenschale klar') === 'Rondo');
+check('nonda-gewinkelt joins the plain nonda pill', serie('Alterna', 'Haltegriff Alterna nonda-gewinkelt, Verchromt') === 'Nonda'
+    && serie('Alterna', 'Papierhalter Alterna nonda ohne Deckel, Montage kleben') === 'Nonda',
+    'the shape suffix split one Alterna line across a pill per shape');
+check('an Alterna line with no shape suffix is untouched',
+    serie('Alterna', 'Haltegriff Alterna direta, 30 cm, Verchromt') === 'Direta');
+check('a shape word alone is not a line name',
+    serie('Bodenschatz', 'Haltegriff Bodenschatz sechskantig, max. Belastbarkeit 150 kg') === 'Bodenschatz');
+check('a frame spec is not a line name', serie('Hewi', 'Duschhocker Hewi, Gestell hochwertig verchromt') === 'Hewi',
+    '"Gestell" states construction, not a product line');
+check('CWS Stainless Steel still wins over the noise list',
+    serie('CWS', 'Papierhandtuchspender CWS Stainless Steel, Füllmenge 600 Blatt') === 'Stainless Steel');
+
+// ============================================================================
+console.log('\n' + '='.repeat(60));
+console.log(`Ergebnis: ${passed} bestanden, ${failed} fehlgeschlagen`);
+console.log('='.repeat(60));
+process.exit(failed ? 1 : 0);

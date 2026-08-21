@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 5175",
-    "test": "node tests/verify-duschtrennwand.js && node tests/verify-all-apps.js && node tests/verify-shower-rules.js && node tests/verify-servicepaket.mjs && node tests/verify-fulltext-rule.js && node tests/verify-product-display.js && node tests/verify-no-kitchen-in-waschtischmischer.js && node tests/verify-scraper-maktx2.js && node tests/verify-accessory-colormatch.js && node tests/verify-mixmatch-rules.js && node tests/verify-copy-multiplier.js && node tests/verify-accessory-quantity.js && node tests/verify-data-intern.js && node tests/verify-offline-fonts.js && node tests/verify-installation-rules.js && node tests/verify-urinoir-rules.js && node tests/verify-ohne-never-copied.js",
+    "test": "node tests/verify-duschtrennwand.js && node tests/verify-all-apps.js && node tests/verify-shower-rules.js && node tests/verify-servicepaket.mjs && node tests/verify-fulltext-rule.js && node tests/verify-product-display.js && node tests/verify-no-kitchen-in-waschtischmischer.js && node tests/verify-scraper-maktx2.js && node tests/verify-accessory-colormatch.js && node tests/verify-mixmatch-rules.js && node tests/verify-copy-multiplier.js && node tests/verify-accessory-quantity.js && node tests/verify-data-intern.js && node tests/verify-offline-fonts.js && node tests/verify-installation-rules.js && node tests/verify-urinoir-rules.js && node tests/verify-ohne-never-copied.js && node tests/verify-accessibility-routing.js",
     "replay:tape": "node scripts/replay-shower-rules.js",
     "lint": "eslint .",
     "format": "prettier --write .",
