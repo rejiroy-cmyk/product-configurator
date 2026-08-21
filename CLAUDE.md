@@ -201,6 +201,23 @@ Hersteller, with no way to filter the line. The phrase is tested first and ancho
 the brand, so it only ever fires on `<Brand> <Phrase>` and the material spelling stays
 noise. Add a line here rather than deleting a noise token.
 
+**A phrase may be scoped to one `brand`, and its `name` may be a function of the
+match.** Both exist for one reason: *a rule that is safe for ONE brand is not safe for
+all of them.* `accessorySerie` demands a leading LETTER in the token after the brand,
+because after most brands a number is a DIMENSION — reading it invents "Bodenschatz 33"
+out of the size range "33 - 51 cm" and "Geberit 90" out of a drain diameter. But **Hewi's
+lines ARE bare numbers**, so 984 pool articles plus 485 of the Ch4 accessibility range
+all sat in one undifferentiated "Hewi" pill. The numeric rule is therefore scoped to Hewi
+alone (→ System 100/800 478 · 900 238 · 805 40 · 801 36 · 477 · 162), and two assertions
+in `verify-accessibility-routing` exist purely to prove it does not leak past that brand.
+Four more lines were spread over pills that say nothing, all fixed the same way:
+Keuco names its lines **`Collection <name>`** (Axess 135 · Moll 41 · Reva 30) and the
+single token merged all three into "Collection"; the same Nosag line is written both
+"Normbau Cavere" (80) and "Cavere" (23); and **Alterna hangs a SHAPE on the name with a
+hyphen** — `piana-gewinkelt`, `rondo-gerade`, `nonda - gerade` — so one line got a pill
+per shape. `gestell`, `abgewinkelt` and `sechskantig` are in `ACC_SERIE_NOISE`: they
+state construction, not a product line.
+
 **The Klosett panel has its own family list** — `WC_ACC_FAMILIES` + `isWCAccessory` in
 `createWCApp.js`, matched as an identity PREFIX. It replaced a substring scan over four
 keywords that matched anything merely NAMING one (the partner-reference trap), which
