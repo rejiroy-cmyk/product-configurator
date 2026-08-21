@@ -268,8 +268,16 @@ for the control, `3612 402` is 144 cm tall. Ordering the wrong one opens the wal
   ordering a frame that does not fit — `3612 406` carries no water connection, `3612 402`
   is 144 cm tall — and their labels all start "Urinoirelement Geberit-Duofix,
   Montagerahmen, Füsse verstellbar", so the dropdown is a trap, not a choice.
-- **The Urinoirsteuerung group opens on "Ohne".** HyTouch is CHF 346–350 and HyTronic
-  CHF 1225 — too big a difference to make on the user's behalf (Reji, 2026-08-20).
+- **The Urinoirsteuerung is preselected: `3451 106.100.000`** — HyTronic IR Typ01 square,
+  Netzbetrieb, **Weiss** (Reji, 2026-08-21). Weiss is the art-Nr triplet `100`, never a word
+  in the label — the COLOUR RULE. That matters here: every one of these bases is stored
+  under a different finish (`3451 106.501.000` is Verchromt, `3451 100.503.000`
+  Mattverchromt), so taking the base tray's own art-Nr would have preselected chrome.
+  Only four of the six HyTronic articles exist in Weiss at all.
+- **Every finish of a control is its own orderable SKU** — 25 options, the same treatment
+  the Betätigungsplatte gets. Listing one SKU per base made a white control unreachable.
+  `Ohne Urinoirsteuerung` is LAST now that it is no longer the default, same position and
+  same reason as the element's `bau115`.
 - **Opting out of the element parks the Steuerung on "Ohne" — ONE-SHOT.** It happens in
   the dropdown's change handler, deliberately NOT as a `dependsOn` rule: the Steuerung
   dropdown has to stay fully selectable afterwards, because "cistern is already in the
@@ -295,7 +303,7 @@ for the control, `3612 402` is 144 cm tall. Ordering the wrong one opens the wal
 
   | | | |
   | --: | :-- | :-- |
-  | 10 | Urinoirsteuerung | only when one is actually selected — parked on "Ohne" it drops to misc |
+  | 10 | Urinoirsteuerung | unconditionally, "Ohne" included — it is what the wall is roughed in for |
   | 15 | Rohbau-Set | rides with the Steuerung |
   | 20 | **Urinal** | the Hauptartikel, below the control the wall is roughed in for |
   | 30 | Dübelschraube / Gewindebolzen | the screws only show when no element is set |

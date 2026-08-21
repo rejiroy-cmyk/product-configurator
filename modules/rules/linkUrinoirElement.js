@@ -82,23 +82,43 @@ export const ZUBEHOERSET = '3612 419';        // Lema 1 Liter, UP-Verteildose
 export const ROHBAUSET = '3451 173';          // only under 3612 407 — see below
 
 /**
- * The Steuerung ladder, cheapest first. HyTouch is pneumatic at CHF 346–350, HyTronic
- * is IR at CHF 1225 — a real commercial choice, so the group opens on OHNE_STEUERUNG
- * and the user picks (Reji, 2026-08-20). SABAG offers all nine with no default either.
+ * The Steuerung ladder, HyTronic (IR, CHF 1225) before HyTouch (pneumatic, CHF 346–350).
+ * SABAG offers all nine with no default; ours is HyTronic — see STEUERUNG_DEFAULT.
  */
 export const STEUERUNGEN = [
-    '3451 114',   // HyTouch  Typ01 square, Betätigungsplatte
-    '3451 168',   // HyTouch  Typ01 round
-    '3451 174',   // HyTouch  Typ01 round, easy-to-clean
-    '3451 106',   // HyTronic IR Typ01 square, Netz
+    '3451 106',   // HyTronic IR Typ01 square, Netz          <- the default's base
     '3451 109',   // HyTronic IR Typ01 square, Batterie
     '3451 148',   // HyTronic IR Typ01 round, Netz
     '3451 158',   // HyTronic IR Typ01 round, Batterie
     '3451 100',   // HyTronic IR Typ01 round, easy-to-clean, Netz
     '3451 103',   // HyTronic IR Typ01 round, easy-to-clean, Batterie
+    '3451 114',   // HyTouch  Typ01 square, Betätigungsplatte
+    '3451 168',   // HyTouch  Typ01 round
+    '3451 174',   // HyTouch  Typ01 round, easy-to-clean
 ];
 
-/** The Steuerung opt-out. An art-Nr starting with "ohne" is skipped by every SAP export. */
+/**
+ * The preselected control: **HyTronic IR Typ01 square, Netzbetrieb, Weiss**
+ * (Reji, 2026-08-21). Two halves, both deliberate:
+ *   • HyTronic, not HyTouch — the group used to open on "Ohne" because CHF 346 vs 1225 is
+ *     a commercial choice; that is now decided.
+ *   • **Weiss is the art-Nr triplet `100`, never a word in the label** — the COLOUR RULE.
+ *     Every one of these bases is stored under a DIFFERENT finish (`3451 106.501.000` is
+ *     Verchromt, `3451 100.503.000` Mattverchromt), so taking the base tray's own art-Nr
+ *     would have preselected chrome and quietly ignored the instruction.
+ * Only four of the six HyTronic articles exist in Weiss at all; the two easy-to-clean
+ * round ones (`3451 100` / `103`) are Mattverchromt only.
+ */
+export const STEUERUNG_DEFAULT = '3451 106.100.000';
+
+/** Weiss first, then the house chrome, then the rest. COLOUR RULE: codes, not words. */
+const FINISH_RANK = ['100', '501', '350', '503'];
+
+/**
+ * The Steuerung opt-out. An art-Nr starting with "ohne" is skipped by every SAP export.
+ * It sits LAST now that HyTronic is the default — same position, and same reason, as the
+ * element's own `bau115`.
+ */
 export const OHNE_STEUERUNG = {
     artNr: 'ohne_steuerung',
     label: 'Ohne Urinoirsteuerung',
@@ -224,16 +244,16 @@ export function urinoirElement(tray) {
  * need it, and a second copy of the chain is exactly how these things drift —
  * createMixAndMatchApp imports the Klosett article table for the same reason.
  *
- * A Steuerung parked on "Ohne" is not "one that is selected", so it drops to misc at the
- * bottom rather than heading the Stückliste — pass `{ chosen: false }` to say so.
+ * The Steuerung heads the Stückliste unconditionally (Reji, 2026-08-21) — including when
+ * it is parked on "Ohne", which is now a deliberate choice rather than the default state.
  * Steps 10 apart so a part can be slotted between two without renumbering.
  */
 export const URINOIR_MISC = 100;
 export const URINOIR_CERAMIC = 20;
 
-export function urinoirBomBucket(groupName, { chosen = true } = {}) {
+export function urinoirBomBucket(groupName) {
     const n = String(groupName || '').toLowerCase();
-    if (/urinoirsteuerung/.test(n)) return chosen ? 10 : URINOIR_MISC;
+    if (/urinoirsteuerung/.test(n)) return 10;
     if (/rohbau/.test(n)) return 15;                       // rides with the Steuerung
     if (/d[üu]belschraube|gewinde|schraube/.test(n)) return 30;
     if (/schallschutz/.test(n)) return 40;
@@ -293,7 +313,7 @@ const opt = (p, extra = {}) => p && ({
  * inlet sleeves, lids and partitions already come from SAP's own accessory data and are
  * not touched here.
  */
-export function linkUrinoirElement(tray, pool) {
+export function linkUrinoirElement(tray, pool, { colorNames = {} } = {}) {
     if (!tray || !pool) return [];
     const suffix = String(tray.artNr || '').replace(/\s+/g, '');
     const base = String(tray.artNr || '').slice(0, 8);
@@ -366,17 +386,42 @@ export function linkUrinoirElement(tray, pool) {
     const cls = flushClass(tray);
     const needsControl = ev.steu || (!EVIDENCE[base] && (cls === 'ohne-steuerung'));
     let steuerungGroupId = null;
+    let steuerungOptions = null;
     if (needsControl) {
-        const ctrls = STEUERUNGEN.map((b) => pool.byBase.get(b)).filter(Boolean);
+        // EVERY FINISH IS ITS OWN ORDERABLE SKU — the same treatment the Betätigungsplatte
+        // gets in the Klosett rules. Listing one SKU per base offered whatever finish the
+        // catalogue happened to store the base under, so a white control was unreachable
+        // and the default was chrome.
+        const ctrls = [];
+        for (const b of STEUERUNGEN) {
+            const t = pool.byBase.get(b);
+            if (!t) continue;
+            const skus = [t, ...(t.variants || [])];
+            skus.sort((x, y) => {
+                const rx = FINISH_RANK.indexOf(String(x.artNr).split('.')[1]);
+                const ry = FINISH_RANK.indexOf(String(y.artNr).split('.')[1]);
+                return (rx === -1 ? 99 : rx) - (ry === -1 ? 99 : ry);
+            });
+            for (const sku of skus) {
+                const code = String(sku.artNr).split('.')[1] || '';
+                // COLOUR RULE: the finish comes from the triplet alone. Name an unknown code
+                // rather than inventing a colour for it.
+                const colour = colorNames[code] || `Farbcode ${code}`;
+                ctrls.push(opt({ ...t, artNr: sku.artNr, imgUrl: sku.imgUrl || t.imgUrl },
+                    { description: `${t.description || t.label} — ${colour}` }));
+            }
+        }
+        // The default to the front, whatever order the pool listed it in.
+        const di = ctrls.findIndex((c) => c.artNr === STEUERUNG_DEFAULT);
+        if (di > 0) ctrls.unshift(ctrls.splice(di, 1)[0]);
         if (ctrls.length) {
             steuerungGroupId = `urinoirsteuerung_${suffix}`;
+            steuerungOptions = [...ctrls, OHNE_STEUERUNG];
             groups.push({
                 id: steuerungGroupId,
                 name: 'Urinoirsteuerung',
                 _auto: true, _rule: 'steuerung',
-                // OHNE first: it is the default, by decision. CHF 346 to CHF 1225 is not a
-                // difference to make on the user's behalf.
-                options: [OHNE_STEUERUNG, ...ctrls.map((c) => opt(c))],
+                options: steuerungOptions,
             });
         }
     }
@@ -388,14 +433,16 @@ export function linkUrinoirElement(tray, pool) {
     // off the Steuerung group and disappears with "Ohne Urinoirsteuerung".
     if (ev.rohbau && steuerungGroupId) {
         const p = pool.byBase.get(ROHBAUSET);
+        // Keyed off the option list itself, not off STEUERUNGEN: the options are per-SKU
+        // now, so a base-keyed rule would match none of them and the row would never appear.
         if (p) groups.push({
             id: `rohbauset_${suffix}`,
             name: 'Rohbau-Set',
             dependsOn: steuerungGroupId,
-            optionRules: [OHNE_STEUERUNG, ...STEUERUNGEN.map((b) => ({ artNr: b }))].map((o) => ({
-                whenArtNr: o.artNr === OHNE_STEUERUNG.artNr ? o.artNr : (pool.byBase.get(o.artNr) || {}).artNr,
+            optionRules: steuerungOptions.map((o) => ({
+                whenArtNr: o.artNr,
                 optionArtNrs: o.artNr === OHNE_STEUERUNG.artNr ? [] : [p.artNr],
-            })).filter((r) => r.whenArtNr),
+            })),
             _auto: true, _rule: 'rohbauset',
             options: [opt(p)],
         });

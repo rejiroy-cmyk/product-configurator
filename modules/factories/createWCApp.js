@@ -1447,10 +1447,9 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     const matNameWK = (mat.name || '').toLowerCase();
                     // URINOIR is ordered by its own table, imported from the rules module —
                     // and BEFORE the keyword chain below, which scores every one of these 99
-                    // and dumps them at the end of the Stückliste. A Steuerung parked on
-                    // "Ohne" is not one that is selected, so it drops to misc.
+                    // and dumps them at the end of the Stückliste.
                     if (isUrinoir) {
-                        priority = urinoirBomBucket(mat.name, { chosen: !isNoneArtNr(selectedOption.artNr) });
+                        priority = urinoirBomBucket(mat.name);
                     }
                     else if (matNameWK === 'installationselement') priority = 7;
                     else if (matNameWK === 'rückwandbefestigungssatz') priority = 8;

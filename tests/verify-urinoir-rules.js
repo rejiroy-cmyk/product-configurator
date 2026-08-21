@@ -4,11 +4,12 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { expandData } from '../modules/dataHydrate.js';
+import { COLOR_NAMES } from '../modules/factories/_colorCodes.js';
 import {
     buildUrinoirPool, linkUrinoirElement, urinoirElement, deriveElement, flushClass,
     carriesOwnSystem, isAnlage, wallOnlyPatch, EVIDENCE, URINOIR_ELEMENTS,
     RUECKWAND, ANSCHLUSSBOGEN, ROHBAUSET, STEUERUNGEN, OHNE_STEUERUNG, OHNE_ELEMENT,
-    urinoirBomBucket, miscOhneFirst, URINOIR_MISC, URINOIR_CERAMIC,
+    urinoirBomBucket, miscOhneFirst, URINOIR_MISC, URINOIR_CERAMIC, STEUERUNG_DEFAULT,
 } from '../modules/rules/linkUrinoirElement.js';
 import { reconcileInstallation, URINOIR_OWNED_GROUPS, isOwned } from '../modules/rules/reconcileInstallation.js';
 
@@ -24,7 +25,7 @@ const pool = buildUrinoirPool(data);
 const trays = (data.urinoir && data.urinoir.trays) || [];
 const base = (t) => String(t.artNr || '').slice(0, 8);
 const byBase = new Map(trays.map((t) => [base(t), t]));
-const groupsOf = (b) => linkUrinoirElement(byBase.get(b), pool);
+const groupsOf = (b) => linkUrinoirElement(byBase.get(b), pool, { colorNames: COLOR_NAMES });
 const named = (gs, n) => gs.find((g) => g.name === n);
 
 // ---- flush class --------------------------------------------------------
@@ -91,13 +92,13 @@ check('the derivation reproduces at least 35 of the 38 evidenced pairings',
 const withEl = trays.filter((t) => urinoirElement(t).el);
 check('every urinal that gets an element gets 3612 500 AND 3612 272',
     withEl.every((t) => {
-        const gs = linkUrinoirElement(t, pool);
+        const gs = linkUrinoirElement(t, pool, { colorNames: COLOR_NAMES });
         const r = named(gs, 'Rückwandbefestigungssatz'), a = named(gs, 'Anschlussbogen');
         return r && a && r.options[0].artNr.startsWith(RUECKWAND) && a.options[0].artNr.startsWith(ANSCHLUSSBOGEN);
     }));
 check('a urinal with no element gets neither Pflichtteil',
     trays.filter((t) => !urinoirElement(t).el).every((t) => {
-        const gs = linkUrinoirElement(t, pool);
+        const gs = linkUrinoirElement(t, pool, { colorNames: COLOR_NAMES });
         return !named(gs, 'Rückwandbefestigungssatz') && !named(gs, 'Anschlussbogen') && !named(gs, 'Installationselement');
     }));
 check('… though its Schallschutz stays: that part belongs to the ceramic (Lema 3411 128)',
@@ -116,7 +117,7 @@ check('the opt-out is the SAME text position the Klosett rules use',
     named(groupsOf('2121 197'), 'Installationselement').options.slice(-1)[0].artNr === 'bau115');
 check('exactly ONE element is offered, plus the opt-out — never a menu of frames',
     trays.filter((t) => urinoirElement(t).el).every((t) => {
-        const o = named(linkUrinoirElement(t, pool), 'Installationselement').options;
+        const o = named(linkUrinoirElement(t, pool, { colorNames: COLOR_NAMES }), 'Installationselement').options;
         return o.length === 2 && o[1].artNr === OHNE_ELEMENT.artNr
             && URINOIR_ELEMENTS.includes(String(o[0].artNr).slice(0, 8));
     }));
@@ -130,9 +131,22 @@ check('a Geberit-own Preda gets no Schallschutz (it ships complete)',
     !named(groupsOf('3421 202'), 'Schallschutz'));
 
 // ---- Steuerung ----------------------------------------------------------
-const steuGroups = trays.map((t) => named(linkUrinoirElement(t, pool), 'Urinoirsteuerung')).filter(Boolean);
-check('the Steuerung group opens on "Ohne" — CHF 346 to 1225 is not our call',
-    steuGroups.length >= 20 && steuGroups.every((g) => g.options[0].artNr === OHNE_STEUERUNG.artNr));
+const steuGroups = trays.map((t) => named(linkUrinoirElement(t, pool, { colorNames: COLOR_NAMES }), 'Urinoirsteuerung')).filter(Boolean);
+check('the Steuerung group opens on the HyTronic default',
+    steuGroups.length >= 20 && steuGroups.every((g) => g.options[0].artNr === STEUERUNG_DEFAULT));
+check('… which is WEISS by the art-Nr triplet, not by a word in the label',
+    STEUERUNG_DEFAULT.split('.')[1] === '100' && COLOR_NAMES['100'] === 'Weiss');
+check('… and a HyTronic, not a HyTouch',
+    /HyTronic/i.test(steuGroups[0].options[0].label));
+check('the base tray of that default is stored under a DIFFERENT finish',
+    pool.byBase.get(STEUERUNG_DEFAULT.slice(0, 8)).artNr !== STEUERUNG_DEFAULT);
+check('every finish of every control is its own orderable SKU',
+    steuGroups.every((g) => g.options.length >= 20));
+check('each option names its colour, resolved from the triplet',
+    steuGroups[0].options.filter((o) => o.artNr !== OHNE_STEUERUNG.artNr)
+        .every((o) => Object.values(COLOR_NAMES).some((c) => String(o.description || '').endsWith(c))));
+check('"Ohne Urinoirsteuerung" is LAST now that it is no longer the default',
+    steuGroups.every((g) => g.options[g.options.length - 1].artNr === OHNE_STEUERUNG.artNr));
 check('the opt-out art-Nr starts with "ohne", so every SAP export skips it',
     /^ohne/i.test(OHNE_STEUERUNG.artNr));
 check('all nine controls are offered',
@@ -143,15 +157,19 @@ check('a bare ceramic does', !!named(groupsOf('2121 197'), 'Urinoirsteuerung'));
 
 // ---- Rohbau-Set (§3.4) --------------------------------------------------
 check('the Rohbau-Set rides only where the element does NOT bundle one (3612 407)',
-    trays.filter((t) => named(linkUrinoirElement(t, pool), 'Rohbau-Set'))
+    trays.filter((t) => named(linkUrinoirElement(t, pool, { colorNames: COLOR_NAMES }), 'Rohbau-Set'))
          .every((t) => urinoirElement(t).el === '3612 407'));
 check('… on exactly the three urinals the evidence keeps it on',
-    trays.filter((t) => named(linkUrinoirElement(t, pool), 'Rohbau-Set')).length === 3);
-check('it disappears with "Ohne Urinoirsteuerung"',
+    trays.filter((t) => named(linkUrinoirElement(t, pool, { colorNames: COLOR_NAMES }), 'Rohbau-Set')).length === 3);
+check('it disappears with "Ohne Urinoirsteuerung", and rides with every control SKU',
     (() => {
-        const g = named(groupsOf('3421 201'), 'Rohbau-Set');
-        const r = g.optionRules.find((x) => x.whenArtNr === OHNE_STEUERUNG.artNr);
-        return g.dependsOn === named(groupsOf('3421 201'), 'Urinoirsteuerung').id && r && r.optionArtNrs.length === 0;
+        const gs = groupsOf('3421 201');
+        const g = named(gs, 'Rohbau-Set'), st = named(gs, 'Urinoirsteuerung');
+        const off = g.optionRules.find((x) => x.whenArtNr === OHNE_STEUERUNG.artNr);
+        // one rule per OPTION, not per base — a base-keyed rule matches no SKU at all
+        return g.dependsOn === st.id && off && off.optionArtNrs.length === 0
+            && g.optionRules.length === st.options.length
+            && g.optionRules.filter((r) => r.optionArtNrs.length).length === st.options.length - 1;
     })());
 check('an element that bundles the Rohbauset never gets the row',
     !named(groupsOf('3421 103'), 'Rohbau-Set') && urinoirElement(byBase.get('3421 103')).el === '3612 402');
@@ -180,7 +198,7 @@ check('nor the urinal\'s own siphon',
 check('reconciling is idempotent',
     (() => {
         const t = byBase.get('2121 197');
-        const gs = linkUrinoirElement(t, pool);
+        const gs = linkUrinoirElement(t, pool, { colorNames: COLOR_NAMES });
         const once = reconcileInstallation(t, gs, URINOIR_OWNED_GROUPS);
         const twice = reconcileInstallation({ ...t, mountingMaterials: once.groups }, gs, URINOIR_OWNED_GROUPS);
         return !twice.changed;
@@ -203,8 +221,8 @@ for (const [name, want] of order) {
     check(`BOM order: ${name} -> ${want}`, urinoirBomBucket(name) === want, String(urinoirBomBucket(name)));
 }
 check('the ceramic sits between the Steuerung and the screws', URINOIR_CERAMIC === 20);
-check('a Steuerung parked on "Ohne" drops to misc, not to the top',
-    urinoirBomBucket('Urinoirsteuerung', { chosen: false }) === URINOIR_MISC);
+check('the Steuerung heads the Stückliste unconditionally',
+    urinoirBomBucket('Urinoirsteuerung') === 10);
 check('"Anschlussbogen" is the supply side and never files with the drain',
     urinoirBomBucket('Anschlussbogen') === 90 && urinoirBomBucket('Ablaufbogen') === 50);
 

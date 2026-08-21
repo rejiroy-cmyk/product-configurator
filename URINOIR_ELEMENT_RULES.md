@@ -30,8 +30,11 @@ the (clipping) `<select>`; and the **BOM order below**, now a shared table
 (`urinoirBomBucket`) that the runtime and the reconciler both read.
 
 Two decisions Reji made before the build:
-- **The Steuerung group opens on "Ohne Urinoirsteuerung"** and the user picks — §3.1 answered.
-  CHF 346 (HyTouch) to CHF 1225 (HyTronic) is not a difference to make on their behalf.
+- ~~The Steuerung group opens on "Ohne Urinoirsteuerung" and the user picks~~ — **superseded
+  2026-08-21: §3.1 is `3451 106.100.000`,** HyTronic IR Typ01 square, Netzbetrieb, Weiss.
+  Weiss is the triplet `100` (COLOUR RULE), which is the whole reason this needed care —
+  each base is stored under a different finish, so the base's own art-Nr is chrome. Every
+  finish is now its own option (25 in the dropdown) and "Ohne" moved to the end.
 - **All 49 urinals in scope**, deriving the 11 the competitor never configured.
 
 ### ⚠ §2's water+control table did not survive contact with the evidence
@@ -322,7 +325,7 @@ independently reproduced by the scrape.
 ## 4. BOM order — SETTLED (Reji, 2026-08-21)
 
 ```
- 1. Steuerung               (only when one is actually selected)
+ 1. Steuerung               (always — it is what the wall is roughed in for)
  2. Urinal
  3. Schrauben               (only when NO element is selected)
  4. Schallschutz
@@ -341,9 +344,10 @@ Rückwandbefestigung 80 · Anschlussbogen 90 · Quertraverse/Zubehörset 95 · m
 `createWCApp` imports it rather than keeping its own chain.
 
 Two details the list implies and the code makes explicit:
-- **A Steuerung parked on "Ohne" is not one that is selected**, so it falls to misc at the
-  bottom instead of heading the Stückliste — the row still has to be there, or it could
-  never be picked.
+- **The Steuerung heads the list unconditionally**, "Ohne" included. It briefly dropped to
+  misc in that case, back when "Ohne" was the DEFAULT and a row at the top saying nothing
+  was noise; with HyTronic preselected, "Ohne" is a deliberate choice and belongs where the
+  reader looks for it.
 - **"ohne as default" is a REORDER**, not a stored selection: `options[0]` is what every
   seeding path takes. Only the misc bucket — 9 groups today (8 Steckdichtung, 1
   Urinoirschutzsieb). The element's own "Ohne" stays LAST, because the element IS the

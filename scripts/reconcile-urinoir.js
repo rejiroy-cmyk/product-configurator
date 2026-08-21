@@ -12,6 +12,7 @@
  *      its options are SAP's own and are left exactly as they are (§3.4).
  */
 import { createRequire } from 'module';
+import { COLOR_NAMES } from '../modules/factories/_colorCodes.js';
 import { buildUrinoirPool, linkUrinoirElement, urinoirElement, flushClass, wallOnlyPatch, miscOhneFirst } from '../modules/rules/linkUrinoirElement.js';
 import { reconcileInstallation, URINOIR_OWNED_GROUPS } from '../modules/rules/reconcileInstallation.js';
 
@@ -30,7 +31,7 @@ const r = {
 };
 
 for (const tray of trays) {
-    const ruleGroups = linkUrinoirElement(tray, pool);
+    const ruleGroups = linkUrinoirElement(tray, pool, { colorNames: COLOR_NAMES });
     const { el, source } = urinoirElement(tray);
     const base = String(tray.artNr || '').slice(0, 8);
 
