@@ -24,8 +24,25 @@ export const OWNED_GROUPS = new Set([
     // different articles (3241 130 / 3241 120 / 3242 110). It is not ours to touch.
 ]);
 
+/**
+ * The Urinoir chain owns a DIFFERENT set of names — passed in per call rather than
+ * merged into the one above, or a Klosett re-run would start claiming a urinal's
+ * `Schallschutz`. Note what is deliberately absent: `Ablaufbogen`, which on the two
+ * Schmidlin Ecopur trays is the urinal's own drain part and none of our business.
+ */
+export const URINOIR_OWNED_GROUPS = new Set([
+    'installationselement',
+    'rückwandbefestigungssatz',
+    'anschlussbogen',
+    'quertraverse',
+    'zubehörset',
+    'schallschutz',
+    'urinoirsteuerung',
+    'rohbau-set',
+]);
+
 const norm = (s) => String(s || '').trim().toLowerCase();
-export const isOwned = (group) => OWNED_GROUPS.has(norm(group && group.name));
+export const isOwned = (group, owned = OWNED_GROUPS) => owned.has(norm(group && group.name));
 
 /** Stable structural comparison — used only to decide "did anything actually change?". */
 const sameShape = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -37,16 +54,17 @@ const sameShape = (a, b) => JSON.stringify(a) === JSON.stringify(b);
  *   removed  — owned groups the rules no longer produce (e.g. no plate family survives)
  *   changed  — false when the result is structurally identical to what was there
  */
-export function reconcileInstallation(tray, ruleGroups) {
+export function reconcileInstallation(tray, ruleGroups, owned = OWNED_GROUPS) {
+    const mine = (g) => isOwned(g, owned);
     const existing = Array.isArray(tray && tray.mountingMaterials) ? tray.mountingMaterials : [];
-    const ownedBefore = existing.filter(isOwned);
-    const keep = existing.filter((g) => !isOwned(g));
+    const ownedBefore = existing.filter(mine);
+    const keep = existing.filter((g) => !mine(g));
 
     // Splice the rule groups back in where the first owned group sat, so an unrelated
     // group never silently changes neighbours. No owned group before -> append.
-    let at = existing.findIndex(isOwned);
+    let at = existing.findIndex(mine);
     if (at === -1) at = existing.length;
-    else at = existing.slice(0, at).filter((g) => !isOwned(g)).length;
+    else at = existing.slice(0, at).filter((g) => !mine(g)).length;
 
     const groups = [...keep.slice(0, at), ...ruleGroups, ...keep.slice(at)];
 

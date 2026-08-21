@@ -63,6 +63,17 @@ const GUARDED = {
     'modules/rules/linkInstallationElement.js': [
         'productText', 'elementSituation', 'cisternOf', 'plateFamilyOf',
     ],
+    // The Urinoir linker. `flushClass` is the axis the whole ruleset hangs off and the
+    // discriminator is description-only three times over: "für Steuerung Hytronic" on a
+    // ceramic LABELLED Urinoiranlage, "wasserlosen Betrieb", "Netzanschluss".
+    // `carriesOwnSystem` is the sharpest case — 3411 516's label is "Urinoiranlage Tamaro
+    // Geberit-, Weiss" and only the description says "Duofix", i.e. that the element is
+    // already in the box. `isAnlage` is NOT here: it is the permitted identity-prefix
+    // exception, and reading it full-text would match the partner reference in a bare
+    // ceramic's own text.
+    'modules/rules/linkUrinoirElement.js': [
+        'productText', 'flushClass', 'carriesOwnSystem', 'deriveElement',
+    ],
     'modules/factories/createBademischerApp.js': ['extractSerie', 'extractMontage'],
     'modules/factories/createDuschenmischerApp.js': ['extractSerie', 'extractMontage'],
     // isWCAccessory: the family match is an identity prefix (the permitted exception),

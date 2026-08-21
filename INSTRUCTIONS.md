@@ -241,8 +241,45 @@ element sits in the SAME Stückliste as the ceramic.
   line — **not** a `mountingMaterials` group. The article numbers are imported from
   `modules/rules/linkInstallationElement.js` so the two implementations cannot drift.
 
-- **Urinoir is deliberately NOT covered.** It needs research first; half a rule is worse than
-  none here.
+### Installationselement — Urinoir
+
+Own ruleset, own linker (`modules/rules/linkUrinoirElement.js`), own document:
+**`URINOIR_ELEMENT_RULES.md`**. It is separate because a urinal's element is
+model-specific — `3612 406` carries NO water connection, `3612 403` carries a Rohbauset
+for the control, `3612 402` is 144 cm tall. Ordering the wrong one opens the wall twice.
+
+- **Evidence beats derivation.** 38 of the 49 urinals carry the pairing they were
+  actually configured with in a competitor's public catalogue, each GTIN re-resolved on
+  our own Profishop (`st-scraper/urinoir-sabag/`). Those are used verbatim.
+- **The fallback is Anlage-vs-ceramic, not water-vs-control.** An `Urinoiranlage` brings
+  its own control and valve, so it takes the element WITHOUT a Rohbauset (`3612 406`, or
+  `3612 405` for a Tamaro-S); the same series as a bare `Urinoir` needs the element to
+  bring water (`3612 403`). Measured against the 38 known pairings this reproduces 36;
+  URINOIR_ELEMENT_RULES §2's water+control table reproduces 23.
+- **An Anlage that names Duofix or Kombifix already CONTAINS its element** — `3411 516`
+  says so only in the description — and gets none. FULL-TEXT RULE.
+- **Pflichtteile: `3612 500` + `3612 272`, with any element and only with it.** Keyed off
+  "has an element", nothing else, so the four urinals that take none get neither.
+- **Schallschutz `3461 110` belongs to the CERAMIC** — the same reading the Klosett rules
+  give it, so it does NOT hang off the element. Lema `3411 128` carries one while taking
+  no element at all. The Geberit-own Preda / Selva / Tamina never carry one: they ship
+  complete.
+- **The Urinoirsteuerung group opens on "Ohne".** HyTouch is CHF 346–350 and HyTronic
+  CHF 1225 — too big a difference to make on the user's behalf (Reji, 2026-08-20).
+- **Rohbau-Set `3451 173` only under `3612 407`.** Every other element states "Rohbauset
+  für Steuerung Hytronic und HyTouch" in its own text — the box is already inside it.
+  It hangs off the *Steuerung* group and disappears with "Ohne Urinoirsteuerung".
+- **The Dübelschraube is the wall-mounted case.** `8211 112` fixes a urinal straight to
+  the wall; with an element it hangs on the element's bolts instead, so the group is
+  suppressed unless the user opts out via `bau115`. Same class as the Spülrohr
+  `3432 115`. The patch is applied to the EXISTING group — its options are SAP's.
+  It matches on the group's own NAME: `3411 524` has a "Stücklisten Artikel" group that
+  merely LISTS the screws, and suppressing that would have hidden the whole Anlage.
+- **BOM order:** Urinoir → Urinoirsteuerung → Rohbau-Set → Installationselement →
+  Rückwandbefestigungssatz → Anschlussbogen → Quertraverse/Zubehörset → Schallschutz →
+  Siphon/Einlauf → Dübel/Gewinde.
+- Applied with `node scripts/reconcile-urinoir.js --write` (idempotent). Covered by
+  `tests/verify-urinoir-rules.js`.
 
 ## 3. Brand & Bundling Rules
 

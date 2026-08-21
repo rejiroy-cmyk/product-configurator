@@ -997,7 +997,13 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             const titleLower = title.toLowerCase();
             const isWandKlosett = titleLower.includes('wandklosett');
             const isStandKlosett = titleLower.includes('standklosett');
+            const isUrinoir = titleLower.includes('urinoir');
             const isWanne = titleLower.includes('wanne') || titleLower.includes('duschfläche');
+            // Which apps run the dependsOn/optionRules cascade. Urinoir joined it with the
+            // element rules: without this its Rückwandbefestigungssatz and Anschlussbogen
+            // would stay in the Stückliste after opting out of the element (bau115), and
+            // the Dübelschraube would never disappear when one is chosen.
+            const hasCascade = isWandKlosett || isStandKlosett || isUrinoir;
 
             // 1. Ceramic (Main Item)
             let activeTrayArtNr = this.selectedTray.artNr;
@@ -1039,15 +1045,14 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     const selectedArtNr = this.selectedTray.selections[mat.id];
                     let activeOptions = mat.options || [];
 
-                    // ── CASCADE (Wandklosett + Standklosett only; createWCApp also backs
-                    // Urinoir — INSTRUCTIONS §0, branch shared-factory logic on the title).
+                    // ── CASCADE (Wandklosett, Standklosett and Urinoir — createWCApp backs
+                    // all three; INSTRUCTIONS §0, branch shared-factory logic on the title).
                     // A dependent group offers ONLY what its parent's current choice allows:
                     // pick Sigma10 in the family selector and the Betätigungsplatte dropdown
                     // must list Sigma10 plates alone, not all 119. An EMPTY optionArtNrs means
                     // the row disappears entirely (the bau115 opt-out drops the Ablaufbogen and
                     // the Rückwandbefestigungssatz).
-                    if ((titleLower.includes('wandklosett') || titleLower.includes('standklosett'))
-                        && mat.dependsOn && Array.isArray(mat.optionRules)) {
+                    if (hasCascade && mat.dependsOn && Array.isArray(mat.optionRules)) {
                         const parentMat = (materials || []).find(m => m.id === mat.dependsOn);
                         // effectiveSel FIRST — it is what the parent actually resolved to this
                         // render, after its own cascade. `selections` is pre-seeded to every
@@ -1169,15 +1174,14 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     const selectedArtNr = this.selectedTray.selections[mat.id];
                     let activeOptions = mat.options || [];
 
-                    // ── CASCADE (Wandklosett + Standklosett only; createWCApp also backs
-                    // Urinoir — INSTRUCTIONS §0, branch shared-factory logic on the title).
+                    // ── CASCADE (Wandklosett, Standklosett and Urinoir — createWCApp backs
+                    // all three; INSTRUCTIONS §0, branch shared-factory logic on the title).
                     // A dependent group offers ONLY what its parent's current choice allows:
                     // pick Sigma10 in the family selector and the Betätigungsplatte dropdown
                     // must list Sigma10 plates alone, not all 119. An EMPTY optionArtNrs means
                     // the row disappears entirely (the bau115 opt-out drops the Ablaufbogen and
                     // the Rückwandbefestigungssatz).
-                    if ((titleLower.includes('wandklosett') || titleLower.includes('standklosett'))
-                        && mat.dependsOn && Array.isArray(mat.optionRules)) {
+                    if (hasCascade && mat.dependsOn && Array.isArray(mat.optionRules)) {
                         const parentMat = (materials || []).find(m => m.id === mat.dependsOn);
                         // effectiveSel FIRST — it is what the parent actually resolved to this
                         // render, after its own cascade. `selections` is pre-seeded to every
@@ -1339,15 +1343,14 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     const selectedArtNr = this.selectedTray.selections[mat.id];
                     let activeOptions = mat.options || [];
 
-                    // ── CASCADE (Wandklosett + Standklosett only; createWCApp also backs
-                    // Urinoir — INSTRUCTIONS §0, branch shared-factory logic on the title).
+                    // ── CASCADE (Wandklosett, Standklosett and Urinoir — createWCApp backs
+                    // all three; INSTRUCTIONS §0, branch shared-factory logic on the title).
                     // A dependent group offers ONLY what its parent's current choice allows:
                     // pick Sigma10 in the family selector and the Betätigungsplatte dropdown
                     // must list Sigma10 plates alone, not all 119. An EMPTY optionArtNrs means
                     // the row disappears entirely (the bau115 opt-out drops the Ablaufbogen and
                     // the Rückwandbefestigungssatz).
-                    if ((titleLower.includes('wandklosett') || titleLower.includes('standklosett'))
-                        && mat.dependsOn && Array.isArray(mat.optionRules)) {
+                    if (hasCascade && mat.dependsOn && Array.isArray(mat.optionRules)) {
                         const parentMat = (materials || []).find(m => m.id === mat.dependsOn);
                         // effectiveSel FIRST — it is what the parent actually resolved to this
                         // render, after its own cascade. `selections` is pre-seeded to every
@@ -1420,7 +1423,22 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     // the end of the Stückliste. Manschette keeps its slot at 6, so the
                     // three element parts follow it, preserving INSTRUCTIONS §2's order.
                     const matNameWK = (mat.name || '').toLowerCase();
-                    if (matNameWK === 'installationselement') priority = 7;
+                    // URINOIR keeps its own order (URINOIR_ELEMENT_RULES §4): the control
+                    // first, then the element chain, then the ceramic's own parts. Matched
+                    // by GROUP NAME, and before the keyword chain below — that chain scores
+                    // every one of these 99 and dumps them at the end of the Stückliste.
+                    if (isUrinoir) {
+                        if (matNameWK === 'urinoirsteuerung') priority = 2;
+                        else if (matNameWK === 'rohbau-set') priority = 3;
+                        else if (matNameWK === 'installationselement') priority = 4;
+                        else if (matNameWK === 'rückwandbefestigungssatz') priority = 5;
+                        else if (matNameWK === 'anschlussbogen') priority = 6;
+                        else if (matNameWK === 'quertraverse' || matNameWK === 'zubehörset') priority = 7;
+                        else if (matNameWK === 'schallschutz') priority = 8;
+                        else if (/siphon|ablauf|einlauf|manschette|garnitur/.test(matNameWK)) priority = 9;
+                        else if (/dübel|gewinde|schraube|dichtung/.test(matNameWK)) priority = 10;
+                    }
+                    else if (matNameWK === 'installationselement') priority = 7;
                     else if (matNameWK === 'rückwandbefestigungssatz') priority = 8;
                     else if (matNameWK === 'ablaufbogen') priority = 9;
                     else if (matNameWK === 'betätigungsplatte — familie') priority = 3;
@@ -1707,10 +1725,16 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             const titleLower = title.toLowerCase();
             const isWandKlosett = titleLower.includes('wandklosett');
             const isStandKlosett = titleLower.includes('standklosett');
+            const isUrinoir = titleLower.includes('urinoir');
 
             let textLines = [];
 
-            if (isWandKlosett || isStandKlosett) {
+            // Read the RENDERED rows, not the raw mountingMaterials. The branch below
+            // walks the groups directly and would export a suppressed row, a uiOnly
+            // selector and `bau115` as an ordinary article line — the cascade lives in
+            // updateBOM, so only what it produced is the truth. Urinoir joined this path
+            // with the element rules for exactly that reason.
+            if (isWandKlosett || isStandKlosett || isUrinoir) {
                 const bomTableBody = document.getElementById('bomTableBody');
                 if (bomTableBody) {
                     const rows = bomTableBody.querySelectorAll('tr');
@@ -1728,7 +1752,14 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                             const stated = rowMenge(row);
                             let menge = stated != null ? String(stated) : qtyStrong.textContent.replace(/\t/g, '').trim();
                             if (!/^\d+$/.test(menge)) menge = '1';
-                            if (code !== "none" && code !== "" && !code.toLowerCase().startsWith("ohne") && code !== "Ausstehend") {
+                            // `-` FIRST. An "Ohne …" option renders its code cell as a
+                            // dash (isNoneArtNr), so the "ohne" test never sees the art-Nr —
+                            // and a dash passes every other arm. This shipped a literal
+                            // `-⇥1` line to SAP from any Wandklosett/Standklosett row parked
+                            // on "Ohne", and would have done the same for the Urinoirsteuerung,
+                            // whose default IS that row. _shared.js#copyBOMToClipboard and
+                            // createGlassApp both already guard it; this reader did not.
+                            if (code !== "-" && code !== "none" && code !== "" && !code.toLowerCase().startsWith("ohne") && code !== "Ausstehend") {
                                 // A TEXT POSITION (bau115) ships as a bare line: no tab, no
                                 // Menge — the TXK103 contract. Without this the "—" cell fell
                                 // through the !/^\d+$/ guard and shipped a fabricated qty of 1.
