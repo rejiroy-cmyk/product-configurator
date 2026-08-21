@@ -8,6 +8,7 @@ import {
     buildUrinoirPool, linkUrinoirElement, urinoirElement, deriveElement, flushClass,
     carriesOwnSystem, isAnlage, wallOnlyPatch, EVIDENCE, URINOIR_ELEMENTS,
     RUECKWAND, ANSCHLUSSBOGEN, ROHBAUSET, STEUERUNGEN, OHNE_STEUERUNG, OHNE_ELEMENT,
+    urinoirBomBucket, miscOhneFirst, URINOIR_MISC, URINOIR_CERAMIC,
 } from '../modules/rules/linkUrinoirElement.js';
 import { reconcileInstallation, URINOIR_OWNED_GROUPS, isOwned } from '../modules/rules/reconcileInstallation.js';
 
@@ -113,11 +114,12 @@ check('both Pflichtteile vanish when the element is opted out (bau115)',
     })());
 check('the opt-out is the SAME text position the Klosett rules use',
     named(groupsOf('2121 197'), 'Installationselement').options.slice(-1)[0].artNr === 'bau115');
-check('every other Duofix urinal element stays in the dropdown',
-    (() => {
-        const opts = named(groupsOf('2121 197'), 'Installationselement').options.map((o) => String(o.artNr).slice(0, 8));
-        return URINOIR_ELEMENTS.every((b) => opts.includes(b));
-    })());
+check('exactly ONE element is offered, plus the opt-out — never a menu of frames',
+    trays.filter((t) => urinoirElement(t).el).every((t) => {
+        const o = named(linkUrinoirElement(t, pool), 'Installationselement').options;
+        return o.length === 2 && o[1].artNr === OHNE_ELEMENT.artNr
+            && URINOIR_ELEMENTS.includes(String(o[0].artNr).slice(0, 8));
+    }));
 check('the rule-chosen element is options[0]',
     named(groupsOf('2121 197'), 'Installationselement').options[0].artNr.startsWith(EVIDENCE['2121 197'].el));
 
@@ -189,6 +191,35 @@ check('an unowned group survives reconciliation',
         const res = reconcileInstallation(t, groupsOf('2121 197'), URINOIR_OWNED_GROUPS);
         return res.groups.some((g) => g.name === 'Absaugesiphon');
     })());
+
+// ---- BOM order (Reji, 2026-08-21) ---------------------------------------
+const order = [
+    ['Urinoirsteuerung', 10], ['Rohbau-Set', 15], ['Dübelschraube', 30], ['Gewindebolzen', 30],
+    ['Schallschutz', 40], ['Absaugesiphon', 50], ['Ablaufbogen', 50], ['Einlaufmanschette', 60],
+    ['Einlaufgarnitur', 60], ['Installationselement', 70], ['Rückwandbefestigungssatz', 80],
+    ['Anschlussbogen', 90], ['Quertraverse', 95], ['Steckdichtung', URINOIR_MISC],
+];
+for (const [name, want] of order) {
+    check(`BOM order: ${name} -> ${want}`, urinoirBomBucket(name) === want, String(urinoirBomBucket(name)));
+}
+check('the ceramic sits between the Steuerung and the screws', URINOIR_CERAMIC === 20);
+check('a Steuerung parked on "Ohne" drops to misc, not to the top',
+    urinoirBomBucket('Urinoirsteuerung', { chosen: false }) === URINOIR_MISC);
+check('"Anschlussbogen" is the supply side and never files with the drain',
+    urinoirBomBucket('Anschlussbogen') === 90 && urinoirBomBucket('Ablaufbogen') === 50);
+
+// ---- misc opens on "Ohne" ------------------------------------------------
+check('a misc group offering an opt-out is reordered to open on it',
+    (() => {
+        const r = miscOhneFirst({ name: 'Steckdichtung', options: [{ artNr: '8111 412.000.000' }, { artNr: 'ohne_sd' }] });
+        return r && r[0].artNr === 'ohne_sd' && r.length === 2;
+    })());
+check('… and one already opening on it is left alone',
+    miscOhneFirst({ name: 'Steckdichtung', options: [{ artNr: 'ohne_sd' }, { artNr: '8111 412.000.000' }] }) === null);
+check('the ELEMENT is never reordered — its "Ohne" must stay last',
+    miscOhneFirst(named(groupsOf('2121 197'), 'Installationselement')) === null);
+check('nor a Siphon: it is ordered unless the ceramic already includes it',
+    miscOhneFirst({ name: 'Absaugesiphon', options: [{ artNr: '3441 150.000.000' }, { artNr: 'ohne_as' }] }) === null);
 
 // ---- the SAP export must never ship a dash --------------------------------
 // The Urinoirsteuerung's DEFAULT is an "Ohne" row, and an "Ohne" row renders its code

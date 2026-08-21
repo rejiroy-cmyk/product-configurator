@@ -214,6 +214,59 @@ export function urinoirElement(tray) {
     return { el: deriveElement(tray), source: 'derived' };
 }
 
+/**
+ * BOM order for a Urinoir Stückliste (Reji, 2026-08-21):
+ *
+ *   Steuerung · Urinal · Schrauben · Schallschutz · Siphon · Einlaufmanschette ·
+ *   Element · Rückwandbefestigung · Anschlussbogen · misc.
+ *
+ * Exported because BOTH the runtime (createWCApp's priority chain) and the reconciler
+ * need it, and a second copy of the chain is exactly how these things drift —
+ * createMixAndMatchApp imports the Klosett article table for the same reason.
+ *
+ * A Steuerung parked on "Ohne" is not "one that is selected", so it drops to misc at the
+ * bottom rather than heading the Stückliste — pass `{ chosen: false }` to say so.
+ * Steps 10 apart so a part can be slotted between two without renumbering.
+ */
+export const URINOIR_MISC = 100;
+export const URINOIR_CERAMIC = 20;
+
+export function urinoirBomBucket(groupName, { chosen = true } = {}) {
+    const n = String(groupName || '').toLowerCase();
+    if (/urinoirsteuerung/.test(n)) return chosen ? 10 : URINOIR_MISC;
+    if (/rohbau/.test(n)) return 15;                       // rides with the Steuerung
+    if (/d[üu]belschraube|gewinde|schraube/.test(n)) return 30;
+    if (/schallschutz/.test(n)) return 40;
+    // "ablauf" but never "anschlussbogen" — the drain side, not the supply side.
+    if (/siphon|sifon|ablauf/.test(n)) return 50;
+    if (/manschette|einlauf/.test(n)) return 60;
+    if (/^installationselement/.test(n)) return 70;
+    if (/r[üu]ckwandbefestigung/.test(n)) return 80;
+    if (/anschlussbogen/.test(n)) return 90;
+    if (/quertraverse|zubeh[öo]rset/.test(n)) return 95;   // element accessories
+    return URINOIR_MISC;
+}
+
+/**
+ * "misc. — ohne as default": a leftover group that HAS an opt-out opens on it. Expressed
+ * as a REORDER rather than a stored selection, the same way `ensureShowerGroups` handles
+ * a Garnitur — options[0] is what every seeding path and every `activeOptions[0]`
+ * fallback picks, so moving it is the whole change.
+ *
+ * Only the misc bucket. The element's own "Ohne" must stay LAST (the element IS the
+ * default), the screws keep theirs where it is, and a Siphon or Einlaufmanschette is
+ * ordered unless the ceramic already includes it.
+ *
+ * @returns the reordered options array, or null when there is nothing to do.
+ */
+export function miscOhneFirst(group) {
+    if (!group || urinoirBomBucket(group.name) !== URINOIR_MISC) return null;
+    const opts = group.options || [];
+    const i = opts.findIndex((o) => /^ohne/i.test(String(o.artNr || '')) || /^ohne\b/i.test(String(o.label || '')));
+    if (i <= 0) return null;
+    return [opts[i], ...opts.slice(0, i), ...opts.slice(i + 1)];
+}
+
 /** Index every article this ruleset can attach, by 7-digit base. */
 export function buildUrinoirPool(data) {
     const trays = (data && data.zubehoer_pool && data.zubehoer_pool.trays) || [];
@@ -254,14 +307,12 @@ export function linkUrinoirElement(tray, pool) {
     if (el) {
         const chosen = pool.byBase.get(el);
         if (!chosen) return [];
-        // Every other Duofix urinal element stays on offer. That is what makes a DERIVED
-        // default safe, and it is the only route to the Typ 144 variants — nothing in the
-        // ceramic's own text says a job is 144 cm tall (URINOIR_ELEMENT_RULES §2.1).
-        const others = URINOIR_ELEMENTS
-            .filter((b) => b !== el)
-            .map((b) => pool.byBase.get(b))
-            .filter(Boolean);
-        elementOptions = [opt(chosen), ...others.map((o) => opt(o)), OHNE_ELEMENT];
+        // ONE element per urinal — the one that matches — and the opt-out. Nothing else
+        // (Reji, 2026-08-21). Offering the other six invites ordering a frame that does
+        // not fit: 3612 406 carries no water connection, 3612 402 is 144 cm tall. A
+        // dropdown of near-identical "Urinoirelement Geberit-Duofix, Montagerahmen …"
+        // labels is a trap, not a choice.
+        elementOptions = [opt(chosen), OHNE_ELEMENT];
         groups.push({
             id: elementGroupId,
             name: 'Installationselement',

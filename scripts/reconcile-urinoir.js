@@ -12,7 +12,7 @@
  *      its options are SAP's own and are left exactly as they are (§3.4).
  */
 import { createRequire } from 'module';
-import { buildUrinoirPool, linkUrinoirElement, urinoirElement, flushClass, wallOnlyPatch } from '../modules/rules/linkUrinoirElement.js';
+import { buildUrinoirPool, linkUrinoirElement, urinoirElement, flushClass, wallOnlyPatch, miscOhneFirst } from '../modules/rules/linkUrinoirElement.js';
 import { reconcileInstallation, URINOIR_OWNED_GROUPS } from '../modules/rules/reconcileInstallation.js';
 
 const require = createRequire(import.meta.url);
@@ -25,7 +25,7 @@ const pool = buildUrinoirPool(data);
 const trays = (data.urinoir && data.urinoir.trays) || [];
 
 const r = {
-    trays: trays.length, changed: 0, noElement: [], derived: [], patched: 0,
+    trays: trays.length, changed: 0, noElement: [], derived: [], patched: 0, ohneFirst: 0,
     added: {}, replaced: {}, removed: {}, elements: {},
 };
 
@@ -58,6 +58,16 @@ for (const tray of trays) {
             if (VERBOSE) console.log(`  patch ${base} "${g.name}" → suppressed unless bau115`);
         }
     }
+    // "misc. — ohne as default": a leftover group that offers an opt-out opens on it.
+    // A reorder, not a stored selection — options[0] is what every seeding path picks.
+    for (const g of groups) {
+        const reordered = miscOhneFirst(g);
+        if (!reordered) continue;
+        if (WRITE) g.options = reordered;
+        r.ohneFirst++;
+        if (VERBOSE) console.log(`  ohne-first ${base} "${g.name}"`);
+    }
+
     if (WRITE) tray.mountingMaterials = groups;
 }
 
@@ -68,6 +78,7 @@ console.log('  changed        :', r.changed);
 console.log('  elements       :', tally(r.elements));
 console.log('  no element     :', r.noElement.length, r.noElement.length ? '→ ' + r.noElement.join(' · ') : '');
 console.log('  wall-mount rows patched (Dübelschraube):', r.patched);
+console.log('  misc rows opened on "Ohne"                :', r.ohneFirst);
 console.log('  added          :', tally(r.added));
 console.log('  replaced       :', tally(r.replaced));
 console.log('  removed        :', tally(r.removed));

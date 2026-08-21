@@ -264,8 +264,21 @@ for the control, `3612 402` is 144 cm tall. Ordering the wrong one opens the wal
   give it, so it does NOT hang off the element. Lema `3411 128` carries one while taking
   no element at all. The Geberit-own Preda / Selva / Tamina never carry one: they ship
   complete.
+- **ONE element per urinal, plus `bau115`. Nothing else.** Offering the other six invites
+  ordering a frame that does not fit — `3612 406` carries no water connection, `3612 402`
+  is 144 cm tall — and their labels all start "Urinoirelement Geberit-Duofix,
+  Montagerahmen, Füsse verstellbar", so the dropdown is a trap, not a choice.
 - **The Urinoirsteuerung group opens on "Ohne".** HyTouch is CHF 346–350 and HyTronic
   CHF 1225 — too big a difference to make on the user's behalf (Reji, 2026-08-20).
+- **Opting out of the element parks the Steuerung on "Ohne" — ONE-SHOT.** It happens in
+  the dropdown's change handler, deliberately NOT as a `dependsOn` rule: the Steuerung
+  dropdown has to stay fully selectable afterwards, because "cistern is already in the
+  wall, only the plate gets replaced" is a real order. A cascade rule would re-park the
+  pick on every render and make that Stückliste unbuildable.
+- **Nothing in a Urinoir row is shortened.** The Hauptartikel and every mounting row carry
+  their `description` into the BOM item so `fullLabel` can stitch the truncated ERP label
+  back together, dropdown options included — and since a `<select>` clips its text at the
+  column width, the selected option's full text is repeated underneath it.
 - **Rohbau-Set `3451 173` only under `3612 407`.** Every other element states "Rohbauset
   für Steuerung Hytronic und HyTouch" in its own text — the box is already inside it.
   It hangs off the *Steuerung* group and disappears with "Ohne Urinoirsteuerung".
@@ -275,9 +288,31 @@ for the control, `3612 402` is 144 cm tall. Ordering the wrong one opens the wal
   `3432 115`. The patch is applied to the EXISTING group — its options are SAP's.
   It matches on the group's own NAME: `3411 524` has a "Stücklisten Artikel" group that
   merely LISTS the screws, and suppressing that would have hidden the whole Anlage.
-- **BOM order:** Urinoir → Urinoirsteuerung → Rohbau-Set → Installationselement →
-  Rückwandbefestigungssatz → Anschlussbogen → Quertraverse/Zubehörset → Schallschutz →
-  Siphon/Einlauf → Dübel/Gewinde.
+- **BOM order** (Reji, 2026-08-21) — the table is `urinoirBomBucket()` in
+  `modules/rules/linkUrinoirElement.js`, imported by `createWCApp` so the runtime and the
+  reconciler cannot drift (the same reason `createMixAndMatchApp` imports the Klosett
+  article table):
+
+  | | | |
+  | --: | :-- | :-- |
+  | 10 | Urinoirsteuerung | only when one is actually selected — parked on "Ohne" it drops to misc |
+  | 15 | Rohbau-Set | rides with the Steuerung |
+  | 20 | **Urinal** | the Hauptartikel, below the control the wall is roughed in for |
+  | 30 | Dübelschraube / Gewindebolzen | the screws only show when no element is set |
+  | 40 | Schallschutz | |
+  | 50 | Siphon / Ablauf | unless the ceramic already includes one |
+  | 60 | Einlaufmanschette / -garnitur | unless the ceramic already includes one |
+  | 70 | Installationselement | |
+  | 80 | Rückwandbefestigungssatz | |
+  | 90 | Anschlussbogen | the supply side — never files with the drain |
+  | 95 | Quertraverse / Zubehörset | element accessories |
+  | 100 | misc. | **and a misc group that offers an opt-out opens on it** |
+
+  "Ohne as default" is a REORDER of the group's options, not a stored selection — the same
+  way `ensureShowerGroups` fronts a Garnitur's `Ohne …`. `options[0]` is what every seeding
+  path picks, so moving it is the whole change. Only the misc bucket: the element's own
+  "Ohne" stays LAST (the element IS the default), and a Siphon or Einlaufmanschette is
+  ordered unless the ceramic includes it.
 - Applied with `node scripts/reconcile-urinoir.js --write` (idempotent). Covered by
   `tests/verify-urinoir-rules.js`.
 

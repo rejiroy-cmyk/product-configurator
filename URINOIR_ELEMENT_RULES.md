@@ -21,6 +21,14 @@ Shipped as `modules/rules/linkUrinoirElement.js` + `scripts/reconcile-urinoir.js
 Summary in INSTRUCTIONS.md §2. **45 of 49 urinals now carry an element chain**; four
 correctly carry none.
 
+**Revised 2026-08-21** after review — four changes, all live and verified in the browser:
+**one element per urinal** plus `bau115` (no menu of frames); **opting out of the element
+parks the Steuerung on "Ohne"** as a one-shot, leaving the dropdown selectable for a
+plate-only replacement; **nothing is shortened** — every row carries its `description` so
+`fullLabel` can stitch it, and a dropdown row repeats the selected option's full text under
+the (clipping) `<select>`; and the **BOM order below**, now a shared table
+(`urinoirBomBucket`) that the runtime and the reconciler both read.
+
 Two decisions Reji made before the build:
 - **The Steuerung group opens on "Ohne Urinoirsteuerung"** and the user picks — §3.1 answered.
   CHF 346 (HyTouch) to CHF 1225 (HyTronic) is not a difference to make on their behalf.
@@ -311,19 +319,35 @@ independently reproduced by the scrape.
 
 ---
 
-## 4. BOM order — proposed, for review
+## 4. BOM order — SETTLED (Reji, 2026-08-21)
 
 ```
-1. Urinoir (Hauptartikel)
-2. Urinoirsteuerung          (class B only)
-3. Installationselement
-4. Rückwandbefestigungssatz  [ needed here too? ]
-5. Absaugesiphon / Ablaufbogen
-6. Dübelschraube / Gewindebolzen
-7. Other accessories
+ 1. Steuerung               (only when one is actually selected)
+ 2. Urinal
+ 3. Schrauben               (only when NO element is selected)
+ 4. Schallschutz
+ 5. Siphon                  (if not already included in the ceramic)
+ 6. Einlaufmanschette       (if not already included in the ceramic)
+ 7. Element
+ 8. Rückwandbefestigung
+ 9. Anschlussbogen
+10. misc.                   — ohne as default
 ```
 
-**Corrections?** `[ …………………………………………………………… ]`
+Implemented as `urinoirBomBucket()` in `modules/rules/linkUrinoirElement.js`, on a scale of
+10 so a part can be slotted between two without renumbering: Steuerung 10 · Rohbau-Set 15 ·
+**Urinal 20** · Schrauben 30 · Schallschutz 40 · Siphon/Ablauf 50 · Einlauf 60 · Element 70 ·
+Rückwandbefestigung 80 · Anschlussbogen 90 · Quertraverse/Zubehörset 95 · misc 100.
+`createWCApp` imports it rather than keeping its own chain.
+
+Two details the list implies and the code makes explicit:
+- **A Steuerung parked on "Ohne" is not one that is selected**, so it falls to misc at the
+  bottom instead of heading the Stückliste — the row still has to be there, or it could
+  never be picked.
+- **"ohne as default" is a REORDER**, not a stored selection: `options[0]` is what every
+  seeding path takes. Only the misc bucket — 9 groups today (8 Steckdichtung, 1
+  Urinoirschutzsieb). The element's own "Ohne" stays LAST, because the element IS the
+  default.
 
 ---
 

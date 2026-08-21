@@ -1,3 +1,6 @@
+// The Urinoir BOM order lives with its rules, not here — a second copy of the chain is
+// how these drift. createMixAndMatchApp imports the Klosett article table for the same reason.
+import { urinoirBomBucket, URINOIR_CERAMIC } from '../rules/linkUrinoirElement.js';
 import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, fullLabel, accessoryFacetBar, renderGalleryGrid, cleanSerie, accQty, bomQtyCell, clearAccQty, rowMenge } from './_shared.js';
 
 // An opt-out sentinel ("ohne_wandbedienpanel", "none") rather than a real art-Nr.
@@ -1019,9 +1022,17 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
             }
 
             const isAufputz = activeTrayArtNr === '2111 845.100.000' || activeTrayArtNr === '3231 113.100.000';
-            const ceramicPriority = isAufputz ? 2 : 1;
+            // A Urinoir Stückliste is ordered on its own scale (URINOIR_CERAMIC = 20), so the
+            // Steuerung can sit ABOVE the ceramic — it is what the wall gets roughed in for.
+            const ceramicPriority = isUrinoir ? URINOIR_CERAMIC : (isAufputz ? 2 : 1);
 
-            finalBOM.push({ artNr: activeTrayArtNr, label: activeTrayLabel, typ: title, menge: activeTrayMenge, img: this.selectedTray.imgUrl || this.mainImgUrl, note: 'Hauptartikel', priority: ceramicPriority });
+            // `description` is what fullLabel stitches the truncated ERP label back together
+            // from. Omitting it left every BOM row showing the label alone, cut mid-sentence.
+            const activeTrayDesc = ((this.selectedTray.selections['__variant__'] && (this.selectedTray.variants || [])
+                .find(v => v.artNr === this.selectedTray.selections['__variant__'])) || {}).description
+                || this.selectedTray.description;
+
+            finalBOM.push({ artNr: activeTrayArtNr, label: activeTrayLabel, description: activeTrayDesc, typ: title, menge: activeTrayMenge, img: this.selectedTray.imgUrl || this.mainImgUrl, note: 'Hauptartikel', priority: ceramicPriority });
 
             // ─── STANDKLOSETT: Dedicated BOM Priority Engine ─────────────────────
             if (isStandKlosett) {
@@ -1108,6 +1119,9 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
 
                     const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
                     const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
+                    // See the Hauptartikel above: without this, fullLabel has only the
+                    // truncated ERP label to work with and the row reads cut off mid-word.
+                    const enrichedDesc = (foundZub && foundZub.description) ? foundZub.description : selectedOption.description;
                     const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
 
                     const lbl = enrichedLabel.toLowerCase();
@@ -1146,6 +1160,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     finalBOM.push({
                         artNr: selectedOption.artNr,
                         label: enrichedLabel,
+                        description: enrichedDesc,
                         typ: selectedOption.type || mat.name || 'Zubehör',
                         // A TEXT POSITION (bau115) carries NO Menge — same contract as TXK103.
                         // A SELECTOR row (the plate-family dropdown) is a UI control: it shows
@@ -1238,6 +1253,9 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     const zubPool = (window.productApps && window.productApps['zubehoer_pool']) ? window.productApps['zubehoer_pool'].trays : [];
                     const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
                     const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
+                    // See the Hauptartikel above: without this, fullLabel has only the
+                    // truncated ERP label to work with and the row reads cut off mid-word.
+                    const enrichedDesc = (foundZub && foundZub.description) ? foundZub.description : selectedOption.description;
                     const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
 
                     const combinedLbl = (enrichedLabel + ' ' + (selectedOption.type || '') + ' ' + (mat.name || '')).toLowerCase();
@@ -1320,6 +1338,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     finalBOM.push({
                         artNr: selectedOption.artNr,
                         label: enrichedLabel,
+                        description: enrichedDesc,
                         typ: selectedOption.type || mat.name || 'Zubehör',
                         menge: calculatedMenge,
                         img: enrichedImg,
@@ -1409,6 +1428,9 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     const foundZub = zubPool.find(z => z.artNr === selectedOption.artNr);
 
                     const enrichedLabel = foundZub ? foundZub.label : selectedOption.label;
+                    // See the Hauptartikel above: without this, fullLabel has only the
+                    // truncated ERP label to work with and the row reads cut off mid-word.
+                    const enrichedDesc = (foundZub && foundZub.description) ? foundZub.description : selectedOption.description;
                     const enrichedImg = (foundZub && foundZub.imgUrl) ? foundZub.imgUrl : selectedOption.imgUrl;
 
                     const lbl = enrichedLabel.toLowerCase();
@@ -1423,20 +1445,12 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     // the end of the Stückliste. Manschette keeps its slot at 6, so the
                     // three element parts follow it, preserving INSTRUCTIONS §2's order.
                     const matNameWK = (mat.name || '').toLowerCase();
-                    // URINOIR keeps its own order (URINOIR_ELEMENT_RULES §4): the control
-                    // first, then the element chain, then the ceramic's own parts. Matched
-                    // by GROUP NAME, and before the keyword chain below — that chain scores
-                    // every one of these 99 and dumps them at the end of the Stückliste.
+                    // URINOIR is ordered by its own table, imported from the rules module —
+                    // and BEFORE the keyword chain below, which scores every one of these 99
+                    // and dumps them at the end of the Stückliste. A Steuerung parked on
+                    // "Ohne" is not one that is selected, so it drops to misc.
                     if (isUrinoir) {
-                        if (matNameWK === 'urinoirsteuerung') priority = 2;
-                        else if (matNameWK === 'rohbau-set') priority = 3;
-                        else if (matNameWK === 'installationselement') priority = 4;
-                        else if (matNameWK === 'rückwandbefestigungssatz') priority = 5;
-                        else if (matNameWK === 'anschlussbogen') priority = 6;
-                        else if (matNameWK === 'quertraverse' || matNameWK === 'zubehörset') priority = 7;
-                        else if (matNameWK === 'schallschutz') priority = 8;
-                        else if (/siphon|ablauf|einlauf|manschette|garnitur/.test(matNameWK)) priority = 9;
-                        else if (/dübel|gewinde|schraube|dichtung/.test(matNameWK)) priority = 10;
+                        priority = urinoirBomBucket(mat.name, { chosen: !isNoneArtNr(selectedOption.artNr) });
                     }
                     else if (matNameWK === 'installationselement') priority = 7;
                     else if (matNameWK === 'rückwandbefestigungssatz') priority = 8;
@@ -1454,6 +1468,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                     finalBOM.push({
                         artNr: selectedOption.artNr,
                         label: enrichedLabel,
+                        description: enrichedDesc,
                         typ: selectedOption.type || mat.name || 'Zubehör',
                         // A TEXT POSITION (bau115) carries NO Menge — same contract as TXK103.
                         // A SELECTOR row (the plate-family dropdown) is a UI control: it shows
@@ -1589,8 +1604,12 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         const selected = (this.selectedTray.selections[item.matId] === opt.artNr) ? 'selected' : '';
                         // "ohne_wandbedienpanel" is an opt-out sentinel, not an art-Nr — don't
                         // print it after the label.
+                        // URINOIR: the stitched text, not the ERP label. "Urinoirelement
+                        // Geberit-Duofix Typ 112/130, Höhe 112 -" is where the label stops;
+                        // the rest of that sentence lives in the description.
+                        const shownLbl = isUrinoir ? fullLabel(foundZub || opt) : finalLabel;
                         const dropdownLbl = opt.dropdownLabel ? opt.dropdownLabel
-                            : (isNoneArtNr(opt.artNr) ? finalLabel : `${finalLabel} (${opt.artNr})`);
+                            : (isNoneArtNr(opt.artNr) ? shownLbl : `${shownLbl} (${opt.artNr})`);
                         return `<option value="${opt.artNr}" ${selected}>${dropdownLbl}</option>`;
                     }).join('');
 
@@ -1609,10 +1628,18 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         tapeDescHTML = `<div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.35; background: rgba(0,0,0,0.15); padding: 0.5rem; border-radius: 4px; border-left: 3px solid var(--accent); font-weight: normal; text-align: left;">${selectedDesc}</div>`;
                     }
 
+                    // A `<select>` CLIPS its text at the column width, so a dropdown row
+                    // showed a description cut off mid-word however complete the string was.
+                    // The selected option's full text goes underneath it (Reji, 2026-08-21).
+                    const fullDescHTML = (isUrinoir && selectedOpt)
+                        ? `<div class="bom-desc" style="margin-top: 0.35rem; font-weight: 400; color: var(--text-secondary);">${fullLabel(foundZub || selectedOpt)}</div>`
+                        : '';
+
                     descHTML = `
                         <select class="inline-bom-select" data-matid="${item.matId}" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.9rem; margin-bottom: 0.25rem; font-family: inherit; font-weight: 500; cursor: pointer; outline: none; transition: border-color 0.2s ease;">
                             ${optionsHTML}
                         </select>
+                        ${fullDescHTML}
                         ${tapeDescHTML}
                     `;
                 }
@@ -1666,6 +1693,23 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                                         }
                                     }
                                 });
+                            }
+
+                            // URINOIR: opting out of the element parks the Steuerung on
+                            // "Ohne" — with no cistern going in there is nothing to actuate.
+                            // ONE-SHOT, here in the change handler and deliberately NOT a
+                            // `dependsOn` rule: the dropdown has to stay fully selectable
+                            // afterwards, because "cistern already in the wall, only the plate
+                            // gets replaced" is a real order (Reji, 2026-08-21). A cascade rule
+                            // would re-park the pick on every render and make it unbuildable.
+                            if (isUrinoir && newVal === 'bau115' && this.selectedTray) {
+                                const ms = this.selectedTray.mountingMaterials || [];
+                                const changedMat = ms.find(m => m.id === item.matId);
+                                if (changedMat && /^installationselement$/i.test(String(changedMat.name || ''))) {
+                                    const st = ms.find(m => /^urinoirsteuerung$/i.test(String(m.name || '')));
+                                    const ohne = st && (st.options || []).find(o => isNoneArtNr(o.artNr));
+                                    if (ohne) this.selectedTray.selections[st.id] = ohne.artNr;
+                                }
                             }
 
                             // Reverse Dependency (child -> parent), TRANSITIVE.
