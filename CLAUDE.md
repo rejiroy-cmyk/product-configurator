@@ -787,6 +787,17 @@ Applies to **all Duschenmischer and Bademischer** (not one montage type or brand
 rules live in `_shared.js` and are called from both factories' `updateBOM`; covered by
 `tests/verify-accessory-colormatch.js`.
 
+- **A "…-Set" bundle is not a TRAY.** `Duschmischer-Set KWC Wamas 2.0`
+  (`6110 151.501.000`) is one art-Nr over a frozen Stückliste — mixer, Abstell-
+  verschraubung, Handbrause, Brauseschlauch — which is the one thing a configurator
+  tray must not be: the hose length and the hand-shower design are exactly what the
+  user is here to pick. All **56** of them (28 Bademischer-Set + 28 Duschmischer-Set)
+  were removed by `st-scraper/remove-mischer-sets.cjs`; every one's own mixer is in
+  the catalogue as its own, configurable tray, and the script asserts that before it
+  drops anything. A re-injection into these two pools must keep excluding them.
+  Still standing, a pool this was not asked for: the 24 `Wandmischer-Set` trays in
+  `waschtischmischer`. The Zubehör pool's `Wasseranschluss-Set` / `WC-Set` /
+  `Regulierventil-Set` are single articles, not bundled configurations — leave them.
 - **A set is only ever offered by the bundle row.** No part dropdown may list one —
   it is three articles under one art-Nr, so picking it beside the individual rows
   double-charges the hose. Two gates enforce it, and both are needed: `accPoolOf`
