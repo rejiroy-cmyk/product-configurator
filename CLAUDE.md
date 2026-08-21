@@ -28,7 +28,7 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   See "Remote access" below. `--off` stops it, `--status` shows current state.
 - `node scripts/build-offline-assets.mjs` — regenerates `assets/offline-fonts.css`.
   Only needed when you add a new `ri-*` icon or change fonts; see "Offline assets".
-- `npm test` — runs **18 suites, 657 assertions**: `verify-duschtrennwand` (38),
+- `npm test` — runs **18 suites, 663 assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
   `verify-fulltext-rule` (87), `verify-product-display` (37),
   `verify-no-kitchen-in-waschtischmischer` (4), `verify-scraper-maktx2` (7),
@@ -36,7 +36,7 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   `verify-copy-multiplier` (21), `verify-accessory-quantity` (81),
   `verify-data-intern` (14), `verify-offline-fonts` (9),
   `verify-installation-rules` (45), `verify-urinoir-rules` (77),
-  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (51). Plain Node with
+  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (57). Plain Node with
   hand-rolled DOM mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the
   one jsdom test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
   **Run this after any change to `modules/factories/`.**
