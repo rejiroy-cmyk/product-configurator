@@ -302,8 +302,15 @@ check('every offered fixing resolves to a real pool article', dangling.length ==
 // that itself hangs on a bar — it never touches a wall. Note it also appears as an
 // additionalMaterial OF that Klappsitz, where the identity-prefix filter already refuses
 // to offer it as a fixing; the guard holds from both directions.
+// Wannengriff is the one case where "it screws to a wall" is NOT enough to earn a row.
+// The Nosag 4771 315 is a Klemme — it clamps to the tub rim. The Dornbracht Imo 4311 702
+// is a Wandmodell and its tech.Montage literally reads "schrauben", yet SAP names no
+// fixing, and the brand pattern settles it: of 766 Dornbracht articles in the pool NOT
+// ONE says "ohne Befestigungsmaterial", and the catalogue holds zero Dornbracht
+// Befestigungsmaterial. Dornbracht ships complete. The only anchors we could offer are
+// Hewi or Nosag — the exact cross-brand error the whole design guards against.
 const OUT_OF_SCOPE = ['Haltegriff', 'Winkelgriff', 'Eckhaltegriff', 'Duschsitz', 'Duschhocker',
-    'Seitenwandgriff', 'Armlehne'];
+    'Seitenwandgriff', 'Armlehne', 'Wannengriff'];
 const wrongScope = pool.filter(t => t && OUT_OF_SCOPE.includes(t.productType)
     && ((t.fixingOptions || []).length || (t.plateOptions || []).length));
 check('the six families that need no fixing carry no fixing list',
@@ -425,6 +432,14 @@ check('the fixing select does NOT carry the inline-bom-select class',
 check('an optional row is not flagged as incomplete',
     /\(picked \|\| optionalRow\) \? '' : ' style="background: rgba\(255,166,0/.test(sharedSrc),
     'flagging it orange tells the user something is missing when nothing is');
+
+
+// The catalogue holds anchors for FOUR brands only. A family whose brand is not among
+// them can never be given a fixing row without crossing brands.
+const anchorBrands = new Set(pool.filter(t => t && t.productType === 'Befestigungsmaterial')
+    .map(t => t.manufacturer));
+check('no Befestigungsmaterial exists for Dornbracht', !anchorBrands.has('Dornbracht'),
+    'if one is ever injected, re-decide Wannengriff — until then a fixing row there must cross brands');
 
 // The forced pick has to reach the export as "nothing" until it is made.
 check('an unpicked fixing row contributes no SAP line',

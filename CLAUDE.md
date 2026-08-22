@@ -336,7 +336,14 @@ walls, and a remembered answer silently orders the wrong anchor for the second b
   itself hangs on a bar. It also appears as an `additionalMaterial` OF that Klappsitz,
   where the identity-prefix filter already refuses to offer it as a fixing — the guard
   holds from both directions.
-  A test fails if any of those seven families gains a fixing list.
+  A **Wannengriff** is the one case where *"it screws to a wall" is not enough*: the Nosag
+  is a Klemme, and the Dornbracht Imo is a `Wandmodell` whose `tech.Montage` literally
+  reads "schrauben" — yet SAP names no fixing, **766 Dornbracht articles** in the pool
+  include **not one** "ohne Befestigungsmaterial", and the catalogue holds **zero**
+  Dornbracht Befestigungsmaterial. Dornbracht ships complete; the only anchors we could
+  offer are Hewi or Nosag, i.e. the cross-brand error itself. A test fails if a Dornbracht
+  anchor ever appears, since that would be the signal to re-decide.
+  A test fails if any of those eight families gains a fixing list.
 - **The Montageplatte row comes FIRST**, and it is a different part, not an alternative:
   the plate's own text says "ohne Befestigungsmaterial, Zubehör: … siehe 4711 187 - 190".
   124 SKUs get both rows.
