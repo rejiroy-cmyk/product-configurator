@@ -28,7 +28,7 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   See "Remote access" below. `--off` stops it, `--status` shows current state.
 - `node scripts/build-offline-assets.mjs` — regenerates `assets/offline-fonts.css`.
   Only needed when you add a new `ri-*` icon or change fonts; see "Offline assets".
-- `npm test` — runs **18 suites, 663 assertions**: `verify-duschtrennwand` (38),
+- `npm test` — runs **18 suites, 681 assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
   `verify-fulltext-rule` (87), `verify-product-display` (37),
   `verify-no-kitchen-in-waschtischmischer` (4), `verify-scraper-maktx2` (7),
@@ -36,7 +36,7 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   `verify-copy-multiplier` (21), `verify-accessory-quantity` (81),
   `verify-data-intern` (14), `verify-offline-fonts` (9),
   `verify-installation-rules` (45), `verify-urinoir-rules` (77),
-  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (57). Plain Node with
+  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (69). Plain Node with
   hand-rolled DOM mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the
   one jsdom test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
   **Run this after any change to `modules/factories/`.**
@@ -275,6 +275,53 @@ Duschklappsitz 21 · Wannengriff 8 · Seitenwandgriff 6 · Armlehne 5 · and fiv
   `_dataFile.cjs` and writes `JSON.stringify(data)` with bare `fs` — minified AND
   un-interned. One run undoes ~20 MB of interning and buries the change in a whole-file
   diff.
+
+### A Klappgriff is delivered without its anchors — and the anchor is the WALL
+
+Covered by `tests/verify-accessibility-routing.js` (part of `npm test`).
+
+"Klappgriff Hewi 801, A 60 cm, **ohne Befestigungsmaterial**, Zubehör:
+Befestigungsmaterial" — SAP offers five, and they differ by what you drill into
+(Beton · Leichtbeton/Lochziegel · Leichtbauwand · Hohlblockstein · Vorwandmontage).
+Only the installer knows, so it is a **forced pick, never a default**: the row opens on
+"— Befestigung wählen —", is flagged `Auswahl erforderlich`, and contributes **nothing**
+to the SAP export until answered. No memory across rows — one Stückliste can span two
+walls, and a remembered answer silently orders the wrong anchor for the second bar.
+
+- **⚠ EVERY MANUFACTURER SHIPS ITS OWN.** Hewi takes `4711 179/180/187/189/190`, Nosag
+  `4721 187/188` — no overlap. The options live **per article** (`fixingOptions` /
+  `plateOptions` on the tray, written by `st-scraper/inject-klapp-fixings.cjs` from SAP's
+  `additionalMaterials`), so the pairing is right by construction. **Never** derive it
+  from a `Befestigungsmaterial` family filtered by brand: that is what eventually puts a
+  Hewi anchor under a Nosag bar. A test fails if any article offers anchors from an
+  unrelated 4-digit family.
+- **Scope is Klappgriff / Stützklappgriff / Klappsitz ONLY.** Haltegriff, Winkelgriff and
+  Eckhaltegriff ship WITH their material — SAP agrees, a Haltegriff Hewi 801 names no
+  `additionalMaterials` at all. An **Einhängesitz hangs on a Winkelgriff** and needs none.
+  A test fails if any of those four families gains a fixing list.
+- **The Montageplatte row comes FIRST**, and it is a different part, not an alternative:
+  the plate's own text says "ohne Befestigungsmaterial, Zubehör: … siehe 4711 187 - 190".
+  124 SKUs get both rows.
+- **SAP's `Zubehör` group is a mixed bag.** Of the 52 articles it named, 28 are anchors,
+  13 are plates and **11 are unrelated** (Papierhalter, Rückenstütze, Armlehne,
+  Abdeckplatte). The split is an identity PREFIX on the leading noun; offering a
+  Papierhalter as a screw option would be nonsense.
+- **Silence is not always a gap.** 35 SKUs get no row because their own text says the
+  material is included (Inda, Neoperl, KWC Contina) — SAP's silence and the article text
+  agree in every case. Only where the text says **ohne** and SAP names nothing (6 Nosag
+  Verso Care) does a **warning row** appear, never a guessed art-Nr.
+- Rendering lives in `_shared.js` (`klappFixingPlan`, `klappFixingRowsHTML`,
+  `klappFixingSapLines`) with **one** delegated `change` listener keyed on
+  `window.__klappFixDelegateInstalled` — a module-level guard is per-instance under
+  Vite's `?v=`/`?t=` URLs. Five factories render the rows; `clearKlappPick` must run
+  wherever a selection is reset.
+
+**`article.ws` needs a SESSION, not a login.** A plain `https.get` returns `NOSESSION`;
+the cookie an ordinary page visit sets is enough, so this is reachable anonymously from a
+browser tab and needs no credentials. `result.additionalMaterials` carries `Z` Zubehör ·
+`M` Montage · `E` Ersatzteile · `S` Stücklisten. Raw data in
+`st-scraper/klapp-fixings.json` (base → options) and `klapp-fixing-details.json`
+(label, description, price, image) — 110 bases + 41 detail calls, 0 errors.
 
 ### Accessory colour matching — one helper, both Mischer apps
 
