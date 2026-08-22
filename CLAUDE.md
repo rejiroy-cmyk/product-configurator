@@ -28,7 +28,7 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   See "Remote access" below. `--off` stops it, `--status` shows current state.
 - `node scripts/build-offline-assets.mjs` — regenerates `assets/offline-fonts.css`.
   Only needed when you add a new `ri-*` icon or change fonts; see "Offline assets".
-- `npm test` — runs **18 suites, 685 assertions**: `verify-duschtrennwand` (38),
+- `npm test` — runs **18 suites, 687 assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
   `verify-fulltext-rule` (87), `verify-product-display` (37),
   `verify-no-kitchen-in-waschtischmischer` (4), `verify-scraper-maktx2` (7),
@@ -36,7 +36,7 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   `verify-copy-multiplier` (21), `verify-accessory-quantity` (81),
   `verify-data-intern` (14), `verify-offline-fonts` (9),
   `verify-installation-rules` (45), `verify-urinoir-rules` (77),
-  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (73). Plain Node with
+  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (75). Plain Node with
   hand-rolled DOM mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the
   one jsdom test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
   **Run this after any change to `modules/factories/`.**
@@ -316,7 +316,18 @@ walls, and a remembered answer silently orders the wrong anchor for the second b
   `.100` variants of that family carry the phrase, so a per-SKU test warned on six SKUs
   and stayed silent on their six identical `.337` twins. Decided once per base; a test
   fails if two finishes of one model ever offer different anchors.
-- **Silence is not always a gap.** 29 SKUs get no row because their own text says the
+- **A Duschklappsitz mostly needs nothing, and the reason must be readable.** 127 SKUs
+  split three ways — 93 get a dropdown, **27 hang on a grab bar** ("zum Einhängen"), 7
+  ship the material included (Inda, Neoperl, KWC Contina). A test fails if any one falls
+  outside all three: an article explained by none is one nobody decided about.
+- **⚠ 170 trays from the old `inject-ch4-accessories.js` carried NO `description`**, so
+  the GLOBAL RULE had only SAP's short text — truncated ~80 chars, 61 of them severed
+  mid-phrase. The worst read `"… anthrazit, zum , Silberfarbig"`, the missing word being
+  *Einhängen*; 15 Nosag Klappsitze were excluded from the anchor rule by ACCIDENT rather
+  than by it. `st-scraper/heal-ch4-descriptions.cjs` fills them from SAP's own
+  `description` field and never overwrites an existing one. A test now fails if any tray
+  in this range lacks a description.
+- **Silence is not always a gap.** 14 SKUs get no row because their own text says the
   material is included (Inda, Neoperl, KWC Contina) — SAP's silence and the article text
   agree in every case. No article needs the **warning row** today, but the path stays and
   a test fails if it is removed: the next data gap must not silently render nothing.
@@ -327,8 +338,10 @@ walls, and a remembered answer silently orders the wrong anchor for the second b
   wherever a selection is reset.
 
 **`article.ws` needs a SESSION, not a login.** A plain `https.get` returns `NOSESSION`;
-the cookie an ordinary page visit sets is enough, so this is reachable anonymously from a
-browser tab and needs no credentials. `result.additionalMaterials` carries `Z` Zubehör ·
+the `sap-usercontext` / `sap-appcontext` cookies an ordinary page visit sets are enough,
+so this is reachable anonymously and needs no credentials. Those two are readable from
+`document.cookie`, which is how a Node script can use the same guest session — pass them
+in the environment, never commit a value, never use a personal login. `result.additionalMaterials` carries `Z` Zubehör ·
 `M` Montage · `E` Ersatzteile · `S` Stücklisten. Raw data in
 `st-scraper/klapp-fixings.json` (base → options) and `klapp-fixing-details.json`
 (label, description, price, image) — 110 bases + 41 detail calls, 0 errors.
