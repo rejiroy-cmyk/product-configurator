@@ -325,6 +325,34 @@ check('the warning row is still reachable for a future gap',
     /klappFixingWarnRowHTML/.test(sharedSrc) && /else if \(plan\.missing\)/.test(sharedSrc),
     'removing it means a future article with no anchors silently shows nothing');
 
+// EVERY tray in this range must carry a description. The old inject-ch4-accessories.js
+// wrote none for 170 of them, leaving the GLOBAL RULE to read a label SAP hard-truncates
+// around 80 chars — 61 were severed mid-phrase, the worst reading "… anthrazit, zum ,
+// Silberfarbig" with the word "Einhängen" simply gone. Fifteen Nosag Klappsitze that HANG
+// on a grab bar were therefore excluded from the anchor rule by accident rather than by
+// it. Healed from SAP's own description field by st-scraper/heal-ch4-descriptions.cjs.
+const RANGE = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Haltegriff', 'Winkelgriff',
+    'Eckhaltegriff', 'Duschsitz', 'Rückenstütze', 'Duschhocker', 'Seitenwandgriff',
+    'Armlehne', 'Wannengriff', 'Duschhandlauf'];
+const undescribed = pool.filter(t => t && RANGE.includes(t.productType) && !t.description);
+check('every accessibility tray carries a description', undescribed.length === 0,
+    `${undescribed.length} have only a truncated label — the full-text rule has nothing to read`);
+
+// Every Duschklappsitz must be explained by exactly one of three reasons. An article in
+// none of them is one nobody decided about.
+const RX_HOOK = /einhäng|zum einhängen|einzuhängen/i;
+const RX_INCL = /befestigungsmaterial/i;
+const dks = pool.filter(t => t && t.productType === 'Duschklappsitz');
+const unexplained = dks.filter(t => {
+    if ((t.fixingOptions || []).length) return false;                       // has a dropdown
+    const txt = `${t.label || ''} ${t.description || ''}`.replace(/<[^>]*>/g, ' ');
+    if (RX_HOOK.test(txt)) return false;                                    // hangs on a bar
+    if (RX_INCL.test(txt) && !/ohne\s+befestigungsmaterial/i.test(txt)) return false;  // included
+    return true;
+});
+check(`every Duschklappsitz is explained (${dks.length} total)`, unexplained.length === 0,
+    unexplained.slice(0, 5).map(t => `${t.artNr}  ${(t.label || '').slice(0, 62)}`).join('\n     '));
+
 // The forced pick has to reach the export as "nothing" until it is made.
 check('an unpicked fixing row contributes no SAP line',
     /function klappFixingSapLines[\s\S]{0,400}if \(picked\) out\.push/.test(sharedSrc),
