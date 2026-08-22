@@ -28,7 +28,7 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   See "Remote access" below. `--off` stops it, `--status` shows current state.
 - `node scripts/build-offline-assets.mjs` — regenerates `assets/offline-fonts.css`.
   Only needed when you add a new `ri-*` icon or change fonts; see "Offline assets".
-- `npm test` — runs **18 suites, 695 assertions**: `verify-duschtrennwand` (38),
+- `npm test` — runs **18 suites, 699 assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
   `verify-fulltext-rule` (87), `verify-product-display` (37),
   `verify-no-kitchen-in-waschtischmischer` (4), `verify-scraper-maktx2` (7),
@@ -36,7 +36,7 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   `verify-copy-multiplier` (21), `verify-accessory-quantity` (81),
   `verify-data-intern` (14), `verify-offline-fonts` (9),
   `verify-installation-rules` (45), `verify-urinoir-rules` (77),
-  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (83). Plain Node with
+  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (87). Plain Node with
   hand-rolled DOM mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the
   one jsdom test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
   **Run this after any change to `modules/factories/`.**
@@ -320,7 +320,14 @@ walls, and a remembered answer silently orders the wrong anchor for the second b
   wiped `selectedAddonAccessoires` — accessory and fixing row both vanished on the first
   choice, the total dropped back, and nothing threw or logged. The styling is inline, so
   the class bought nothing. Guarded by a test.
-- **Scope is Klappgriff / Stützklappgriff / Klappsitz / Rückenstütze / Duschhandlauf.** Haltegriff, Winkelgriff and
+- **Winkelgriff is in scope for the OPTIONAL arm only.** All 94 bases were queried across
+  Keuco/Hewi/Nosag/KWC and **not one** says "ohne Befestigungsmaterial" (27 included, 67
+  silent) — which confirms the rule on the whole family rather than on the Hewi 805 sample
+  alone. Six Keuco Collection Axess bases (18 SKUs) say *"mit Befestigungsmaterial, Set
+  Nr. 1"* and offer the same `4171 442` / `4171 444` alternatives as the Duschhandlauf, so
+  they get the same optional row. A test fails if any Winkelgriff is ever FORCED.
+- **Scope is Klappgriff / Stützklappgriff / Klappsitz / Rückenstütze / Duschhandlauf /
+  Winkelgriff.** Haltegriff, Winkelgriff and
   Eckhaltegriff ship WITH their material — SAP agrees, a Haltegriff Hewi 801 names no
   `additionalMaterials` at all. An **Einhängesitz hangs on a Winkelgriff** and needs none.
   A **Duschhocker stands on the floor**: all 21 bases were queried and SAP names zero

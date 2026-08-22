@@ -655,6 +655,22 @@
         "4171 442.000.000",
         "4171 444.000.000"
       ]
+    },
+    {
+      "bases": [
+        "4171338",
+        "4171339",
+        "4171409",
+        "4171410",
+        "4171411",
+        "4171412"
+      ],
+      "suppliedNote": "Set Nr. 1 (mitgeliefert)",
+      "options": [
+        "4171 442.000.000",
+        "4171 444.000.000"
+      ]
     }
-  ]
+  ],
+  "_winkelgriff": "Winkelgriff: all 94 bases queried across Keuco/Hewi/Nosag/KWC — NOT ONE says 'ohne Befestigungsmaterial' (27 included, 67 silent), which confirms Reji's rule on the whole family rather than on the Hewi 805 sample alone. The 6 Keuco Collection Axess bases say 'mit Befestigungsmaterial, Set Nr. 1' and offer the SAME two alternatives as the Duschhandlauf (4171 442 Nr. 4, 4171 444 Nr. 7), so they get the same OPTIONAL row."
 }

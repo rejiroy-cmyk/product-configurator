@@ -53,7 +53,13 @@ const HOST = 'https://profishop.sanitastroesch.ch';
 // ⚠ Their Zubehör group also lists 30 KLAPPGRIFF entries — the bars the back-rest fits.
 // That is the partner-reference trap; the identity-prefix filter in klapp-fixings.json
 // drops them, because offering a Klappgriff as a screw option would be nonsense.
-const FAMS = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Rückenstütze', 'Duschhandlauf'];
+const FAMS = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Rückenstütze', 'Duschhandlauf',
+    'Winkelgriff'];
+// Winkelgriff is here for the OPTIONAL arm only — never the forced one. All 94 bases were
+// queried across Keuco/Hewi/Nosag/KWC and not one says "ohne Befestigungsmaterial", which
+// confirms the rule on the whole family rather than on the Hewi 805 sample alone. Six
+// Keuco Collection Axess bases say "mit Befestigungsmaterial, Set Nr. 1" and offer the
+// same two alternatives as the Duschhandlauf.
 // Duschhandlauf needs NOTHING — not one of its 37 bases says "ohne Befestigungsmaterial".
 // The Keuco Collection Axess rails say "mit Befestigungsmaterial, Set Nr. 1": it is in the
 // box. 4171 442 / 444 are ALTERNATIVE sets for substrates where Set Nr. 1 will not hold —

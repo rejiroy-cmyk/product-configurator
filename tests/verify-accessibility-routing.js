@@ -316,7 +316,7 @@ check('every offered fixing resolves to a real pool article', dangling.length ==
 //                             is a Kombifix component, reachable in no Accessoires panel.
 //   Wanneneinsteighilfe (1) — "Befestigung am Wannenrand": it clamps to the tub.
 //   Badewannensitz (1)      — Neoperl Animo, verstellbar: it sits in the tub.
-const OUT_OF_SCOPE = ['Haltegriff', 'Winkelgriff', 'Eckhaltegriff', 'Duschsitz', 'Duschhocker',
+const OUT_OF_SCOPE = ['Haltegriff', 'Eckhaltegriff', 'Duschsitz', 'Duschhocker',
     'Seitenwandgriff', 'Armlehne', 'Wannengriff',
     'Fussstütze', 'Wanneneinsteighilfe', 'Badewannensitz',
     // Not accessibility at all — the one article the HOLD list's bare 'Stand' prefix
@@ -422,7 +422,7 @@ check(`no Duschhandlauf is FORCED to pick a fixing (${rails.length} SKUs)`, rail
 
 const railOptional = rails.filter(t => (t.fixingOptional || []).length);
 check(`the Keuco rails offer their alternatives (${railOptional.length})`, railOptional.length === 54,
-    `expected 54 SKUs with an optional row, found ${railOptional.length}`);
+    `expected 54 Duschhandlauf SKUs with an optional row, found ${railOptional.length}`);
 check('every optional row names the set the article already ships',
     railOptional.every(t => typeof t.fixingSupplied === 'string' && t.fixingSupplied.length > 3),
     'without the supplied note the default reads as "nothing selected" and invites a duplicate order');
@@ -459,12 +459,26 @@ check('no Befestigungsmaterial exists for Dornbracht', !anchorBrands.has('Dornbr
 // (decided per article from SAP) or in OUT_OF_SCOPE (decided and pinned). A new one
 // appearing means a family nobody has ruled on — which is how a grab bar ends up
 // orderable without its anchors, or a stool ends up with a screw dropdown.
-const IN_SCOPE_TYPES = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Rückenstütze', 'Duschhandlauf'];
+const IN_SCOPE_TYPES = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Rückenstütze', 'Duschhandlauf', 'Winkelgriff'];
 const RANGE_TYPES = new Set([...IN_SCOPE_TYPES, ...OUT_OF_SCOPE]);
 const strays = [...new Set(pool.filter(t => t && t.id && /^ch4acc_|^ch4wg_/.test(String(t.id)))
     .map(t => t.productType))].filter(pt => pt && !RANGE_TYPES.has(pt));
 check('every family in the accessibility range has been ruled on', strays.length === 0,
     `undecided: ${strays.join(', ')} — add to FAMS (needs anchors) or OUT_OF_SCOPE (does not)`);
+
+
+// WINKELGRIFF: in scope for the OPTIONAL arm only, never the forced one. All 94 bases were
+// queried across Keuco/Hewi/Nosag/KWC and NOT ONE says "ohne Befestigungsmaterial" — which
+// confirms the rule on the whole family, not just the Hewi 805 sample. The 6 Keuco
+// Collection Axess bases say "mit Befestigungsmaterial, Set Nr. 1" and offer the same two
+// alternatives as the Duschhandlauf.
+const angled = pool.filter(t => t && t.productType === 'Winkelgriff');
+const angledForced = angled.filter(t => (t.fixingOptions || []).length);
+check(`no Winkelgriff is FORCED to pick a fixing (${angled.length} SKUs)`, angledForced.length === 0,
+    `${angledForced.length} carry a forced list — an angle handle ships with its own material`);
+const angledOptional = angled.filter(t => (t.fixingOptional || []).length);
+check(`the 6 Keuco Winkelgriff bases offer their alternatives (${angledOptional.length})`,
+    angledOptional.length === 18, `expected 18 SKUs, found ${angledOptional.length}`);
 
 // The forced pick has to reach the export as "nothing" until it is made.
 check('an unpicked fixing row contributes no SAP line',
