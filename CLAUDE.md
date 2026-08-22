@@ -323,7 +323,10 @@ walls, and a remembered answer silently orders the wrong anchor for the second b
 - **Scope is Klappgriff / Stützklappgriff / Klappsitz / Rückenstütze / Duschhandlauf.** Haltegriff, Winkelgriff and
   Eckhaltegriff ship WITH their material — SAP agrees, a Haltegriff Hewi 801 names no
   `additionalMaterials` at all. An **Einhängesitz hangs on a Winkelgriff** and needs none.
-  A test fails if any of those four families gains a fixing list.
+  A **Duschhocker stands on the floor**: all 21 bases were queried and SAP names zero
+  fixings across the family, none says "ohne Befestigungsmaterial", and 19 describe a
+  Gestell / Beine / höhenverstellbar — the only partner reference in the whole family is a
+  Sitzkissen. A test fails if any of those five families gains a fixing list.
 - **The Montageplatte row comes FIRST**, and it is a different part, not an alternative:
   the plate's own text says "ohne Befestigungsmaterial, Zubehör: … siehe 4711 187 - 190".
   124 SKUs get both rows.

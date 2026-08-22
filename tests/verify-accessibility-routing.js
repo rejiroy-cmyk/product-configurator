@@ -287,12 +287,16 @@ check('every offered fixing resolves to a real pool article', dangling.length ==
     dangling.slice(0, 5).join('\n     '));
 
 // Scope: the families that ship WITH their material must carry no list at all.
-const OUT_OF_SCOPE = ['Haltegriff', 'Winkelgriff', 'Eckhaltegriff', 'Duschsitz'];
+// Duschhocker joins the list on evidence, not assumption: all 21 bases were queried and
+// SAP names ZERO fixings across the family, none says "ohne Befestigungsmaterial", and 19
+// describe a Gestell / Beine / höhenverstellbar. A stool stands on the floor. The only
+// partner reference in the whole family is a Sitzkissen.
+const OUT_OF_SCOPE = ['Haltegriff', 'Winkelgriff', 'Eckhaltegriff', 'Duschsitz', 'Duschhocker'];
 const wrongScope = pool.filter(t => t && OUT_OF_SCOPE.includes(t.productType)
     && ((t.fixingOptions || []).length || (t.plateOptions || []).length));
-check('Haltegriff / Winkelgriff / Eckhaltegriff / Duschsitz carry no fixing list',
+check('Haltegriff / Winkelgriff / Eckhaltegriff / Duschsitz / Duschhocker carry no fixing list',
     wrongScope.length === 0,
-    'they ship with their own mounting material — a dropdown there orders a second set');
+    'they ship with their own mounting material, hang on a bar, or stand on the floor — a dropdown there orders a part that does not exist for them');
 
 // A PLATE IS WHAT GETS SCREWED TO THE WALL. When the bar names no anchors but names a
 // plate, the anchors are the plate's — read off the plate's own additionalMaterials,
