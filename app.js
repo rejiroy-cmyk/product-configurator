@@ -818,6 +818,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         // THREE load paths (/api/data, the bundled blob, the IndexedDB backup) at once,
         // and is a no-op on data that is already expanded (an older backup, say).
         expandData(data);
+        // The discontinued list is ONE top-level map keyed by art-Nr, not a per-record
+        // flag (see _shared.js). Publishing it here covers all three load paths at
+        // once, the same reason expandData sits on this line.
+        window.__discontinued = data._discontinued || {};
         Object.keys(data).forEach(appId => {
             if (!productApps[appId]) return;
             const src = data[appId];

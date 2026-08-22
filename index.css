@@ -2065,3 +2065,24 @@ body.mixmatch-active #btn_global_reset { display: flex !important; }
   color: var(--text-primary);
   border-color: var(--text-secondary);
 }
+
+/* ---- Nicht mehr lieferbar --------------------------------------------------
+   The art-Nr itself carries the mark, so it reads the same in a BOM row, a
+   finish tile and a dropdown option — the three places a dead article can still
+   be picked. Struck through rather than hidden: the row must stay readable,
+   because an old Stückliste has to open and be understood before it is fixed. */
+.bom-code.is-discontinued,
+.finish-artnr.is-discontinued {
+    text-decoration: line-through;
+    text-decoration-color: var(--danger, #d64545);
+    color: var(--danger, #d64545);
+}
+tr.bom-row-discontinued { background: rgba(214, 69, 69, 0.06); }
+.bom-desc.disc-note {
+    margin-top: 0.2rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--danger, #d64545);
+}
+option.is-discontinued { color: var(--danger, #d64545); }

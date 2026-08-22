@@ -36,6 +36,33 @@ export default defineConfig({
     plugins: [
         viteSingleFile(),
         {
+            // The catalogue moves weekly. The scheduled LaunchAgent is the primary
+            // reminder, but it needs Full Disk Access to reach a repo on ~/Desktop and
+            // silently does nothing without it — so the dev server, which runs in a
+            // terminal that HAS access, says so too. Belt and braces, zero permissions.
+            name: 'catalog-staleness-notice',
+            apply: 'serve',
+            configureServer() {
+                try {
+                    const dir = path.resolve('st-scraper/census');
+                    const files = fs.existsSync(dir)
+                        ? fs.readdirSync(dir).filter(f => /^\d{4}-\d{2}-\d{2}\.json(\.gz)?$/.test(f)).sort()
+                        : [];
+                    const newest = files[files.length - 1];
+                    const days = newest
+                        ? Math.floor((Date.now() - Date.parse(newest.slice(0, 10))) / 86400000)
+                        : Infinity;
+                    if (days <= 8) return;
+                    const age = newest ? `${days} Tage alt (${newest.slice(0, 10)})` : 'nie erstellt';
+                    console.log('\n\x1b[33m┌─────────────────────────────────────────────────────────────┐');
+                    console.log(`│ Katalog-Zensus ist ${age.padEnd(41)}│`);
+                    console.log('│ Nicht-mehr-lieferbar-Liste und Preise könnten veraltet sein.│');
+                    console.log('│   bash scripts/weekly-catalog-check.sh                      │');
+                    console.log('└─────────────────────────────────────────────────────────────┘\x1b[0m\n');
+                } catch (e) { /* a notice must never stop the dev server */ }
+            },
+        },
+        {
             // Provides the embedded data as gzip+base64 virtual modules.
             // - custom-data: only bundled for the static BUILD (the dev server serves fresh
             //   data via /api/data, so dev returns an empty blob and skips this fallback).

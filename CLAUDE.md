@@ -28,15 +28,16 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   See "Remote access" below. `--off` stops it, `--status` shows current state.
 - `node scripts/build-offline-assets.mjs` — regenerates `assets/offline-fonts.css`.
   Only needed when you add a new `ri-*` icon or change fonts; see "Offline assets".
-- `npm test` — runs **18 suites, 699 assertions**: `verify-duschtrennwand` (38),
+- `npm test` — runs **19 suites, 729 assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
-  `verify-fulltext-rule` (87), `verify-product-display` (37),
+  `verify-fulltext-rule` (88), `verify-product-display` (37),
   `verify-no-kitchen-in-waschtischmischer` (4), `verify-scraper-maktx2` (7),
   `verify-accessory-colormatch` (47), `verify-mixmatch-rules` (67),
   `verify-copy-multiplier` (21), `verify-accessory-quantity` (81),
   `verify-data-intern` (14), `verify-offline-fonts` (9),
   `verify-installation-rules` (45), `verify-urinoir-rules` (77),
-  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (87). Plain Node with
+  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (90),
+  `verify-discontinued` (32). Plain Node with
   hand-rolled DOM mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the
   one jsdom test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
   **Run this after any change to `modules/factories/`.**
@@ -326,8 +327,22 @@ walls, and a remembered answer silently orders the wrong anchor for the second b
   alone. Six Keuco Collection Axess bases (18 SKUs) say *"mit Befestigungsmaterial, Set
   Nr. 1"* and offer the same `4171 442` / `4171 444` alternatives as the Duschhandlauf, so
   they get the same optional row. A test fails if any Winkelgriff is ever FORCED.
+- **Haltegriff is in scope for the OPTIONAL arm only.** All 120 bases queried across 9
+  brands — **not one** says "ohne Befestigungsmaterial" (15 included, 105 silent). Only the
+  6 Keuco Collection Axess bases (18 SKUs) get a row, the same Set Nr. 1 / Nr. 4 / Nr. 7
+  shape. **Four bases are SILENT and still have a screws-and-plugs set offered** (Alterna
+  nonda `4912 243`, Alterna direta `4981 270`, Hansgrohe AddStoris `4964 420`) — Reji's
+  call: *silence is treated as complete*, so no row. SAP offering a screw set is not the
+  same as the article needing one, and nothing says "ohne". Pinned by a test naming those
+  four art-Nrs, so the tempting "but it offers screws!" reading cannot quietly win later.
+- **⚠ The identity-prefix fixing filter nearly missed real sets.** `Befestigungs-Set`
+  carries a **hyphen** and does not match `^befestigungsset`, and genuine sets also appear
+  as `Montageset, 2 Schrauben, 2 Dübel`. Rückenstütze, Duschhandlauf, Winkelgriff and
+  Duschhocker were re-checked with a widened test — none missed; the Klapp* family's 11
+  non-fixing references are all Abdeckplatte / Papierhalter / Rückenlehne / Rückenstütze /
+  Armlehne. Widen the test, not the conclusion, if that list is ever rebuilt.
 - **Scope is Klappgriff / Stützklappgriff / Klappsitz / Rückenstütze / Duschhandlauf /
-  Winkelgriff.** Haltegriff, Winkelgriff and
+  Winkelgriff / Haltegriff.** Haltegriff, Winkelgriff and
   Eckhaltegriff ship WITH their material — SAP agrees, a Haltegriff Hewi 801 names no
   `additionalMaterials` at all. An **Einhängesitz hangs on a Winkelgriff** and needs none.
   A **Duschhocker stands on the floor**: all 21 bases were queried and SAP names zero
@@ -732,15 +747,21 @@ longer listed** (Schmidlin Aria 50, Catalano Sfera `.105`, Keuco Axess rails, La
 Easytouch, KWC F4LT…), and **1'179 prices have moved** — 1'108 of them UP, which is
 money quoted away silently on every offer.
 
-Two scripts close the loop. Both are REPORT-ONLY: routing an article into a pool is a
-decision with rules and tests (`classify-ch3.cjs`, the injectors), and a script that
-wrote `custom-data.json` from a diff would be an injector with neither.
+Four scripts close the loop, run weekly by `scripts/weekly-catalog-check.sh`:
 
 ```bash
-npm run catalog:census     # ~8 min → st-scraper/census/<date>.json.gz
-npm run catalog:diff       # instant → GONE / PRICE / UNCOVERED
-node st-scraper/catalog-diff.cjs --since st-scraper/census/2026-08-15.json.gz
+npm run catalog:census                          # ~8 min → census/<date>.json.gz
+npm run catalog:diff                            # instant → GONE / PRICE / UNCOVERED
+node st-scraper/catalog-diff.cjs --since census/2026-08-15.json.gz
+node st-scraper/flag-discontinued.cjs --write   # ~7 min → _discontinued
+node st-scraper/find-successors.cjs --csv nachfolger.csv
 ```
+
+Only `flag-discontinued` writes, and only an additive top-level map. Nothing routes
+a new article into a pool — that is a decision with rules and tests
+(`classify-ch3.cjs`, the injectors) and a diff-driven injector would have neither.
+Nothing rewrites a price either: `catalog:diff` reports the 1'179 moves and stops,
+because a price that moved 2440% is our own bad record, not the shop's new one.
 
 ### `search.ws GET_CATALOG` is a full product feed, and it needs no login
 
@@ -799,9 +820,73 @@ A bogus art-Nr is its own case: the API answers OK with
 `UNCOVERED` (38'394 SKUs the shop lists that no configurator reaches) is a standing
 backlog, not a weekly signal — most of it is deliberately out of scope (5'982
 Ersatzteile, Hebeanlagen). Only `--since <previous census>` narrows it to what
-genuinely appeared, which is the work-list worth reading. And the census indexes the
-CATALOGUE: Montagepauschale / Demontage positions live outside it, so three of the
-143 GONE are service lines that were never listed in the first place.
+genuinely appeared, which is the work-list worth reading.
+
+A service position is NOT an exception, though it looks like one. Three of the 143
+GONE are Montagepauschale / Demontage lines and the obvious reading is that such
+positions were never in the catalogue to begin with — **274 of the other 277 are**.
+Their absence means the same thing it means for a bathtub.
+
+### ⚠ The obvious availability test is wrong: `article.ws result.image`
+
+A dropped article keeps answering `OK` with a full price for years — SAP's material
+master is history, not the assortment — so the image looked like the field that goes
+away, and on a six-article spot check it was. Run against all 143 candidates it
+cleared **45 as alive**: every Axor ShowerSolution hose and every Hansgrohe Raindance
+E head. The shop's own search answers `0 Suchergebnisse` for all of their bases —
+the same answer it gives for articles nobody disputes are dead. **The media file
+outlives the listing.** `flag-discontinued.cjs` corroborates with the search instead,
+one visit per 7-digit base, and the two must agree:
+
+| | listed | dropped | purged |
+|---|---|---|---|
+| in the census | yes | **no** | no |
+| shop search for the base | ≥1 hit | **0 hits** | 0 hits |
+| `article.ws` status | OK | OK | ERROR / `matnrDisplay: "ERROR"` |
+
+A base that still answers but no longer carries OUR art-Nr is the third case,
+`variant-gone` — the finish was replaced, and the census lists the survivors.
+
+### Nicht mehr lieferbar — one map, not 143 flags
+
+`custom-data.json._discontinued` is keyed by art-Nr: `{label, pools, since, seen,
+why, siblings}`. Keyed because the same art-Nr is a tray here, a variant there, an
+interned mountingMaterials option in a third place and a pool accessory in a fourth —
+143 articles are ~400 records to mark and one would have been missed silently.
+`since` is carried across runs, so it means *first seen gone*, and the list is
+rebuilt whole, so a re-listed article loses its flag with nobody editing anything.
+
+**Nothing is deleted.** A Stückliste written last month has to open, and only the
+person quoting it can decide the replacement. The app warns; it does not amputate.
+
+Rendering is a **post-render decorator** (`markDiscontinued` + one MutationObserver
+in `_shared.js`, keyed on `window.__discWatchInstalled` — a module-level `let` is
+per instance here). There are fourteen factories and no shared row template;
+weaving the check into the row builders is ~30 edits and the one that gets missed is
+invisible until an order bounces. The observer catches `.bom-code`, `.finish-artnr`
+and every `<select>` option, including surfaces added later.
+
+The last gate is **inside the one `window.copyTextToClipboard`**, before the Mengen
+dialog: the Stückliste reaching SAP is the whole point, and putting the guard there
+means a new configurator inherits it. Cancelling resolves `null` — the existing
+"stay silent" contract — so no caller's `Kopiert:` alert had to change.
+`tests/verify-discontinued.js` pins all of it.
+
+### The weekly job, and the one thing that blocks it
+
+`scripts/weekly-catalog-check.sh` runs census → diff → flag → successors → prune,
+scheduled by `~/Library/LaunchAgents/ch.sanitas.catalog-check.plist` (Monday 06:00).
+It also deletes `custom-data.json.bak-<ISO>` files past the newest 10 — `writeData`
+copies 39 MB on every write and 48 of them had already reached **2.1 GB**. The
+NAMED backups (`bak-ch3`, `bak-mojibake`, `bak-prelocalize-…`) are milestones and
+are never touched.
+
+**⚠ The repo lives on `~/Desktop`, which macOS TCC protects, so the LaunchAgent
+fails with `Operation not permitted` before it runs a line.** A terminal has access
+because the terminal was granted it; a background agent inherits nothing. Either
+grant Full Disk Access to `/bin/bash` (System Settings → Privacy & Security), or
+move the repo somewhere unprotected — `~/Projects/…` — which fixes it permanently
+and is the reason to prefer it. Until then the script has to be started by hand.
 
 ## GLOBAL RULE — full-text classification (no exceptions without a comment)
 

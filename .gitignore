@@ -54,3 +54,6 @@ custom-data.json.bak*
 /st-scraper/truncated-worklist.json
 /st-scraper/text-refetch-shard-*.json
 /st-scraper/label-divergent-review.json
+
+# Catalogue censuses — ~8 MB gz each, reproducible in ~8 min, not source
+/st-scraper/census/

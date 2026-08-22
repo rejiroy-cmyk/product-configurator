@@ -316,7 +316,7 @@ check('every offered fixing resolves to a real pool article', dangling.length ==
 //                             is a Kombifix component, reachable in no Accessoires panel.
 //   Wanneneinsteighilfe (1) — "Befestigung am Wannenrand": it clamps to the tub.
 //   Badewannensitz (1)      — Neoperl Animo, verstellbar: it sits in the tub.
-const OUT_OF_SCOPE = ['Haltegriff', 'Eckhaltegriff', 'Duschsitz', 'Duschhocker',
+const OUT_OF_SCOPE = ['Eckhaltegriff', 'Duschsitz', 'Duschhocker',
     'Seitenwandgriff', 'Armlehne', 'Wannengriff',
     'Fussstütze', 'Wanneneinsteighilfe', 'Badewannensitz',
     // Not accessibility at all — the one article the HOLD list's bare 'Stand' prefix
@@ -459,7 +459,7 @@ check('no Befestigungsmaterial exists for Dornbracht', !anchorBrands.has('Dornbr
 // (decided per article from SAP) or in OUT_OF_SCOPE (decided and pinned). A new one
 // appearing means a family nobody has ruled on — which is how a grab bar ends up
 // orderable without its anchors, or a stool ends up with a screw dropdown.
-const IN_SCOPE_TYPES = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Rückenstütze', 'Duschhandlauf', 'Winkelgriff'];
+const IN_SCOPE_TYPES = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Rückenstütze', 'Duschhandlauf', 'Winkelgriff', 'Haltegriff'];
 const RANGE_TYPES = new Set([...IN_SCOPE_TYPES, ...OUT_OF_SCOPE]);
 const strays = [...new Set(pool.filter(t => t && t.id && /^ch4acc_|^ch4wg_/.test(String(t.id)))
     .map(t => t.productType))].filter(pt => pt && !RANGE_TYPES.has(pt));
@@ -479,6 +479,30 @@ check(`no Winkelgriff is FORCED to pick a fixing (${angled.length} SKUs)`, angle
 const angledOptional = angled.filter(t => (t.fixingOptional || []).length);
 check(`the 6 Keuco Winkelgriff bases offer their alternatives (${angledOptional.length})`,
     angledOptional.length === 18, `expected 18 SKUs, found ${angledOptional.length}`);
+
+
+// HALTEGRIFF: optional arm only, same as Winkelgriff. All 120 bases queried across 9
+// brands, not one says "ohne Befestigungsmaterial" (15 included, 105 silent). Only the 6
+// Keuco Collection Axess bases (18 SKUs) get a row.
+// FOUR bases are silent AND have a screws-and-plugs set offered — Alterna nonda
+// (4912 243), Alterna direta (4981 270), Hansgrohe AddStoris (4964 420). Reji's call:
+// silence is treated as complete, so they get NO row. Nothing says "ohne", and forcing
+// would risk double-ordering for grips that ship complete. Pinned so the tempting
+// "but it offers screws!" reading cannot quietly win later.
+const grips = pool.filter(t => t && t.productType === 'Haltegriff');
+const gripsForced = grips.filter(t => (t.fixingOptions || []).length);
+check(`no Haltegriff is FORCED to pick a fixing (${grips.length} SKUs)`, gripsForced.length === 0,
+    `${gripsForced.length} carry a forced list — no Haltegriff anywhere says "ohne Befestigungsmaterial"`);
+const gripsOptional = grips.filter(t => (t.fixingOptional || []).length);
+check(`only the 6 Keuco Haltegriff bases offer alternatives (${gripsOptional.length})`,
+    gripsOptional.length === 18, `expected 18 SKUs, found ${gripsOptional.length}`);
+const SILENT_NO_ROW = ['4112 100.501.000', '4112 105.501.000', '4112 170.501.000', '4251 301.501.000'];
+check('the four silent-but-offered Haltegriffe get no row',
+    SILENT_NO_ROW.every(a => {
+        const t = pool.find(x => x && x.artNr === a);
+        return t && !(t.fixingOptions || []).length && !(t.fixingOptional || []).length;
+    }),
+    'silence is treated as complete — SAP offering a screw set is not the same as the article needing one');
 
 // The forced pick has to reach the export as "nothing" until it is made.
 check('an unpicked fixing row contributes no SAP line',

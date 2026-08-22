@@ -54,7 +54,12 @@ const HOST = 'https://profishop.sanitastroesch.ch';
 // That is the partner-reference trap; the identity-prefix filter in klapp-fixings.json
 // drops them, because offering a Klappgriff as a screw option would be nonsense.
 const FAMS = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Rückenstütze', 'Duschhandlauf',
-    'Winkelgriff'];
+    'Winkelgriff', 'Haltegriff'];
+// Haltegriff, like Winkelgriff, is here for the OPTIONAL arm only. All 120 bases were
+// queried across 9 brands and not one says "ohne Befestigungsmaterial". Four bases ARE
+// silent while SAP offers them a screws-and-plugs set (Alterna nonda / direta, Hansgrohe
+// AddStoris) — silence is treated as complete (Reji), so they get no row: nothing says
+// "ohne", and forcing would risk double-ordering for grips that ship complete.
 // Winkelgriff is here for the OPTIONAL arm only — never the forced one. All 94 bases were
 // queried across Keuco/Hewi/Nosag/KWC and not one says "ohne Befestigungsmaterial", which
 // confirms the rule on the whole family rather than on the Hewi 805 sample alone. Six

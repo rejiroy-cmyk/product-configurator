@@ -392,6 +392,17 @@ const askCopyFactor = (text) => new Promise((resolve) => {
 // "Kopiert: …" confirmation shows the multiplied Mengen rather than the pre-dialog
 // ones. Resolves with NULL when the user cancelled — callers must stay silent then.
 window.copyTextToClipboard = function (text) {
+    // Last gate before SAP. A discontinued article is never blocked — an old
+    // Stückliste has to stay copyable and only the person quoting it knows what the
+    // replacement is — but it must not leave silently. Cancelling resolves null,
+    // the same "stay quiet" contract the Mengen dialog already uses, so every
+    // caller's "Kopiert: …" alert stays correct without changing one of them.
+    const dead = (typeof discontinuedIn === 'function') ? discontinuedIn(text) : [];
+    if (dead.length && typeof confirm === 'function') {
+        const lines = dead.slice(0, 8).map(a => `   ${a}  —  ${discontinuedNote(a)}`).join('\n');
+        const more = dead.length > 8 ? `\n   … und ${dead.length - 8} weitere` : '';
+        if (!confirm(`⚠ ${dead.length} Position${dead.length > 1 ? 'en sind' : ' ist'} nicht mehr lieferbar:\n\n${lines}${more}\n\nTrotzdem kopieren?`)) return Promise.resolve(null);
+    }
     if (!hasSapQty(text)) return writeClipboard(text).then(() => text);
     return askCopyFactor(text).then(f => {
         if (f === null) return null;
@@ -2307,9 +2318,119 @@ function bomExtraRowHTML(item, note) {
         </tr>`;
 }
 
+// ============================================================================
+//  Nicht mehr lieferbar — the shop drops articles, the Stückliste must say so
+//
+//  `custom-data.json._discontinued` is one map keyed by art-Nr, rebuilt weekly by
+//  st-scraper/flag-discontinued.cjs (census → shop search → verdict). Keyed, not
+//  flagged per record, because the SAME art-Nr is a tray here, a variant there, an
+//  interned mountingMaterials option in a third place and a pool accessory in a
+//  fourth — 143 articles would have been ~400 records to mark and one of them
+//  would have been missed.
+//
+//  Nothing is deleted. A dropped article stays configurable: a Stückliste written
+//  last month must still open, and only the person quoting it can decide what the
+//  replacement is. The app's job is to make sure nobody sends it to SAP unaware.
+//
+//  It is decorated POST-RENDER rather than woven into the row builders. There are
+//  fourteen factories and no shared row template — createRelationalApp alone has
+//  four BOM branches — so weaving it in is ~30 edits and the one that gets missed
+//  is invisible until an order bounces. One observer covers every surface that
+//  prints an art-Nr, including ones added later.
+// ============================================================================
+
+const DISC_WHY_DE = {
+    purged: 'aus dem Artikelstamm entfernt',
+    'base-gone': 'nicht mehr im Sortiment',
+    'variant-gone': 'diese Ausführung wurde ersetzt',
+};
+const RX_ART_NR = /\b\d{4} \d{3}\.\d{3}\.\d{3}\b/g;
+
+const discMap = () => (typeof window !== 'undefined' && window.__discontinued) || {};
+const isDiscontinued = (art) => Object.prototype.hasOwnProperty.call(discMap(), String(art || '').trim());
+const discontinuedInfo = (art) => discMap()[String(art || '').trim()] || null;
+
+/** Every discontinued art-Nr mentioned in a block of text, in order, de-duplicated. */
+const discontinuedIn = (text) => {
+    const hits = String(text || '').match(RX_ART_NR) || [];
+    return [...new Set(hits)].filter(isDiscontinued);
+};
+
+/** German one-liner for a row: why it is gone, and what replaced it if we know. */
+const discontinuedNote = (art) => {
+    const info = discontinuedInfo(art);
+    if (!info) return '';
+    const why = DISC_WHY_DE[info.why] || 'nicht mehr lieferbar';
+    const sib = Array.isArray(info.siblings) ? info.siblings.filter(s => s !== art) : [];
+    return sib.length ? `${why} — Nachfolger prüfen: ${sib.slice(0, 4).join(', ')}` : why;
+};
+
+/**
+ * Tag every element that prints a discontinued art-Nr. Idempotent — it marks with
+ * a class and skips what it already marked, so re-running on each render is free.
+ */
+function markDiscontinued(root) {
+    const scope = root || (typeof document !== 'undefined' ? document : null);
+    if (!scope || !scope.querySelectorAll) return 0;
+    if (!Object.keys(discMap()).length) return 0;
+    let n = 0;
+
+    // 1. the art-Nr cell of any BOM row, and the finish tiles
+    scope.querySelectorAll('.bom-code, .finish-artnr').forEach(el => {
+        const art = (el.textContent || '').trim();
+        if (!isDiscontinued(art)) return;
+        if (el.classList.contains('is-discontinued')) return;
+        el.classList.add('is-discontinued');
+        n++;
+        const row = el.closest('tr');
+        if (row && !row.querySelector('.disc-note')) {
+            row.classList.add('bom-row-discontinued');
+            const desc = row.querySelector('.bom-desc');
+            if (desc && desc.parentNode) {
+                const note = document.createElement('div');
+                note.className = 'bom-desc disc-note';
+                note.textContent = '⚠ NICHT MEHR LIEFERBAR — ' + discontinuedNote(art);
+                desc.parentNode.appendChild(note);
+            }
+        }
+    });
+
+    // 2. dropdown options — so a dead article is visible BEFORE it is picked
+    scope.querySelectorAll('select option').forEach(opt => {
+        if (opt.dataset.discChecked) return;
+        opt.dataset.discChecked = '1';
+        const art = (String(opt.value || '').match(RX_ART_NR) || [])[0]
+            || (String(opt.textContent || '').match(RX_ART_NR) || [])[0];
+        if (!art || !isDiscontinued(art)) return;
+        opt.classList.add('is-discontinued');
+        if (!/nicht mehr lieferbar/i.test(opt.textContent)) opt.textContent = '⚠ ' + opt.textContent + ' — nicht mehr lieferbar';
+        n++;
+    });
+    return n;
+}
+
+/**
+ * ONE observer for the whole app, keyed on `window` — a module-level flag is per
+ * INSTANCE here, and Vite serves this file under several `?v=`/`?t=` URLs at once
+ * (see the warning above the accessory-quantity delegate). Two observers would
+ * double-append every note.
+ */
+function installDiscontinuedWatch() {
+    if (typeof window === 'undefined' || typeof MutationObserver === 'undefined') return;
+    if (window.__discWatchInstalled) return;
+    window.__discWatchInstalled = true;
+    let queued = false;
+    const run = () => { queued = false; try { markDiscontinued(document); } catch (e) { /* never break a render */ } };
+    const obs = new MutationObserver(() => { if (queued) return; queued = true; setTimeout(run, 0); });
+    const start = () => { obs.observe(document.body, { childList: true, subtree: true }); run(); };
+    if (document.body) start();
+    else document.addEventListener('DOMContentLoaded', start, { once: true });
+}
+installDiscontinuedWatch();
+
 export { hasSapQty, multiplySapQty, SAP_QTY_LINE, COPY_FACTOR_MAX,
     accQty, setAccQty, clearAccQty, bomQtyCell, bomQtyInline, rowMenge, ACC_QTY_MAX,
     isOhneCode, isOhneOption,
-    matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, accessoryKategorie, cleanSerie, galleryGridHTML, renderGalleryGrid, galleryBackButton, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs, artFinishCode, accFamilyOf, accCandidates, accSkuInColour, accGroupChoice, accTierNote, isGarniturSet, garniturCovers, garniturHasRail, isSystemPart, isGarniturGroupName, threadOf, packUnits, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, findArticleByBase, requiredBodyFor, requiredArmFor, bodyRefsFor, bodyPresentFor, bomExtraRowHTML, findPanelSku, requiredPanelFor, PANEL_COLOUR, withoutPartnerRefs, isWaschtischKombination, KOMBI_LABEL, requiredWallMountFor, WALL_MOUNT_BY_BASE,
+    matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, accessoryKategorie, cleanSerie, galleryGridHTML, renderGalleryGrid, galleryBackButton, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs, artFinishCode, accFamilyOf, accCandidates, accSkuInColour, accGroupChoice, accTierNote, isGarniturSet, garniturCovers, garniturHasRail, isSystemPart, isGarniturGroupName, threadOf, packUnits, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, findArticleByBase, requiredBodyFor, requiredArmFor, bodyRefsFor, bodyPresentFor, bomExtraRowHTML, isDiscontinued, discontinuedInfo, discontinuedIn, discontinuedNote, markDiscontinued, DISC_WHY_DE, findPanelSku, requiredPanelFor, PANEL_COLOUR, withoutPartnerRefs, isWaschtischKombination, KOMBI_LABEL, requiredWallMountFor, WALL_MOUNT_BY_BASE,
     klappFixingPlan, klappFixingRowsHTML, klappFixingSapLines, klappPick, setKlappPick,
     clearKlappPick, installKlappFixDelegate };

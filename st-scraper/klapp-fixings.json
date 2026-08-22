@@ -670,7 +670,24 @@
         "4171 442.000.000",
         "4171 444.000.000"
       ]
+    },
+    {
+      "bases": [
+        "4171400",
+        "4171401",
+        "4171402",
+        "4171403",
+        "4171404",
+        "4171406"
+      ],
+      "suppliedNote": "Set Nr. 1 (mitgeliefert)",
+      "options": [
+        "4171 442.000.000",
+        "4171 444.000.000"
+      ]
     }
   ],
-  "_winkelgriff": "Winkelgriff: all 94 bases queried across Keuco/Hewi/Nosag/KWC — NOT ONE says 'ohne Befestigungsmaterial' (27 included, 67 silent), which confirms Reji's rule on the whole family rather than on the Hewi 805 sample alone. The 6 Keuco Collection Axess bases say 'mit Befestigungsmaterial, Set Nr. 1' and offer the SAME two alternatives as the Duschhandlauf (4171 442 Nr. 4, 4171 444 Nr. 7), so they get the same OPTIONAL row."
+  "_winkelgriff": "Winkelgriff: all 94 bases queried across Keuco/Hewi/Nosag/KWC — NOT ONE says 'ohne Befestigungsmaterial' (27 included, 67 silent), which confirms Reji's rule on the whole family rather than on the Hewi 805 sample alone. The 6 Keuco Collection Axess bases say 'mit Befestigungsmaterial, Set Nr. 1' and offer the SAME two alternatives as the Duschhandlauf (4171 442 Nr. 4, 4171 444 Nr. 7), so they get the same OPTIONAL row.",
+  "_haltegriff": "Haltegriff: all 120 bases queried across 9 brands — NOT ONE says 'ohne Befestigungsmaterial' (15 included, 105 silent). Only the 6 Keuco Collection Axess bases (18 SKUs) get a row, the same 'Set Nr. 1 (mitgeliefert)' + Nr. 4 / Nr. 7 shape as Duschhandlauf and Winkelgriff. FOUR bases are silent AND have a screws-and-plugs set offered (Alterna nonda 4912 243, Alterna direta 4981 270, Hansgrohe AddStoris 4964 420) — Reji's call: silence is treated as complete, so no row. Nothing says 'ohne', so forcing would risk double-ordering for grips that ship complete.",
+  "_filter_trap": "⚠ The identity-prefix filter nearly missed real fixings. 'Befestigungs-Set' carries a HYPHEN and does not match ^befestigungsset, and several genuine sets are labelled 'Montageset, 2 Schrauben, 2 Dübel'. Re-checked Rückenstütze, Duschhandlauf, Winkelgriff and Duschhocker with a widened test: none missed. The Klapp* family's 11 non-fixing references are all Abdeckplatte / Papierhalter / Rückenlehne / Rückenstütze / Armlehne, so nothing was lost there either. Widen the test, not the conclusion, if this list is ever rebuilt."
 }

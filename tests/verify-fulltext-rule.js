@@ -118,6 +118,11 @@ const GUARDED = {
     // article lands in, and Ch3's distinguishing words ("Standklosett Keramik", "für
     // Urinoir") live in the description far more often than in the truncated ERP label.
     'st-scraper/classify-ch3.cjs': ['classify'],
+    // Proposing a replacement for a discontinued article is a matching decision on
+    // products, and the discriminator that decides whether two articles are really
+    // interchangeable — "ohne Überlauf", a thread spec, a dimension — lives in the
+    // description far more often than in the truncated label.
+    'st-scraper/find-successors.cjs': ['matchSuccessors'],
 };
 
 // Strip line and block comments so a comment mentioning "description" can't satisfy the
