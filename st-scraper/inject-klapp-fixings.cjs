@@ -46,7 +46,14 @@ const DET = path.resolve(__dirname, 'klapp-fixing-details.json');
 const PRICES = path.resolve(__dirname, '../prices.json');
 
 const HOST = 'https://profishop.sanitastroesch.ch';
-const FAMS = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz'];
+// Rückenstütze joins the scope: 7 of its 24 bases say "ohne Befestigungsmaterial" and
+// SAP names anchors for them, including six SKUs that existed nowhere in our data —
+// 4711 178/185/186 (1-teilig, for the back-rests that mount on a Klappgriff) and
+// 4711 290/291/292 (2-teilig, and 290 says "zu Rückenstütze" outright).
+// ⚠ Their Zubehör group also lists 30 KLAPPGRIFF entries — the bars the back-rest fits.
+// That is the partner-reference trap; the identity-prefix filter in klapp-fixings.json
+// drops them, because offering a Klappgriff as a screw option would be nonsense.
+const FAMS = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Rückenstütze'];
 // An Einhängesitz / einhängbarer Klappsitz hooks onto a grab bar — no anchors at all.
 const RX_HOOKS = /einhäng|zum einhängen|einzuhängen/i;
 const RX_OHNE = /ohne\s+befestigungsmaterial/i;

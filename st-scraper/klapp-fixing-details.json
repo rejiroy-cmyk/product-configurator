@@ -3,46 +3,288 @@
   "_note": "A Montageplatte states 'ohne Befestigungsmaterial, Zubehör: Befestigungsmaterial siehe 4711 187 - 190' — the plate needs screws too. That is why the Montageplatte row comes FIRST and the Befestigungsmaterial row second (Reji, 2026-08-22).",
   "_images": "Paths are the SAP-served ones, read from the API, never constructed. Three fixings (4711 396/398/297) have no image at all; two Hewi LifeSystem plates carry SPACES in the filename ('/multimedia/Web/PS1/4711 383.446.000.png') and must be URL-encoded before fetching.",
   "articles": {
-    "4171 441.000.000": { "label": "Befestigungsset Nr. 2 Keuco Axess, Bestehend aus, 2 x Senkholzschraube mit", "description": "Befestigungs Set Nr. 2 Keuco Axess, Bestehend aus, 2 x Senkholzschraube mit TX 40, 10 x 100 mm, V2A, 2 x Universaldübel Duo Power 12 x 60 mm", "price": 15, "image": "/multimedia/Web/PS1/04171441_000_000.png" },
-    "4171 443.000.000": { "label": "Befestigungsset Nr. 5 Keuco Axess, Bestehend aus, 2 x Senkholzschraube mit", "description": "Befestigungs Set Nr. 5 Keuco Axess, Bestehend aus, 2 x Senkholzschraube mit TX 40, 10 x 80 mm, V2A, direkte Befestigung ohne Dübel", "price": 15, "image": "/multimedia/Web/PS1/04171443_000_000.png" },
-    "4171 446.000.000": { "label": "Befestigungsset Nr. 8 Keuco Axess, Bestehend aus, 2 x Senkschraube mit", "description": "Befestigungs Set Nr. 8 Keuco Axess, Bestehend aus, 2 x Senkschraube mit Innensechskant, DIN 7991, M 10 x 60 mm, V2A, direkte Befestigung ohne Dübel", "price": 8.4, "image": "/multimedia/Web/PS1/04171446_000_000.png" },
-    "4711 179.000.000": { "label": "Befestigungsmaterial Hewi 801, für Klappgriff 801, für Beton, Vollstein, 2", "description": "Befestigungsmaterial Hewi für Beton, Vollstein 2 Edelstahlschrauben M 10 x 30 mm 2 Innengewindehülsen M 10 x 110 mm", "price": 54, "image": "/multimedia/Web/PS1/04711179_000_000.png" },
-    "4711 180.000.000": { "label": "Befestigungsmaterial Hewi, für Klappgriff 801, für Leichtbeton, Beton", "description": "Befestigungsmaterial Hewi für Leichtbeton, Beton und Lochziegel 2 Edelstahlschrauben M 10 x 30 2 Siebhülsen HIT-SC 18 x 85 2 Innengewindehülsen HIT-IC", "price": 35.5, "image": "/multimedia/Web/PS1/04711180_000_000.png" },
-    "4711 187.000.000": { "label": "Befestigungsmaterial Hewi, für Beton, Vollstein, 2 Senkschrauben, 2 Dübel", "description": "Befestigungsmaterial Hewi 2-teilig, 2 Senkschrauben 2 Dübel, für Beton Vollstein", "price": 28, "image": "/multimedia/Web/PS1/04711187.png" },
-    "4711 189.000.000": { "label": "Befestigungsmaterial Hewi, für Leichtbeton, Beton und Lochziegel,", "description": "Befestigungsmaterial Hewi 2-teilig Injektionsanker mit Netz für Leichtbeton, Beton und Lochziegel, ohne Injektionsmörtel", "price": 35.5, "image": "/multimedia/Web/PS1/04711189.png" },
-    "4711 190.000.000": { "label": "Befestigungsmaterial Hewi, für Leichtbauwände mit Hinterfütterung, 2", "description": "Befestigungsmaterial Hewi, für Leichtbauwände mit Hinterfütterung, 2 Edelstahlschrauben", "price": 28, "image": "/multimedia/Web/PS1/04711190.png" },
-    "4711 193.000.000": { "label": "Befestigungsmaterial Hewi 801 / 805, für Beton, Vollstein, 4 Senkschrauben,", "description": "Befestigungsmaterial Hewi 801/805, 4-teilig 4 Senkschrauben, 4 Dübel für Beton, Vollstein", "price": 54.5, "image": "/multimedia/Web/PS1/04711193.png" },
-    "4711 195.000.000": { "label": "Befestigungsmaterial Hewi 801 / 805, für Leichtbeton, Beton und Lochziegel,", "description": "Befestigungsmaterial Hewi 801/805, 4-teilig Injektionsanker mit Netz für Leichtbeton, Beton und Lochziegel, ohne Injektionsmörtel", "price": 69, "image": "/multimedia/Web/PS1/04711195.png" },
-    "4711 196.000.000": { "label": "Befestigungsmaterial Hewi 801 / 805, für Leichtbauwände mit Hinterfütterung,", "description": "Befestigungsmaterial Hewi 801 / 805, für Leichtbauwände mit Hinterfütterung, 4 Edelstahlschrauben", "price": 54.5, "image": "/multimedia/Web/PS1/04711196.png" },
-    "4711 297.000.000": { "label": "Befestigungsmaterial Hewi, für Leichtbauwänden mit integrierten", "description": "Befestigungsmaterial Hewi für Leichtbauwänden mit integrierten Stahlplatten 2 Edelstahlschrauben M10 x 60 mm", "price": 28, "image": null },
-    "4711 390.000.000": { "label": "Befestigungsmaterial Hewi Lifesystem, für Beton, Vollstein, 3", "description": "Befestigungsmaterial Hewi LifeSystem, 3-teilig 3 Edelstahlschrauben, 3 Dübel 3 Edelstahlscheiben, für Beton, Vollstein, für Klappgriffe und Klappsitze", "price": 40.5, "image": "/multimedia/Web/PS1/04711390.png" },
-    "4711 392.000.000": { "label": "Befestigungsmaterial Hewi Lifesystem, für Leichtbeton, Beton und Lochziegel,", "description": "Befestigungsmaterial Hewi LifeSystem, 3-teilig für Klappgriffe und Klappsitze Injektionsanker mit Netz für Leichtbeton, Beton und Lochziegel, ohne Injektionsmörtel", "price": 51, "image": "/multimedia/Web/PS1/04711392.png" },
-    "4711 393.000.000": { "label": "Befestigungsmaterial Hewi Lifesystem, für Leichtbauwände mit Hinterfütterung,", "description": "Befestigungsmaterial Hewi Lifesystem, für Leichtbauwände mit Hinterfütterung, 3 Edelstahlschrauben", "price": 40.5, "image": "/multimedia/Web/PS1/04711393.png" },
-    "4711 396.000.000": { "label": "Befestigungsmaterial Hewi, für Leichtbauwänden mit integrierten", "description": "Befestigungsmaterial Hewi für Leichtbauwänden mit integrierten Stahlplatten 3 Edelstahlschrauben M10 x 60 mm 3 Scheiben ø 22 x 5 mm", "price": 40.5, "image": null },
-    "4711 398.000.000": { "label": "Befestigungsmaterial Hewi, für Hohlblocksteinen aus Beton,", "description": "Befestigungsmaterial Hewi für Hohlblocksteinen aus Beton Hochlochziegel Hohlblöcke aus Leichtbeton 3 Edelstahlschrauben M10 x 30 mm 3 Siebhülsen HIT-SC 18 x 85 mm 3 Innengewindehülsen HIT-IC 3 Scheiben ø 22 x 5 mm", "price": 51, "image": null },
-    "4721 187.000.000": { "label": "Befestigungsmaterial Nosag / Verso Care, für Lochziegel, für Klappgriff", "description": "Befestigungsmaterial Nosag Verso Care Wandstützgriff / Klappgriff für Lochziegel", "price": 113, "image": "/multimedia/Web/PS1/04721187_000_000.png" },
-    "4721 188.000.000": { "label": "Befestigungsmaterial Nosag / Verso Care, für Vorwandmontage,", "description": "Befestigungsmaterial Nosag / Verso Care, für Vorwandmontage, Schraubenlänge 100 mm, für Klappgriff", "price": 59.5, "image": "/multimedia/Web/PS1/04721188_000_000.png" },
-    "4721 193.000.000": { "label": "Befestigungsmaterial Nosag, für Lochziegel, für Klappsitz", "description": "Befestigungsmaterial Nosag Klappsitz für Lochziegel", "price": 113, "image": "/multimedia/Web/PS1/04721193_000_000.png" },
-    "4721 194.000.000": { "label": "Befestigungsmaterial Nosag, für Vorwandmontage, Schraubenlänge 85 mm,", "description": "Befestigungsmaterial Nosag, für Vorwandmontage, Schraubenlänge 85 mm , für Klappsitz", "price": 36.5, "image": "/multimedia/Web/PS1/04721194_000_000.png" },
-    "4721 387.000.000": { "label": "Befestigungsmaterial Nosag Ineoline, für Lochziegel, Schraubenlänge 85 mm,", "description": "Befestigungsmaterial Nosag Ineoline, für Lochziegel, Schraubenlänge 85 mm, für Klappgriff/Klappsitz", "price": 59.5, "image": "/multimedia/Web/PS1/04721387_000_000.png" },
-    "4721 388.000.000": { "label": "Befestigungsmaterial Nosag Ineoline, für Vorwandmontage, Schraubenlänge 70", "description": "Befestigungsmaterial Nosag Ineoline, für Vorwandmontage, Schraubenlänge 70 mm, für Klappgriff/Klappsitz", "price": 35.5, "image": "/multimedia/Web/PS1/04721388_000_000.png" },
-    "4721 795.000.000": { "label": "Befestigungsmaterial Nosag Cavere, für Lochziegel, für Klappgriff/Klappsitz", "description": "Befestigungsmaterial Cavere Klappgriff/Klappsitz für Lochziegel", "price": 113, "image": "/multimedia/Web/PS1/04721795_000_000.png" },
-    "4721 796.000.000": { "label": "Befestigungsmaterial Nosag Cavere, für Vorwandmontage, Schraubenlänge 100 mm,", "description": "Befestigungsmaterial Nosag Cavere, für Vorwandmontage, Schraubenlänge 100 mm, für Klappgriff/Klappsitz, für Vorwandmontage", "price": 53.5, "image": "/multimedia/Web/PS1/04721796_000_000.png" },
-    "4721 798.000.000": { "label": "Befestigungsmaterial Nosag Cavare, für Beton, für Klappgriff/Klappsitz", "description": "Befestigungsmaterial Nosag für Klappsitz Beton", "price": 69.5, "image": "/multimedia/Web/PS1/04721798_000_000.png" },
-    "4722 200.000.000": { "label": "Befestigungsmaterial Nosag Verso Care/Futuro, für Lochziegel, zu", "description": "Befestigungsmaterial Nosag Verso Care/Futuro, für Lochziegel, zu Duschklappsitz", "price": 113, "image": "/multimedia/Web/PS1/04722200_000_000.png" },
-    "4722 201.000.000": { "label": "Befestigungsmaterial Nosag Verso Care/Futuro, für Vorwandsystem,", "description": "Befestigungsmaterial Nosag Verso Care/Futuro, für Vorwandsystem, Schraubenlänge 90 mm, zu Duschklappsitz", "price": 42.5, "image": "/multimedia/Web/PS1/04722201_000_000.png" },
-    "4711 383.446.000": { "label": "Montageplatte mit Abdeckung Hewi LifeSystem, für Stützklappgriffe,", "description": "Montageplatte mit Abdeckung Hewi LifeSystem, für Stützklappgriffe, Abdeckung aus Kunststoff, Breite 12,2 cm, Höhe 20,3 cm, Tiefe 2,5 cm", "price": 94, "image": "/multimedia/Web/PS1/4711 383.446.000.png" },
-    "4711 384.446.000": { "label": "Abdeckung für Montageplatte Hewi LifeSystem, zur Verkleidung montierter", "description": "Abdeckung für Montageplatte Hewi LifeSystem, zur Verkleidung montierter Wandplatten, Abdeckung aus Kunststoff, Breite 12,2 cm, Höhe 20,3 cm, Tiefe 2,5 cm", "price": 66, "image": "/multimedia/Web/PS1/4711 384.446.000.png" },
-    "4711 386.000.000": { "label": "Montageplatte Hewi LifeSystem, für Stützklappgriffe, Edelstahl, Breite", "description": "Montageplatte Hewi LifeSystem, für Stützklappgriffe, Edelstahl, Breite 10,2 cm, Höhe 17,6 cm, Tiefe 1,3 cm", "price": 39.5, "image": "/multimedia/Web/PS1/4711 386.000.000.png" },
-    "4711 780.523.000": { "label": "Montageplatte mit Abdeckung Hewi 900, für Stützklappgriffe, Rahmen der", "description": "Montageplatte mit Abdeckung Hewi 900, für Stützklappgriffe, Rahmen der Abdeckung, 523 / 524 anthrazitgrau, 535 schwarz matt, 536 weiss matt, 8 x 22,5 x 1,9 cm, ohne Befestigungsmaterial, Zubehör: Befestigungsmaterial siehe 4711 187 - 190", "price": 199, "image": "/multimedia/Web/PS1/04711780_523_000.png" },
-    "4711 781.523.000": { "label": "Abdeckung für Montageplatte Hewi 900, für Stützklappgriffe, Rahmen der", "description": "Abdeckung für Montageplatte Hewi 900, für Stützklappgriffe, Rahmen der Abdeckung, 523 / 524 anthrazitgrau, 535 weiss matt, 536 schwarz matt, 8 x 22,6 x 2 cm", "price": 136, "image": "/multimedia/Web/PS1/04711781_523_000.png" },
-    "4711 782.523.000": { "label": "Montageplatte mit Abdeckung Hewi 900, für Klappsitze, Rahmen der Abdeckung,", "description": "Montageplatte mit Abdeckung Hewi 900, für Klappsitze, Rahmen der Abdeckung, 523 / 524 anthrazitgrau, 535 schwarz matt, 536 weiss matt, 16,3 x 10,9 x 1,3 cm, ohne Befestigungsmaterial, Zubehör: Befestigungsmaterial siehe 4711 187 - 190", "price": 236, "image": "/multimedia/Web/PS1/04711782_523_000.png" },
-    "4711 783.523.000": { "label": "Abdeckung für Montageplatte Hewi 900, für Klappsitze, Rahmen der Abdeckung,", "description": "Abdeckung für Montageplatte Hewi 900, für Klappsitze, Rahmen der Abdeckung, 523 / 524 anthrazitgrau, 535 schwarz matt, 536 weiss matt, 16,3 x 10,9 x 1,3 cm", "price": 182, "image": "/multimedia/Web/PS1/04711783_523_000.png" },
-    "4711 893.523.000": { "label": "Montageplatte Hewi 900, Breite 70 mm, Höhe 210 mm, Tiefe 18 mm, mit", "description": "Montageplatte Hewi 900, Breite 70 mm, Höhe 210 mm, Tiefe 18 mm, mit Dichtelement", "price": 90, "image": "/multimedia/Web/PS1/04711893_523_000.png" },
-    "4711 910.523.000": { "label": "Montageplatte Hewi 801 / 805, Breite 74 mm, Höhe 249 mm, Tiefe 18 mm, mit", "description": "Montageplatte Hewi 801 / 805, Breite 74 mm, Höhe 249 mm, Tiefe 18 mm, mit Dichtelement, ohne Befestigungsmaterial, Zubehör: Befestigungsmaterial siehe 4711 187 - 190", "price": 81.5, "image": "/multimedia/Web/PS1/04711910_523_000.png" },
-    "4711 911.100.000": { "label": "Montageplatte mit Abdeckung Hewi 801, für Stützklappgriffe, 82 x 265 x 21 mm,", "description": "Montageplatte mit Abdeckung Hewi 801, für Stützklappgriffe, 82 x 265 x 21 mm, ohne Befestigungsmaterial, Zubehör: Befestigungsmaterial siehe 4711 187 - 190", "price": 169, "image": "/multimedia/Web/PS1/04711911_100_000.png" },
-    "4711 912.100.000": { "label": "Abdeckung für Montageplatte Hewi 801, für Stützklappgriffe, 82 x 265 x 21 mm,", "description": "Abdeckung für Montageplatte Hewi 801, für Stützklappgriffe, 82 x 265 x 21 mm", "price": 119, "image": "/multimedia/Web/PS1/04711912_100_000.png" },
-    "4721 179.100.000": { "label": "Grundplatte mit Abdeckplatte Nosag, für die nachträgliche Montage von", "description": "Grundplatte mit Abdeckplatte Nosag, für die nachträgliche Montage von Klappgriffe, mit Wechselplatte 4721 171 - 177", "price": 116, "image": "/multimedia/Web/PS1/04721179.png" },
-    "4722 241.100.000": { "label": "Montageplatte und Abdeckung Nosag Verso Care, 22,7 x 11,5 x 2,4 cm,", "description": "Montageplatte und Abdeckung Nosag Verso Care, 22,7 x 11,5 x 2,4 cm, Montageplatte aus Edelstahl, Abdeckung aus Nylon, für Klappgriffe, Verso Care, ohne Befestigungsmaterial, Zubehör: Befestigungsmaterial siehe 4721 795 - 798", "price": 169, "image": "/multimedia/Web/PS1/04722241_nV_000.png" }
-  }
+    "4171 441.000.000": {
+      "label": "Befestigungsset Nr. 2 Keuco Axess, Bestehend aus, 2 x Senkholzschraube mit",
+      "description": "Befestigungs Set Nr. 2 Keuco Axess, Bestehend aus, 2 x Senkholzschraube mit TX 40, 10 x 100 mm, V2A, 2 x Universaldübel Duo Power 12 x 60 mm",
+      "price": 15,
+      "image": "/multimedia/Web/PS1/04171441_000_000.png"
+    },
+    "4171 443.000.000": {
+      "label": "Befestigungsset Nr. 5 Keuco Axess, Bestehend aus, 2 x Senkholzschraube mit",
+      "description": "Befestigungs Set Nr. 5 Keuco Axess, Bestehend aus, 2 x Senkholzschraube mit TX 40, 10 x 80 mm, V2A, direkte Befestigung ohne Dübel",
+      "price": 15,
+      "image": "/multimedia/Web/PS1/04171443_000_000.png"
+    },
+    "4171 446.000.000": {
+      "label": "Befestigungsset Nr. 8 Keuco Axess, Bestehend aus, 2 x Senkschraube mit",
+      "description": "Befestigungs Set Nr. 8 Keuco Axess, Bestehend aus, 2 x Senkschraube mit Innensechskant, DIN 7991, M 10 x 60 mm, V2A, direkte Befestigung ohne Dübel",
+      "price": 8.4,
+      "image": "/multimedia/Web/PS1/04171446_000_000.png"
+    },
+    "4711 179.000.000": {
+      "label": "Befestigungsmaterial Hewi 801, für Klappgriff 801, für Beton, Vollstein, 2",
+      "description": "Befestigungsmaterial Hewi für Beton, Vollstein 2 Edelstahlschrauben M 10 x 30 mm 2 Innengewindehülsen M 10 x 110 mm",
+      "price": 54,
+      "image": "/multimedia/Web/PS1/04711179_000_000.png"
+    },
+    "4711 180.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Klappgriff 801, für Leichtbeton, Beton",
+      "description": "Befestigungsmaterial Hewi für Leichtbeton, Beton und Lochziegel 2 Edelstahlschrauben M 10 x 30 2 Siebhülsen HIT-SC 18 x 85 2 Innengewindehülsen HIT-IC",
+      "price": 35.5,
+      "image": "/multimedia/Web/PS1/04711180_000_000.png"
+    },
+    "4711 187.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Beton, Vollstein, 2 Senkschrauben, 2 Dübel",
+      "description": "Befestigungsmaterial Hewi 2-teilig, 2 Senkschrauben 2 Dübel, für Beton Vollstein",
+      "price": 28,
+      "image": "/multimedia/Web/PS1/04711187.png"
+    },
+    "4711 189.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Leichtbeton, Beton und Lochziegel,",
+      "description": "Befestigungsmaterial Hewi 2-teilig Injektionsanker mit Netz für Leichtbeton, Beton und Lochziegel, ohne Injektionsmörtel",
+      "price": 35.5,
+      "image": "/multimedia/Web/PS1/04711189.png"
+    },
+    "4711 190.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Leichtbauwände mit Hinterfütterung, 2",
+      "description": "Befestigungsmaterial Hewi, für Leichtbauwände mit Hinterfütterung, 2 Edelstahlschrauben",
+      "price": 28,
+      "image": "/multimedia/Web/PS1/04711190.png"
+    },
+    "4711 193.000.000": {
+      "label": "Befestigungsmaterial Hewi 801 / 805, für Beton, Vollstein, 4 Senkschrauben,",
+      "description": "Befestigungsmaterial Hewi 801/805, 4-teilig 4 Senkschrauben, 4 Dübel für Beton, Vollstein",
+      "price": 54.5,
+      "image": "/multimedia/Web/PS1/04711193.png"
+    },
+    "4711 195.000.000": {
+      "label": "Befestigungsmaterial Hewi 801 / 805, für Leichtbeton, Beton und Lochziegel,",
+      "description": "Befestigungsmaterial Hewi 801/805, 4-teilig Injektionsanker mit Netz für Leichtbeton, Beton und Lochziegel, ohne Injektionsmörtel",
+      "price": 69,
+      "image": "/multimedia/Web/PS1/04711195.png"
+    },
+    "4711 196.000.000": {
+      "label": "Befestigungsmaterial Hewi 801 / 805, für Leichtbauwände mit Hinterfütterung,",
+      "description": "Befestigungsmaterial Hewi 801 / 805, für Leichtbauwände mit Hinterfütterung, 4 Edelstahlschrauben",
+      "price": 54.5,
+      "image": "/multimedia/Web/PS1/04711196.png"
+    },
+    "4711 297.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Leichtbauwänden mit integrierten",
+      "description": "Befestigungsmaterial Hewi für Leichtbauwänden mit integrierten Stahlplatten 2 Edelstahlschrauben M10 x 60 mm",
+      "price": 28,
+      "image": null
+    },
+    "4711 390.000.000": {
+      "label": "Befestigungsmaterial Hewi Lifesystem, für Beton, Vollstein, 3",
+      "description": "Befestigungsmaterial Hewi LifeSystem, 3-teilig 3 Edelstahlschrauben, 3 Dübel 3 Edelstahlscheiben, für Beton, Vollstein, für Klappgriffe und Klappsitze",
+      "price": 40.5,
+      "image": "/multimedia/Web/PS1/04711390.png"
+    },
+    "4711 392.000.000": {
+      "label": "Befestigungsmaterial Hewi Lifesystem, für Leichtbeton, Beton und Lochziegel,",
+      "description": "Befestigungsmaterial Hewi LifeSystem, 3-teilig für Klappgriffe und Klappsitze Injektionsanker mit Netz für Leichtbeton, Beton und Lochziegel, ohne Injektionsmörtel",
+      "price": 51,
+      "image": "/multimedia/Web/PS1/04711392.png"
+    },
+    "4711 393.000.000": {
+      "label": "Befestigungsmaterial Hewi Lifesystem, für Leichtbauwände mit Hinterfütterung,",
+      "description": "Befestigungsmaterial Hewi Lifesystem, für Leichtbauwände mit Hinterfütterung, 3 Edelstahlschrauben",
+      "price": 40.5,
+      "image": "/multimedia/Web/PS1/04711393.png"
+    },
+    "4711 396.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Leichtbauwänden mit integrierten",
+      "description": "Befestigungsmaterial Hewi für Leichtbauwänden mit integrierten Stahlplatten 3 Edelstahlschrauben M10 x 60 mm 3 Scheiben ø 22 x 5 mm",
+      "price": 40.5,
+      "image": null
+    },
+    "4711 398.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Hohlblocksteinen aus Beton,",
+      "description": "Befestigungsmaterial Hewi für Hohlblocksteinen aus Beton Hochlochziegel Hohlblöcke aus Leichtbeton 3 Edelstahlschrauben M10 x 30 mm 3 Siebhülsen HIT-SC 18 x 85 mm 3 Innengewindehülsen HIT-IC 3 Scheiben ø 22 x 5 mm",
+      "price": 51,
+      "image": null
+    },
+    "4721 187.000.000": {
+      "label": "Befestigungsmaterial Nosag / Verso Care, für Lochziegel, für Klappgriff",
+      "description": "Befestigungsmaterial Nosag Verso Care Wandstützgriff / Klappgriff für Lochziegel",
+      "price": 113,
+      "image": "/multimedia/Web/PS1/04721187_000_000.png"
+    },
+    "4721 188.000.000": {
+      "label": "Befestigungsmaterial Nosag / Verso Care, für Vorwandmontage,",
+      "description": "Befestigungsmaterial Nosag / Verso Care, für Vorwandmontage, Schraubenlänge 100 mm, für Klappgriff",
+      "price": 59.5,
+      "image": "/multimedia/Web/PS1/04721188_000_000.png"
+    },
+    "4721 193.000.000": {
+      "label": "Befestigungsmaterial Nosag, für Lochziegel, für Klappsitz",
+      "description": "Befestigungsmaterial Nosag Klappsitz für Lochziegel",
+      "price": 113,
+      "image": "/multimedia/Web/PS1/04721193_000_000.png"
+    },
+    "4721 194.000.000": {
+      "label": "Befestigungsmaterial Nosag, für Vorwandmontage, Schraubenlänge 85 mm,",
+      "description": "Befestigungsmaterial Nosag, für Vorwandmontage, Schraubenlänge 85 mm , für Klappsitz",
+      "price": 36.5,
+      "image": "/multimedia/Web/PS1/04721194_000_000.png"
+    },
+    "4721 387.000.000": {
+      "label": "Befestigungsmaterial Nosag Ineoline, für Lochziegel, Schraubenlänge 85 mm,",
+      "description": "Befestigungsmaterial Nosag Ineoline, für Lochziegel, Schraubenlänge 85 mm, für Klappgriff/Klappsitz",
+      "price": 59.5,
+      "image": "/multimedia/Web/PS1/04721387_000_000.png"
+    },
+    "4721 388.000.000": {
+      "label": "Befestigungsmaterial Nosag Ineoline, für Vorwandmontage, Schraubenlänge 70",
+      "description": "Befestigungsmaterial Nosag Ineoline, für Vorwandmontage, Schraubenlänge 70 mm, für Klappgriff/Klappsitz",
+      "price": 35.5,
+      "image": "/multimedia/Web/PS1/04721388_000_000.png"
+    },
+    "4721 795.000.000": {
+      "label": "Befestigungsmaterial Nosag Cavere, für Lochziegel, für Klappgriff/Klappsitz",
+      "description": "Befestigungsmaterial Cavere Klappgriff/Klappsitz für Lochziegel",
+      "price": 113,
+      "image": "/multimedia/Web/PS1/04721795_000_000.png"
+    },
+    "4721 796.000.000": {
+      "label": "Befestigungsmaterial Nosag Cavere, für Vorwandmontage, Schraubenlänge 100 mm,",
+      "description": "Befestigungsmaterial Nosag Cavere, für Vorwandmontage, Schraubenlänge 100 mm, für Klappgriff/Klappsitz, für Vorwandmontage",
+      "price": 53.5,
+      "image": "/multimedia/Web/PS1/04721796_000_000.png"
+    },
+    "4721 798.000.000": {
+      "label": "Befestigungsmaterial Nosag Cavare, für Beton, für Klappgriff/Klappsitz",
+      "description": "Befestigungsmaterial Nosag für Klappsitz Beton",
+      "price": 69.5,
+      "image": "/multimedia/Web/PS1/04721798_000_000.png"
+    },
+    "4722 200.000.000": {
+      "label": "Befestigungsmaterial Nosag Verso Care/Futuro, für Lochziegel, zu",
+      "description": "Befestigungsmaterial Nosag Verso Care/Futuro, für Lochziegel, zu Duschklappsitz",
+      "price": 113,
+      "image": "/multimedia/Web/PS1/04722200_000_000.png"
+    },
+    "4722 201.000.000": {
+      "label": "Befestigungsmaterial Nosag Verso Care/Futuro, für Vorwandsystem,",
+      "description": "Befestigungsmaterial Nosag Verso Care/Futuro, für Vorwandsystem, Schraubenlänge 90 mm, zu Duschklappsitz",
+      "price": 42.5,
+      "image": "/multimedia/Web/PS1/04722201_000_000.png"
+    },
+    "4711 383.446.000": {
+      "label": "Montageplatte mit Abdeckung Hewi LifeSystem, für Stützklappgriffe,",
+      "description": "Montageplatte mit Abdeckung Hewi LifeSystem, für Stützklappgriffe, Abdeckung aus Kunststoff, Breite 12,2 cm, Höhe 20,3 cm, Tiefe 2,5 cm",
+      "price": 94,
+      "image": "/multimedia/Web/PS1/4711 383.446.000.png"
+    },
+    "4711 384.446.000": {
+      "label": "Abdeckung für Montageplatte Hewi LifeSystem, zur Verkleidung montierter",
+      "description": "Abdeckung für Montageplatte Hewi LifeSystem, zur Verkleidung montierter Wandplatten, Abdeckung aus Kunststoff, Breite 12,2 cm, Höhe 20,3 cm, Tiefe 2,5 cm",
+      "price": 66,
+      "image": "/multimedia/Web/PS1/4711 384.446.000.png"
+    },
+    "4711 386.000.000": {
+      "label": "Montageplatte Hewi LifeSystem, für Stützklappgriffe, Edelstahl, Breite",
+      "description": "Montageplatte Hewi LifeSystem, für Stützklappgriffe, Edelstahl, Breite 10,2 cm, Höhe 17,6 cm, Tiefe 1,3 cm",
+      "price": 39.5,
+      "image": "/multimedia/Web/PS1/4711 386.000.000.png"
+    },
+    "4711 780.523.000": {
+      "label": "Montageplatte mit Abdeckung Hewi 900, für Stützklappgriffe, Rahmen der",
+      "description": "Montageplatte mit Abdeckung Hewi 900, für Stützklappgriffe, Rahmen der Abdeckung, 523 / 524 anthrazitgrau, 535 schwarz matt, 536 weiss matt, 8 x 22,5 x 1,9 cm, ohne Befestigungsmaterial, Zubehör: Befestigungsmaterial siehe 4711 187 - 190",
+      "price": 199,
+      "image": "/multimedia/Web/PS1/04711780_523_000.png"
+    },
+    "4711 781.523.000": {
+      "label": "Abdeckung für Montageplatte Hewi 900, für Stützklappgriffe, Rahmen der",
+      "description": "Abdeckung für Montageplatte Hewi 900, für Stützklappgriffe, Rahmen der Abdeckung, 523 / 524 anthrazitgrau, 535 weiss matt, 536 schwarz matt, 8 x 22,6 x 2 cm",
+      "price": 136,
+      "image": "/multimedia/Web/PS1/04711781_523_000.png"
+    },
+    "4711 782.523.000": {
+      "label": "Montageplatte mit Abdeckung Hewi 900, für Klappsitze, Rahmen der Abdeckung,",
+      "description": "Montageplatte mit Abdeckung Hewi 900, für Klappsitze, Rahmen der Abdeckung, 523 / 524 anthrazitgrau, 535 schwarz matt, 536 weiss matt, 16,3 x 10,9 x 1,3 cm, ohne Befestigungsmaterial, Zubehör: Befestigungsmaterial siehe 4711 187 - 190",
+      "price": 236,
+      "image": "/multimedia/Web/PS1/04711782_523_000.png"
+    },
+    "4711 783.523.000": {
+      "label": "Abdeckung für Montageplatte Hewi 900, für Klappsitze, Rahmen der Abdeckung,",
+      "description": "Abdeckung für Montageplatte Hewi 900, für Klappsitze, Rahmen der Abdeckung, 523 / 524 anthrazitgrau, 535 schwarz matt, 536 weiss matt, 16,3 x 10,9 x 1,3 cm",
+      "price": 182,
+      "image": "/multimedia/Web/PS1/04711783_523_000.png"
+    },
+    "4711 893.523.000": {
+      "label": "Montageplatte Hewi 900, Breite 70 mm, Höhe 210 mm, Tiefe 18 mm, mit",
+      "description": "Montageplatte Hewi 900, Breite 70 mm, Höhe 210 mm, Tiefe 18 mm, mit Dichtelement",
+      "price": 90,
+      "image": "/multimedia/Web/PS1/04711893_523_000.png"
+    },
+    "4711 910.523.000": {
+      "label": "Montageplatte Hewi 801 / 805, Breite 74 mm, Höhe 249 mm, Tiefe 18 mm, mit",
+      "description": "Montageplatte Hewi 801 / 805, Breite 74 mm, Höhe 249 mm, Tiefe 18 mm, mit Dichtelement, ohne Befestigungsmaterial, Zubehör: Befestigungsmaterial siehe 4711 187 - 190",
+      "price": 81.5,
+      "image": "/multimedia/Web/PS1/04711910_523_000.png"
+    },
+    "4711 911.100.000": {
+      "label": "Montageplatte mit Abdeckung Hewi 801, für Stützklappgriffe, 82 x 265 x 21 mm,",
+      "description": "Montageplatte mit Abdeckung Hewi 801, für Stützklappgriffe, 82 x 265 x 21 mm, ohne Befestigungsmaterial, Zubehör: Befestigungsmaterial siehe 4711 187 - 190",
+      "price": 169,
+      "image": "/multimedia/Web/PS1/04711911_100_000.png"
+    },
+    "4711 912.100.000": {
+      "label": "Abdeckung für Montageplatte Hewi 801, für Stützklappgriffe, 82 x 265 x 21 mm,",
+      "description": "Abdeckung für Montageplatte Hewi 801, für Stützklappgriffe, 82 x 265 x 21 mm",
+      "price": 119,
+      "image": "/multimedia/Web/PS1/04711912_100_000.png"
+    },
+    "4721 179.100.000": {
+      "label": "Grundplatte mit Abdeckplatte Nosag, für die nachträgliche Montage von",
+      "description": "Grundplatte mit Abdeckplatte Nosag, für die nachträgliche Montage von Klappgriffe, mit Wechselplatte 4721 171 - 177",
+      "price": 116,
+      "image": "/multimedia/Web/PS1/04721179.png"
+    },
+    "4722 241.100.000": {
+      "label": "Montageplatte und Abdeckung Nosag Verso Care, 22,7 x 11,5 x 2,4 cm,",
+      "description": "Montageplatte und Abdeckung Nosag Verso Care, 22,7 x 11,5 x 2,4 cm, Montageplatte aus Edelstahl, Abdeckung aus Nylon, für Klappgriffe, Verso Care, ohne Befestigungsmaterial, Zubehör: Befestigungsmaterial siehe 4721 795 - 798",
+      "price": 169,
+      "image": "/multimedia/Web/PS1/04722241_nV_000.png"
+    },
+    "4711 178.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Leichtbauwände mit Hinterfütterung, 1",
+      "description": "Befestigungsmaterial Hewi, für Leichtbauwände mit Hinterfütterung, 1 Edelstahlschrauben",
+      "price": 39,
+      "image": "/multimedia/Web/PS1/04711178.png"
+    },
+    "4711 185.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Beton, Vollstein, 1 Senkschrauben, 1 Dübel",
+      "description": "Befestigungsmaterial Hewi 1-teilig, 1 Senkschrauben 1 Dübel, für Beton Vollstein",
+      "price": 39,
+      "image": "/multimedia/Web/PS1/04711185.png"
+    },
+    "4711 186.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Leichtbeton, Beton und Lochziegel, 1",
+      "description": "Befestigungsmaterial Hewi 1-teilig Injektionsanker mit Netz für Leichtbeton, Beton und Lochziegel, ohne Injektionsmörtel",
+      "price": 45,
+      "image": "/multimedia/Web/PS1/04711186.png"
+    },
+    "4711 290.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Beton, Vollstein, 2 Senkschrauben, 2 Dübel",
+      "description": "Befestigungsmaterial Hewi zu Rückenstütze für Beton, Vollstein, 2 Senkschrauben, 2 Dübel, für Beton, Vollstein",
+      "price": 77,
+      "image": "/multimedia/Web/PS1/04711290.png"
+    },
+    "4711 291.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Leichtbeton, Beton und Lochziegel, 2",
+      "description": "Befestigungsmaterial Hewi zu Rückenstütze für Leichtbeton, Beton und Lochziegel",
+      "price": 88.5,
+      "image": "/multimedia/Web/PS1/04711291.png"
+    },
+    "4711 292.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Leichtbauwände mit Hinterfütterung, 2",
+      "description": "Befestigungsmaterial Hewi, für Leichtbauwände mit Hinterfütterung, 2 Edelstahlschrauben",
+      "price": 77,
+      "image": "/multimedia/Web/PS1/04711292.png"
+    }
+  },
+  "_rueckenstuetze": "6 anchors added for the Rückenstütze family. 4711 290 says it outright: 'Befestigungsmaterial Hewi zu Rückenstütze'. The 1-teilig set (178/185/186) is for the back-rests that mount on a Klappgriff; the 2-teilig set (290/291/292) for the free-standing ones."
 }

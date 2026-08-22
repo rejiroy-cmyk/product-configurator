@@ -242,12 +242,12 @@ check('CWS Stainless Steel still wins over the noise list',
 console.log('\n--- 6. Klappgriff / Klappsitz mounting material ---\n');
 
 const fixTrays = pool.filter(t => t && typeof t.id === 'string' && t.id.startsWith('klappfix_'));
-check(`the fixing and plate SKUs are in the pool (${fixTrays.length})`, fixTrays.length === 41,
-    `expected 41 from inject-klapp-fixings.cjs, found ${fixTrays.length}`);
+check(`the fixing and plate SKUs are in the pool (${fixTrays.length})`, fixTrays.length === 47,
+    `expected 47 from inject-klapp-fixings.cjs, found ${fixTrays.length}`);
 
 const anchors = fixTrays.filter(t => t.productType === 'Befestigungsmaterial');
 const platesT = fixTrays.filter(t => t.productType === 'Montageplatte');
-check(`28 anchors and 13 plates`, anchors.length === 28 && platesT.length === 13,
+check(`34 anchors and 13 plates`, anchors.length === 34 && platesT.length === 13,
     `${anchors.length} anchors / ${platesT.length} plates`);
 
 // NEVER a vendor URL: the app makes no requests to profishop at render time.
@@ -261,7 +261,7 @@ check('every anchor names the wall it is for', noWall.length === 0,
     noWall.slice(0, 4).map(t => `${t.artNr}  ${t.label.slice(0, 60)}`).join('\n     '));
 
 // The per-article mapping, and the brand rule it exists for.
-const KLAPP = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz'];
+const KLAPP = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Rückenstütze'];
 const klapp = pool.filter(t => t && KLAPP.includes(t.productType));
 const withFix = klapp.filter(t => Array.isArray(t.fixingOptions) && t.fixingOptions.length);
 check(`Klapp* articles carry their own fixing list (${withFix.length})`, withFix.length >= 300,
@@ -352,6 +352,27 @@ const unexplained = dks.filter(t => {
 });
 check(`every Duschklappsitz is explained (${dks.length} total)`, unexplained.length === 0,
     unexplained.slice(0, 5).map(t => `${t.artNr}  ${(t.label || '').slice(0, 62)}`).join('\n     '));
+
+
+// A Rückenstütze mounts either on a Klappgriff or straight to the wall, and 7 of its 24
+// bases say "ohne Befestigungsmaterial". SAP names six anchors that existed nowhere in
+// our data — 4711 178/185/186 (1-teilig) and 4711 290/291/292 (2-teilig, and 290 says
+// "zu Rückenstütze" outright).
+const backRests = pool.filter(t => t && t.productType === 'Rückenstütze');
+const brWithFix = backRests.filter(t => (t.fixingOptions || []).length);
+check(`13 of the ${backRests.length} Rückenstütze need anchors`, brWithFix.length === 13,
+    `${brWithFix.length} have a fixing list — expected 13 (the rest ship it included or state nothing)`);
+
+// ⚠ THE PARTNER-REFERENCE TRAP. A Rückenstütze's SAP Zubehör group lists 30 KLAPPGRIFF
+// entries — the bars it fits, not its screws. Offering one as a fixing option would be
+// nonsense, and it is the single most likely way this table gets corrupted later.
+const klappAsFixing = [];
+backRests.forEach(t => (t.fixingOptions || []).forEach(a => {
+    const art = pool.find(x => x && x.artNr === a);
+    if (art && art.productType !== 'Befestigungsmaterial') klappAsFixing.push(`${t.artNr} -> ${a} (${art.productType})`);
+}));
+check('no Rückenstütze offers a Klappgriff as its fixing', klappAsFixing.length === 0,
+    klappAsFixing.slice(0, 5).join('\n     ') + ' — the partner-reference trap');
 
 // The forced pick has to reach the export as "nothing" until it is made.
 check('an unpicked fixing row contributes no SAP line',

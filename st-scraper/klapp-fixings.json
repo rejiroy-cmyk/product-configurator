@@ -306,6 +306,59 @@
       "plates": [
         "4722 241.100.000"
       ]
+    },
+    {
+      "bases": [
+        "4711202",
+        "4711203",
+        "4711592",
+        "4711594"
+      ],
+      "fixings": [
+        "4711 178.000.000",
+        "4711 185.000.000",
+        "4711 186.000.000",
+        "4711 187.000.000",
+        "4711 189.000.000",
+        "4711 190.000.000"
+      ],
+      "plates": []
+    },
+    {
+      "bases": [
+        "4711598",
+        "4711599",
+        "4711606"
+      ],
+      "fixings": [
+        "4711 290.000.000",
+        "4711 291.000.000",
+        "4711 292.000.000"
+      ],
+      "plates": []
+    },
+    {
+      "bases": [
+        "4171459",
+        "4711486",
+        "4711487",
+        "4711590",
+        "4711678",
+        "4711679",
+        "4711880",
+        "4711881",
+        "4711882",
+        "4711883",
+        "4711884",
+        "4711885",
+        "4721198",
+        "4721399",
+        "4721757",
+        "4722585",
+        "4733193"
+      ],
+      "fixings": [],
+      "plates": []
     }
   ],
   "fixings": {
@@ -445,6 +498,36 @@
       "label": "Befestigungsmaterial Nosag Verso Care/Futuro, für Vorwandsystem,",
       "image": "/multimedia/Web/PS1/04722201_000_000.png",
       "unit": "ST"
+    },
+    "4711 178.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Leichtbauwände mit Hinterfütterung, 1",
+      "image": "/multimedia/Web/PS1/04711178.png",
+      "unit": "ST"
+    },
+    "4711 185.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Beton, Vollstein, 1 Senkschrauben, 1 Dübel",
+      "image": "/multimedia/Web/PS1/04711185.png",
+      "unit": "ST"
+    },
+    "4711 186.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Leichtbeton, Beton und Lochziegel, 1",
+      "image": "/multimedia/Web/PS1/04711186.png",
+      "unit": "ST"
+    },
+    "4711 290.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Beton, Vollstein, 2 Senkschrauben, 2 Dübel",
+      "image": "/multimedia/Web/PS1/04711290.png",
+      "unit": "ST"
+    },
+    "4711 291.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Leichtbeton, Beton und Lochziegel, 2",
+      "image": "/multimedia/Web/PS1/04711291.png",
+      "unit": "ST"
+    },
+    "4711 292.000.000": {
+      "label": "Befestigungsmaterial Hewi, für Leichtbauwände mit Hinterfütterung, 2",
+      "image": "/multimedia/Web/PS1/04711292.png",
+      "unit": "ST"
     }
   },
   "plates": {
@@ -532,5 +615,6 @@
       "4721 796.000.000",
       "4721 798.000.000"
     ]
-  }
+  },
+  "_rueckenstuetze": "Rückenstütze: 24 bases queried. 7 need anchors, 10 ship the material included, 7 say nothing and SAP names nothing (no row). ⚠ Their Zubehör group carries 30 KLAPPGRIFF entries — the grab bars the back-rest fits. That is the partner-reference trap, filtered out by the same identity-prefix rule; offering a Klappgriff as a screw option would be nonsense."
 }
