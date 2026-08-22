@@ -343,7 +343,16 @@ walls, and a remembered answer silently orders the wrong anchor for the second b
   Dornbracht Befestigungsmaterial. Dornbracht ships complete; the only anchors we could
   offer are Hewi or Nosag, i.e. the cross-brand error itself. A test fails if a Dornbracht
   anchor ever appears, since that would be the signal to re-decide.
-  A test fails if any of those eight families gains a fixing list.
+  The last three are self-evident and were confirmed anyway: a **Wanneneinsteighilfe**
+  states "Befestigung am Wannenrand" (it clamps to the tub), a **Badewannensitz** sits in
+  it, and of the two **Fussstütze** one is a chrome corner footrest while the other —
+  `3342 120` — *is* mounting hardware itself ("Fussstützen Geberit Kombifix,
+  Befestigungsmaterial") and carries `targetSubcats: []`, i.e. it is a Kombifix component
+  reachable in no Accessoires panel.
+  **THE RANGE IS CLOSED.** Every productType among the injected accessibility trays is
+  either in `FAMS` (decided per article from SAP) or in the out-of-scope list, and a test
+  fails if a new one appears — that is how a grab bar ends up orderable without its
+  anchors, or a stool ends up with a screw dropdown.
 - **The Montageplatte row comes FIRST**, and it is a different part, not an alternative:
   the plate's own text says "ohne Befestigungsmaterial, Zubehör: … siehe 4711 187 - 190".
   124 SKUs get both rows.

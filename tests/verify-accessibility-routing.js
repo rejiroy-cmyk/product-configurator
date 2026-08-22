@@ -309,8 +309,21 @@ check('every offered fixing resolves to a real pool article', dangling.length ==
 // ONE says "ohne Befestigungsmaterial", and the catalogue holds zero Dornbracht
 // Befestigungsmaterial. Dornbracht ships complete. The only anchors we could offer are
 // Hewi or Nosag — the exact cross-brand error the whole design guards against.
+// The last three, all queried, all naming zero fixings:
+//   Fussstütze (2)          — 4532 220 is a chrome corner footrest; 3342 120 IS mounting
+//                             hardware itself ("Fussstützen Geberit Kombifix,
+//                             Befestigungsmaterial") and carries targetSubcats [], i.e. it
+//                             is a Kombifix component, reachable in no Accessoires panel.
+//   Wanneneinsteighilfe (1) — "Befestigung am Wannenrand": it clamps to the tub.
+//   Badewannensitz (1)      — Neoperl Animo, verstellbar: it sits in the tub.
 const OUT_OF_SCOPE = ['Haltegriff', 'Winkelgriff', 'Eckhaltegriff', 'Duschsitz', 'Duschhocker',
-    'Seitenwandgriff', 'Armlehne', 'Wannengriff'];
+    'Seitenwandgriff', 'Armlehne', 'Wannengriff',
+    'Fussstütze', 'Wanneneinsteighilfe', 'Badewannensitz',
+    // Not accessibility at all — the one article the HOLD list's bare 'Stand' prefix
+    // swept up (Stand WC-Garnitur Neoperl Florida, injected as WC-Zubehör). Listed here
+    // so the closure check below can see it has been ruled on; it also pins the whole
+    // 1'277-article WC-Zubehör type against ever gaining a fixing list.
+    'WC-Zubehör'];
 const wrongScope = pool.filter(t => t && OUT_OF_SCOPE.includes(t.productType)
     && ((t.fixingOptions || []).length || (t.plateOptions || []).length));
 check('the six families that need no fixing carry no fixing list',
@@ -440,6 +453,18 @@ const anchorBrands = new Set(pool.filter(t => t && t.productType === 'Befestigun
     .map(t => t.manufacturer));
 check('no Befestigungsmaterial exists for Dornbracht', !anchorBrands.has('Dornbracht'),
     'if one is ever injected, re-decide Wannengriff — until then a fixing row there must cross brands');
+
+
+// THE RANGE IS CLOSED. Every productType in the accessibility range is either in FAMS
+// (decided per article from SAP) or in OUT_OF_SCOPE (decided and pinned). A new one
+// appearing means a family nobody has ruled on — which is how a grab bar ends up
+// orderable without its anchors, or a stool ends up with a screw dropdown.
+const IN_SCOPE_TYPES = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Rückenstütze', 'Duschhandlauf'];
+const RANGE_TYPES = new Set([...IN_SCOPE_TYPES, ...OUT_OF_SCOPE]);
+const strays = [...new Set(pool.filter(t => t && t.id && /^ch4acc_|^ch4wg_/.test(String(t.id)))
+    .map(t => t.productType))].filter(pt => pt && !RANGE_TYPES.has(pt));
+check('every family in the accessibility range has been ruled on', strays.length === 0,
+    `undecided: ${strays.join(', ')} — add to FAMS (needs anchors) or OUT_OF_SCOPE (does not)`);
 
 // The forced pick has to reach the export as "nothing" until it is made.
 check('an unpicked fixing row contributes no SAP line',
