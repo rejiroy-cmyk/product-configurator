@@ -294,8 +294,38 @@ check('Haltegriff / Winkelgriff / Eckhaltegriff / Duschsitz carry no fixing list
     wrongScope.length === 0,
     'they ship with their own mounting material — a dropdown there orders a second set');
 
-// The forced pick has to reach the export as "nothing" until it is made.
+// A PLATE IS WHAT GETS SCREWED TO THE WALL. When the bar names no anchors but names a
+// plate, the anchors are the plate's — read off the plate's own additionalMaterials,
+// not parsed out of its "siehe 4721 795 - 798" text. Six Nosag Verso Care bases (12
+// SKUs) reach a real dropdown this way instead of a warning row.
 const sharedSrc = read('modules/factories/_shared.js');
+const versoCare = pool.filter(t => t && /^Klappgriff Nosag Verso Care/i.test(t.label || ''));
+check(`the Verso Care Klappgriff family is present (${versoCare.length})`, versoCare.length === 12,
+    `expected 12 SKUs, found ${versoCare.length}`);
+check('Verso Care inherits its anchors from its Montageplatte',
+    versoCare.length > 0 && versoCare.every(t =>
+        (t.plateOptions || []).includes('4722 241.100.000')
+        && ['4721 795.000.000', '4721 796.000.000', '4721 798.000.000']
+            .every(a => (t.fixingOptions || []).includes(a))),
+    'these bars name no anchors of their own — the plate 4722 241 does, and all three are Nosag');
+
+// The need follows the MODEL, not the finish: only the .100 variants carry the phrase
+// "ohne Befestigungsmaterial", and a per-SKU test warned on half a family.
+const byBaseFix = {};
+klapp.forEach(t => {
+    const b = String(t.artNr).replace(/[^0-9]/g, '').slice(0, 7);
+    (byBaseFix[b] = byBaseFix[b] || []).push(JSON.stringify(t.fixingOptions || []));
+});
+const splitBase = Object.entries(byBaseFix).filter(([, v]) => new Set(v).size > 1);
+check('every finish of one model offers the same anchors', splitBase.length === 0,
+    splitBase.slice(0, 4).map(([b]) => b).join(', ') + ' — a per-SKU test split a family in half');
+
+// The warning row must still EXIST as a path even though no article needs it today.
+check('the warning row is still reachable for a future gap',
+    /klappFixingWarnRowHTML/.test(sharedSrc) && /else if \(plan\.missing\)/.test(sharedSrc),
+    'removing it means a future article with no anchors silently shows nothing');
+
+// The forced pick has to reach the export as "nothing" until it is made.
 check('an unpicked fixing row contributes no SAP line',
     /function klappFixingSapLines[\s\S]{0,400}if \(picked\) out\.push/.test(sharedSrc),
     'klappFixingSapLines must skip an unpicked row, or the export ships a bar with no anchors');

@@ -141,17 +141,37 @@ for (const [artNr, det] of Object.entries(D)) {
 //   fixingMissing — true when the article says "ohne Befestigungsmaterial" and SAP
 //                   names none: a visible warning row, never a guessed art-Nr.
 const items = pool.trays.filter(t => t && FAMS.includes(t.productType) && !RX_HOOKS.test(full(t)));
-let attached = 0, warned = 0, noneNeeded = 0, unchanged = 0;
+
+// "ohne Befestigungsmaterial" is a property of the MODEL, not of one finish. Only the
+// .100 variants of the Nosag Verso Care family carry the phrase; the .337 ones are the
+// same bar with the text truncated elsewhere, and a per-SKU test warned on half a family
+// and stayed silent on the other half. Decide it once per base.
+const ohneBase = new Set();
+items.forEach(t => { if (RX_OHNE.test(full(t))) ohneBase.add(t.artNr.replace(/[^0-9]/g, '').slice(0, 7)); });
+
+let attached = 0, warned = 0, noneNeeded = 0, unchanged = 0, viaPlate = 0;
 for (const t of items) {
     const base = t.artNr.replace(/[^0-9]/g, '').slice(0, 7);
     const g = byBase[base];
-    const fx = (g && g.fixings) || [];
+    let fx = (g && g.fixings) || [];
     const pl = (g && g.plates) || [];
+    // A PLATE IS WHAT GETS SCREWED TO THE WALL, so when the bar itself names no anchors
+    // the anchors are the plate's. SAP says so per article — `plateFixings` is read off
+    // each plate's own additionalMaterials, never parsed out of its "siehe 4721 795 -
+    // 798" text. This is what takes the six Nosag Verso Care Klappgriffe off the warning
+    // row: 4722 241 names 4721 795/796/798, all Nosag, all already injected.
+    if (!fx.length && pl.length) {
+        const inherited = [];
+        pl.forEach(p => ((M.plateFixings || {})[p] || []).forEach(a => {
+            if (!inherited.includes(a)) inherited.push(a);
+        }));
+        if (inherited.length) { fx = inherited; viaPlate++; }
+    }
     const before = JSON.stringify([t.fixingOptions, t.plateOptions, t.fixingMissing]);
     if (fx.length) { t.fixingOptions = fx.slice(); attached++; }
     else { delete t.fixingOptions; }
     if (pl.length) t.plateOptions = pl.slice(); else delete t.plateOptions;
-    if (!fx.length && RX_OHNE.test(full(t))) { t.fixingMissing = true; warned++; }
+    if (!fx.length && ohneBase.has(base)) { t.fixingMissing = true; warned++; }
     else { delete t.fixingMissing; if (!fx.length) noneNeeded++; }
     if (JSON.stringify([t.fixingOptions, t.plateOptions, t.fixingMissing]) === before) unchanged++;
 }
@@ -164,7 +184,7 @@ console.log(`  re-tagged / unchanged  : ${skusRetagged} / ${skusDup}`);
 console.log(`  prices to add          : ${pricesAdded}`);
 console.log('');
 console.log(`Klapp* SKUs in scope     : ${items.length}`);
-console.log(`  get a fixings dropdown : ${attached}`);
+console.log(`  get a fixings dropdown : ${attached}   (of which via the plate: ${viaPlate})`);
 console.log(`  Montageplatte dropdown : ${items.filter(t => t.plateOptions).length}`);
 console.log(`  WARNING row (says ohne, SAP names none) : ${warned}`);
 console.log(`  no row (material included)              : ${noneNeeded}`);
