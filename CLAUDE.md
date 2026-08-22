@@ -28,7 +28,7 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   See "Remote access" below. `--off` stops it, `--status` shows current state.
 - `node scripts/build-offline-assets.mjs` — regenerates `assets/offline-fonts.css`.
   Only needed when you add a new `ri-*` icon or change fonts; see "Offline assets".
-- `npm test` — runs **18 suites, 689 assertions**: `verify-duschtrennwand` (38),
+- `npm test` — runs **18 suites, 695 assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
   `verify-fulltext-rule` (87), `verify-product-display` (37),
   `verify-no-kitchen-in-waschtischmischer` (4), `verify-scraper-maktx2` (7),
@@ -36,7 +36,7 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   `verify-copy-multiplier` (21), `verify-accessory-quantity` (81),
   `verify-data-intern` (14), `verify-offline-fonts` (9),
   `verify-installation-rules` (45), `verify-urinoir-rules` (77),
-  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (77). Plain Node with
+  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (83). Plain Node with
   hand-rolled DOM mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the
   one jsdom test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
   **Run this after any change to `modules/factories/`.**
@@ -306,7 +306,21 @@ walls, and a remembered answer silently orders the wrong anchor for the second b
   identity-prefix filter drops them, and a test fails if any Rückenstütze ever offers a
   non-`Befestigungsmaterial` as a fixing. Offering a CHF 500 grab bar where a CHF 45
   anchor belongs is the failure mode.
-- **Scope is Klappgriff / Stützklappgriff / Klappsitz / Rückenstütze.** Haltegriff, Winkelgriff and
+- **A Duschhandlauf needs NOTHING — and that is why it has an OPTIONAL row, not a forced
+  one.** Not one of its 37 bases says "ohne Befestigungsmaterial": the Keuco rails say
+  *"mit Befestigungsmaterial, Set Nr. 1"*, Nosag Verso Care *"inkl."*, and ten Hewi/Nosag
+  bases state nothing. What 18 Keuco Collection Axess bases (54 SKUs) do offer is two
+  **alternative** sets for substrates Set Nr. 1 will not hold in (`4171 442` Nr. 4,
+  `4171 444` Nr. 7). `fixingOptional` + `fixingSupplied` render a row that opens on
+  "Set Nr. 1 (mitgeliefert)", is **not** flagged incomplete, and adds **no SAP line** until
+  switched. A forced pick here would order a second fixing set for every rail.
+- **⚠ The fixing select must NOT carry `inline-bom-select`.** Three factories bind their
+  own `change` handler to every `.inline-bom-select` in the BOM and read it as a
+  mounting-material pick; with that class their handler fired on the fixing select too and
+  wiped `selectedAddonAccessoires` — accessory and fixing row both vanished on the first
+  choice, the total dropped back, and nothing threw or logged. The styling is inline, so
+  the class bought nothing. Guarded by a test.
+- **Scope is Klappgriff / Stützklappgriff / Klappsitz / Rückenstütze / Duschhandlauf.** Haltegriff, Winkelgriff and
   Eckhaltegriff ship WITH their material — SAP agrees, a Haltegriff Hewi 801 names no
   `additionalMaterials` at all. An **Einhängesitz hangs on a Winkelgriff** and needs none.
   A test fails if any of those four families gains a fixing list.
@@ -672,6 +686,86 @@ BASES=2231638,2231640 OUT=ch2-gap-images.json node st-scraper/scrape-ch7-images.
 
 Then localise, or the data holds a remote URL that fires a vendor request on every
 render: `localize-images.cjs --emit-jobs` → `localize_fetch.py` → `--rewrite`.
+
+## Staying in sync — the catalogue moves, `custom-data.json` did not
+
+Every injector in `st-scraper/` is a one-shot import of a chapter, so the data is a
+photograph of the day it ran. The shop adds and drops articles continuously, and
+nothing noticed: **143 art-Nrs a configurator can still put in a Stückliste are no
+longer listed** (Schmidlin Aria 50, Catalano Sfera `.105`, Keuco Axess rails, Laufen
+Easytouch, KWC F4LT…), and **1'179 prices have moved** — 1'108 of them UP, which is
+money quoted away silently on every offer.
+
+Two scripts close the loop. Both are REPORT-ONLY: routing an article into a pool is a
+decision with rules and tests (`classify-ch3.cjs`, the injectors), and a script that
+wrote `custom-data.json` from a diff would be an injector with neither.
+
+```bash
+npm run catalog:census     # ~8 min → st-scraper/census/<date>.json.gz
+npm run catalog:diff       # instant → GONE / PRICE / UNCOVERED
+node st-scraper/catalog-diff.cjs --since st-scraper/census/2026-08-15.json.gz
+```
+
+### `search.ws GET_CATALOG` is a full product feed, and it needs no login
+
+The shop's catalogue browse is backed by a FACT-Finder service that hands back the
+**entire** record, not a search-result stub — 26'971 masters / **92'741 SKUs in 135
+requests, ~8 minutes**:
+
+    POST /business(bD1kZSZjPTAwMQ==)/webservices/search.ws
+         event=GET_CATALOG&is_options-rows=200&is_options-page=N
+
+    hits[].variantValues[]   one entry PER SKU — the whole colour matrix
+      ArticleNr · Price (exkl. MwSt, same basis as prices.json) · Availability
+      Title · Description_short · Description_long · Brand · Warengruppe (= productType)
+      Produktlinie · Farbe · VarDim_ColorCode · EAN · SupplierArticleNr · Montageart
+      ImageURL   the REAL PG1 url, read from the vendor — never synthesized, so no 404s
+      CategoryPath_lvl0..2 · RecoAccessories / RecoDownstream (related art-Nrs)
+
+- **`rows` caps at 200** server-side; `rows=500` silently returns 200.
+- **No credentials.** Like `article.ws` this needs a SESSION, not a login, and an
+  ordinary anonymous page visit mints one — which is the whole reason it can run
+  unattended. `cookie.txt` is a human refreshing a token every 20 minutes, and a
+  weekly job cannot depend on that.
+- **Never buffer the raw pages into one string.** 135 pages of FACT-Finder JSON is
+  ~500 MB, past V8's max string length; the first run died at page 100 with
+  `Invalid string length` and nothing written. The resume cache is one file per page.
+- A census is ~98 MB raw / 7.5 MB gzipped. `census/` is **git-ignored** — it is
+  reproducible in 8 minutes, and the last 8 are rotated automatically so a
+  week-over-week `--since` always has a baseline.
+
+### Two fields that look authoritative and are dead
+
+`PublishingDate` is `2012/01/01` on every article and `FaceOffDate` is `2099/12/31`
+on every article — both unmaintained in the vendor's index, so neither can date a
+change or warn of an end-of-life. `IsNew` does vary (~6% "Ja") but it is a
+merchandising badge, not a changelog. **The only trustworthy signal for what changed
+is diffing two censuses.**
+
+### How a dropped article actually looks
+
+`article.ws` keeps answering `OK` with a full price long after an article is gone —
+SAP's material master is history, not the assortment. The signature is elsewhere, and
+two signals agree:
+
+| | listed | dropped | purged |
+|---|---|---|---|
+| in the census | yes | **no** | no |
+| `article.ws` `result.image` | a path | **empty** | empty |
+| `article.ws` `status` | OK | OK | ERROR / `matnrDisplay: "ERROR"` |
+
+So **absence from the census is the verdict**, and an empty `image` corroborates it.
+A bogus art-Nr is its own case: the API answers OK with
+`maktx: "EDIV - manueller Artikel"` and `matnrDisplay: "ERROR"`.
+
+### What the diff cannot tell you
+
+`UNCOVERED` (38'394 SKUs the shop lists that no configurator reaches) is a standing
+backlog, not a weekly signal — most of it is deliberately out of scope (5'982
+Ersatzteile, Hebeanlagen). Only `--since <previous census>` narrows it to what
+genuinely appeared, which is the work-list worth reading. And the census indexes the
+CATALOGUE: Montagepauschale / Demontage positions live outside it, so three of the
+143 GONE are service lines that were never listed in the first place.
 
 ## GLOBAL RULE — full-text classification (no exceptions without a comment)
 
