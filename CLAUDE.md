@@ -28,7 +28,7 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   See "Remote access" below. `--off` stops it, `--status` shows current state.
 - `node scripts/build-offline-assets.mjs` — regenerates `assets/offline-fonts.css`.
   Only needed when you add a new `ri-*` icon or change fonts; see "Offline assets".
-- `npm test` — runs **18 suites, 681 assertions**: `verify-duschtrennwand` (38),
+- `npm test` — runs **18 suites, 685 assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
   `verify-fulltext-rule` (87), `verify-product-display` (37),
   `verify-no-kitchen-in-waschtischmischer` (4), `verify-scraper-maktx2` (7),
@@ -36,7 +36,7 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   `verify-copy-multiplier` (21), `verify-accessory-quantity` (81),
   `verify-data-intern` (14), `verify-offline-fonts` (9),
   `verify-installation-rules` (45), `verify-urinoir-rules` (77),
-  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (69). Plain Node with
+  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (73). Plain Node with
   hand-rolled DOM mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the
   one jsdom test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
   **Run this after any change to `modules/factories/`.**
@@ -306,10 +306,20 @@ walls, and a remembered answer silently orders the wrong anchor for the second b
   13 are plates and **11 are unrelated** (Papierhalter, Rückenstütze, Armlehne,
   Abdeckplatte). The split is an identity PREFIX on the leading noun; offering a
   Papierhalter as a screw option would be nonsense.
-- **Silence is not always a gap.** 35 SKUs get no row because their own text says the
+- **A PLATE CARRIES THE ANCHORS when the bar names none.** The plate is what gets
+  screwed to the wall, so its own `additionalMaterials` hold the Befestigungsmaterial —
+  `plateFixings` in `klapp-fixings.json`, read off each plate, **not** parsed out of its
+  "Zubehör: Befestigungsmaterial siehe 4721 795 - 798" text. That is what takes the six
+  Nosag Verso Care Klappgriffe (12 SKUs) off the warning row: `4722 241` names
+  `4721 795/796/798`, all Nosag, all already injected. 4 of the 13 plates carry a list.
+- **"ohne Befestigungsmaterial" is a property of the MODEL, not of one finish.** Only the
+  `.100` variants of that family carry the phrase, so a per-SKU test warned on six SKUs
+  and stayed silent on their six identical `.337` twins. Decided once per base; a test
+  fails if two finishes of one model ever offer different anchors.
+- **Silence is not always a gap.** 29 SKUs get no row because their own text says the
   material is included (Inda, Neoperl, KWC Contina) — SAP's silence and the article text
-  agree in every case. Only where the text says **ohne** and SAP names nothing (6 Nosag
-  Verso Care) does a **warning row** appear, never a guessed art-Nr.
+  agree in every case. No article needs the **warning row** today, but the path stays and
+  a test fails if it is removed: the next data gap must not silently render nothing.
 - Rendering lives in `_shared.js` (`klappFixingPlan`, `klappFixingRowsHTML`,
   `klappFixingSapLines`) with **one** delegated `change` listener keyed on
   `window.__klappFixDelegateInstalled` — a module-level guard is per-instance under
