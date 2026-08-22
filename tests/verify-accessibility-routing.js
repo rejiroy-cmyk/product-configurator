@@ -242,12 +242,12 @@ check('CWS Stainless Steel still wins over the noise list',
 console.log('\n--- 6. Klappgriff / Klappsitz mounting material ---\n');
 
 const fixTrays = pool.filter(t => t && typeof t.id === 'string' && t.id.startsWith('klappfix_'));
-check(`the fixing and plate SKUs are in the pool (${fixTrays.length})`, fixTrays.length === 47,
-    `expected 47 from inject-klapp-fixings.cjs, found ${fixTrays.length}`);
+check(`the fixing and plate SKUs are in the pool (${fixTrays.length})`, fixTrays.length === 49,
+    `expected 49 from inject-klapp-fixings.cjs, found ${fixTrays.length}`);
 
 const anchors = fixTrays.filter(t => t.productType === 'Befestigungsmaterial');
 const platesT = fixTrays.filter(t => t.productType === 'Montageplatte');
-check(`34 anchors and 13 plates`, anchors.length === 34 && platesT.length === 13,
+check(`36 anchors and 13 plates`, anchors.length === 36 && platesT.length === 13,
     `${anchors.length} anchors / ${platesT.length} plates`);
 
 // NEVER a vendor URL: the app makes no requests to profishop at render time.
@@ -261,7 +261,7 @@ check('every anchor names the wall it is for', noWall.length === 0,
     noWall.slice(0, 4).map(t => `${t.artNr}  ${t.label.slice(0, 60)}`).join('\n     '));
 
 // The per-article mapping, and the brand rule it exists for.
-const KLAPP = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Rückenstütze'];
+const KLAPP = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Rückenstütze', 'Duschhandlauf'];
 const klapp = pool.filter(t => t && KLAPP.includes(t.productType));
 const withFix = klapp.filter(t => Array.isArray(t.fixingOptions) && t.fixingOptions.length);
 check(`Klapp* articles carry their own fixing list (${withFix.length})`, withFix.length >= 300,
@@ -373,6 +373,42 @@ backRests.forEach(t => (t.fixingOptions || []).forEach(a => {
 }));
 check('no Rückenstütze offers a Klappgriff as its fixing', klappAsFixing.length === 0,
     klappAsFixing.slice(0, 5).join('\n     ') + ' — the partner-reference trap');
+
+
+// DUSCHHANDLAUF NEEDS NOTHING. Not one of its 37 bases says "ohne Befestigungsmaterial";
+// the Keuco rails say "mit Befestigungsmaterial, Set Nr. 1", i.e. it is in the box. The
+// two sets SAP names (4171 442 Nr. 4, 4171 444 Nr. 7) are ALTERNATIVES for a substrate
+// Set Nr. 1 will not hold in — an upgrade, not a missing part.
+const rails = pool.filter(t => t && t.productType === 'Duschhandlauf');
+const railForced = rails.filter(t => (t.fixingOptions || []).length);
+check(`no Duschhandlauf is FORCED to pick a fixing (${rails.length} SKUs)`, railForced.length === 0,
+    `${railForced.length} carry a forced list — the material is already included, so every pick double-charges`);
+
+const railOptional = rails.filter(t => (t.fixingOptional || []).length);
+check(`the Keuco rails offer their alternatives (${railOptional.length})`, railOptional.length === 54,
+    `expected 54 SKUs with an optional row, found ${railOptional.length}`);
+check('every optional row names the set the article already ships',
+    railOptional.every(t => typeof t.fixingSupplied === 'string' && t.fixingSupplied.length > 3),
+    'without the supplied note the default reads as "nothing selected" and invites a duplicate order');
+
+// The optional default must contribute NOTHING, or the row silently double-charges.
+check('an optional row at its default adds no SAP line',
+    /const optionalRow = kind === 'opt'/.test(sharedSrc)
+    && /KLAPP_KINDS = \['plate', 'fix', 'opt'\]/.test(sharedSrc),
+    'the optional kind must flow through the same picked-only export path as the forced ones');
+// ⚠ THE CLASS COLLISION. Three factories bind their own `change` handler to every
+// `.inline-bom-select` in the BOM and read it as a mounting-material pick. Giving the
+// fixing select that class made their handler fire on it too and wipe
+// selectedAddonAccessoires — the accessory AND its fixing row vanished on the first
+// choice, and the price silently dropped back. The styling is inline; the class bought
+// nothing.
+check('the fixing select does NOT carry the inline-bom-select class',
+    !/inline-bom-select klapp-fix-select|klapp-fix-select inline-bom-select/.test(sharedSrc),
+    'each factory\'s own inline-bom-select handler will fire on it and reset the accessory');
+
+check('an optional row is not flagged as incomplete',
+    /\(picked \|\| optionalRow\) \? '' : ' style="background: rgba\(255,166,0/.test(sharedSrc),
+    'flagging it orange tells the user something is missing when nothing is');
 
 // The forced pick has to reach the export as "nothing" until it is made.
 check('an unpicked fixing row contributes no SAP line',

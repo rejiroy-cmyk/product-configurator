@@ -2,7 +2,7 @@
   "meta": {
     "source": "Sanitas Troesch 2026.6 — catalog ∪ scrape",
     "priceBasis": "ohne MwSt (exkl. MWSt) — ‹without taxes›",
-    "entries": 62180,
+    "entries": 62182,
     "fromCatalog": 27192,
     "fromScrape": 27013,
     "fromServices": 4
@@ -62187,6 +62187,8 @@
     "4711 186.000.000": 45,
     "4711 290.000.000": 77,
     "4711 291.000.000": 88.5,
-    "4711 292.000.000": 77
+    "4711 292.000.000": 77,
+    "4171 442.000.000": 7.6,
+    "4171 444.000.000": 8.7
   }
 }

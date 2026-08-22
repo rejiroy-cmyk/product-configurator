@@ -53,7 +53,13 @@ const HOST = 'https://profishop.sanitastroesch.ch';
 // ⚠ Their Zubehör group also lists 30 KLAPPGRIFF entries — the bars the back-rest fits.
 // That is the partner-reference trap; the identity-prefix filter in klapp-fixings.json
 // drops them, because offering a Klappgriff as a screw option would be nonsense.
-const FAMS = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Rückenstütze'];
+const FAMS = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz', 'Rückenstütze', 'Duschhandlauf'];
+// Duschhandlauf needs NOTHING — not one of its 37 bases says "ohne Befestigungsmaterial".
+// The Keuco Collection Axess rails say "mit Befestigungsmaterial, Set Nr. 1": it is in the
+// box. 4171 442 / 444 are ALTERNATIVE sets for substrates where Set Nr. 1 will not hold —
+// an upgrade, not a missing part. They render as an OPTIONAL row that defaults to the
+// supplied set and adds no SAP line until switched; a forced pick here would order a
+// second fixing set for every rail.
 // An Einhängesitz / einhängbarer Klappsitz hooks onto a grab bar — no anchors at all.
 const RX_HOOKS = /einhäng|zum einhängen|einzuhängen/i;
 const RX_OHNE = /ohne\s+befestigungsmaterial/i;
@@ -156,7 +162,7 @@ const items = pool.trays.filter(t => t && FAMS.includes(t.productType) && !RX_HO
 const ohneBase = new Set();
 items.forEach(t => { if (RX_OHNE.test(full(t))) ohneBase.add(t.artNr.replace(/[^0-9]/g, '').slice(0, 7)); });
 
-let attached = 0, warned = 0, noneNeeded = 0, unchanged = 0, viaPlate = 0;
+let attached = 0, warned = 0, noneNeeded = 0, unchanged = 0, viaPlate = 0, optional = 0;
 for (const t of items) {
     const base = t.artNr.replace(/[^0-9]/g, '').slice(0, 7);
     const g = byBase[base];
@@ -178,6 +184,11 @@ for (const t of items) {
     if (fx.length) { t.fixingOptions = fx.slice(); attached++; }
     else { delete t.fixingOptions; }
     if (pl.length) t.plateOptions = pl.slice(); else delete t.plateOptions;
+    // The optional arm: alternatives to a set the article already ships.
+    const opt = (M.optionalFixings || []).find(g => g.bases.includes(base));
+    if (opt) { t.fixingOptional = opt.options.slice(); t.fixingSupplied = opt.suppliedNote; optional++; }
+    else { delete t.fixingOptional; delete t.fixingSupplied; }
+
     if (!fx.length && ohneBase.has(base)) { t.fixingMissing = true; warned++; }
     else { delete t.fixingMissing; if (!fx.length) noneNeeded++; }
     if (JSON.stringify([t.fixingOptions, t.plateOptions, t.fixingMissing]) === before) unchanged++;
@@ -193,6 +204,7 @@ console.log('');
 console.log(`Klapp* SKUs in scope     : ${items.length}`);
 console.log(`  get a fixings dropdown : ${attached}   (of which via the plate: ${viaPlate})`);
 console.log(`  Montageplatte dropdown : ${items.filter(t => t.plateOptions).length}`);
+console.log(`  OPTIONAL row (ships its own, alternatives offered) : ${optional}`);
 console.log(`  WARNING row (says ohne, SAP names none) : ${warned}`);
 console.log(`  no row (material included)              : ${noneNeeded}`);
 console.log(`pool.trays               : ${pool.trays.length} -> ${pool.trays.length + newTrays.length}`);

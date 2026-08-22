@@ -2099,16 +2099,22 @@ function requiredWallMountFor(item) {
 //  … siehe 4711 187 - 190", i.e. the plate needs anchors too. Plate, then anchors.
 // ============================================================================
 const KLAPP_PICK_NONE = '';                      // the forced-pick sentinel
-const KLAPP_KINDS = ['plate', 'fix'];
+const KLAPP_KINDS = ['plate', 'fix', 'opt'];
 
 // What a picked accessory still needs, or null when it needs nothing.
 function klappFixingPlan(item) {
     if (!item) return null;
     const plates = Array.isArray(item.plateOptions) ? item.plateOptions : [];
     const fixings = Array.isArray(item.fixingOptions) ? item.fixingOptions : [];
+    // OPTIONAL is not the forced pick. A Keuco Duschhandlauf ships "Set Nr. 1"; these are
+    // alternative sets for a substrate it will not hold in. The row defaults to the
+    // supplied set and adds NO SAP line until switched — forcing a pick would order a
+    // second fixing set for a rail that already has one.
+    const optional = Array.isArray(item.fixingOptional) ? item.fixingOptional : [];
+    const supplied = item.fixingSupplied || '';
     const missing = Boolean(item.fixingMissing);
-    if (!plates.length && !fixings.length && !missing) return null;
-    return { plates, fixings, missing };
+    if (!plates.length && !fixings.length && !optional.length && !missing) return null;
+    return { plates, fixings, optional, supplied, missing };
 }
 
 // The pick lives per ART-NR and per kind. Reji's call: every row asks separately, with
@@ -2140,12 +2146,20 @@ const klappArticle = (artNr) => {
     return pool.find(t => t && t.artNr === artNr) || null;
 };
 
-// One `<tr>` for a forced-pick row. `kind` is 'plate' or 'fix'.
-function klappFixingRowHTML(app, item, kind, options) {
+// One `<tr>` for a fixing row. `kind` is 'plate', 'fix' or 'opt'.
+// ⚠ It must NOT carry the `inline-bom-select` class, however much it looks the part.
+// Three factories bind their OWN `change` handler to every `.inline-bom-select` in the
+// BOM and read it as a mounting-material pick; with that class the handler fired on this
+// select too and wiped `selectedAddonAccessoires` — the accessory and its fixing row both
+// vanished on the first choice. The styling here is inline, so the class bought nothing.
+function klappFixingRowHTML(app, item, kind, options, supplied) {
     const picked = klappPick(app, item.artNr, kind);
     const art = picked ? klappArticle(picked) : null;
+    const optionalRow = kind === 'opt';
     const title = kind === 'plate' ? 'Montageplatte' : 'Befestigungsmaterial';
-    const prompt = kind === 'plate' ? '— Montageplatte wählen —' : '— Befestigung wählen —';
+    const prompt = kind === 'plate' ? '— Montageplatte wählen —'
+        : optionalRow ? (supplied || 'mitgeliefert')
+        : '— Befestigung wählen —';
     const opts = [`<option value="">${prompt}</option>`].concat(options.map(a => {
         const o = klappArticle(a);
         // The wall is what the user is actually choosing, so it leads the option text.
@@ -2154,16 +2168,17 @@ function klappFixingRowHTML(app, item, kind, options) {
         return `<option value="${_accEsc(a)}"${a === picked ? ' selected' : ''}>${_accEsc(lbl)}</option>`;
     })).join('');
     const img = art && isRealImg(art.imgUrl) ? `<img src="${_accEsc(art.imgUrl)}">` : '';
-    // Unpicked rows are flagged, and carry no art-Nr and no Menge — `isOhneCode`
-    // keeps them out of the SAP clipboard exactly like an "Ohne …" row.
-    const warn = picked ? '' : ' style="background: rgba(255,166,0,0.07);"';
+    // An unpicked FORCED row is flagged and carries no art-Nr and no Menge — it stays out
+    // of the SAP clipboard exactly like an "Ohne …" row. An optional row at its default is
+    // not a problem to flag: the article already ships what it needs.
+    const warn = (picked || optionalRow) ? '' : ' style="background: rgba(255,166,0,0.07);"';
     return `
         <tr${warn} data-klappfix="${_accEsc(item.artNr)}" data-klappkind="${kind}">
             <td><div class="img-cell" ${img ? '' : 'style="background: transparent; border: 1px dashed var(--border);"'}>${img || '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.4;"></i>'}</div></td>
             <td><span class="bom-code">${picked ? _accEsc(picked) : '—'}</span></td>
             <td>
-                <select class="inline-bom-select klapp-fix-select" data-klappfix="${_accEsc(item.artNr)}" data-klappkind="${kind}" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.9rem; font-family: inherit; font-weight: 500; cursor: pointer; outline: none;">${opts}</select>
-                <div style="font-size: 0.8rem; color: ${picked ? '#9e9e9e' : 'var(--accent)'}; margin-top: 0.25rem;">${title}${picked ? '' : ' — Auswahl erforderlich'}</div>
+                <select class="klapp-fix-select" data-klappfix="${_accEsc(item.artNr)}" data-klappkind="${kind}" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.9rem; font-family: inherit; font-weight: 500; cursor: pointer; outline: none;">${opts}</select>
+                <div style="font-size: 0.8rem; color: ${(picked || optionalRow) ? '#9e9e9e' : 'var(--accent)'}; margin-top: 0.25rem;">${title}${picked ? '' : (optionalRow ? ' — mitgeliefert, Alternative wählbar' : ' — Auswahl erforderlich')}</div>
             </td>
             ${picked ? bomQtyCell(1) : '<td><strong>—</strong></td>'}
         </tr>`;
@@ -2190,6 +2205,7 @@ function klappFixingRowsHTML(app, item) {
     if (plan.plates.length) html += klappFixingRowHTML(app, item, 'plate', plan.plates);
     if (plan.fixings.length) html += klappFixingRowHTML(app, item, 'fix', plan.fixings);
     else if (plan.missing) html += klappFixingWarnRowHTML(item);
+    if (plan.optional.length) html += klappFixingRowHTML(app, item, 'opt', plan.optional, plan.supplied);
     return html;
 }
 

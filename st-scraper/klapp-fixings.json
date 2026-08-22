@@ -528,6 +528,16 @@
       "label": "Befestigungsmaterial Hewi, für Leichtbauwände mit Hinterfütterung, 2",
       "image": "/multimedia/Web/PS1/04711292.png",
       "unit": "ST"
+    },
+    "4171 442.000.000": {
+      "label": "Befestigungsset Nr. 4 Keuco Axess, Bestehend aus, 3 x Halbrund",
+      "image": "/multimedia/Web/PS1/04171442_000_000.png",
+      "unit": "ST"
+    },
+    "4171 444.000.000": {
+      "label": "Befestigungsset Nr. 7 Keuco Axess, Bestehend aus, 3 x Zylinderschraube mit",
+      "image": "/multimedia/Web/PS1/04171444_000_000.png",
+      "unit": "ST"
     }
   },
   "plates": {
@@ -616,5 +626,35 @@
       "4721 798.000.000"
     ]
   },
-  "_rueckenstuetze": "Rückenstütze: 24 bases queried. 7 need anchors, 10 ship the material included, 7 say nothing and SAP names nothing (no row). ⚠ Their Zubehör group carries 30 KLAPPGRIFF entries — the grab bars the back-rest fits. That is the partner-reference trap, filtered out by the same identity-prefix rule; offering a Klappgriff as a screw option would be nonsense."
+  "_rueckenstuetze": "Rückenstütze: 24 bases queried. 7 need anchors, 10 ship the material included, 7 say nothing and SAP names nothing (no row). ⚠ Their Zubehör group carries 30 KLAPPGRIFF entries — the grab bars the back-rest fits. That is the partner-reference trap, filtered out by the same identity-prefix rule; offering a Klappgriff as a screw option would be nonsense.",
+  "_optional": "`optionalFixings` is NOT the forced pick. The article already ships its Befestigungsmaterial; these are alternative sets for a different substrate. The row defaults to `suppliedNote` and adds no SAP line until the user switches — forcing a pick here would order a second set for every rail.",
+  "optionalFixings": [
+    {
+      "bases": [
+        "4171413",
+        "4171414",
+        "4171415",
+        "4171416",
+        "4171418",
+        "4171419",
+        "4171420",
+        "4171424",
+        "4171425",
+        "4171426",
+        "4171427",
+        "4171428",
+        "4171429",
+        "4171430",
+        "4171431",
+        "4171432",
+        "4171433",
+        "4171434"
+      ],
+      "suppliedNote": "Set Nr. 1 (mitgeliefert)",
+      "options": [
+        "4171 442.000.000",
+        "4171 444.000.000"
+      ]
+    }
+  ]
 }
