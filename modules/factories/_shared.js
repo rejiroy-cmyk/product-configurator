@@ -2075,6 +2075,162 @@ function requiredWallMountFor(item) {
 }
 
 // ============================================================================
+//  A Klappgriff is delivered WITHOUT its anchors — and the anchor is the WALL
+//
+//  "Klappgriff Hewi 801, A 60 cm, ohne Befestigungsmaterial, Zubehör:
+//  Befestigungsmaterial" — SAP offers five, and they differ by what you are drilling
+//  into (Beton · Leichtbeton/Lochziegel · Leichtbauwand · Hohlblockstein ·
+//  Vorwandmontage). That is a decision only the installer can make, so it is a forced
+//  pick, never a default: 312 of the 353 Klapp* SKUs get one.
+//
+//  ⚠ EVERY MANUFACTURER SHIPS ITS OWN (Reji, 2026-08-22). A Hewi Klappgriff takes
+//  4711 179/180/187/189/190, a Nosag one 4721 187/188 — no overlap. The options are
+//  therefore stored PER ARTICLE (`fixingOptions` / `plateOptions`, written by
+//  st-scraper/inject-klapp-fixings.cjs from SAP's own `additionalMaterials`), never
+//  derived from a Befestigungsmaterial family filtered by brand. A brand filter is
+//  exactly what would eventually put a Hewi anchor under a Nosag bar.
+//
+//  SCOPE is Klappgriff / Stützklappgriff / Klappsitz only. Haltegriff, Winkelgriff
+//  and Eckhaltegriff ship WITH their material, and SAP agrees — a Haltegriff Hewi 801
+//  names no additionalMaterials at all. An Einhängesitz hangs on a Winkelgriff.
+//
+//  THE MONTAGEPLATTE ROW COMES FIRST. It is a different part, not an alternative to
+//  the anchors — and the plate's own text says "ohne Befestigungsmaterial, Zubehör:
+//  … siehe 4711 187 - 190", i.e. the plate needs anchors too. Plate, then anchors.
+// ============================================================================
+const KLAPP_PICK_NONE = '';                      // the forced-pick sentinel
+const KLAPP_KINDS = ['plate', 'fix'];
+
+// What a picked accessory still needs, or null when it needs nothing.
+function klappFixingPlan(item) {
+    if (!item) return null;
+    const plates = Array.isArray(item.plateOptions) ? item.plateOptions : [];
+    const fixings = Array.isArray(item.fixingOptions) ? item.fixingOptions : [];
+    const missing = Boolean(item.fixingMissing);
+    if (!plates.length && !fixings.length && !missing) return null;
+    return { plates, fixings, missing };
+}
+
+// The pick lives per ART-NR and per kind. Reji's call: every row asks separately, with
+// no memory across rows — one Stückliste can span two walls, and a remembered answer
+// would quietly order the wrong anchor for the second bar.
+const klappPick = (app, artNr, kind) => {
+    const store = (app && app.klappPick) || {};
+    const entry = store[artNr] || {};
+    return entry[kind] || KLAPP_PICK_NONE;
+};
+const setKlappPick = (app, artNr, kind, value) => {
+    if (!app) return;
+    if (!app.klappPick) app.klappPick = {};
+    if (!app.klappPick[artNr]) app.klappPick[artNr] = {};
+    app.klappPick[artNr][kind] = value || KLAPP_PICK_NONE;
+};
+// The pick must not outlive the accessory — re-ticking a Klappgriff an hour later
+// must ask again, exactly as `clearAccQty` exists for the quantity.
+const clearKlappPick = (app, artNr) => {
+    if (!app || !app.klappPick) return;
+    if (artNr === undefined) { app.klappPick = {}; return; }
+    delete app.klappPick[artNr];
+};
+
+// Resolve an option art-Nr to its pool article (they are injected into zubehoer_pool).
+const klappArticle = (artNr) => {
+    const pool = (window.productApps && window.productApps.zubehoer_pool
+        && window.productApps.zubehoer_pool.trays) || [];
+    return pool.find(t => t && t.artNr === artNr) || null;
+};
+
+// One `<tr>` for a forced-pick row. `kind` is 'plate' or 'fix'.
+function klappFixingRowHTML(app, item, kind, options) {
+    const picked = klappPick(app, item.artNr, kind);
+    const art = picked ? klappArticle(picked) : null;
+    const title = kind === 'plate' ? 'Montageplatte' : 'Befestigungsmaterial';
+    const prompt = kind === 'plate' ? '— Montageplatte wählen —' : '— Befestigung wählen —';
+    const opts = [`<option value="">${prompt}</option>`].concat(options.map(a => {
+        const o = klappArticle(a);
+        // The wall is what the user is actually choosing, so it leads the option text.
+        const wall = o && o.size && o.size !== 'Standard' ? `${o.size} — ` : '';
+        const lbl = o ? `${wall}${fullLabel(o)} (${a})` : a;
+        return `<option value="${_accEsc(a)}"${a === picked ? ' selected' : ''}>${_accEsc(lbl)}</option>`;
+    })).join('');
+    const img = art && isRealImg(art.imgUrl) ? `<img src="${_accEsc(art.imgUrl)}">` : '';
+    // Unpicked rows are flagged, and carry no art-Nr and no Menge — `isOhneCode`
+    // keeps them out of the SAP clipboard exactly like an "Ohne …" row.
+    const warn = picked ? '' : ' style="background: rgba(255,166,0,0.07);"';
+    return `
+        <tr${warn} data-klappfix="${_accEsc(item.artNr)}" data-klappkind="${kind}">
+            <td><div class="img-cell" ${img ? '' : 'style="background: transparent; border: 1px dashed var(--border);"'}>${img || '<i class="ri-settings-3-line" style="font-size:1.2rem;opacity:0.4;"></i>'}</div></td>
+            <td><span class="bom-code">${picked ? _accEsc(picked) : '—'}</span></td>
+            <td>
+                <select class="inline-bom-select klapp-fix-select" data-klappfix="${_accEsc(item.artNr)}" data-klappkind="${kind}" style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.9rem; font-family: inherit; font-weight: 500; cursor: pointer; outline: none;">${opts}</select>
+                <div style="font-size: 0.8rem; color: ${picked ? '#9e9e9e' : 'var(--accent)'}; margin-top: 0.25rem;">${title}${picked ? '' : ' — Auswahl erforderlich'}</div>
+            </td>
+            ${picked ? bomQtyCell(1) : '<td><strong>—</strong></td>'}
+        </tr>`;
+}
+
+// A grab bar that states "ohne Befestigungsmaterial" and for which SAP names nothing.
+// Six Nosag Verso Care articles. REPORTED, never guessed — inventing an anchor puts a
+// wrong part into a real order, the same rule the Einbaukörper row follows.
+function klappFixingWarnRowHTML(item) {
+    return `
+        <tr style="background: rgba(255,166,0,0.07);">
+            <td><div class="img-cell" style="background: transparent; border: 1px dashed var(--border);"><i class="ri-alert-line" style="font-size:1.2rem;opacity:0.5;"></i></div></td>
+            <td><span class="bom-code">—</span></td>
+            <td><div class="bom-desc">${_accEsc(fullLabel(item))} wird ohne Befestigungsmaterial geliefert, und im Katalog ist keines dazu erfasst — bitte manuell ergänzen.</div></td>
+            <td><strong>—</strong></td>
+        </tr>`;
+}
+
+// Every row a picked accessory still needs, in order: Montageplatte, then anchors.
+function klappFixingRowsHTML(app, item) {
+    const plan = klappFixingPlan(item);
+    if (!plan) return '';
+    let html = '';
+    if (plan.plates.length) html += klappFixingRowHTML(app, item, 'plate', plan.plates);
+    if (plan.fixings.length) html += klappFixingRowHTML(app, item, 'fix', plan.fixings);
+    else if (plan.missing) html += klappFixingWarnRowHTML(item);
+    return html;
+}
+
+// The SAP lines a picked accessory contributes beyond itself. An unpicked row
+// contributes nothing — that is what "forced pick" has to mean at the export, or the
+// Stückliste would ship a grab bar with no anchors and no error anywhere.
+function klappFixingSapLines(app, item) {
+    const plan = klappFixingPlan(item);
+    if (!plan) return [];
+    const out = [];
+    KLAPP_KINDS.forEach(kind => {
+        const picked = klappPick(app, item.artNr, kind);
+        if (picked) out.push({ artNr: picked, menge: 1 });
+    });
+    return out;
+}
+
+// ONE delegated listener for every configurator's fixing dropdowns. The BOM tbody has
+// its innerHTML replaced on each render, so anything bound to a `<select>` dies at
+// once. Keyed on `window`, never a module-level `let` — this module is evaluated more
+// than once under Vite's ?v= / ?t= URLs and each instance would install its own.
+function installKlappFixDelegate() {
+    // Same two guards as installAccQtyDelegate: the tests import this module with a
+    // hand-rolled DOM mock that has no addEventListener, and the `window` key is what
+    // survives this module being evaluated once per Vite ?v=/?t= URL.
+    if (typeof document === 'undefined' || !document.addEventListener) return;
+    if (typeof window === 'undefined' || window.__klappFixDelegateInstalled) return;
+    window.__klappFixDelegateInstalled = true;
+    document.addEventListener('change', (e) => {
+        const sel = e.target && e.target.closest && e.target.closest('.klapp-fix-select');
+        if (!sel) return;
+        const app = window.currentActiveApp;
+        if (!app) return;
+        setKlappPick(app, sel.dataset.klappfix, sel.dataset.klappkind, sel.value);
+        if (typeof app.updateBOM === 'function') app.updateBOM();
+        if (typeof app.updatePreview === 'function') app.updatePreview();
+    });
+}
+installKlappFixDelegate();
+
+// ============================================================================
 //  A part sold FOR one body leaves with it
 //
 //  "Befestigungsset Gessi, zu Einbaukörper 6252 859, 6252 891" only has a purpose
@@ -2138,4 +2294,6 @@ function bomExtraRowHTML(item, note) {
 export { hasSapQty, multiplySapQty, SAP_QTY_LINE, COPY_FACTOR_MAX,
     accQty, setAccQty, clearAccQty, bomQtyCell, bomQtyInline, rowMenge, ACC_QTY_MAX,
     isOhneCode, isOhneOption,
-    matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, accessoryKategorie, cleanSerie, galleryGridHTML, renderGalleryGrid, galleryBackButton, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs, artFinishCode, accFamilyOf, accCandidates, accSkuInColour, accGroupChoice, accTierNote, isGarniturSet, garniturCovers, garniturHasRail, isSystemPart, isGarniturGroupName, threadOf, packUnits, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, findArticleByBase, requiredBodyFor, requiredArmFor, bodyRefsFor, bodyPresentFor, bomExtraRowHTML, findPanelSku, requiredPanelFor, PANEL_COLOUR, withoutPartnerRefs, isWaschtischKombination, KOMBI_LABEL, requiredWallMountFor, WALL_MOUNT_BY_BASE };
+    matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, getPrice, formatCHF, PRICE_NA, priceBOM, productText, renderAccessoiresPanel, accessoryFacetBar, accessoryHersteller, accessorySerie, accessoryKategorie, cleanSerie, galleryGridHTML, renderGalleryGrid, galleryBackButton, SHOWER_STD, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, differentiatingChips, productAttrs, artFinishCode, accFamilyOf, accCandidates, accSkuInColour, accGroupChoice, accTierNote, isGarniturSet, garniturCovers, garniturHasRail, isSystemPart, isGarniturGroupName, threadOf, packUnits, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, findArticleByBase, requiredBodyFor, requiredArmFor, bodyRefsFor, bodyPresentFor, bomExtraRowHTML, findPanelSku, requiredPanelFor, PANEL_COLOUR, withoutPartnerRefs, isWaschtischKombination, KOMBI_LABEL, requiredWallMountFor, WALL_MOUNT_BY_BASE,
+    klappFixingPlan, klappFixingRowsHTML, klappFixingSapLines, klappPick, setKlappPick,
+    clearKlappPick, installKlappFixDelegate };

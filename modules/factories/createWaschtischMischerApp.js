@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, fullLabel, renderGalleryGrid, galleryBackButton, cleanSerie, accQty, bomQtyCell, isOhneOption } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, renderAccessoiresPanel, fullLabel, renderGalleryGrid, galleryBackButton, cleanSerie, accQty, bomQtyCell, isOhneOption, klappFixingRowsHTML, clearKlappPick} from './_shared.js';
 
 export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {}) {
     const suffix = title.replace(/\s/g, '');
@@ -851,6 +851,7 @@ export function createWaschtischMischerApp(title, desc, mainImgUrl, config = {})
                             <td><div class="bom-desc">${fullLabel(acc)}</div><div style="font-size:0.8rem;color:#9e9e9e;margin-top:0.25rem;">${acc.productType || 'Accessoire'}</div></td>
                             ${bomQtyCell(accMenge, acc.artNr)}
                         </tr>
+                        ${klappFixingRowsHTML(this, acc)}
                     `;
                     count += accMenge;
                 });

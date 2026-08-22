@@ -10,12 +10,12 @@
     "speculative": false
   },
   {
-    "src": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/0${railImgNum}.png",
+    "src": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01461001_000_000.png",
     "why": "HTTP 404",
     "speculative": false
   },
   {
-    "src": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/01461001_000_000.png",
+    "src": "https://profishop.sanitastroesch.ch/multimedia/Web/PG1/0${railImgNum}.png",
     "why": "HTTP 404",
     "speculative": false
   }

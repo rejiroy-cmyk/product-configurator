@@ -1,7 +1,7 @@
 // The Urinoir BOM order lives with its rules, not here — a second copy of the chain is
 // how these drift. createMixAndMatchApp imports the Klosett article table for the same reason.
 import { urinoirBomBucket, URINOIR_CERAMIC } from '../rules/linkUrinoirElement.js';
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, fullLabel, accessoryFacetBar, renderGalleryGrid, cleanSerie, accQty, bomQtyCell, clearAccQty, rowMenge, isOhneCode, isOhneOption } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, fullLabel, accessoryFacetBar, renderGalleryGrid, cleanSerie, accQty, bomQtyCell, clearAccQty, rowMenge, isOhneCode, isOhneOption, klappFixingRowsHTML, clearKlappPick} from './_shared.js';
 
 // An opt-out sentinel ("ohne_wandbedienpanel", "none") rather than a real art-Nr.
 // Such a row is shown so the dropdown stays reachable, but it must not display a
@@ -1585,6 +1585,7 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                         finalBOM.push({
                             artNr: accObj.artNr,
                             label: accObj.label,
+                            accObj,
                             typ: 'Accessoire',
                             menge: accQty(this, accObj),
                             img: accObj.imgUrl,
@@ -1682,6 +1683,19 @@ export function createWCApp(title, desc, mainImgUrl, config = {}) {
                           : bomQtyCell(item.menge, item.typ === 'Accessoire' ? item.artNr : null)}
                     `;
                 bomTableBody.appendChild(row);
+
+                // A Klappgriff / Klappsitz is delivered WITHOUT its anchors, and the
+                // anchor depends on the wall — a forced pick, Montageplatte row first.
+                // See klappFixingRowsHTML in _shared.js.
+                if (item.typ === 'Accessoire') {
+                    const src = item.accObj || null;
+                    const extra = src ? klappFixingRowsHTML(this, src) : '';
+                    if (extra) {
+                        const holder = document.createElement('tbody');
+                        holder.innerHTML = extra;
+                        while (holder.firstElementChild) bomTableBody.appendChild(holder.firstElementChild);
+                    }
+                }
 
                 if (item.isInlineDropdown) {
                     const selectEl = row.querySelector('.inline-bom-select');

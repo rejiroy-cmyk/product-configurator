@@ -233,6 +233,82 @@ check('a frame spec is not a line name', serie('Hewi', 'Duschhocker Hewi, Gestel
 check('CWS Stainless Steel still wins over the noise list',
     serie('CWS', 'Papierhandtuchspender CWS Stainless Steel, Füllmenge 600 Blatt') === 'Stainless Steel');
 
+
+// ============================== 6. KLAPPGRIFF MOUNTING MATERIAL =============
+// A Klappgriff is delivered WITHOUT its anchors, and which anchor fits depends on the
+// WALL. Every manufacturer ships its own (Reji), so the options are stored PER ARTICLE
+// from SAP's additionalMaterials — never derived from a Befestigungsmaterial family
+// filtered by brand, which is what would eventually put a Hewi anchor under a Nosag bar.
+console.log('\n--- 6. Klappgriff / Klappsitz mounting material ---\n');
+
+const fixTrays = pool.filter(t => t && typeof t.id === 'string' && t.id.startsWith('klappfix_'));
+check(`the fixing and plate SKUs are in the pool (${fixTrays.length})`, fixTrays.length === 41,
+    `expected 41 from inject-klapp-fixings.cjs, found ${fixTrays.length}`);
+
+const anchors = fixTrays.filter(t => t.productType === 'Befestigungsmaterial');
+const platesT = fixTrays.filter(t => t.productType === 'Montageplatte');
+check(`28 anchors and 13 plates`, anchors.length === 28 && platesT.length === 13,
+    `${anchors.length} anchors / ${platesT.length} plates`);
+
+// NEVER a vendor URL: the app makes no requests to profishop at render time.
+const fixRemote = fixTrays.filter(t => /^https?:/i.test(t.imgUrl || ''));
+check('no fixing tray loads its image from the vendor', fixRemote.length === 0,
+    fixRemote.slice(0, 4).map(t => `${t.artNr}  ${t.imgUrl}`).join('\n     '));
+
+// The wall is what the dropdown asks, so every anchor has to name one.
+const noWall = anchors.filter(t => !t.size || t.size === 'Standard');
+check('every anchor names the wall it is for', noWall.length === 0,
+    noWall.slice(0, 4).map(t => `${t.artNr}  ${t.label.slice(0, 60)}`).join('\n     '));
+
+// The per-article mapping, and the brand rule it exists for.
+const KLAPP = ['Klappgriff', 'Stützklappgriff', 'Duschklappsitz'];
+const klapp = pool.filter(t => t && KLAPP.includes(t.productType));
+const withFix = klapp.filter(t => Array.isArray(t.fixingOptions) && t.fixingOptions.length);
+check(`Klapp* articles carry their own fixing list (${withFix.length})`, withFix.length >= 300,
+    `only ${withFix.length} — inject-klapp-fixings.cjs has not run, or was reverted`);
+
+const brandOfArt = a => String(a).slice(0, 4);
+const crossBrand = withFix.filter(t => {
+    const own = brandOfArt(t.artNr);
+    // Hewi bars are 4711/4211, Nosag 4721/4722, Keuco 4171 — an anchor from a different
+    // 4-digit family than every sibling option is the failure this rule guards against.
+    const fams = new Set(t.fixingOptions.map(brandOfArt));
+    return fams.size > 1 && !fams.has(own);
+});
+check('no article offers anchors from an unrelated brand family', crossBrand.length === 0,
+    crossBrand.slice(0, 4).map(t => `${t.artNr} -> ${t.fixingOptions.join(', ')}`).join('\n     '));
+
+// Every referenced option must resolve, or the dropdown offers an art-Nr that is not orderable.
+const poolArts = new Set(pool.map(t => t && t.artNr).filter(Boolean));
+const dangling = [];
+klapp.forEach(t => [...(t.fixingOptions || []), ...(t.plateOptions || [])]
+    .forEach(a => { if (!poolArts.has(a)) dangling.push(`${t.artNr} -> ${a}`); }));
+check('every offered fixing resolves to a real pool article', dangling.length === 0,
+    dangling.slice(0, 5).join('\n     '));
+
+// Scope: the families that ship WITH their material must carry no list at all.
+const OUT_OF_SCOPE = ['Haltegriff', 'Winkelgriff', 'Eckhaltegriff', 'Duschsitz'];
+const wrongScope = pool.filter(t => t && OUT_OF_SCOPE.includes(t.productType)
+    && ((t.fixingOptions || []).length || (t.plateOptions || []).length));
+check('Haltegriff / Winkelgriff / Eckhaltegriff / Duschsitz carry no fixing list',
+    wrongScope.length === 0,
+    'they ship with their own mounting material — a dropdown there orders a second set');
+
+// The forced pick has to reach the export as "nothing" until it is made.
+const sharedSrc = read('modules/factories/_shared.js');
+check('an unpicked fixing row contributes no SAP line',
+    /function klappFixingSapLines[\s\S]{0,400}if \(picked\) out\.push/.test(sharedSrc),
+    'klappFixingSapLines must skip an unpicked row, or the export ships a bar with no anchors');
+check('the fixing dropdown is wired through ONE delegated listener',
+    /window\.__klappFixDelegateInstalled/.test(sharedSrc),
+    'a module-level guard is per-instance under Vite ?v=/?t= URLs and installs several listeners');
+check('the Montageplatte row is rendered before the anchors row',
+    /if \(plan\.plates\.length\)[\s\S]{0,120}if \(plan\.fixings\.length\)/.test(sharedSrc),
+    'the plate itself needs anchors, so it comes first');
+check('a pick is cleared when the accessory is de-selected',
+    /const clearKlappPick/.test(sharedSrc),
+    're-ticking a Klappgriff must ask again, not restore an hour-old wall type');
+
 // ============================================================================
 console.log('\n' + '='.repeat(60));
 console.log(`Ergebnis: ${passed} bestanden, ${failed} fehlgeschlagen`);

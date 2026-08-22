@@ -1,4 +1,4 @@
-import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, productText, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, cleanSerie, artFinishCode, accFamilyOf, accSkuInColour, accGroupChoice, accTierNote, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, isGarniturGroupName, requiredBodyFor, requiredArmFor, bodyPresentFor, bomExtraRowHTML, accQty, bomQtyCell } from './_shared.js';
+import { matchesSearchQuery, configSidebar, bomTableBody, bomCountCounter, getVariantColor, isRealImg, imgOf, applyPillUI, Ae, re, me, ke, Be, X, priceBOM, productText, renderAccessoiresPanel, needsShowerAccessories, ensureShowerGroups, outletCount, isShowerSystem, fullLabel, cleanSerie, artFinishCode, accFamilyOf, accSkuInColour, accGroupChoice, accTierNote, brausegarniturPlan, ACC_BUNDLED_BY_GARNITUR, isGarniturGroupName, requiredBodyFor, requiredArmFor, bodyPresentFor, bomExtraRowHTML, accQty, bomQtyCell, klappFixingRowsHTML, clearKlappPick} from './_shared.js';
 import { COLOR_NAMES } from './_colorCodes.js';
 
 export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
@@ -1077,6 +1077,7 @@ export function createDuschenmischerApp(title, desc, mainImgUrl, config = {}) {
 
                             ${bomQtyCell(q, acc.artNr)}
                         </tr>
+                        ${klappFixingRowsHTML(this, acc)}
                     `;
                 });
             }
