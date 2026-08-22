@@ -28,7 +28,7 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   See "Remote access" below. `--off` stops it, `--status` shows current state.
 - `node scripts/build-offline-assets.mjs` — regenerates `assets/offline-fonts.css`.
   Only needed when you add a new `ri-*` icon or change fonts; see "Offline assets".
-- `npm test` — runs **18 suites, 687 assertions**: `verify-duschtrennwand` (38),
+- `npm test` — runs **18 suites, 689 assertions**: `verify-duschtrennwand` (38),
   `verify-all-apps` (16), `verify-shower-rules` (10), `verify-servicepaket` (7),
   `verify-fulltext-rule` (87), `verify-product-display` (37),
   `verify-no-kitchen-in-waschtischmischer` (4), `verify-scraper-maktx2` (7),
@@ -36,7 +36,7 @@ partition, *Stückliste* = BOM, *Zubehör* = accessories.
   `verify-copy-multiplier` (21), `verify-accessory-quantity` (81),
   `verify-data-intern` (14), `verify-offline-fonts` (9),
   `verify-installation-rules` (45), `verify-urinoir-rules` (77),
-  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (75). Plain Node with
+  `verify-ohne-never-copied` (39), `verify-accessibility-routing` (77). Plain Node with
   hand-rolled DOM mocks — no jsdom, no test runner. (`tests/verify-pricing.mjs` is the
   one jsdom test and is NOT in the chain; neither are the `test_*.cjs` scratch files.)
   **Run this after any change to `modules/factories/`.**
@@ -295,7 +295,18 @@ walls, and a remembered answer silently orders the wrong anchor for the second b
   from a `Befestigungsmaterial` family filtered by brand: that is what eventually puts a
   Hewi anchor under a Nosag bar. A test fails if any article offers anchors from an
   unrelated 4-digit family.
-- **Scope is Klappgriff / Stützklappgriff / Klappsitz ONLY.** Haltegriff, Winkelgriff and
+- **A Rückenstütze mounts either on a Klappgriff or to the wall.** 7 of its 24 bases say
+  "ohne Befestigungsmaterial" (13 SKUs); 10 ship it included, 7 state nothing. SAP named
+  **six anchors that existed nowhere in the data** — `4711 178/185/186` (1-teilig, for the
+  back-rests that mount on a Klappgriff) and `4711 290/291/292` (2-teilig; 290 says *"zu
+  Rückenstütze"* outright). The four Hewi 801/805 bases offer both sets per wall — SAP's
+  own list, and a real choice; the piece count is in each option's text.
+- **⚠ THE PARTNER-REFERENCE TRAP, and this family walks into it.** A Rückenstütze's SAP
+  Zubehör group carries **30 Klappgriff entries** — the bars it fits, not its screws. The
+  identity-prefix filter drops them, and a test fails if any Rückenstütze ever offers a
+  non-`Befestigungsmaterial` as a fixing. Offering a CHF 500 grab bar where a CHF 45
+  anchor belongs is the failure mode.
+- **Scope is Klappgriff / Stützklappgriff / Klappsitz / Rückenstütze.** Haltegriff, Winkelgriff and
   Eckhaltegriff ship WITH their material — SAP agrees, a Haltegriff Hewi 801 names no
   `additionalMaterials` at all. An **Einhängesitz hangs on a Winkelgriff** and needs none.
   A test fails if any of those four families gains a fixing list.
