@@ -331,7 +331,12 @@ walls, and a remembered answer silently orders the wrong anchor for the second b
   The sharpest proof of the whole scope sits inside ONE Hewi series: of the 805 articles
   that say "ohne Befestigungsmaterial", **all 13 are Klappgriff** — its Haltegriff,
   Winkelgriff, Eckhaltegriff, Rückenstütze and Seitenwandgriff say nothing of the kind.
-  A test fails if any of those six families gains a fixing list.
+  An **Armlehne** is the clearest of the lot — one base, SAP names nothing, and the text
+  reads *"nachrüstbar zu Duschklappsitz Cavere, einhängbar"*: it hooks into a seat that
+  itself hangs on a bar. It also appears as an `additionalMaterial` OF that Klappsitz,
+  where the identity-prefix filter already refuses to offer it as a fixing — the guard
+  holds from both directions.
+  A test fails if any of those seven families gains a fixing list.
 - **The Montageplatte row comes FIRST**, and it is a different part, not an alternative:
   the plate's own text says "ohne Befestigungsmaterial, Zubehör: … siehe 4711 187 - 190".
   124 SKUs get both rows.

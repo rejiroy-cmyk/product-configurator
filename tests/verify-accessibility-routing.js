@@ -297,8 +297,13 @@ check('every offered fixing resolves to a real pool article', dangling.length ==
 // articles that say "ohne Befestigungsmaterial", all 13 are Klappgriff — its Haltegriff,
 // Winkelgriff, Eckhaltegriff, Rückenstütze and Seitenwandgriff say nothing of the kind.
 // No anchor anywhere in the data names a Seitenwandgriff.
+// Armlehne is the clearest of the lot: one base, 5 finishes, SAP names zero fixings and
+// the text reads "nachrüstbar zu Duschklappsitz Cavere, einhängbar". It hooks into a seat
+// that itself hangs on a bar — it never touches a wall. Note it also appears as an
+// additionalMaterial OF that Klappsitz, where the identity-prefix filter already refuses
+// to offer it as a fixing; the guard holds from both directions.
 const OUT_OF_SCOPE = ['Haltegriff', 'Winkelgriff', 'Eckhaltegriff', 'Duschsitz', 'Duschhocker',
-    'Seitenwandgriff'];
+    'Seitenwandgriff', 'Armlehne'];
 const wrongScope = pool.filter(t => t && OUT_OF_SCOPE.includes(t.productType)
     && ((t.fixingOptions || []).length || (t.plateOptions || []).length));
 check('the six families that need no fixing carry no fixing list',
