@@ -326,7 +326,12 @@ walls, and a remembered answer silently orders the wrong anchor for the second b
   A **Duschhocker stands on the floor**: all 21 bases were queried and SAP names zero
   fixings across the family, none says "ohne Befestigungsmaterial", and 19 describe a
   Gestell / Beine / höhenverstellbar — the only partner reference in the whole family is a
-  Sitzkissen. A test fails if any of those five families gains a fixing list.
+  Sitzkissen. A **Seitenwandgriff** likewise: 5 bases, zero fixings named, and only the
+  KWC one mentions material at all ("Befestigungsmaterial für Beton" — included).
+  The sharpest proof of the whole scope sits inside ONE Hewi series: of the 805 articles
+  that say "ohne Befestigungsmaterial", **all 13 are Klappgriff** — its Haltegriff,
+  Winkelgriff, Eckhaltegriff, Rückenstütze and Seitenwandgriff say nothing of the kind.
+  A test fails if any of those six families gains a fixing list.
 - **The Montageplatte row comes FIRST**, and it is a different part, not an alternative:
   the plate's own text says "ohne Befestigungsmaterial, Zubehör: … siehe 4711 187 - 190".
   124 SKUs get both rows.

@@ -291,10 +291,17 @@ check('every offered fixing resolves to a real pool article', dangling.length ==
 // SAP names ZERO fixings across the family, none says "ohne Befestigungsmaterial", and 19
 // describe a Gestell / Beine / höhenverstellbar. A stool stands on the floor. The only
 // partner reference in the whole family is a Sitzkissen.
-const OUT_OF_SCOPE = ['Haltegriff', 'Winkelgriff', 'Eckhaltegriff', 'Duschsitz', 'Duschhocker'];
+// Seitenwandgriff joins on the same evidence: all 5 bases queried, SAP names zero
+// fixings, and only the KWC one mentions material at all — "Befestigungsmaterial für
+// Beton", i.e. included. The sharpest proof is inside ONE Hewi series: of the 805
+// articles that say "ohne Befestigungsmaterial", all 13 are Klappgriff — its Haltegriff,
+// Winkelgriff, Eckhaltegriff, Rückenstütze and Seitenwandgriff say nothing of the kind.
+// No anchor anywhere in the data names a Seitenwandgriff.
+const OUT_OF_SCOPE = ['Haltegriff', 'Winkelgriff', 'Eckhaltegriff', 'Duschsitz', 'Duschhocker',
+    'Seitenwandgriff'];
 const wrongScope = pool.filter(t => t && OUT_OF_SCOPE.includes(t.productType)
     && ((t.fixingOptions || []).length || (t.plateOptions || []).length));
-check('Haltegriff / Winkelgriff / Eckhaltegriff / Duschsitz / Duschhocker carry no fixing list',
+check('the six families that need no fixing carry no fixing list',
     wrongScope.length === 0,
     'they ship with their own mounting material, hang on a bar, or stand on the floor — a dropdown there orders a part that does not exist for them');
 
